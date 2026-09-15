@@ -1,0 +1,21 @@
+[
+  {
+    "fixture": "track-0.2.0-early/quote-clean",
+    "what": "A Track evidence bundle recorded by a build before 6e7529b, which reworded the portable_identity stage note without changing the evaluator version. This bundle's recorded result therefore no longer matches a replay under 0.2.0, although every stage status and the verdict do. Tests use it to keep the documentation of historical replay true.",
+    "produced_by": "nandatown checked out at commit 7a6a00c (committed 24 August 2026), run on 14 September 2026",
+    "command": "nandatown run quote-clean",
+    "evaluator_version": "0.2.0",
+    "not": "This is a test fixture. It is not an adoption, an endorsement, or evidence that anyone outside this repository ran Town.",
+    "kept": "The five records and manifest.json, byte for byte. The generated report.md and private state/ directory the run also wrote are not kept."
+  },
+  {
+    "fixture": "track-0.2.0-early/quote-duplicate-delivery-failing",
+    "what": "A failing Track evidence bundle recorded by a build before f46edce, which began recording a stage that lacks evidence after a failed stage as not_tested instead of not_enough_evidence, without changing the evaluator version. Its duplicate_recognized stage therefore replays with a different status and note, while its verdict still replays as failed. Tests use it to keep the documentation of historical replay true.",
+    "produced_by": "nandatown checked out at commit 22b8984 (committed 25 August 2026), the parent of f46edce, run on 14 September 2026",
+    "command": "nandatown test-agent --profile quote-duplicate-delivery --role seller --cmd \"python wrong_total_seller.py\"",
+    "seller": "A deliberately faulty local seller: examples/byoa_seller.py as of 22b8984, changed to add one cent to every total and to acknowledge a duplicate delivery without the duplicate note. It ran as a disposable local process against the local Town only.",
+    "evaluator_version": "0.2.0",
+    "not": "This is a test fixture. It is not an adoption, an endorsement, or evidence that anyone outside this repository ran Town or this seller.",
+    "kept": "The five records and manifest.json, byte for byte. The generated report.md, the attestation.json this build writes, and the private state/ directory are not kept."
+  }
+]

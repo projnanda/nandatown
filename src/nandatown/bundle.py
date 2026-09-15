@@ -188,14 +188,22 @@ def load_bundle(directory: str) -> dict[str, Any]:
 # Every evaluator version main has recorded in bundles, per bundle mode.
 # Source: `git log -p -G'EVALUATOR_VERSION *=' -- src/` and the
 # quote-intent return in path_runner.path_evaluator_version, checked
-# against each first-parent commit of main: Track evaluator.py (d32d3e1);
-# Lab sim/validators.py (cb19e0e, 7af8084, d26ca5a, f4e85d7, 9f2e361,
+# against each first-parent commit of main: Track evaluator.py (d32d3e1,
+# which reached main in 6adfd18; 0.3.0 and 0.4.0 in #264 and #279); Lab
+# sim/validators.py (cb19e0e, 7af8084, d26ca5a, f4e85d7, 9f2e361,
 # 6a697f2, de57461); Path path_runner.py (5aab66a, 64ecb5f, 2209bbf,
-# d55b7e3). Receipts accept a bundle recorded by an earlier version
-# listed here without replaying it and refuse any other version. Add a
-# version here when it merges.
+# d55b7e3). Add a version here when it merges.
+#
+# This list matters only for a bundle this Town cannot replay. A bundle
+# whose recorded version it still has the rules for, which today means
+# every Track version, the current Lab evaluator and each Path profile
+# from path-0.2, is replayed, and verify, receipts and proof judge that
+# replay. A bundle naming a version listed here that this Town can no
+# longer replay, such as an older Lab evaluator or path-0.1, is accepted
+# for a receipt without replay, and the receipt says so; any other
+# version is refused.
 SHIPPED_EVALUATOR_VERSIONS: dict[str, frozenset[str]] = {
-    "track": frozenset({"0.2.0"}),
+    "track": frozenset({"0.2.0", "0.3.0", "0.4.0"}),
     "lab": frozenset({"lab-0.2.0", "lab-0.2.1", "lab-0.2.2", "lab-0.2.3",
                       "lab-0.2.4", "lab-0.2.5", "lab-0.2.6"}),
     "path": frozenset({"path-0.1", "path-0.2", "path-0.3",
@@ -245,9 +253,9 @@ def verify_bundle_integrity(
     cross-record bindings, unsupported or unrecognised evaluator, replay
     mismatch under the local evaluator, attestation) and, separately, the
     evaluator version difference that left replay unchecked when the
-    bundle names an earlier version shipped for its mode. Any other
-    version can be neither replayed nor recognised, so it is an
-    integrity problem."""
+    bundle names a version shipped for its mode that this Town cannot
+    replay. Any other version can be neither replayed nor recognised, so
+    it is an integrity problem."""
     integrity: list[str] = []
     differs: EvaluatorVersionDiffers | None = None
     for problem in verify_bundle(directory):

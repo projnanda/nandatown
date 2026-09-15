@@ -130,11 +130,15 @@ nandatown proof "$BUNDLE"
 not pass, evidence is stale, or verification fails. A refusal does not invalidate
 an honest signed partial receipt. Complete passing evidence can render the scoped
 badge; the signature proves key commitment, not agent safety or independent agreement.
-`receipt` and `verify-receipt --bundle` refuse a bundle that fails `verify`,
-with one exception: a bundle recorded by a known earlier evaluator version for
-its mode is accepted, and the receipt states `evaluator replay not checked`
-among its signed limitations, so the disclosure travels with the receipt.
-A bundle naming an unrecognised evaluator version is refused.
+`receipt` and `verify-receipt --bundle` refuse a bundle that fails `verify`.
+A bundle is replayed under the evaluator version it recorded whenever this Town
+still has that version, as it does for each Path profile from `path-0.2`; one
+whose recorded result no longer matches that replay, such as a Track `0.2.0`
+bundle recorded before `6e7529b`, is refused. One exception to refusal: a bundle naming a version this project shipped but this
+Town can no longer replay, such as `path-0.1`, is accepted, and the receipt
+states `evaluator replay not checked` among its signed limitations, so the
+disclosure travels with the receipt. A bundle naming an unrecognised evaluator
+version is refused.
 
 Review URLs, labels, events, receipts and attachments for secrets before sharing.
 Do not send `state/` or private keystores in a public handoff. Preserve the five

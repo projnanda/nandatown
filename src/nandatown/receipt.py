@@ -32,8 +32,9 @@ DEFAULT_LIMITATIONS = [
     "a favorable result grants no permissions and endorses nothing",
 ]
 
-# A receipt states this among its limitations when its bundle was accepted
-# on the strength of a known earlier evaluator version rather than replayed.
+# A receipt states this among its limitations when its bundle names an
+# evaluator version this project shipped but this Town cannot replay, and
+# so was accepted without replay.
 # Callers match on the prefix, so it stays stable.
 REPLAY_DISCLOSURE_PREFIX = "evaluator replay not checked: "
 
@@ -263,12 +264,15 @@ def bundle_receipt_check(bundle_dir: str) -> tuple[list[str], str | None]:
     """Whether a receipt may rest on this bundle.
 
     Returns the bundle's integrity problems, any one of which refuses a
-    receipt, and a disclosure for a bundle recorded by a known earlier
-    evaluator version (bundle.SHIPPED_EVALUATOR_VERSIONS for its mode):
-    its hashes, manifest, bindings and attestation were verified, but its
-    recorded result was not replayed. An unrecognised evaluator version is
-    an integrity problem. The disclosure is command output; the signed
-    receipt does not record it."""
+    receipt, and a disclosure for a bundle this Town cannot replay whose
+    evaluator version this project shipped
+    (bundle.SHIPPED_EVALUATOR_VERSIONS for its mode): its hashes,
+    manifest, bindings and attestation were verified, but its recorded
+    result was not replayed. A bundle whose version this Town can replay
+    gets no disclosure, because it was replayed, and a replay mismatch is
+    an integrity problem. An unrecognised evaluator version is an
+    integrity problem too. make_receipt signs the disclosure into the
+    receipt's limitations."""
     from .bundle import verify_bundle_integrity
 
     problems, differs = verify_bundle_integrity(bundle_dir)
@@ -300,10 +304,10 @@ def make_receipt(bundle_dir: str, keystore=None,
     """Sign a sanitized receipt over a bundle; returns its path.
 
     Raises ValueError, naming each problem, when the bundle fails
-    bundle_receipt_check. A bundle recorded by a known earlier evaluator
-    version is accepted without replay, and the receipt states that among
-    its signed limitations, so the disclosure travels with the receipt to
-    a reader who does not have the bundle."""
+    bundle_receipt_check. A bundle naming a shipped evaluator version this
+    Town cannot replay is accepted without replay, and the receipt states
+    that among its signed limitations, so the disclosure travels with the
+    receipt to a reader who does not have the bundle."""
     from .bundle import load_bundle
     from .identity_portable import (
         OPERATOR_NAME,
@@ -364,9 +368,9 @@ def verify_receipt(receipt_path: str,
     verifies (which still proves commitment, not truth). With a bundle,
     the bundle must also pass bundle_receipt_check and match every
     receipt claim. An empty result means the receipt verifies, not that
-    the result was replayed; a receipt over a bundle recorded by a known
-    earlier evaluator version states that among its limitations, and
-    replay_disclosures reads it back.
+    the result was replayed; a receipt over a bundle this Town could not
+    replay states that among its limitations, and replay_disclosures reads
+    it back.
 
     Limitations are not compared with the bundle. They record what was
     true when the receipt was signed, and a later Town upgrade must not

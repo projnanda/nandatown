@@ -91,6 +91,16 @@ profile; Track replays a recorded `0.2.0` or `0.3.0` result under the rules
 that produced it, alongside the current `0.4.0`. Any other evaluator version
 difference is reported explicitly; stored results are not silently upgraded.
 
+Replay is only as exact as the version label. Two early commits changed what
+Track `0.2.0` records without a new version: `6e7529b` reworded the
+`portable_identity` note, and `f46edce` began recording a stage that lacks
+evidence after a failed stage as `not_tested`, not reached, instead of
+`not_enough_evidence`. Every bundle from before the first, and each failing run
+from before the second in which such a stage followed the failure, report an
+evaluator replay mismatch although the verdict still agrees. Any change to what
+an evaluator records needs a new version, and each version's rules are kept, by
+that version, for as long as its bundles should replay.
+
 The root commits the five named record files only. Reports, receipts,
 attestations, viewer HTML and participant state are side artifacts. A receipt
 can be valid with partial coverage; the local TOWN-TESTED view additionally

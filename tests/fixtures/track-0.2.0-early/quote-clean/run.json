@@ -1,0 +1,55 @@
+{
+  "run_id": "run-19232e8d2fcc",
+  "profile_name": "quote-clean",
+  "profile_fingerprint": "sha256:87a8ada4df2b3b2dc28fded719700e2db02559d8ed4e1647ffaf221e577eaa39",
+  "created_at": 1789433245.2674382,
+  "participants": [
+    {
+      "name": "buyer",
+      "role": "buyer",
+      "capabilities": [],
+      "release": "nandatown.participants.buyer 0.2.0"
+    },
+    {
+      "name": "seller",
+      "role": "seller",
+      "capabilities": [
+        "quote.read"
+      ],
+      "release": "nandatown.participants.seller 0.2.0"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "0.2.0",
+    "python": "3.11.15"
+  },
+  "config": {
+    "port": 59423,
+    "restarted_seller": false,
+    "runtimes": {
+      "buyer": "scripted",
+      "seller": "scripted"
+    },
+    "skill_releases": [
+      {
+        "kind": "skill",
+        "name": "town-protocol",
+        "version": "1",
+        "content_fingerprint": "sha256:42d650f47b092ec90600dc0513c9399becc9956408162fcd629646bdafa1c42b"
+      },
+      {
+        "kind": "skill",
+        "name": "quote.read",
+        "version": "1",
+        "content_fingerprint": "sha256:c5f61b78cd6c1faa358ffa1d08d929d963c76a5e8cf5199521af4953e7d9de05"
+      },
+      {
+        "kind": "skill",
+        "name": "quote.request",
+        "version": "1",
+        "content_fingerprint": "sha256:eea11f02bb31c2d7929eaf37a249dd8c3e2b49500044b00e8b8e8e1d38e935a7"
+      }
+    ]
+  }
+}

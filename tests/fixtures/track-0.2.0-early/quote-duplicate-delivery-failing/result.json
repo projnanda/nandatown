@@ -1,0 +1,69 @@
+{
+  "run_id": "run-eb04824f32f3",
+  "evaluator_version": "0.2.0",
+  "stages": [
+    {
+      "name": "accepted",
+      "status": "passed",
+      "evidence": [
+        "ev-4"
+      ],
+      "note": ""
+    },
+    {
+      "name": "claimed",
+      "status": "passed",
+      "evidence": [
+        "ev-5"
+      ],
+      "note": ""
+    },
+    {
+      "name": "received",
+      "status": "passed",
+      "evidence": [
+        "ev-7"
+      ],
+      "note": ""
+    },
+    {
+      "name": "processed",
+      "status": "passed",
+      "evidence": [
+        "ev-7"
+      ],
+      "note": ""
+    },
+    {
+      "name": "response",
+      "status": "passed",
+      "evidence": [
+        "ev-6",
+        "ev-8"
+      ],
+      "note": ""
+    },
+    {
+      "name": "correct",
+      "status": "failed",
+      "evidence": [
+        "ev-9"
+      ],
+      "note": "buyer observed total 3991 against expected 3990"
+    },
+    {
+      "name": "duplicate_recognized",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "no duplicate offer recognized exactly once"
+    },
+    {
+      "name": "portable_identity",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "this run used short-lived join tokens; rerun with --identity for grant-based portable identity"
+    }
+  ],
+  "verdict": "failed",
+  "evaluated_at": 1789436518.720269
+}
