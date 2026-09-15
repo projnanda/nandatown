@@ -47,6 +47,7 @@ from .records import (
     canonical_json,
     fingerprint,
 )
+from .url_credentials import Scrubber, has_credentials, scrub
 
 PATH_EVALUATOR_VERSION = "path-0.2"
 STRICT_PATH_EVALUATOR_VERSION = "path-0.3"
@@ -258,24 +259,40 @@ STAGE_ORDER = ["resolution", "agent_card_retrieval",
 
 
 class _Recorder:
-    def __init__(self, run_id: str):
+    """Every observation and intent of a Path run, as recorded.
+
+    Recording is where URL credentials are labelled, so nothing that
+    reaches the bundle can carry them: not the subject, not a resolution
+    hop, and not an error message that quotes the URL. Only the locators
+    the operator supplied are registered, and only their exact credentials
+    are replaced, so what an agent itself says is recorded as it said it.
+    Evaluation reads these records too, so it judges exactly what a replay
+    will.
+    """
+
+    def __init__(self, run_id: str, scrubber: Scrubber | None = None):
         self.run_id = run_id
         self.events: list[TownEvent] = []
         self.intents: list[dict[str, Any]] = []
+        self.scrubber = scrubber or Scrubber()
+
+    def withhold_credentials_of(self, url: object) -> None:
+        self.scrubber.register(url)
 
     def emit(self, observer: str, kind: str, subject: str,
              detail: dict[str, Any] | None = None) -> None:
         self.events.append(TownEvent(
             event_id=f"ev-{len(self.events) + 1}", run_id=self.run_id,
             at=time.time(), observer=observer, kind=kind,
-            subject=subject, detail=detail or {}))
+            subject=scrub(subject, self.scrubber),
+            detail=scrub(detail or {}, self.scrubber)))
 
     def intend(self, actor: str, action: str,
                payload: dict[str, Any]) -> None:
         self.intents.append({
             "intent_id": f"in-{len(self.intents) + 1}",
             "run_id": self.run_id, "at": time.time(), "actor": actor,
-            "action": action, "payload": payload})
+            "action": action, "payload": scrub(payload, self.scrubber)})
 
 
 def _is_endpoint_url(value: object) -> bool:
@@ -384,6 +401,9 @@ def _resolve(recorder: _Recorder, url: str | None, index_file: str | None,
             # untested instead of checking it.
             return fail('malformed index: the entry "card_digest" must be'
                         " a non-empty string")
+        # The entry's credentials, if any, came from the operator's index
+        # and are withheld from everything recorded from here on.
+        recorder.withhold_credentials_of(entry["url"])
         recorder.emit("town-requester", "resolution_hop", subject,
                       {"kind": "pinned-index", "index": index_file,
                        "url": entry["url"]})
@@ -424,6 +444,7 @@ def run_path_test(subject_url: str | None, out_dir: str,
     run_id = "path-" + uuid.uuid4().hex[:12]
     nonce = uuid.uuid4().hex[:10]
     recorder = _Recorder(run_id)
+    recorder.withhold_credentials_of(subject_url)
     timeout = profile.limits.get("timeout_seconds", 15.0)
     response_budget = validate_response_budget(profile.limits.get(
         "max_response_bytes", DEFAULT_MAX_RESPONSE_BYTES))
@@ -526,8 +547,11 @@ def run_path_test(subject_url: str | None, out_dir: str,
                         if not strict_semantics and not isinstance(
                                 exc, json.JSONDecodeError):
                             raise
-                        preview = (text[:200] if isinstance(text, str)
-                                   else repr(text)[:200])
+                        # Withheld before the preview is cut: a cut can
+                        # leave credentials without the "@" that ends them.
+                        shown = scrub(text, recorder.scrubber)
+                        preview = (shown[:200] if isinstance(shown, str)
+                                   else repr(shown)[:200])
                         recorder.emit("town-requester",
                                       "fulfillment_unparseable", order_id,
                                       {"attempt": attempt,
@@ -573,11 +597,22 @@ def run_path_test(subject_url: str | None, out_dir: str,
 
     # Quoted per argument: a shell must not split a URL at "&" or a path at
     # a space and silently rerun a different subject or profile.
+    rerun_inputs: dict[str, str] = {}
     rerun_argv = ["nandatown", "test-agent"]
     if index_file:
         rerun_argv += ["--index", index_file, "--agent-name", str(agent_name)]
     else:
-        rerun_argv += ["--url", str(subject_url)]
+        if has_credentials(subject_url):
+            # The credentials are not recorded, so the rerun cannot contain
+            # them; it names what the operator has to supply, as a Track
+            # rerun does for a command it did not record.
+            rerun_argv += ["--url", "<operator-supplied-url>"]
+            rerun_inputs["url"] = (
+                "the endpoint URL with its credentials (credentials not"
+                " recorded; the endpoint was"
+                f" {recorder.scrubber.labeller.label(subject_url)})")
+        else:
+            rerun_argv += ["--url", str(subject_url)]
     rerun_argv += ["--path-profile", profile.ref]
     if pin_card_digest:
         rerun_argv += ["--pin-card-digest", pin_card_digest]
@@ -590,21 +625,25 @@ def run_path_test(subject_url: str | None, out_dir: str,
         created_at=time.time(),
         participants=[
             {"name": "town-requester", "role": "requester"},
-            {"name": _subject_label(subject_url, agent_name) or "?",
+            {"name": scrub(_subject_label(subject_url, agent_name) or "?",
+                           recorder.scrubber),
              "role": "subject"},
         ],
         releases={"nandatown": __version__,
                   "evaluator": path_evaluator_version(profile),
                   "python": sys.version.split()[0]},
         config={"mode": "path",
-                "subject": _subject_label(subject_url, agent_name),
+                "subject": scrub(_subject_label(subject_url, agent_name),
+                                 recorder.scrubber),
                 "profile": profile.ref,
                 "pinned_card_digest": pinned,
                 "nonce": nonce,
                 "a2a_transport_policy": effective_policy(
                     response_budget, timeout, injected=http is not None,
                     profile_budget="max_response_bytes" in profile.limits),
-                "rerun_command": rerun},
+                "rerun_command": rerun,
+                **({"rerun_required_inputs": rerun_inputs}
+                   if rerun_inputs else {})},
     )
     bundle_dir = os.path.join(out_dir, run_id)
     write_bundle(bundle_dir, profile, run_record, recorder.intents,

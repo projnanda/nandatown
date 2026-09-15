@@ -24,6 +24,7 @@ import time
 from typing import Any
 
 from .records import fingerprint
+from .url_credentials import withhold
 
 DEFAULT_LIMITATIONS = [
     "one run is one scoped observation, not a certificate",
@@ -243,7 +244,11 @@ def _bundle_receipt_fields(bundle: dict[str, Any]) -> dict[str, Any]:
     return {
         "claim": {
             "capability": capability,
-            "subject": subject,
+            # A receipt travels, so its subject carries neither credentials
+            # nor the keyed label a bundle may record for them. The bundle
+            # fingerprint below still pins the exact endpoint.
+            "subject": withhold(subject) if isinstance(subject, str)
+            else subject,
             "release_basis": release_basis,
             "profile": run.profile_name,
             "verdict": result.verdict,
@@ -423,10 +428,19 @@ def verify_receipt(receipt_path: str,
         if not isinstance(claim, dict):
             problems.append("receipt claim must be a JSON object")
         else:
+            recorded_subject = bundle["run"].config.get("subject")
             for name, value in expected["claim"].items():
-                if claim.get(name) != value:
-                    problems.append(
-                        f"receipt claim {name.replace('_', ' ')} does not match bundle")
+                if claim.get(name) == value:
+                    continue
+                # A receipt issued before credentials were withheld quotes
+                # the subject exactly as its bundle records it. That is
+                # still a true claim about that bundle, so it still
+                # verifies; only a new receipt withholds.
+                if name == "subject" and recorded_subject is not None \
+                        and claim.get(name) == recorded_subject:
+                    continue
+                problems.append(
+                    f"receipt claim {name.replace('_', ' ')} does not match bundle")
         for name in ("coverage", "window"):
             if payload.get(name) != expected[name]:
                 problems.append(f"receipt {name} does not match bundle")

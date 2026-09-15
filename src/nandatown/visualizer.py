@@ -204,6 +204,9 @@ if (events.length) show(0, false);
 
 
 def render_visualizer(bundle: dict[str, Any]) -> str:
+    from .report import shown_without_recorded_credentials
+
+    bundle = shown_without_recorded_credentials(bundle)
     run = bundle["run"]
     profile = bundle["profile"]
     result = bundle["result"]

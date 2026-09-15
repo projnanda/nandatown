@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import uuid
+from collections.abc import Callable
 from typing import Any
 
 import httpx
@@ -19,6 +20,7 @@ from fastapi import FastAPI, Request
 
 from . import __version__
 from .path_profiles import QUOTE_INTENT_FIELDS
+from .url_credentials import scrub
 from .a2a_transport import (
     DEFAULT_MAX_RESPONSE_BYTES,
     HTTPStatusError,
@@ -218,9 +220,14 @@ def artifact_texts(task: dict[str, Any]) -> list[Any]:
     return texts
 
 
-def probe_endpoint(base_url: str,
-                   http: httpx.Client | None = None) -> dict[str, Any]:
-    """Card validation plus one message/send round trip."""
+def probe_endpoint(base_url: str, http: httpx.Client | None = None,
+                   redact: Callable[[str], str] | None = None
+                   ) -> dict[str, Any]:
+    """Card validation plus one message/send round trip.
+
+    redact, if given, is applied to the artifact text before its preview
+    is cut, so a secret it removes cannot survive half cut off.
+    """
     report: dict[str, Any] = {"ok": False, "problems": []}
     try:
         card = fetch_card(base_url, http=http)
@@ -241,7 +248,13 @@ def probe_endpoint(base_url: str,
                         "quantity": 2, "unit_price_cents": 1995}),
             http=http)
         report["task_state"] = task.get("status", {}).get("state")
-        report["artifact"] = artifact_text(task)[:200]
+        text = artifact_text(task)
+        if redact:
+            text = scrub(text, redact)
+        # A text part that is not text is shown as it came, cut only if
+        # it can be.
+        report["artifact"] = (text[:200] if isinstance(text, (str, list))
+                              else text)
         if task.get("kind") != "task":
             report["problems"].append("message/send did not return a"
                                       " task")

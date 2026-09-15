@@ -16,6 +16,7 @@ from typing import Any
 import httpx
 
 from .records import EvidenceRecord
+from .url_credentials import Labeller
 
 OBSERVER = "town-pulse.v1"
 
@@ -74,6 +75,13 @@ def _conn(db_path: str) -> sqlite3.Connection:
 
 def run_pulse(targets: dict[str, str], count: int, interval: float,
               db_path: str, on_probe=None) -> None:
+    """Probe each target as written and keep its history.
+
+    Credentials in a target URL are sent with each probe but never
+    stored: history records the URL with its credentials labelled, so two
+    sets of credentials for one host stay separate endpoints.
+    """
+    label = Labeller()
     with _conn(db_path) as conn:
         for i in range(count):
             for name, url in targets.items():
@@ -81,7 +89,7 @@ def run_pulse(targets: dict[str, str], count: int, interval: float,
                 conn.execute(
                     "INSERT INTO probes (name, url, at, ok, status,"
                     " latency_ms) VALUES (?,?,?,?,?,?)",
-                    (name, url, time.time(), int(result["ok"]),
+                    (name, label.label(url), time.time(), int(result["ok"]),
                      result["status"], result["latency_ms"]))
                 conn.commit()
                 if on_probe:
@@ -99,13 +107,19 @@ def availability(db_path: str) -> dict[str, dict[str, Any]]:
     recently, and each earlier URL keeps its own figures, in order of its
     last probe, under ``previous_endpoints``. URLs are compared exactly,
     and a URL a name returns to keeps all of its probes.
+
+    Credentials are compared by label. History written before labelling
+    existed stored them in the URL, and is labelled as it is read, so it
+    joins the history recorded since instead of printing them.
     """
+    label = Labeller()
     with _conn(db_path) as conn:
         rows = conn.execute(
             "SELECT name, url, at, ok, latency_ms FROM probes"
             " ORDER BY at, rowid").fetchall()
     series: dict[str, dict[str, dict[str, Any]]] = {}
-    for name, url, at, ok, latency in rows:
+    for name, stored, at, ok, latency in rows:
+        url = label.label(stored)
         endpoints = series.setdefault(name, {})
         # Re-insert so each name's endpoints stay ordered by latest probe.
         entry = endpoints.pop(url, None) or {
@@ -133,6 +147,7 @@ def availability(db_path: str) -> dict[str, dict[str, Any]]:
 
 
 def export_records(db_path: str) -> list[EvidenceRecord]:
+    label = Labeller()
     with _conn(db_path) as conn:
         rows = conn.execute(
             "SELECT rowid, name, url, at, ok, status FROM probes"
@@ -142,8 +157,8 @@ def export_records(db_path: str) -> list[EvidenceRecord]:
             record_id=f"pulse-{rowid}", observer=OBSERVER, subject=name,
             capability="liveness", test="http-probe",
             result="passed" if ok else "failed", at=at,
-            evidence=[f"{url} responded {status}" if ok
-                      else f"{url} unreachable or {status}"])
+            evidence=[f"{label.label(url)} responded {status}" if ok
+                      else f"{label.label(url)} unreachable or {status}"])
         for rowid, name, url, at, ok, status in rows
     ]
 

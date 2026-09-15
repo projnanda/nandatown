@@ -9,6 +9,9 @@ from typing import Any
 def render_replay(bundle: dict[str, Any], start: int = 0,
                   limit: int | None = None,
                   kind: str | None = None) -> str:
+    from .report import shown_without_recorded_credentials
+
+    bundle = shown_without_recorded_credentials(bundle)
     events = bundle["events"]
     if kind:
         events = [e for e in events if e.kind == kind]

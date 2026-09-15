@@ -1,0 +1,54 @@
+{
+  "run_id": "path-8282611cf14c",
+  "evaluator_version": "path-0.3",
+  "stages": [
+    {
+      "name": "resolution",
+      "status": "passed",
+      "evidence": [
+        "ev-1"
+      ],
+      "note": ""
+    },
+    {
+      "name": "agent_card_retrieval",
+      "status": "passed",
+      "evidence": [
+        "ev-2"
+      ],
+      "note": "observed card sha256:f02823c081279b54"
+    },
+    {
+      "name": "descriptor_consistency",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no pinned digest to compare; observed card digest is in the evidence"
+    },
+    {
+      "name": "protocol_invocation",
+      "status": "passed",
+      "evidence": [
+        "ev-3"
+      ],
+      "note": "task task-c59d5fa23397 state completed"
+    },
+    {
+      "name": "semantic_result",
+      "status": "passed",
+      "evidence": [
+        "ev-4"
+      ],
+      "note": "exactly one fulfillment, total 3990"
+    },
+    {
+      "name": "duplicate_request",
+      "status": "passed",
+      "evidence": [
+        "ev-6"
+      ],
+      "note": "the same logical order was delivered twice; no second distinct fulfillment appeared"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1789429929.928004
+}

@@ -47,7 +47,9 @@ def cmd_run(args: argparse.Namespace) -> int:
     for spec in args.agent:
         role, _, connector = spec.partition("=")
         if not connector:
-            print(f"--agent {spec!r} must look like role=harness,"
+            from .url_credentials import withhold
+
+            print(f"--agent {withhold(spec)!r} must look like role=harness,"
                   " e.g. seller=cmd:'python my_agent.py'")
             return 2
         harnesses[role] = connector
@@ -124,9 +126,19 @@ def cmd_test_agent(args: argparse.Namespace) -> int:
         if args.index and not args.agent_name:
             print("--index needs --agent-name to choose the index entry")
             return 2
-        print(f"nandatown {__version__}: path test of"
-              f" {args.url or args.agent_name} under profile"
-              f" {args.path_profile}")
+        from .url_credentials import (
+            AT_AFTER_HOST_NOTE,
+            Labeller,
+            at_after_host,
+        )
+
+        if at_after_host(args.url):
+            print("note: this URL has an '@' after its host."
+                  f" {AT_AFTER_HOST_NOTE}")
+        # Printed as it is recorded: credentials in the URL are labelled.
+        subject = Labeller().label(args.url) if args.url else args.agent_name
+        print(f"nandatown {__version__}: path test of {subject} under"
+              f" profile {args.path_profile}")
         bundle_dir, result = run_path_test(
             args.url, args.out, profile_ref=args.path_profile,
             pin_card_digest=args.pin_card_digest,
@@ -376,22 +388,46 @@ def cmd_pulse(args: argparse.Namespace) -> int:
     if args.count < 1:
         print("--count must be at least 1")
         return 2
+    from .url_credentials import AT_AFTER_HOST_NOTE, at_after_host
+
     targets = {}
-    for target in args.target:
+    for position, target in enumerate(args.target, 1):
         name, _, url = target.partition("=")
-        if not url:
-            print(f"target {target!r} must look like name=url")
+        # Any "@" may end a password, parsed as credentials or not, and a
+        # target can be split or mistyped anywhere: the name may be part of
+        # the URL, as when the password holds the "=" it was split at. So
+        # a refusal of such a target repeats none of it.
+        private = "@" in target
+        withheld = f"--target {position} is not repeated because it may" \
+            " hold credentials"
+        if not url or ("://" in name and private):
+            if private:
+                print(f"a --target must look like name=url; {withheld}")
+            else:
+                print(f"target {target!r} must look like name=url")
             return 2
         if name in targets:
-            print(f"target name {name!r} is given more than once; give"
-                  " each --target a distinct name")
+            if private:
+                print("each --target needs a distinct name, and an earlier"
+                      f" one has this name; {withheld}")
+            else:
+                print(f"target name {name!r} is given more than once; give"
+                      " each --target a distinct name")
             return 2
         problem = unprobeable(url)
         if problem is not None:
-            print(f"target {name!r} has an unusable URL {url!r}:"
-                  f" {problem}")
+            if private:
+                print(f"a --target has an unusable URL; {withheld}. Check"
+                      " its scheme, host and port, and percent-encode any"
+                      " '/', '?' or '#' in a password (as %2F, %3F, %23)")
+            else:
+                print(f"target {name!r} has an unusable URL {url!r}:"
+                      f" {problem}")
             return 2
         targets[name] = url
+    if any(at_after_host(url) for url in targets.values()):
+        print("note: a --target URL has an '@' after its host."
+              f" {AT_AFTER_HOST_NOTE}")
     if not targets:
         print("give at least one --target name=url, or --report /"
               " --records over an existing --db")
@@ -444,9 +480,10 @@ def cmd_receipt(args: argparse.Namespace) -> int:
         print(f"receipt refused: {exc}")
         return 1
     print(f"receipt written to {path}")
-    print("sanitized and signed: the claim, digests, observer, window,"
-          " coverage, and limitations; nothing private leaves the"
-          " bundle")
+    print("signed: the claim, digests, observer, window, coverage and"
+          " limitations. Credentials Town recognises in the subject URL are"
+          " withheld, but the rest of the claim and any custom limitations"
+          " are copied as recorded: review them before sharing")
     if disclosure:
         print(disclosure)
     return 0
@@ -694,7 +731,26 @@ def cmd_a2a(args: argparse.Namespace) -> int:
             return 2
         from .a2a_adapter import probe_endpoint
 
-        report = probe_endpoint(args.url)
+        from .url_credentials import (
+            AT_AFTER_HOST_NOTE,
+            Labeller,
+            Scrubber,
+            at_after_host,
+            safe_message,
+            scrub,
+        )
+
+        if at_after_host(args.url):
+            print("note: this URL has an '@' after its host."
+                  f" {AT_AFTER_HOST_NOTE}")
+        # The agent's card and artifact can repeat the URL it was reached
+        # at, credentials included, so the whole report withholds them.
+        scrubber = Scrubber(Labeller(withhold_only=True))
+        scrubber.register(args.url)
+        report = probe_endpoint(args.url, redact=scrubber)
+        report["problems"] = [safe_message(args.url, problem)
+                              for problem in report["problems"]]
+        report = scrub(report, scrubber)
         print(json.dumps(report, indent=2))
         if report["ok"]:
             print("A2A edge passed: agent card valid, message/send"

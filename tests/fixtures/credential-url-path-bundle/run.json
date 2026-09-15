@@ -1,0 +1,41 @@
+{
+  "run_id": "path-8282611cf14c",
+  "profile_name": "a2a-capability-fulfillment@0.3",
+  "profile_fingerprint": "sha256:b004f857d3fff2dc0c7aeb175a06eec5d5b0fdbfcd86843a3d0b027ec6836a28",
+  "created_at": 1789429929.928055,
+  "participants": [
+    {
+      "name": "town-requester",
+      "role": "requester"
+    },
+    {
+      "name": "http://fixture-user:fixture-s3cret@127.0.0.1:49258",
+      "role": "subject"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "path-0.3",
+    "python": "3.11.15"
+  },
+  "config": {
+    "mode": "path",
+    "subject": "http://fixture-user:fixture-s3cret@127.0.0.1:49258",
+    "profile": "a2a-capability-fulfillment@0.3",
+    "pinned_card_digest": null,
+    "nonce": "115f12bc2b",
+    "a2a_transport_policy": {
+      "policy_id": "a2a-bounded-json@0.1",
+      "max_response_bytes": 1048576,
+      "budget_basis": "profile",
+      "accept_encoding": "identity",
+      "follow_redirects": false,
+      "trust_env": false,
+      "transport_retries": 0,
+      "client_ownership": "owned",
+      "phase_timeout_seconds": 15.0,
+      "total_deadline_seconds": null
+    },
+    "rerun_command": "nandatown test-agent --url http://fixture-user:fixture-s3cret@127.0.0.1:49258 --path-profile a2a-capability-fulfillment@0.3"
+  }
+}

@@ -71,6 +71,53 @@ part containing the JSON quote on each attempt. Multiple text parts or a task
 still marked `working` do not meet that contract. This is a small synthetic
 workflow, not a universal A2A output rule.
 
+An endpoint behind basic authentication can take its credentials in the URL,
+as `http://user:password@host:port`. Town sends them to that endpoint as
+written, and never prints or records the credentials it recognises: output,
+evidence and Pulse history show the URL with them as `<credentials 1a2b3c4d>`,
+a digest keyed by a secret in your Town home, so two sets of credentials for one
+host stay distinguishable without revealing either. Receipts show
+`<credentials withheld>`, and so does anything recorded while that key cannot be
+read or created; Town warns when that happens, and what it recorded meanwhile
+stays withheld. The recorded rerun asks for the URL again, because the
+credentials were never written down.
+
+Town recognises credentials only where httpx finds them: everything before the
+last `@` that comes before the first `/`, `?` or `#`. A password may contain
+quotes, brackets or spaces. Two kinds of secret can go unrecognised:
+
+- **A `/`, `?` or `#` in a password.** Percent-encode it (as `%2F`, `%3F`,
+  `%23`). Unencoded, httpx ends the host at that character, and what happens
+  depends on what comes before it:
+  - **It no longer parses,** as in `http://user:pass/word@host`, where `pass`
+    is not a port. Town does not call it, and withholds everything before its
+    last `@` as it would credentials.
+  - **It still reads as a host,** as in `http://user:1234/word@host`,
+    `http://token/word@host` or `http://user:a@b/c@host`. The URL goes to the
+    host before that character (`user`, `token` and `b` in these examples),
+    with no credentials or only the part of the password before an `@`, which
+    is recognised. The rest of the password is printed and recorded as part of
+    the URL, exactly as written. Town cannot tell it from an ordinary `@` in a
+    path, such as `/users/a@b`, so it neither refuses nor rewrites the URL. `test-agent --url`, `a2a test` and `pulse` print a note,
+    without the URL, when they see an `@` after the host; a URL read from an
+    `--index` file gets no note.
+- **A secret anywhere else,** such as a token in a query string or a header,
+  which is used, printed and recorded as written.
+
+An agent card that repeats the URL with its credentials is shown and recorded
+with them withheld, but its recorded digest covers the card as served, so a
+weak password could be guessed offline from a bundle. Don't let a card
+advertise credentials.
+
+Labels belong to one Town home:
+Pulse history read from another home labels its older entries afresh. A Town
+from before this change reports a new receipt's withheld subject as not matching
+its bundle when checked with `--bundle`; checked without it, the receipt
+verifies. Evidence recorded by an earlier Town still holds credentials on disk:
+reports, `replay`, `visualize` and new receipts withhold the ones Town
+recognises, but the bundle itself is left as recorded, so rerun rather than
+share it.
+
 For local A2A calibration, run `nandatown a2a serve --port 8940` in another
 terminal first. Stop it with Ctrl-C when finished. To test your own agent,
 replace that server with your agent and use its actual URL.

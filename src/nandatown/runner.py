@@ -291,8 +291,10 @@ def parse_harness(spec: str) -> dict[str, Any]:
         if not url:
             raise RunnerError("a2a: harness needs a URL")
         return {"kind": "a2a", "url": url}
+    from .url_credentials import withhold
+
     raise RunnerError(
-        f"unknown harness {spec!r}; use scripted, llm, llm:MODEL,"
+        f"unknown harness {withhold(spec)!r}; use scripted, llm, llm:MODEL,"
         " cmd:COMMAND, a2a:URL, or external")
 
 
