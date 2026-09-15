@@ -15,8 +15,12 @@ def render_replay(bundle: dict[str, Any], start: int = 0,
     events = events[start:]
     if limit is not None:
         events = events[:limit]
+    profile = bundle["profile"]
+    # A Path profile is named by its exact reference, as verify names it.
+    profile_name = (profile.ref if bundle.get("mode") == "path"
+                    else profile.name)
     lines = [f"Replay of {bundle['run'].run_id}"
-             f" ({bundle['profile'].name}, {len(bundle['events'])} events)"]
+             f" ({profile_name}, {len(bundle['events'])} events)"]
     for e in events:
         detail = json.dumps(e.detail, sort_keys=True) if e.detail else ""
         lines.append(f"t={e.at:8.2f}  {e.event_id:>7}  [{e.observer}]"
