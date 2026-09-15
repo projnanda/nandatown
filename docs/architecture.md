@@ -87,8 +87,8 @@ replay the judgment. In the Lab, privacy redaction runs before
 evaluation, so the recorded result is reproducible from public records
 by construction. Verification compares deterministic evaluation output, not the
 evaluation wall-clock timestamp. Path selects its evaluator from the pinned
-profile; Track replays a recorded `0.2.0` or `0.3.0` result under the rules
-that produced it, alongside the current `0.4.0`. Any other evaluator version
+profile; Track replays a recorded `0.2.0`, `0.3.0` or `0.4.0` result under the
+rules that produced it, alongside the current `0.5.0`. Any other evaluator version
 difference is reported explicitly; stored results are not silently upgraded.
 
 The root commits the five named record files only. Reports, receipts,

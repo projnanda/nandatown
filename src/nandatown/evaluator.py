@@ -22,17 +22,34 @@ from .records import (
     json_type,
 )
 
-EVALUATOR_VERSION = "0.4.0"
-# Recorded bundles replay under the rules that produced them. 0.2.0 took
-# the first accepted quote response; it neither counted responses nor
-# checked which request a response named. 0.3.0 added those checks but
-# read any truthy acknowledgement flag as a yes, and judged only the
-# first accepted request.
+EVALUATOR_VERSION = "0.5.0"
 LEGACY_EVALUATOR_VERSION = "0.2.0"
 CORRELATION_EVALUATOR_VERSION = "0.3.0"
-EVALUATOR_VERSIONS = (LEGACY_EVALUATOR_VERSION,
-                      CORRELATION_EVALUATOR_VERSION,
-                      EVALUATOR_VERSION)
+# The rules each Track evaluator version applies. A recorded bundle replays
+# under the rules of the version it recorded, looked up here by that
+# version, so releasing a new version adds a row and changes no earlier
+# one. Deciding them by comparison with EVALUATOR_VERSION instead would
+# quietly hand every older bundle the previous rules the moment the
+# current version moved on.
+#
+# 0.2.0 took the first accepted quote response; it neither counted
+# responses nor checked which request a response named. 0.3.0 added those
+# checks ("correlation") but read any truthy acknowledgement flag as a yes
+# and judged only the first accepted request. 0.4.0 reads a flag only when
+# it is a boolean ("boolean_flags") and judges every accepted request
+# ("every_request"). 0.5.0 recognises the injected duplicate only from an
+# acknowledgement of that delivery, bound by its fence ("bound_duplicate"),
+# and lets only the buyer's terminal acknowledgement, any status but
+# retryable, decide `correct` ("terminal_verdict").
+EVALUATOR_RULES: dict[str, frozenset[str]] = {
+    LEGACY_EVALUATOR_VERSION: frozenset(),
+    CORRELATION_EVALUATOR_VERSION: frozenset({"correlation"}),
+    "0.4.0": frozenset({"correlation", "boolean_flags", "every_request"}),
+    "0.5.0": frozenset({"correlation", "boolean_flags", "every_request",
+                        "bound_duplicate", "terminal_verdict"}),
+}
+EVALUATOR_VERSIONS = tuple(EVALUATOR_RULES)
+assert EVALUATOR_VERSION in EVALUATOR_RULES
 
 REQUEST_KIND = "quote_request"
 RESPONSE_KIND = "quote_response"
@@ -225,14 +242,15 @@ def _show_digest(digest: object) -> tuple[str, str]:
 
 def evaluate(profile: TestProfile, run_id: str, events: list[TownEvent],
              version: str = EVALUATOR_VERSION) -> EvidenceResult:
-    if version not in EVALUATOR_VERSIONS:
+    if version not in EVALUATOR_RULES:
         raise ValueError(f"unsupported Track evaluator version {version!r}")
-    # Only the current rules require a flag to be a boolean. Earlier ones
-    # read truthiness, and a bundle they recorded still replays that way.
-    strict_flags = version == EVALUATOR_VERSION
-    # Earlier rules judged only the first accepted request, so a second one
-    # that nobody answered did not affect the verdict.
-    judges_every_request = version == EVALUATOR_VERSION
+    rules = EVALUATOR_RULES[version]
+    # Rules without "boolean_flags" read truthiness, and a bundle they
+    # recorded still replays that way.
+    strict_flags = "boolean_flags" in rules
+    # Rules without "every_request" judged only the first accepted request,
+    # so a second one that nobody answered did not affect the verdict.
+    judges_every_request = "every_request" in rules
     seller = next((n for n, r in profile.roles.items() if r == "seller"), "seller")
     buyer = next((n for n, r in profile.roles.items() if r == "buyer"), "buyer")
 
@@ -322,7 +340,7 @@ def evaluate(profile: TestProfile, run_id: str, events: list[TownEvent],
     response_id = accepted_resp[0].subject if accepted_resp else None
     buyer_claims = (find("message_claimed", subject=response_id,
                          claimant=buyer) if response_id else [])
-    mismatch = (None if version == LEGACY_EVALUATOR_VERSION
+    mismatch = (None if "correlation" not in rules
                 else _response_mismatch(accepted_resp, accepted_req,
                                         name_first=judges_every_request))
     if mismatch is not None and mismatch[0] == "failed":
@@ -350,6 +368,21 @@ def evaluate(profile: TestProfile, run_id: str, events: list[TownEvent],
         buyer_acks = [a for r in accepted_resp
                       for a in find("ack_recorded", observer=buyer,
                                     subject=r.subject)]
+    provisional_assertions: list[TownEvent] = []
+    terminal_verdict = "terminal_verdict" in rules
+    if terminal_verdict:
+        # A retryable acknowledgement hands the response back to the
+        # buyer's inbox: the buyer has not settled, and what it asserted
+        # then is provisional. Only an acknowledgement that settles the
+        # response, the same line the runner draws, says what the buyer
+        # concluded. Earlier rules took the first assertion of any kind,
+        # so a provisional "correct" outweighed a terminal "wrong".
+        provisional_assertions = [
+            a for a in buyer_acks if a.detail.get("status") == "retryable"
+            and isinstance(a.detail.get("note"), dict)
+            and "correct" in a.detail["note"]]
+        buyer_acks = [a for a in buyer_acks
+                      if a.detail.get("status") != "retryable"]
     if strict_flags:
         verdict_acks = [a for a in buyer_acks
                         if isinstance(a.detail.get("note"), dict)
@@ -366,11 +399,24 @@ def evaluate(profile: TestProfile, run_id: str, events: list[TownEvent],
         verdict_acks = [a for a in verdict_acks
                         if _asserted(a.detail.get("note"), "correct")
                         is not None]
+    # Order must not decide. Where a mismatch already fails the stage the
+    # assertions cannot rescue it, so only that case is exempt.
+    conflicting = (terminal_verdict
+                   and (mismatch is None or mismatch[0] != "failed")
+                   and len({_asserted(a.detail["note"], "correct")
+                            for a in verdict_acks}) > 1)
     if not verdict_acks and unreadable_verdicts:
         stages.append(_missing(
             "correct",
             _flag_note(unreadable_verdicts, "correct",
                        "the buyer's acknowledgement")))
+    elif conflicting:
+        # The coordinator settles a response at its first terminal
+        # acknowledgement, so only a crafted record carries two that
+        # disagree. Picking one would be choosing the answer.
+        stages.append(_missing(
+            "correct", "the buyer's terminal acknowledgements disagree about"
+                       " whether the total is correct"))
     elif verdict_acks and mismatch is not None and mismatch[0] == "failed":
         stages.append(_failed(
             "correct", [a.event_id for a in verdict_acks],
@@ -390,6 +436,16 @@ def evaluate(profile: TestProfile, run_id: str, events: list[TownEvent],
                 "correct", [verdict_acks[0].event_id],
                 f"buyer observed total {note.get('total_cents')} against"
                 f" expected {profile.task.expected_total_cents}"))
+    elif provisional_assertions and buyer_acks:
+        stages.append(_missing(
+            "correct", "the buyer's terminal acknowledgement asserts nothing"
+                       " about correctness; its earlier provisional assertion"
+                       " does not decide"))
+    elif provisional_assertions:
+        stages.append(_missing(
+            "correct", "the buyer's only correctness assertion was"
+                       " provisional (acknowledged retryable), and it never"
+                       " settled the response"))
     else:
         stages.append(_missing("correct", "the buyer made no correctness"
                                           " assertion"))
@@ -424,6 +480,37 @@ def evaluate(profile: TestProfile, run_id: str, events: list[TownEvent],
                       if (_asserted(a.detail.get("note"), "duplicate") is True
                           if strict_flags
                           else a.detail.get("note", {}).get("duplicate"))]
+        missing_note = "no duplicate offer recognized exactly once"
+        if "bound_duplicate" in rules:
+            # A lease lost before the offer brings a redelivery the seller
+            # also acknowledges as a duplicate, often with the application
+            # it performed. That is not the injected delivery, so only an
+            # acknowledgement under an offer's own fence recognises it. It
+            # must also settle the offer as processed: the runner counts
+            # nothing less as the duplicate handled, the protocol asks for
+            # it, and a retryable acknowledgement is provisional.
+            by_fence = {o.detail.get("fence"): o for o in offered
+                        if o.subject == request_id
+                        and isinstance(o.detail.get("fence"), str)}
+
+            def bound(ack: TownEvent) -> bool:
+                fence = ack.detail.get("fence")
+                return (isinstance(fence, str) and fence in by_fence
+                        and ack.detail.get("status") == "processed")
+
+            unbound = [a for a in recognized if not bound(a)]
+            recognized = [a for a in recognized if bound(a)]
+            offered = ([by_fence[recognized[0].detail["fence"]]]
+                       if recognized else list(by_fence.values()))
+            if not by_fence:
+                missing_note = ("the town never offered the injected"
+                                " duplicate delivery")
+            elif unbound and not recognized:
+                missing_note = ("the injected duplicate delivery was never"
+                                " acknowledged as processed; the"
+                                " acknowledgement marked duplicate answered"
+                                " another delivery, or did not settle the"
+                                " offer")
         # Recognising a duplicate means the one application was not
         # repeated, which an unreadable application claim leaves open.
         if offered and recognized and len(applied) == 1 and not unreadable:
@@ -431,9 +518,7 @@ def evaluate(profile: TestProfile, run_id: str, events: list[TownEvent],
                                   [offered[0].event_id,
                                    recognized[0].event_id]))
         else:
-            stages.append(_missing("duplicate_recognized",
-                                   "no duplicate offer recognized exactly"
-                                   " once"))
+            stages.append(_missing("duplicate_recognized", missing_note))
     elif fault == "drop_wakeup":
         suppressed = find("notify_suppressed")
         if suppressed and claims:

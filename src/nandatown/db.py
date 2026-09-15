@@ -534,8 +534,11 @@ class TownDB:
             )
             # The event is also the durable one-shot marker. It must commit
             # with the fence, not through the coordinator's in-memory flag.
+            # The fence and attempt name this delivery, so an acknowledgement
+            # of it can be told apart from one of an earlier redelivery.
             self._event(conn, run_id, now, "town", "duplicate_offered",
-                        message_id, {"fault": "duplicate_delivery"})
+                        message_id, {"fault": "duplicate_delivery",
+                                     "fence": fence, "attempt": attempt})
             return {
                 "message_id": row["message_id"],
                 "kind": row["kind"],

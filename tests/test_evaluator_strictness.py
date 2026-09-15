@@ -216,10 +216,11 @@ def duplicate_delivery_with(second_note):
     """A completed request re-offered, and acknowledged a second time."""
     events = clean_events()
     return events[:7] + [
-        ev(20, "duplicate_offered", "q-1", fault="duplicate_delivery"),
+        ev(20, "duplicate_offered", "q-1", fault="duplicate_delivery",
+           fence="fence-offer", attempt=2),
         ev(21, "message_claimed", "q-1", claimant="seller", attempt=2),
         ev(22, "ack_recorded", "q-1", observer="seller", status="processed",
-           note=second_note, attempt=2),
+           note=second_note, fence="fence-offer", attempt=2),
     ] + events[7:]
 
 

@@ -115,9 +115,9 @@ def test_crash_profile_fault_checks():
 
 def test_duplicate_profile_fault_checks():
     events = clean_events() + [
-        ev(11, "duplicate_offered", "q-1"),
+        ev(11, "duplicate_offered", "q-1", fence="fence-offer", attempt=2),
         ev(12, "ack_recorded", "q-1", observer="seller", status="processed",
-           note={"duplicate": True}, attempt=2),
+           note={"duplicate": True}, fence="fence-offer", attempt=2),
     ]
     result = evaluate(profile("duplicate_delivery"), "run-1", events)
     assert stage(result, "duplicate_recognized").status == "passed"
@@ -194,11 +194,11 @@ def test_two_requests_each_answered_once_names_both_counts():
 
 def test_redelivered_request_answered_under_fresh_identity_fails():
     events = clean_events() + [
-        ev(11, "duplicate_offered", "q-1"),
+        ev(11, "duplicate_offered", "q-1", fence="fence-offer", attempt=2),
         ev(12, "message_accepted", "r-9f3a", kind="quote_response",
            sender="seller", to="buyer", request_id="q-1"),
         ev(13, "ack_recorded", "q-1", observer="seller", status="processed",
-           note={"duplicate": True}, attempt=2),
+           note={"duplicate": True}, fence="fence-offer", attempt=2),
     ]
     result = evaluate(profile("duplicate_delivery"), "run-1", events)
     assert stage(result, "response").status == "failed"
@@ -210,10 +210,10 @@ def test_idempotent_response_retry_is_not_a_second_response():
     # Resending the same identity with identical content returns the
     # original acceptance: the town records a replay, not a new message.
     events = clean_events() + [
-        ev(11, "duplicate_offered", "q-1"),
+        ev(11, "duplicate_offered", "q-1", fence="fence-offer", attempt=2),
         ev(12, "replay_returned", "r-1", sender="seller"),
         ev(13, "ack_recorded", "q-1", observer="seller", status="processed",
-           note={"duplicate": True}, attempt=2),
+           note={"duplicate": True}, fence="fence-offer", attempt=2),
     ]
     result = evaluate(profile("duplicate_delivery"), "run-1", events)
     assert stage(result, "response").status == "passed"

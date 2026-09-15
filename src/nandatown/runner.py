@@ -485,8 +485,16 @@ def _quiescent(profile: TestProfile, events: list[dict[str, Any]]) -> bool:
                    and e["detail"].get("status") == "processed"]
     applied = [e for e in seller_acks if e["detail"]["note"].get("applied")]
     if profile.fault == "duplicate_delivery":
+        # The duplicate this profile injects is the town's re-offer, and only
+        # an acknowledgement under that offer's fence shows it was handled.
+        # A seller that lost its lease acknowledges the redelivery as a
+        # duplicate too, carrying the application with it, before the town
+        # has offered anything: stopping there ends the run first.
+        offered = {e["detail"].get("fence") for e in events
+                   if e["kind"] == "duplicate_offered"} - {None}
         duplicates = [e for e in seller_acks
-                      if e["detail"]["note"].get("duplicate")]
+                      if e["detail"]["note"].get("duplicate")
+                      and e["detail"].get("fence") in offered]
         return bool(applied) and bool(duplicates)
     return bool(applied)
 
