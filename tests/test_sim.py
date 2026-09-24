@@ -11,7 +11,7 @@ from nandatown.sim.scenario import (
 )
 
 ALL_SCENARIOS = ["marketplace", "auction", "voting", "consensus",
-                 "supply_chain", "capability_spoofing"]
+                 "supply_chain", "capability_spoofing", "network_partition"]
 FAILING_SCENARIOS = ["capability_spoofing_weak_auth"]
 
 

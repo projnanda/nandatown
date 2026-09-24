@@ -1,0 +1,21 @@
+name: network_partition
+description: A buyer and two sellers are split by a network partition. The buyer can only reach one seller, completes a trade through that seller, and the isolated seller receives no traffic. Tests that partition is detected, contained, and the reachable path still completes.
+seed: 42
+layers:
+  transport: partitioned.v1
+agents:
+  - name: seller-a
+    role: seller
+    config: {sku: widget, ask_cents: 1995, floor_cents: 1700, stock: 10, balance_cents: 0}
+  - name: seller-b
+    role: seller
+    config: {sku: widget, ask_cents: 2100, floor_cents: 1800, stock: 10, balance_cents: 0}
+  - name: buyer-1
+    role: buyer
+    config: {sku: widget, quantity: 2, cap_cents: 2500, balance_cents: 10000, rounds: 1}
+faults:
+  - action: partition
+    groups:
+      - [buyer-1, seller-a]
+      - [seller-b]
+max_time: 60

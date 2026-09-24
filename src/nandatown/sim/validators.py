@@ -1050,6 +1050,72 @@ def capability_spoofing(spec, trace: Trace) -> list[StageResult]:
     return stages
 
 
+@validator("network_partition")
+def network_partition(spec, trace: Trace) -> list[StageResult]:
+    """Validate a network-partitioned marketplace.
+
+    The partition must be visible in the trace, the isolated seller must
+    receive no traffic, and the reachable seller must still complete a
+    trade with the buyer.
+    """
+    stages = []
+
+    blocked = trace.find("message_partition_blocked")
+    stages.append(_check(
+        "partition_detected", bool(blocked),
+        [e.event_id for e in blocked],
+        "expected cross-group messages to be blocked by the partition"))
+
+    sellers = [a.name for a in spec.agents if a.role == "seller"]
+    buyers = [a.name for a in spec.agents if a.role == "buyer"]
+    if len(buyers) != 1 or len(sellers) < 2:
+        stages.append(_missing(
+            "isolated_seller_contained",
+            "requires one buyer and at least two sellers"))
+        stages.append(_missing(
+            "reachable_trade_completed",
+            "requires one buyer and at least two sellers"))
+        return stages
+
+    buyer = buyers[0]
+    # Find which seller is in the same group as the buyer by looking at
+    # which seller never received a partition-blocked message.
+    blocked_targets = {
+        e.detail.get("to") for e in blocked
+        if e.detail.get("from") == buyer
+    }
+    isolated = [s for s in sellers if s in blocked_targets]
+    reachable = [s for s in sellers if s not in blocked_targets]
+
+    # Isolated sellers must receive no delivered messages.
+    delivered_to_isolated = [
+        e for e in trace.find("message_delivered")
+        if e.detail.get("to") in isolated
+    ]
+    containment_evidence = (
+        [e.event_id for e in blocked]
+        + trace.ids("run_finished"))
+    stages.append(_check(
+        "isolated_seller_contained",
+        not delivered_to_isolated,
+        containment_evidence,
+        "the isolated seller must receive no delivered messages"))
+
+    # Reachable seller must complete a trade (escrow released).
+    released = trace.find("escrow_released")
+    trade_with_reachable = [
+        e for e in released
+        if e.detail.get("to") in reachable]
+    stages.append(_check(
+        "reachable_trade_completed",
+        bool(trade_with_reachable),
+        [e.event_id for e in trade_with_reachable],
+        "the buyer must complete a trade with the reachable seller"))
+
+    stages.append(reputation_consistent(trace))
+    return stages
+
+
 COMPLETION_KINDS = ["offer_accepted", "vote_result",
                     "consensus_committed", "task_awarded",
                     "escrow_released", "receipt_attested"]

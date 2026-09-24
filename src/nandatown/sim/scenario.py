@@ -28,11 +28,12 @@ class AgentSpec(BaseModel):
 class FaultRule(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    action: Literal["drop", "duplicate", "delay", "drop_rate"]
+    action: Literal["drop", "duplicate", "delay", "drop_rate", "partition"]
     kind: str = ""
     nth: int = Field(default=1, ge=1)
     delay: float = Field(default=0.0, ge=0)
     rate: float = Field(default=0.0, ge=0, le=1)
+    groups: list[list[str]] = Field(default_factory=list)
 
     @field_validator("nth", mode="before")
     @classmethod

@@ -2,12 +2,6 @@
   "$defs": {
     "AgentSpec": {
       "properties": {
-        "config": {
-          "additionalProperties": true,
-          "default": {},
-          "title": "Config",
-          "type": "object"
-        },
         "name": {
           "title": "Name",
           "type": "string"
@@ -15,6 +9,12 @@
         "role": {
           "title": "Role",
           "type": "string"
+        },
+        "config": {
+          "additionalProperties": true,
+          "default": {},
+          "title": "Config",
+          "type": "object"
         }
       },
       "required": [
@@ -31,16 +31,11 @@
             "drop",
             "duplicate",
             "delay",
-            "drop_rate"
+            "drop_rate",
+            "partition"
           ],
           "title": "Action",
           "type": "string"
-        },
-        "delay": {
-          "default": 0.0,
-          "minimum": 0,
-          "title": "Delay",
-          "type": "number"
         },
         "kind": {
           "default": "",
@@ -53,12 +48,28 @@
           "title": "Nth",
           "type": "integer"
         },
+        "delay": {
+          "default": 0.0,
+          "minimum": 0,
+          "title": "Delay",
+          "type": "number"
+        },
         "rate": {
           "default": 0.0,
           "maximum": 1,
           "minimum": 0,
           "title": "Rate",
           "type": "number"
+        },
+        "groups": {
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "title": "Groups",
+          "type": "array"
         }
       },
       "required": [
@@ -68,35 +79,20 @@
       "type": "object"
     }
   },
-  "$id": "https://nandatown.local/schemas/scenario.schema.json",
   "properties": {
-    "adaptations": {
-      "default": [],
-      "items": {
-        "type": "string"
-      },
-      "title": "Adaptations",
-      "type": "array"
-    },
-    "agents": {
-      "items": {
-        "$ref": "#/$defs/AgentSpec"
-      },
-      "title": "Agents",
-      "type": "array"
+    "name": {
+      "title": "Name",
+      "type": "string"
     },
     "description": {
       "default": "",
       "title": "Description",
       "type": "string"
     },
-    "faults": {
-      "default": [],
-      "items": {
-        "$ref": "#/$defs/FaultRule"
-      },
-      "title": "Faults",
-      "type": "array"
+    "seed": {
+      "default": 42,
+      "title": "Seed",
+      "type": "integer"
     },
     "layers": {
       "additionalProperties": {
@@ -106,21 +102,19 @@
       "title": "Layers",
       "type": "object"
     },
-    "max_time": {
-      "default": 1000.0,
-      "title": "Max Time",
-      "type": "number"
+    "agents": {
+      "items": {
+        "$ref": "#/$defs/AgentSpec"
+      },
+      "title": "Agents",
+      "type": "array"
     },
-    "name": {
-      "title": "Name",
-      "type": "string"
-    },
-    "plugin_files": {
+    "faults": {
       "default": [],
       "items": {
-        "type": "string"
+        "$ref": "#/$defs/FaultRule"
       },
-      "title": "Plugin Files",
+      "title": "Faults",
       "type": "array"
     },
     "redact_fields": {
@@ -131,15 +125,31 @@
       "title": "Redact Fields",
       "type": "array"
     },
-    "seed": {
-      "default": 42,
-      "title": "Seed",
-      "type": "integer"
+    "max_time": {
+      "default": 1000.0,
+      "title": "Max Time",
+      "type": "number"
     },
     "validator": {
       "default": "",
       "title": "Validator",
       "type": "string"
+    },
+    "plugin_files": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Plugin Files",
+      "type": "array"
+    },
+    "adaptations": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Adaptations",
+      "type": "array"
     }
   },
   "required": [
@@ -147,5 +157,6 @@
     "agents"
   ],
   "title": "ScenarioSpec",
-  "type": "object"
+  "type": "object",
+  "$id": "https://nandatown.local/schemas/scenario.schema.json"
 }
