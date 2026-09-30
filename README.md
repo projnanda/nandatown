@@ -517,6 +517,31 @@ gap. This fresh implementation preserves that narrow requirement; it does not
 port the legacy Prava client, live charges, intent certificates, FX conversions,
 return policy or hosted service.
 
+#### Same order id, changed terms
+
+The controlled duplicate resends an order unchanged. `--path-profile
+a2a-order-conflict@0.1` resends it with the same `request_id` and a different
+quantity (2, then 5). The Track coordinator already rejects the same message
+identity with different content. This profile checks the same rule for an A2A
+agent.
+
+The retry passes `conflicting_retry` only if the task ends `rejected`. Answering
+it fails, even with the first quote, because a completed task tells the
+requester its new terms were accepted. A `failed` task or a retry with no task
+is not enough evidence, since Town can't tell a refusal from a crash. The first
+attempt is judged as in `a2a-capability-fulfillment@0.3`.
+
+```bash
+nandatown a2a serve --defect accept_conflicting_retry
+nandatown test-agent --url http://127.0.0.1:8940 --path-profile a2a-order-conflict@0.1
+```
+
+The defect brings back the seller's old behavior: it quotes the same order id
+at 3,990 cents and then 9,975, and the report shows both totals. Without it, the
+seller rejects the changed retry. This checks one changed field on one synthetic
+quote. Town records the task state, not whether the agent's reason is true.
+Evaluator: `path-order-conflict-0.1`.
+
 ## Receipts and Town Proof
 
 ```

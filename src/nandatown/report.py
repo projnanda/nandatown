@@ -68,6 +68,8 @@ STAGE_MEANING = {
     "semantic_result": "the task produced the required result",
     "duplicate_request": "the duplicate order caused no second"
                          " fulfillment",
+    "conflicting_retry": "a reused order id with changed terms was"
+                         " refused",
 }
 
 SCOPE_SENTENCE = ("This result applies only to the named agents, releases,"
@@ -89,8 +91,13 @@ def render_report(bundle: dict[str, Any]) -> str:
             " (an already-running external agent)")
         add(f"Profile:   {profile.ref}"
             f" ({run.profile_fingerprint[:23]})")
-        add(f"Condition: {profile.controlled_condition}: the same"
-            " logical order is delivered twice")
+        if profile.controlled_condition == "conflicting_retry":
+            add(f"Condition: {profile.controlled_condition}: the order id"
+                " is sent again with changed terms"
+                f" {profile.expected.get('retry_changes')}")
+        else:
+            add(f"Condition: {profile.controlled_condition}: the same"
+                " logical order is delivered twice")
     elif bundle.get("mode") == "lab":
         faults = ", ".join(f"{f.action} {f.kind}" for f in profile.faults) \
             or "none"

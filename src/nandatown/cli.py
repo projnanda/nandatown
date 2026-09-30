@@ -1144,7 +1144,7 @@ def main(argv: list[str] | None = None) -> int:
     p_a2a.add_argument("--port", type=int, default=8940)
     p_a2a.add_argument("--defect", default=None,
                        choices=["wrong_total", "wrong_item", "duplicate_fulfillment",
-                                "card_drift"],
+                                "card_drift", "accept_conflicting_retry"],
                        help="plant one defect in the reference seller"
                             " to demonstrate a failing path test")
     p_a2a.set_defaults(func=cmd_a2a)
