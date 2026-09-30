@@ -1,0 +1,33 @@
+name: llm_market_no_hashlock
+description: The same market on deadline.v1, which has a deadline but no hashlock; sellers send keys themselves, a late key opens data whose payment was refunded, and the run fails on purpose.
+seed: 42
+validator: sealed_delivery
+plugin_files: [agents.py]
+layers:
+  payments: deadline.v1
+agents:
+  - name: seller-a
+    role: data-seller
+    config: {sku: traffic-2026, price_cents: 1500, dataset: "junction,hour,vehicles\nJ1,08,412\nJ2,08,377\n", balance_cents: 0}
+  - name: seller-b
+    role: data-seller
+    config: {sku: traffic-2026, price_cents: 1100, dataset: "junction,hour,vehicles\nJ1,08,412\nJ2,08,377\n", balance_cents: 0, wrong_content: true}
+  - name: seller-c
+    role: data-seller
+    config: {sku: traffic-2026, price_cents: 1400, dataset: "junction,hour,vehicles\nJ1,08,412\nJ2,08,377\n", balance_cents: 0}
+  - name: buyer-1
+    role: llm-data-buyer
+    config: {sku: traffic-2026, max_cents: 2000, balance_cents: 5000, start_at: 0.5}
+  - name: buyer-2
+    role: llm-data-buyer
+    config: {sku: traffic-2026, max_cents: 2000, balance_cents: 5000, start_at: 20.0}
+# seller-b, the cheapest, seals other bytes under the real listing. The
+# second escrow_locked notice is held past the 5.0s deadline, so that
+# seller's key claim arrives late. buyer-2 starts after buyer-1 is done
+# and sees the reputation buyer-1's outcomes left behind.
+faults:
+  - action: delay
+    kind: escrow_locked
+    nth: 2
+    delay: 10
+max_time: 60
