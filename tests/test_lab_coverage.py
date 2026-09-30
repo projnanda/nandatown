@@ -28,6 +28,10 @@ NATIVE_SCENARIO_STAGES = {
     "auction": {"announced", "bidding", "award", "settlement", "delivery"},
     "voting": {"ballots", "one_agent_one_vote", "tally", "result_broadcast"},
     "consensus": {"quorum_commit", "agreement", "fault_recovered"},
+    "consensus_corrupt": {
+        "quorum_commit", "agreement", "corruption_injected",
+        "corruption_rejected", "corruption_recovered",
+    },
     "supply_chain": {
         "procurement", "milestones", "assembly_order", "customer_settled",
     },
@@ -125,6 +129,7 @@ def test_declared_privacy_rejects_an_unredacted_event():
     ("consensus", NATIVE_SCENARIO_STAGES["consensus"]),
     ("supply_chain", NATIVE_SCENARIO_STAGES["supply_chain"]),
     ("capability_spoofing", NATIVE_SCENARIO_STAGES["capability_spoofing"]),
+    ("consensus_corrupt", NATIVE_SCENARIO_STAGES["consensus_corrupt"]),
 ])
 def test_healthy_native_scenarios_emit_their_literal_stage_set(name, expected):
     """Deleting a required native check must fail against this fixed matrix."""

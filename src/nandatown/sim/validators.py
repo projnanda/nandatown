@@ -936,9 +936,7 @@ def quorum_commit(spec, trace: Trace) -> StageResult:
                    f"each commit follows {quorum} distinct eligible acknowledgements for its value")
 
 
-@validator("consensus")
-def consensus(spec, trace: Trace) -> list[StageResult]:
-    stages = [quorum_commit(spec, trace)]
+def _agreement(spec, trace: Trace) -> StageResult:
     acceptors = [a.name for a in spec.agents if a.role == "acceptor"]
     proposers = [a for a in spec.agents if a.role == "proposer"]
 
@@ -948,9 +946,15 @@ def consensus(spec, trace: Trace) -> list[StageResult]:
              and all(e.observer == e.subject
                      and e.detail.get("value") == proposers[0].config["value"]
                      for e in values))
-    stages.append(_check(
+    return _check(
         "agreement", agree, [e.event_id for e in values],
-        "every acceptor must commit the configured proposed value"))
+        "every acceptor must commit the configured proposed value")
+
+
+@validator("consensus")
+def consensus(spec, trace: Trace) -> list[StageResult]:
+    stages = [quorum_commit(spec, trace), _agreement(spec, trace)]
+    acceptors = [a.name for a in spec.agents if a.role == "acceptor"]
 
     dropped = trace.ids("message_dropped")
     retries = trace.ids("proposal_retry")
@@ -961,6 +965,40 @@ def consensus(spec, trace: Trace) -> list[StageResult]:
         dropped + retries,
         "the dropped acknowledgements must force a retry of the missing"
         " acceptors"))
+    return stages
+
+
+@validator("consensus_corrupt")
+def consensus_corrupt(spec, trace: Trace) -> list[StageResult]:
+    stages = [quorum_commit(spec, trace), _agreement(spec, trace)]
+
+    corrupted = trace.find("message_corrupted")
+    stages.append(_check(
+        "corruption_injected", bool(corrupted),
+        [e.event_id for e in corrupted],
+        "a message must be corrupted in transit"))
+
+    rejections_ok = bool(corrupted) and all(
+        trace.find("delivery_failed", subject=e.subject,
+                   reason="bad signature")
+        for e in corrupted)
+    stages.append(_check(
+        "corruption_rejected", rejections_ok,
+        [e.event_id for e in corrupted],
+        "every corrupted message must be rejected for a bad signature"))
+
+    def resent_later(event):
+        later = trace.find("message_sent", kind=event.detail.get("kind"),
+                           to=event.detail.get("to"))
+        return any(trace.index(s) > trace.index(event) for s in later)
+
+    recovered_ok = (bool(corrupted) and bool(trace.ids("commit_retry"))
+                    and all(resent_later(e) for e in corrupted))
+    stages.append(_check(
+        "corruption_recovered", recovered_ok,
+        [e.event_id for e in corrupted] + trace.ids("commit_retry"),
+        "the proposer must retry the commit and every acceptor must"
+        " still receive it"))
     return stages
 
 

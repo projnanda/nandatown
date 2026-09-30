@@ -1,0 +1,23 @@
+name: consensus_corrupt
+description: A man-in-the-middle rewrites the value inside one signed commit. hmac.v1 rejects the changed message, the proposer re-sends the commit, and every acceptor still commits the proposed value.
+seed: 42
+agents:
+  - name: proposer
+    role: proposer
+    config: {value: v42, retry_after: 1.5, confirm_commit: true}
+  - name: acceptor-1
+    role: acceptor
+    config: {confirm_commit: true}
+  - name: acceptor-2
+    role: acceptor
+    config: {confirm_commit: true}
+  - name: acceptor-3
+    role: acceptor
+    config: {confirm_commit: true}
+faults:
+  - action: corrupt
+    kind: commit
+    nth: 2
+    field: value
+    value: v666
+max_time: 60

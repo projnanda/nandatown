@@ -1,0 +1,26 @@
+name: consensus_corrupt_weak_auth
+description: The same corrupt-commit scenario with the auth layer swapped for plain.v1 (no signatures); the changed value passes as genuine, acceptor-2 commits v666, and consensus splits.
+seed: 42
+validator: consensus_corrupt
+layers:
+  auth: plain.v1
+agents:
+  - name: proposer
+    role: proposer
+    config: {value: v42, retry_after: 1.5, confirm_commit: true}
+  - name: acceptor-1
+    role: acceptor
+    config: {confirm_commit: true}
+  - name: acceptor-2
+    role: acceptor
+    config: {confirm_commit: true}
+  - name: acceptor-3
+    role: acceptor
+    config: {confirm_commit: true}
+faults:
+  - action: corrupt
+    kind: commit
+    nth: 2
+    field: value
+    value: v666
+max_time: 60
