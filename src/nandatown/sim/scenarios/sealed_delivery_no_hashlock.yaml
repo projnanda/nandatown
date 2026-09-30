@@ -1,0 +1,46 @@
+name: sealed_delivery_no_hashlock
+description: The same sealed-data market on deadline.v1, which has a deadline but no hashlock; the seller sends the key itself, the late key opens goods whose payment was already refunded, and the run fails on purpose.
+seed: 42
+validator: sealed_delivery
+layers:
+  payments: deadline.v1
+# Starts are staggered so each fault meets one pair:
+#   buyer-1 / seller-a: its escrow_locked notice is held past the 5.0s
+#     deadline, so seller-a's key claim arrives late.
+#   buyer-2 / seller-b: the second sealed box sent is lost.
+#   buyer-3 / seller-c: seller-c's first box is damaged after sealing.
+#   buyer-4 / seller-d: seller-d seals other bytes under its listing.
+agents:
+  - name: seller-a
+    role: data-seller
+    config: {sku: traffic-2026, price_cents: 1500, dataset: "junction,hour,vehicles\nJ1,08,412\nJ2,08,377\n", balance_cents: 0}
+  - name: seller-b
+    role: data-seller
+    config: {sku: weather-2026, price_cents: 1200, dataset: "station,day,rain_mm\nS1,1,4.2\nS2,1,0.0\n", balance_cents: 0}
+  - name: seller-c
+    role: data-seller
+    config: {sku: prices-2026, price_cents: 1800, dataset: "sku,region,cents\nW1,north,1995\nW1,south,2010\n", balance_cents: 0, corrupt_boxes: 1}
+  - name: seller-d
+    role: data-seller
+    config: {sku: census-2026, price_cents: 1600, dataset: "ward,households\n1,1204\n2,988\n", balance_cents: 0, wrong_content: true}
+  - name: buyer-1
+    role: data-buyer
+    config: {sku: traffic-2026, max_cents: 2000, balance_cents: 5000, start_at: 0.5}
+  - name: buyer-2
+    role: data-buyer
+    config: {sku: weather-2026, max_cents: 2000, balance_cents: 5000, start_at: 1.0}
+  - name: buyer-3
+    role: data-buyer
+    config: {sku: prices-2026, max_cents: 2000, balance_cents: 5000, start_at: 1.5}
+  - name: buyer-4
+    role: data-buyer
+    config: {sku: census-2026, max_cents: 2000, balance_cents: 5000, start_at: 2.0}
+faults:
+  - action: delay
+    kind: escrow_locked
+    nth: 1
+    delay: 10
+  - action: drop
+    kind: sealed_box
+    nth: 2
+max_time: 60
