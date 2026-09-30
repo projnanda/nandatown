@@ -28,11 +28,14 @@ class AgentSpec(BaseModel):
 class FaultRule(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    action: Literal["drop", "duplicate", "delay", "drop_rate"]
+    action: Literal["drop", "duplicate", "delay", "drop_rate", "partition"]
     kind: str = ""
     nth: int = Field(default=1, ge=1)
     delay: float = Field(default=0.0, ge=0)
     rate: float = Field(default=0.0, ge=0, le=1)
+    groups: tuple[tuple[str, ...], ...] | None = None
+    start: float | None = Field(default=None, ge=0)
+    heal: float | None = Field(default=None, ge=0)
 
     @field_validator("nth", mode="before")
     @classmethod
@@ -47,6 +50,43 @@ class FaultRule(BaseModel):
         if type(value) not in (int, float) or not math.isfinite(value):
             raise ValueError("must be a finite real number")
         return value
+
+    @field_validator("start", "heal", mode="before")
+    @classmethod
+    def _validate_optional_real_number(cls, value):
+        if value is None:
+            return value
+        if type(value) not in (int, float) or not math.isfinite(value):
+            raise ValueError("must be a finite real number")
+        return value
+
+    @model_validator(mode="after")
+    def _partition_shape(self):
+        if self.action != "partition":
+            if any(value is not None
+                   for value in (self.groups, self.start, self.heal)):
+                raise ValueError(
+                    "groups, start and heal are only valid for action: partition")
+            return self
+        missing = [field for field in ("groups", "start", "heal")
+                   if getattr(self, field) is None]
+        if missing:
+            raise ValueError(f"partition needs {', '.join(missing)}")
+        fields = type(self).model_fields
+        changed = [name for name in ("kind", "nth", "delay", "rate")
+                   if getattr(self, name) != fields[name].default]
+        if changed:
+            raise ValueError("partition cuts every message kind; per-message "
+                             f"fields do not apply: {', '.join(changed)}")
+        if self.start >= self.heal:
+            raise ValueError("partition start must be before heal")
+        if len(self.groups) < 2 or any(not group for group in self.groups):
+            raise ValueError("partition needs at least two non-empty groups")
+        names = [name for group in self.groups for name in group]
+        if len(names) != len(set(names)):
+            raise ValueError(
+                "each agent may appear only once across partition groups")
+        return self
 
 
 class ScenarioSpec(BaseModel):
@@ -72,6 +112,27 @@ class ScenarioSpec(BaseModel):
         self.layers = merged
         if not self.validator:
             self.validator = self.name
+        return self
+
+    @model_validator(mode="after")
+    def _partition_fits_scenario(self):
+        partitions = [rule for rule in self.faults if rule.action == "partition"]
+        if not partitions:
+            return self
+        if len(self.faults) > 1:
+            raise ValueError(
+                "a partition must be the only fault in its scenario; "
+                "combining it with other faults is not defined yet")
+        rule = partitions[0]
+        agents = {agent.name for agent in self.agents}
+        grouped = {name for group in rule.groups for name in group}
+        unknown, missing = sorted(grouped - agents), sorted(agents - grouped)
+        if unknown or missing:
+            raise ValueError(
+                "partition groups must list every agent exactly once "
+                f"(unknown: {unknown}, missing: {missing})")
+        if rule.heal >= self.max_time:
+            raise ValueError("partition heal must happen before max_time")
         return self
 
 

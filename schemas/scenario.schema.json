@@ -31,7 +31,8 @@
             "drop",
             "duplicate",
             "delay",
-            "drop_rate"
+            "drop_rate",
+            "partition"
           ],
           "title": "Action",
           "type": "string"
@@ -41,6 +42,37 @@
           "minimum": 0,
           "title": "Delay",
           "type": "number"
+        },
+        "groups": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Groups"
+        },
+        "heal": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Heal"
         },
         "kind": {
           "default": "",
@@ -59,6 +91,19 @@
           "minimum": 0,
           "title": "Rate",
           "type": "number"
+        },
+        "start": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start"
         }
       },
       "required": [

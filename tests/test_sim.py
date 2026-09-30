@@ -11,8 +11,10 @@ from nandatown.sim.scenario import (
 )
 
 ALL_SCENARIOS = ["marketplace", "auction", "voting", "consensus",
-                 "supply_chain", "capability_spoofing"]
-FAILING_SCENARIOS = ["capability_spoofing_weak_auth"]
+                 "supply_chain", "capability_spoofing",
+                 "consensus_partition"]
+FAILING_SCENARIOS = ["capability_spoofing_weak_auth",
+                     "consensus_partition_quorum_defect"]
 
 
 def trace_of(spec):
@@ -147,3 +149,16 @@ def test_tampered_lab_bundle_detected(tmp_path):
     with open(events_file, "w") as f:
         f.write(content.replace("apricot", "turnip"))
     assert verify_bundle(bundle_dir) != []
+
+
+def test_quorum_defect_breaks_consensus_under_partition(tmp_path):
+    bundle_dir, result = run_lab("consensus_partition_quorum_defect", str(tmp_path))
+    stages = {s.name: s.status for s in result.stages}
+    assert set(stages) == {"partition_enforced", "quorum_commit", "agreement",
+                           "progress_after_heal", "ledger_conserved", "privacy"}
+    assert result.verdict == "failed", stages
+    assert stages["partition_enforced"] == "passed"
+    assert stages["quorum_commit"] == "failed"
+    assert stages["agreement"] == "failed"
+    assert stages["progress_after_heal"] == "failed"
+    assert verify_bundle(bundle_dir) == []

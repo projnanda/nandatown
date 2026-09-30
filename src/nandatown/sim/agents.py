@@ -316,7 +316,14 @@ class Voter(SimAgent):
 
 @role("proposer")
 class Proposer(SimAgent):
+    DEFECTS = ("shrink_quorum_on_timeout",)
+
     def on_start(self):
+        self.defect = self.config.get("defect")
+        if self.defect is not None and self.defect not in self.DEFECTS:
+            from .runner import LabError
+            raise LabError(f"unknown proposer defect {self.defect!r};"
+                           f" available: {list(self.DEFECTS)}")
         self.api.register(["consensus.propose"])
         self.acks: set[str] = set()
         self.committed = False
@@ -336,17 +343,26 @@ class Proposer(SimAgent):
     def handle_prepare_ack(self, msg):
         self.acks.add(msg["sender"])
         if not self.committed and len(self.acks) >= self.quorum:
-            self.committed = True
-            self.api.observe("consensus_committed", self.config["value"],
-                            {"acks": sorted(self.acks),
-                             "quorum": self.quorum})
-            for a in self.acceptors:
-                self.api.send(a, "commit", {"value": self.config["value"]})
+            self._commit()
+
+    def _commit(self):
+        self.committed = True
+        self.api.observe("consensus_committed", self.config["value"],
+                         {"acks": sorted(self.acks),
+                          "quorum": self.quorum})
+        for a in self.acceptors:
+            self.api.send(a, "commit", {"value": self.config["value"]})
 
     def check(self):
         if self.committed:
             return
         missing = [a for a in self.acceptors if a not in self.acks]
+        if missing and self.acks and self.defect == "shrink_quorum_on_timeout":
+            # Deliberately wrong, for negative controls only: treat whoever
+            # answered as the whole quorum instead of waiting for a majority.
+            self.quorum = len(self.acks)
+            self._commit()
+            return
         if missing:
             self.api.observe("proposal_retry", self.name,
                             {"missing": missing})

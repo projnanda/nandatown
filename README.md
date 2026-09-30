@@ -91,7 +91,7 @@ The Lab has twelve replaceable protocol layers. Track uses the mailbox contract 
 
 | Layer | Default | What it does |
 |---|---|---|
-| transport | memory.v1 | delivers envelopes, injects drop, duplicate, delay, and rate faults |
+| transport | memory.v1 | delivers envelopes, injects drop, duplicate, delay, rate, and partition faults |
 | communication | envelope.v1 | message envelopes, conversation ids, correlation |
 | identity | keys.v1 | per-agent keys and AgentFacts-style cards |
 | registry | index.v1 | the town's internal index: publish cards, look up capabilities |
@@ -142,6 +142,8 @@ nandatown run auction --seed 7
 | supply_chain | contract-net bidding, milestone escrow per part, assembly ordering, delayed delivery survived |
 | capability_spoofing | a forged capability card is unverified, contained, and gets no business |
 | capability_spoofing_weak_auth | the same scenario with auth swapped for plain.v1: the run FAILS on purpose, showing what the auth layer is for |
+| consensus_partition | a partition cuts the proposer off from a majority: no commit during the cut, a majority commit after it heals, every acceptor agrees |
+| consensus_partition_quorum_defect | the same partition with a quorum-shrinking proposer: the run FAILS on purpose, showing what the majority rule is for |
 
 Every scenario also gets two standing checks: the ledger conserved money across every movement, and no redacted field leaked into the exported records.
 

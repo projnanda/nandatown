@@ -1,0 +1,23 @@
+name: consensus_partition_quorum_defect
+description: The same partition with a proposer that treats whoever answered as its quorum; it commits on one acknowledgement during the cut, the commit never reaches the other side, and the run fails on purpose. Weaken the majority rule, watch the partition break consensus.
+seed: 42
+validator: consensus_partition
+agents:
+  - name: proposer
+    role: proposer
+    config: {value: v42, retry_after: 1.5, defect: shrink_quorum_on_timeout}
+  - name: acceptor-1
+    role: acceptor
+    config: {}
+  - name: acceptor-2
+    role: acceptor
+    config: {}
+  - name: acceptor-3
+    role: acceptor
+    config: {}
+faults:
+  - action: partition
+    groups: [[proposer, acceptor-1], [acceptor-2, acceptor-3]]
+    start: 0
+    heal: 10
+max_time: 60

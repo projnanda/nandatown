@@ -1,0 +1,22 @@
+name: consensus_partition
+description: A partition cuts the proposer and one acceptor off from the other two until t=10; the proposer cannot reach a majority and commits nothing during the cut, then commits once it heals, and every acceptor commits the same value.
+seed: 42
+agents:
+  - name: proposer
+    role: proposer
+    config: {value: v42, retry_after: 1.5}
+  - name: acceptor-1
+    role: acceptor
+    config: {}
+  - name: acceptor-2
+    role: acceptor
+    config: {}
+  - name: acceptor-3
+    role: acceptor
+    config: {}
+faults:
+  - action: partition
+    groups: [[proposer, acceptor-1], [acceptor-2, acceptor-3]]
+    start: 0
+    heal: 10
+max_time: 60

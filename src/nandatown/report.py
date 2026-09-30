@@ -51,6 +51,8 @@ STAGE_MEANING = {
     "quorum_commit": "commit only after a quorum of acknowledgements",
     "agreement": "every honest agent committed the same value",
     "fault_recovered": "the dropped message was retried and recovered",
+    "partition_enforced": "every message across the cut was dropped while it lasted",
+    "progress_after_heal": "a majority commit arrived after the cut healed",
     "procurement": "every component went to the lowest bid",
     "milestones": "each part was paid through its own escrow",
     "assembly_order": "parts before assembly, assembly before delivery",

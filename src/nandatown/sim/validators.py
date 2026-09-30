@@ -936,9 +936,8 @@ def quorum_commit(spec, trace: Trace) -> StageResult:
                    f"each commit follows {quorum} distinct eligible acknowledgements for its value")
 
 
-@validator("consensus")
-def consensus(spec, trace: Trace) -> list[StageResult]:
-    stages = [quorum_commit(spec, trace)]
+def agreement(spec, trace: Trace) -> StageResult:
+    """Every configured acceptor committed the proposer's configured value."""
     acceptors = [a.name for a in spec.agents if a.role == "acceptor"]
     proposers = [a for a in spec.agents if a.role == "proposer"]
 
@@ -948,9 +947,16 @@ def consensus(spec, trace: Trace) -> list[StageResult]:
              and all(e.observer == e.subject
                      and e.detail.get("value") == proposers[0].config["value"]
                      for e in values))
-    stages.append(_check(
+    return _check(
         "agreement", agree, [e.event_id for e in values],
-        "every acceptor must commit the configured proposed value"))
+        "every acceptor must commit the configured proposed value")
+
+
+@validator("consensus")
+def consensus(spec, trace: Trace) -> list[StageResult]:
+    stages = [quorum_commit(spec, trace)]
+    acceptors = [a.name for a in spec.agents if a.role == "acceptor"]
+    stages.append(agreement(spec, trace))
 
     dropped = trace.ids("message_dropped")
     retries = trace.ids("proposal_retry")
@@ -962,6 +968,90 @@ def consensus(spec, trace: Trace) -> list[StageResult]:
         "the dropped acknowledgements must force a retry of the missing"
         " acceptors"))
     return stages
+
+
+def partition_enforced(spec, trace: Trace) -> StageResult:
+    """The declared cut happened and held: the town recorded its start and
+    heal at the declared times, every message sent across it while it lasted
+    was dropped by the partition and never delivered, and every partition
+    drop crossed the cut inside the window."""
+    rules = [f for f in spec.faults if f.action == "partition"]
+    started = trace.find("partition_started")
+    healed = trace.find("partition_healed")
+    if len(rules) != 1 or len(started) != 1 or len(healed) != 1:
+        return _missing("partition_enforced",
+                        "requires one declared partition with its recorded"
+                        " start and heal")
+    rule = rules[0]
+    group = {name: index for index, members in enumerate(rule.groups)
+             for name in members}
+
+    def crosses(sender, to):
+        return group.get(sender) != group.get(to)
+
+    def inside(event):
+        return rule.start <= event.at < rule.heal
+
+    crossing = [e for e in trace.find("message_sent")
+                if inside(e) and crosses(e.observer, e.detail.get("to"))]
+    if not crossing:
+        return _missing("partition_enforced",
+                        "no message was sent across the cut while it lasted")
+    drops = trace.find("message_dropped", fault="partition")
+    dropped = {e.subject for e in drops}
+    delivered = {e.subject for e in trace.find("message_delivered")}
+    window = [started[0].event_id, healed[0].event_id]
+    if started[0].at != rule.start or healed[0].at != rule.heal:
+        return _failed("partition_enforced", window,
+                       "the recorded cut does not match the declared window")
+    leaked = [e for e in crossing
+              if e.subject in delivered or e.subject not in dropped]
+    if leaked:
+        return _failed("partition_enforced",
+                       window + [e.event_id for e in leaked],
+                       f"{len(leaked)} message(s) crossed the cut while it lasted")
+    stray = [e for e in drops if not inside(e)
+             or not crosses(e.detail.get("from"), e.detail.get("to"))]
+    if stray:
+        return _failed("partition_enforced",
+                       window + [e.event_id for e in stray],
+                       "a partition drop did not cross the cut inside the window")
+    return _passed("partition_enforced", window + [e.event_id for e in drops],
+                   f"{len(drops)} messages across the cut were dropped while it"
+                   " lasted; none were delivered")
+
+
+def progress_after_heal(spec, trace: Trace) -> StageResult:
+    """After the cut healed, the proposer committed with a majority of the
+    configured acceptors. The delivery chain behind that commit is
+    quorum_commit's claim; this stage claims only when it happened."""
+    healed = trace.find("partition_healed")
+    finished = trace.find("run_finished")
+    if len(healed) != 1 or not finished:
+        return _missing("progress_after_heal",
+                        "requires a recorded heal and a finished run")
+    acceptors = {a.name for a in spec.agents if a.role == "acceptor"}
+    proposers = {a.name for a in spec.agents if a.role == "proposer"}
+    quorum = len(acceptors) // 2 + 1
+    later = [e for e in trace.find("consensus_committed")
+             if e.at >= healed[0].at and e.observer in proposers
+             and e.detail.get("quorum") == quorum
+             and set(e.detail.get("acks", [])) <= acceptors
+             and len(set(e.detail.get("acks", []))) >= quorum]
+    evidence = ([healed[0].event_id] + [e.event_id for e in later]
+                + [finished[-1].event_id])
+    return _check("progress_after_heal", bool(later), evidence,
+                  "no majority commit was recorded after the partition healed",
+                  f"a commit naming at least {quorum} of {len(acceptors)}"
+                  " acceptors followed the heal")
+
+
+@validator("consensus_partition")
+def consensus_partition(spec, trace: Trace) -> list[StageResult]:
+    """Consensus under a declared partition: the cut held, commits needed a
+    real majority, every acceptor agreed, and progress came after the heal."""
+    return [partition_enforced(spec, trace), quorum_commit(spec, trace),
+            agreement(spec, trace), progress_after_heal(spec, trace)]
 
 
 @validator("supply_chain")
