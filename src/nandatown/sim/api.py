@@ -102,6 +102,43 @@ class TownAPI:
     def balance(self) -> int:
         return self._engine.layers["payments"].balance(self.name)
 
+    def escrow_state(self, ref: str) -> str | None:
+        escrow = getattr(self._engine.layers["payments"], "escrow", {})
+        held = escrow.get(ref)
+        return held["state"] if held else None
+
+    # -- hash-locked exchange (payments plugins that support it) --------
+
+    def supports_hashlock(self) -> bool:
+        return hasattr(self._engine.layers["payments"], "hold_locked")
+
+    def hashlock_hold(self, to: str, cents: int, ref: str, key_digest: str,
+                      content_digest: str, ciphertext: bytes,
+                      nonce: bytes) -> None:
+        self._engine.record_intent(self.name, "hashlock_hold",
+                                   {"to": to, "cents": cents, "ref": ref,
+                                    "key_digest": key_digest,
+                                    "content_digest": content_digest})
+        self._engine.layers["payments"].hold_locked(
+            self.name, to, cents, ref, key_digest, content_digest,
+            ciphertext, nonce)
+
+    def hashlock_claim(self, ref: str, key: bytes) -> bool:
+        from ..layers.payments import digest
+
+        key_digest = digest(key) if isinstance(key, bytes) else None
+        self._engine.record_intent(self.name, "hashlock_claim",
+                                   {"ref": ref, "key_digest": key_digest})
+        return self._engine.layers["payments"].claim(ref, self.name, key)
+
+    def revealed_key(self, ref: str) -> bytes | None:
+        """The key the ledger revealed for this agent's own escrow."""
+        payments = self._engine.layers["payments"]
+        held = getattr(payments, "escrow", {}).get(ref)
+        if held is None or held["from"] != self.name:
+            return None
+        return getattr(payments, "revealed", {}).get(ref)
+
     # -- memory ---------------------------------------------------------
 
     def remember(self, key: str, value: Any) -> None:

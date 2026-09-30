@@ -1050,6 +1050,238 @@ def capability_spoofing(spec, trace: Trace) -> list[StageResult]:
     return stages
 
 
+def _detail(event: TownEvent) -> dict[str, Any]:
+    return event.detail if isinstance(event.detail, dict) else {}
+
+
+def _count(n: int, noun: str) -> str:
+    return f"{n} {noun}" + ("" if n == 1 else "s")
+
+
+def _is_time(value: Any) -> bool:
+    return (type(value) in (int, float)
+            and math.isfinite(value))
+
+
+def _escrow_index(trace: Trace):
+    position = {id(e): i for i, e in enumerate(trace.events)}
+    holds: dict[str, TownEvent] = {}
+    # Only facts the town recorded count: api.observe lets any agent
+    # record an event of any kind, including a forged ledger movement.
+    for e in trace.find("escrow_held", observer="town"):
+        if isinstance(e.subject, str) and e.subject:
+            holds.setdefault(e.subject, e)
+    deadlines: dict[str, TownEvent] = {}
+    for e in trace.find("escrow_deadline_set", observer="town"):
+        if _is_time(_detail(e).get("expires_at")):
+            deadlines.setdefault(e.subject, e)
+    terminals: dict[str, list[TownEvent]] = {}
+    for e in trace.events:
+        if (e.kind in ("escrow_released", "escrow_refunded")
+                and e.observer == "town"):
+            terminals.setdefault(e.subject, []).append(e)
+    return position, holds, deadlines, terminals
+
+
+def _escrow_resolved(holds, terminals) -> StageResult:
+    """Every hold reaches exactly one terminal movement. ledger_conserved
+    counts held escrow toward the total, so it passes even when a hold
+    is never resolved; this judges the hold's lifecycle."""
+    problems = []
+    for ref in sorted(holds):
+        count = len(terminals.get(ref, []))
+        if count == 0:
+            problems.append(f"{ref} still held at run end")
+        elif count > 1:
+            problems.append(f"{ref} has {count} terminal movements")
+    for ref in sorted(set(terminals) - set(holds)):
+        problems.append(f"{ref} settled without a recorded hold")
+    evidence = [e.event_id for e in holds.values()]
+    for ref in sorted(terminals):
+        evidence.extend(e.event_id for e in terminals[ref])
+    if not holds:
+        return _missing("escrow_resolved", "no escrow was held")
+    if problems:
+        return _failed("escrow_resolved", evidence, "; ".join(problems[:4]))
+    return _passed("escrow_resolved", evidence,
+                   f"{_count(len(holds), 'escrow')} each ended with exactly"
+                   " one party")
+
+
+def _key_matches(key_hex: Any, key_digest: Any) -> bool:
+    import hashlib
+
+    if not isinstance(key_hex, str) or not isinstance(key_digest, str):
+        return False
+    try:
+        key = bytes.fromhex(key_hex)
+    except ValueError:
+        return False
+    return "sha256:" + hashlib.sha256(key).hexdigest() == key_digest
+
+
+def _declared_sealed_faults(spec) -> dict[str, bool]:
+    """Which sealed-exchange faults the scenario itself sets up."""
+    configs = [a.config for a in spec.agents if isinstance(a.config, dict)]
+    return {
+        "damaged box": any(type(c.get("corrupt_boxes")) is int
+                           and c["corrupt_boxes"] > 0 for c in configs),
+        "wrong content": any(c.get("wrong_content") is True
+                             for c in configs),
+        "late key claim": any(f.action == "delay"
+                              and f.kind == "escrow_locked"
+                              for f in spec.faults),
+    }
+
+
+@validator("sealed_delivery")
+def sealed_delivery(spec, trace: Trace) -> list[StageResult]:
+    """Payment and the goods move together. A payee is paid exactly when
+    the payer could open the listed goods; damaged boxes are refused
+    before payment; wrong content and late claims are refused at the
+    ledger. Each revealed key is re-hashed here, from the record."""
+    position, holds, _, terminals = _escrow_index(trace)
+    stages = [_escrow_resolved(holds, terminals)]
+    declared = _declared_sealed_faults(spec)
+
+    def unexercised(name, fault, missing):
+        # A fault the scenario never declared is not tested, as privacy
+        # is without redact_fields; a declared one that left no trace is
+        # missing evidence.
+        if declared[fault]:
+            return _missing(name, missing)
+        return StageResult(name=name, status="not_tested",
+                           note=f"the scenario declares no {fault}")
+
+    def terminal(ref):
+        found = terminals.get(ref, [])
+        return found[0].kind if len(found) == 1 else None
+
+    def before(event, kind, ref, **conds):
+        return [e for e in trace.find(kind, **conds)
+                if e.subject == ref and position[id(e)] < position[id(event)]]
+
+    # paid_only_for_verified_box: no escrow without a box in hand.
+    problems, evidence = [], []
+    for ref, hold in holds.items():
+        accepted = before(hold, "box_accepted", ref,
+                          observer=_detail(hold).get("from"))
+        evidence.append(hold.event_id)
+        if not accepted:
+            problems.append(f"{ref} paid before its box was verified")
+        else:
+            evidence.append(accepted[-1].event_id)
+    lost = [e for e in trace.find("message_dropped", kind="sealed_box")]
+    if not holds:
+        stages.append(_missing("paid_only_for_verified_box",
+                               "no escrow was held"))
+    elif problems:
+        stages.append(_failed("paid_only_for_verified_box", evidence,
+                              "; ".join(problems[:4])))
+    else:
+        stages.append(_passed(
+            "paid_only_for_verified_box", evidence,
+            f"every payment followed a verified box;"
+            f" {_count(len(lost), 'lost box')} cost nothing"))
+
+    # damaged_box_refused: a box that fails its digest is never paid for.
+    rejected = trace.find("box_rejected", reason="box digest mismatch")
+    problems = []
+    for e in rejected:
+        paid = [a for a in trace.find("box_accepted")
+                if a.subject == e.subject
+                and _detail(a).get("box_digest")
+                == _detail(e).get("box_digest")]
+        if paid:
+            problems.append(f"{e.subject} accepted the damaged box")
+    evidence = [e.event_id for e in rejected]
+    if not rejected:
+        stages.append(unexercised("damaged_box_refused", "damaged box",
+                                  "no damaged box was delivered"))
+    elif problems:
+        stages.append(_failed("damaged_box_refused", evidence,
+                              "; ".join(problems)))
+    else:
+        stages.append(_passed(
+            "damaged_box_refused", evidence,
+            f"{_count(len(rejected), 'damaged box')} refused before"
+            " payment"))
+
+    # wrong_content_refused and late_claim_refused: the ledger said no,
+    # the escrow went back to the payer, and no key left the ledger.
+    revealed = {e.subject: e
+                for e in trace.find("key_revealed", observer="town")}
+    for name, reason, fault, missing in [
+            ("wrong_content_refused", "content does not match the listing",
+             "wrong content", "no claim for mismatched content was made"),
+            ("late_claim_refused", "deadline passed",
+             "late key claim", "no key claim arrived after its deadline")]:
+        refused = trace.find("claim_refused", observer="town",
+                             reason=reason)
+        problems = []
+        for e in refused:
+            if terminal(e.subject) != "escrow_refunded":
+                problems.append(f"{e.subject} was not refunded")
+            if e.subject in revealed:
+                problems.append(f"{e.subject} key was revealed anyway")
+        evidence = [e.event_id for e in refused]
+        if not refused:
+            stages.append(unexercised(name, fault, missing))
+        elif problems:
+            stages.append(_failed(name, evidence, "; ".join(problems[:4])))
+        else:
+            stages.append(_passed(
+                name, evidence,
+                f"{_count(len(refused), 'claim')} refused; refunded with"
+                " the key withheld"))
+
+    # atomic_exchange: paid if and only if the payer opened the goods.
+    # Opening is the payer's own attributed assertion about its order.
+    opened = {ref: e for ref, hold in holds.items()
+              for e in trace.find("goods_opened", subject=ref,
+                                  observer=_detail(hold).get("from"))}
+    locks = {e.subject: e
+             for e in trace.find("escrow_hashlocked", observer="town")}
+    problems, evidence = [], []
+    for ref in sorted(holds):
+        paid = terminal(ref) == "escrow_released"
+        evidence.extend(e.event_id for e in terminals.get(ref, []))
+        if ref in opened and not paid:
+            problems.append(f"{ref} goods opened without payment")
+        if paid and ref not in opened:
+            problems.append(f"{ref} paid without the goods opening")
+        if ref in locks:
+            key = revealed.get(ref)
+            if paid != (key is not None):
+                problems.append(f"{ref} payment and key reveal disagree")
+            elif key is not None and not _key_matches(
+                    _detail(key).get("key_hex"),
+                    _detail(locks[ref]).get("key_digest")):
+                problems.append(f"{ref} revealed key does not match its"
+                                " digest")
+    if not holds:
+        stages.append(_missing("atomic_exchange", "no escrow was held"))
+    elif problems:
+        stages.append(_failed("atomic_exchange", evidence,
+                              "; ".join(problems[:4])))
+    else:
+        stages.append(_passed(
+            "atomic_exchange", evidence,
+            f"{_count(len(opened), 'buyer')} opened goods, each paid"
+            f" for; {_count(len(holds) - len(opened), 'buyer')} refunded"
+            " with the box sealed"))
+
+    # honest_trade_completed: the protocol still lets a trade finish.
+    done = [opened[ref] for ref in sorted(opened)
+            if terminal(ref) == "escrow_released"]
+    stages.append(_check(
+        "honest_trade_completed", bool(done),
+        [e.event_id for e in done],
+        "no buyer opened paid-for goods",
+        f"{_count(len(done), 'trade')} completed with the listed data"))
+    return stages
+
+
 COMPLETION_KINDS = ["offer_accepted", "vote_result",
                     "consensus_committed", "task_awarded",
                     "escrow_released", "receipt_attested"]

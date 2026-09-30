@@ -463,3 +463,201 @@ class Supplier(SimAgent):
         self.api.reply(msg, "part_delivery",
                        {"task_id": msg["body"]["task_id"],
                         "component": self.config["component"]})
+
+
+# -- sealed data exchange ----------------------------------------------
+
+
+@role("data-seller")
+class DataSeller(SimAgent):
+    """Sells a dataset as a sealed box: AES-GCM under a fresh key.
+
+    Its card lists the dataset's content digest. It is paid by handing
+    the key to a hashlock ledger; under a ledger without hashlocks it
+    sends the key to the buyer instead. Defects for fault runs:
+    corrupt_boxes flips a byte in that many boxes after sealing (damage
+    in transit), and wrong_content seals other bytes under the listing.
+    """
+
+    def on_start(self):
+        from ..layers.payments import digest
+
+        c = self.config
+        self.dataset = c["dataset"].encode()
+        self.listing = digest(self.dataset)
+        self.corrupt_left = c.get("corrupt_boxes", 0)
+        self.keys: dict[str, bytes] = {}
+        self.api.register([f"data.{c['sku']}"],
+                          {"sku": c["sku"], "price_cents": c["price_cents"],
+                           "content_digest": self.listing})
+
+    def handle_box_request(self, msg):
+        from ..layers.payments import digest, seal
+
+        order_id = msg["body"]["order_id"]
+        rng = self.api.rng
+        key = bytes(rng.getrandbits(8) for _ in range(16))
+        nonce = bytes(rng.getrandbits(8) for _ in range(12))
+        plaintext = self.dataset
+        if self.config.get("wrong_content"):
+            plaintext = b"not the listed dataset"
+        box = seal(key, nonce, plaintext)
+        box_digest = digest(box)
+        if self.corrupt_left > 0:
+            self.corrupt_left -= 1
+            box = bytes([box[0] ^ 0xFF]) + box[1:]
+        # Every key issued stays claimable: after a retry the buyer may
+        # pay for an earlier box than the latest one.
+        self.keys[digest(key)] = key
+        self.api.reply(msg, "sealed_box",
+                       {"order_id": order_id, "sku": self.config["sku"],
+                        "box_hex": box.hex(), "nonce_hex": nonce.hex(),
+                        "box_digest": box_digest,
+                        "key_digest": digest(key),
+                        "content_digest": self.listing})
+
+    def handle_escrow_locked(self, msg):
+        from ..layers.payments import PaymentError
+
+        order_id = msg["body"]["order_id"]
+        key = self.keys.get(msg["body"].get("key_digest"))
+        if key is None:
+            self.api.observe("claim_skipped", order_id,
+                             {"reason": "no key issued for that digest"})
+            return
+        if self.api.supports_hashlock():
+            try:
+                self.api.hashlock_claim(order_id, key)
+            except PaymentError as exc:
+                self.api.observe("claim_skipped", order_id,
+                                 {"reason": str(exc)})
+        else:
+            self.api.reply(msg, "key_release",
+                           {"order_id": order_id, "key_hex": key.hex()})
+
+
+@role("data-buyer")
+class DataBuyer(SimAgent):
+    """Pays only while holding a verified sealed box, then opens it.
+
+    The box must match its own digest and the seller's listed content
+    digest. A lost or damaged box is requested again, at most
+    max_requests times. Payment is hashlocked when the ledger supports
+    it; otherwise it is plain escrow, released after opening the goods.
+    """
+
+    def on_start(self):
+        c = self.config
+        self.order_id = f"order-{self.name}-1"
+        self.requests = 0
+        self.box: dict[str, Any] | None = None
+        self.done = False
+        self.api.register(["buy"])
+        self.api.later(c.get("start_at", 0.5), self.request_box)
+
+    def request_box(self):
+        cards = self.api.lookup(f"data.{self.config['sku']}")
+        if not cards:
+            self.api.observe("buyer_gave_up", self.name,
+                             {"reason": "no seller lists the dataset"})
+            return
+        card = cards[0]
+        if card["facts"]["price_cents"] > self.config["max_cents"]:
+            self.api.observe("buyer_gave_up", self.name,
+                             {"reason": "price above cap"})
+            return
+        self.seller = card["name"]
+        self.listing = card["facts"]["content_digest"]
+        self.price = card["facts"]["price_cents"]
+        self.requests += 1
+        self.api.send(self.seller, "box_request",
+                      {"order_id": self.order_id, "sku": self.config["sku"]})
+        self.api.later(self.config.get("patience", 2.0),
+                       lambda n=self.requests: self.check_box(n))
+
+    def _retry(self, reason: str):
+        if self.requests < self.config.get("max_requests", 3):
+            self.request_box()
+        else:
+            self.api.observe("buyer_gave_up", self.name, {"reason": reason})
+
+    def check_box(self, n: int):
+        if self.box is None and n == self.requests:
+            self.api.observe("box_timeout", self.order_id,
+                             {"request": n})
+            self._retry("no box arrived")
+
+    def handle_sealed_box(self, msg):
+        from ..layers.payments import digest
+
+        body = msg["body"]
+        if self.box is not None or body["order_id"] != self.order_id:
+            self.api.observe("duplicate_recognized", body["order_id"],
+                             {"kind": "sealed_box"})
+            return
+        box = bytes.fromhex(body["box_hex"])
+        reason = None
+        if digest(box) != body["box_digest"]:
+            reason = "box digest mismatch"
+        elif body["content_digest"] != self.listing:
+            reason = "content digest differs from the listing"
+        if reason:
+            self.api.observe("box_rejected", self.order_id,
+                             {"reason": reason,
+                              "box_digest": digest(box)})
+            self._retry(reason)
+            return
+        if self.api.balance() < self.price:
+            self.api.observe("buyer_gave_up", self.name,
+                             {"reason": "insufficient funds"})
+            return
+        self.box = {"box": box, "nonce": bytes.fromhex(body["nonce_hex"])}
+        self.api.observe("box_accepted", self.order_id,
+                         {"seller": self.seller,
+                          "box_digest": body["box_digest"],
+                          "key_digest": body["key_digest"]})
+        if self.api.supports_hashlock():
+            self.api.hashlock_hold(self.seller, self.price, self.order_id,
+                                   body["key_digest"], self.listing,
+                                   box, self.box["nonce"])
+        else:
+            self.api.escrow_hold(self.price, ref=self.order_id)
+        self.api.send(self.seller, "escrow_locked",
+                      {"order_id": self.order_id,
+                       "key_digest": body["key_digest"]})
+        if self.api.supports_hashlock():
+            self.api.later(0.5, self.poll_key)
+
+    def poll_key(self):
+        if self.done:
+            return
+        key = self.api.revealed_key(self.order_id)
+        if key is not None:
+            self.open_goods(key)
+        elif self.api.escrow_state(self.order_id) == "refunded":
+            self.done = True
+            self.api.observe("order_refunded", self.order_id,
+                             {"note": "the box stays sealed"})
+        else:
+            self.api.later(0.5, self.poll_key)
+
+    def handle_key_release(self, msg):
+        if self.box is None or self.done:
+            return
+        self.open_goods(bytes.fromhex(msg["body"]["key_hex"]))
+        if self.done and self.api.escrow_state(self.order_id) == "held":
+            self.api.escrow_release(self.order_id, self.seller)
+
+    def open_goods(self, key: bytes):
+        from ..layers.payments import digest, unseal
+
+        plaintext = unseal(key, self.box["nonce"], self.box["box"])
+        if plaintext is None or digest(plaintext) != self.listing:
+            self.api.observe("goods_rejected", self.order_id,
+                             {"reason": "opened content does not match"
+                                        " the listing"})
+            return
+        self.done = True
+        self.api.observe("goods_opened", self.order_id,
+                         {"content_digest": digest(plaintext),
+                          "escrow": self.api.escrow_state(self.order_id)})
