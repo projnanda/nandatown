@@ -61,11 +61,13 @@ def build_agent_card(base_url: str) -> dict[str, Any]:
 def build_a2a_app(base_url: str = "http://127.0.0.1:8940",
                   defect: str | None = None):
     """The reference A2A seller, optionally with one planted defect:
-    wrong_total, wrong_item, duplicate_fulfillment, or card_drift. Planted defects
-    are how the path test's failure cases are demonstrated for real."""
+    wrong_total, wrong_item, duplicate_fulfillment, card_drift, or
+    accept_conflicting_retry. Planted defects are how the path test's
+    failure cases are demonstrated for real."""
     app = FastAPI(title="nandatown a2a seller", version=__version__)
     tasks: dict[str, dict[str, Any]] = {}
     fulfillment_counts: dict[str, int] = {}
+    order_terms: dict[str, dict[str, Any]] = {}
     card_fetches = {"n": 0}
 
     @app.get("/.well-known/agent-card.json")
@@ -81,6 +83,15 @@ def build_a2a_app(base_url: str = "http://127.0.0.1:8940",
         request = json.loads(text)
         total = int(request["quantity"]) * int(request["unit_price_cents"])
         request_id = request.get("request_id", "q-1")
+        if isinstance(request.get("request_id"), str) \
+                and defect != "accept_conflicting_retry":
+            # A request_id binds to the terms it was first quoted under: an
+            # identical retry is answered again, a changed one is refused.
+            terms = {k: v for k, v in request.items() if k != "request_id"}
+            if order_terms.setdefault(request_id, terms) != terms:
+                return "rejected", {"request_id": request_id,
+                                    "error": "request_id already quoted"
+                                             " under different terms"}
         if defect == "wrong_total":
             total += 100
         if defect == "duplicate_fulfillment":
@@ -117,7 +128,8 @@ def build_a2a_app(base_url: str = "http://127.0.0.1:8940",
             try:
                 state, quote = _quote(text)
                 artifacts = [{"artifactId": "a-1",
-                              "name": "quote",
+                              "name": ("quote" if state == "completed"
+                                       else "error"),
                               "parts": [{"kind": "text",
                                          "text": json.dumps(quote)}]}]
             except (json.JSONDecodeError, KeyError, ValueError) as exc:

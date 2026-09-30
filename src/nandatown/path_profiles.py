@@ -19,6 +19,7 @@ PATH_EVALUATOR = "path-evaluator@0.1"
 STRICT_PATH_EVALUATOR = "path-evaluator@0.2"
 QUOTE_INTENT_EVALUATOR = "quote-intent-evaluator@0.1"
 STRICT_QUOTE_INTENT_EVALUATOR = "quote-intent-evaluator@0.2"
+ORDER_CONFLICT_EVALUATOR = "order-conflict-evaluator@0.1"
 QUOTE_INTENT_FIELDS = ("sku", "color", "quantity", "merchant_id", "currency")
 
 
@@ -31,7 +32,10 @@ class PathProfile(BaseModel):
     capability: str
     request: dict[str, Any]
     expected: dict[str, Any]
-    controlled_condition: Literal["duplicate_request"]
+    # duplicate_request resends the same order unchanged. conflicting_retry
+    # resends its request_id with expected["retry_changes"] applied; the
+    # subject must refuse it.
+    controlled_condition: Literal["duplicate_request", "conflicting_retry"]
     limits: dict[str, float]
     evaluator: str
 
@@ -112,6 +116,20 @@ PATH_PROFILES: dict[str, PathProfile] = {
         limits={"timeout_seconds": 15.0,
                 "max_response_bytes": 1_048_576},
         evaluator=STRICT_PATH_EVALUATOR,
+    ),
+    "a2a-order-conflict@0.1": PathProfile(
+        profile_id="a2a-order-conflict",
+        version="0.1",
+        protocol="a2a",
+        capability="quote",
+        request={"sku": "widget", "quantity": 2,
+                 "unit_price_cents": 1995},
+        expected={"total_cents": 3990, "terminal_fulfillments": 1,
+                  "retry_changes": {"quantity": 5}},
+        controlled_condition="conflicting_retry",
+        limits={"timeout_seconds": 15.0,
+                "max_response_bytes": 1_048_576},
+        evaluator=ORDER_CONFLICT_EVALUATOR,
     ),
 }
 

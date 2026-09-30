@@ -35,8 +35,8 @@ from .a2a_transport import (
     validate_response_budget,
 )
 from .path_profiles import (
-    DEFAULT_PATH_PROFILE, PATH_EVALUATOR, QUOTE_INTENT_EVALUATOR,
-    QUOTE_INTENT_FIELDS, STRICT_PATH_EVALUATOR,
+    DEFAULT_PATH_PROFILE, ORDER_CONFLICT_EVALUATOR, PATH_EVALUATOR,
+    QUOTE_INTENT_EVALUATOR, QUOTE_INTENT_FIELDS, STRICT_PATH_EVALUATOR,
     STRICT_QUOTE_INTENT_EVALUATOR, PathProfile, get_path_profile,
 )
 from .records import (
@@ -52,10 +52,12 @@ from .url_credentials import Scrubber, has_credentials, scrub
 PATH_EVALUATOR_VERSION = "path-0.2"
 STRICT_PATH_EVALUATOR_VERSION = "path-0.3"
 STRICT_QUOTE_INTENT_EVALUATOR_VERSION = "path-quote-intent-0.2"
+ORDER_CONFLICT_EVALUATOR_VERSION = "path-order-conflict-0.1"
 
 STRICT_PATH_EVALUATORS = {
     STRICT_PATH_EVALUATOR,
     STRICT_QUOTE_INTENT_EVALUATOR,
+    ORDER_CONFLICT_EVALUATOR,
 }
 LEGACY_PATH_EVALUATORS = {
     PATH_EVALUATOR,
@@ -72,6 +74,8 @@ def path_evaluator_version(profile: PathProfile) -> str:
         return STRICT_PATH_EVALUATOR_VERSION
     if profile.evaluator == STRICT_QUOTE_INTENT_EVALUATOR:
         return STRICT_QUOTE_INTENT_EVALUATOR_VERSION
+    if profile.evaluator == ORDER_CONFLICT_EVALUATOR:
+        return ORDER_CONFLICT_EVALUATOR_VERSION
     if profile.evaluator == QUOTE_INTENT_EVALUATOR:
         return "path-quote-intent-0.1"
     if profile.evaluator == PATH_EVALUATOR:
@@ -251,6 +255,82 @@ def _semantic_fulfillment_stage(
     return StageResult(
         name="semantic_result", status="failed",
         evidence=[fulfillment.event_id], note=note)
+
+
+def _conflicting_retry_stage(profile: PathProfile,
+                             driver_errors: list[TownEvent],
+                             first_fulfillment: list[TownEvent],
+                             second_exchange: list[TownEvent],
+                             second: list[TownEvent]) -> StageResult:
+    """The retry reused the order id with changed terms.
+
+    Only a task the subject ended 'rejected', A2A's state for declining
+    to perform a task, is a refusal. Answering it, even with the first
+    quote, tells the requester its new terms were taken. A 'failed' task
+    or a retry that returned no task cannot be told apart from a
+    malfunction, so it is missing evidence, never a pass.
+    """
+    changes = profile.expected.get("retry_changes")
+    if driver_errors:
+        # Town's own fault is reported by protocol_invocation, never here.
+        return StageResult(name="conflicting_retry",
+                           status="not_enough_evidence",
+                           note="Town's own driver malfunctioned")
+    if len(first_fulfillment) != 1 or not second_exchange:
+        return StageResult(name="conflicting_retry",
+                           status="not_enough_evidence",
+                           note="the controlled condition was never reached")
+    if len(second_exchange) > 1:
+        return StageResult(
+            name="conflicting_retry", status="failed",
+            evidence=[event.event_id for event in second_exchange],
+            note="expected exactly one protocol exchange for attempt 2,"
+                 f" observed {len(second_exchange)}")
+    exchange = second_exchange[0]
+    detail = exchange.detail
+    if not detail.get("ok"):
+        return StageResult(
+            name="conflicting_retry", status="not_enough_evidence",
+            evidence=[exchange.event_id],
+            note="the conflicting retry returned no task ("
+                 + str(detail.get("reason", "protocol invocation failed"))
+                 + "); Town cannot tell a refusal from a malfunction")
+    state = detail.get("state")
+    if detail.get("kind") == "task" and state == "failed":
+        return StageResult(
+            name="conflicting_retry", status="not_enough_evidence",
+            evidence=[exchange.event_id],
+            note="the conflicting retry ended 'failed'; Town cannot tell a"
+                 " refusal from a malfunction")
+    if detail.get("kind") == "task" and state == "rejected":
+        return StageResult(
+            name="conflicting_retry", status="passed",
+            evidence=[exchange.event_id],
+            note=f"the order id was reused with changed terms {changes} and"
+                 f" the task ended {state!r}; the first quote stands. Town"
+                 " does not check the subject's stated reason")
+    first = first_fulfillment[0]
+    if second:
+        answer = second[0]
+        if answer.detail.get("content_digest") \
+                == first.detail.get("content_digest"):
+            note = (f"the changed terms {changes} were answered with the"
+                    " first quote instead of being refused")
+        else:
+            note = (f"conflict defect: the order id was answered again"
+                    f" under changed terms {changes} with a different"
+                    f" quote: total_cents"
+                    f" {first.detail.get('total_cents')!r}, then"
+                    f" {answer.detail.get('total_cents')!r}")
+        return StageResult(name="conflicting_retry", status="failed",
+                           evidence=[first.event_id, answer.event_id],
+                           note=note)
+    return StageResult(
+        name="conflicting_retry", status="failed",
+        evidence=[exchange.event_id],
+        note="expected the conflicting retry to be refused (task state"
+             f" 'rejected'), observed kind"
+             f" {detail.get('kind')!r} state {state!r}")
 
 
 STAGE_ORDER = ["resolution", "agent_card_retrieval",
@@ -483,6 +563,12 @@ def run_path_test(subject_url: str | None, out_dir: str,
                                 nonce=nonce)
             for attempt in (1, 2):
                 if attempt == 2 and profile.controlled_condition \
+                        == "conflicting_retry":
+                    # Same order id, changed terms: the retry the subject
+                    # must refuse rather than answer.
+                    request_body = dict(request_body,
+                                        **profile.expected["retry_changes"])
+                elif attempt == 2 and profile.controlled_condition \
                         != "duplicate_request":
                     break
                 recorder.intend("town-requester", "message_send",
@@ -837,7 +923,11 @@ def evaluate_path(profile: PathProfile, run_id: str,
     second_exchange = find("protocol_exchange", attempt=2)
     second_bad = find("fulfillment_unparseable", attempt=2)
     second_outcomes = second + second_bad
-    if strict_semantics and len(first_fulfillment) == 1 \
+    if profile.controlled_condition == "conflicting_retry":
+        stages.append(_conflicting_retry_stage(
+            profile, driver_errors, first_fulfillment, second_exchange,
+            second))
+    elif strict_semantics and len(first_fulfillment) == 1 \
             and len(second_exchange) > 1:
         stages.append(StageResult(
             name="duplicate_request", status="failed",
