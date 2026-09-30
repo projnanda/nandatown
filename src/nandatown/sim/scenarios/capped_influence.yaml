@@ -1,0 +1,16 @@
+name: capped_influence
+description: A slanderer that never trades files five bad receipts about an honest seller; reputation.capped.v1 caps any one observer at one point and gives an observer with no settled trade no weight at all, so the buyer's real rating still stands.
+seed: 42
+layers:
+  trust: reputation.capped.v1
+agents:
+  - name: seller-honest
+    role: seller
+    config: {sku: widget, ask_cents: 1995, floor_cents: 1700, stock: 10, balance_cents: 0}
+  - name: buyer-1
+    role: buyer
+    config: {sku: widget, quantity: 2, cap_cents: 1900, balance_cents: 10000, rounds: 1}
+  - name: slanderer
+    role: slanderer
+    config: {target: seller-honest, reports: 5, start_after: 3.0, interval: 0.5, balance_cents: 0}
+max_time: 60

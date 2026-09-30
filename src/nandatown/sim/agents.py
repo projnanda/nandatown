@@ -183,6 +183,26 @@ class Spoofer(SimAgent):
                        {"sku": msg["body"]["sku"], "unit_cents": 1})
 
 
+@role("slanderer")
+class Slanderer(SimAgent):
+    """Files repeated bad trade receipts about a seller it never trades with.
+
+    Nothing is forged; the attack is volume from a single voice.
+    """
+
+    def on_start(self):
+        self.api.register(["review"])
+        self.filed = 0
+        self.api.later(self.config.get("start_after", 3.0), self.file_report)
+
+    def file_report(self):
+        self.filed += 1
+        self.api.rate(self.config["target"], "bad")
+        if self.filed < self.config.get("reports", 5):
+            self.api.later(self.config.get("interval", 0.5),
+                           self.file_report)
+
+
 # -- auction -----------------------------------------------------------
 
 

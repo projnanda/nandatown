@@ -96,7 +96,7 @@ The Lab has twelve replaceable protocol layers. Track uses the mailbox contract 
 | identity | keys.v1 | per-agent keys and AgentFacts-style cards |
 | registry | index.v1 | the town's internal index: publish cards, look up capabilities |
 | auth (authorization) | hmac.v1 | signs and verifies messages and cards; forged senders fail |
-| trust | reputation.v1 | receipt-driven reputation with a public formula |
+| trust | reputation.v1 | receipt-driven reputation with a public formula; `reputation.capped.v1` caps any one observer's influence |
 | payments | ledger.v1 | balances, transfers, escrow; money is conserved |
 | coordination | contractnet.v1 | announce, bid, award, with late bids rejected |
 | negotiation | haggle.v1 | alternating offers to an auditable agreed price |
@@ -142,6 +142,8 @@ nandatown run auction --seed 7
 | supply_chain | contract-net bidding, milestone escrow per part, assembly ordering, delayed delivery survived |
 | capability_spoofing | a forged capability card is unverified, contained, and gets no business |
 | capability_spoofing_weak_auth | the same scenario with auth swapped for plain.v1: the run FAILS on purpose, showing what the auth layer is for |
+| capped_influence | one observer's influence on a reputation is capped, an observer with no settled trade of its own carries no weight, and real feedback still counts |
+| capped_influence_uncapped_control | the same scenario with trust left at reputation.v1: the run FAILS on purpose, showing that one voice that never trades can bury an honest seller |
 
 Every scenario also gets two standing checks: the ledger conserved money across every movement, and no redacted field leaked into the exported records.
 
