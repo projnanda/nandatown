@@ -28,11 +28,13 @@ class AgentSpec(BaseModel):
 class FaultRule(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    action: Literal["drop", "duplicate", "delay", "drop_rate"]
+    action: Literal["drop", "duplicate", "delay", "drop_rate", "corrupt"]
     kind: str = ""
     nth: int = Field(default=1, ge=1)
     delay: float = Field(default=0.0, ge=0)
     rate: float = Field(default=0.0, ge=0, le=1)
+    field: str = ""
+    value: str = ""
 
     @field_validator("nth", mode="before")
     @classmethod
@@ -47,6 +49,12 @@ class FaultRule(BaseModel):
         if type(value) not in (int, float) or not math.isfinite(value):
             raise ValueError("must be a finite real number")
         return value
+
+    @model_validator(mode="after")
+    def _validate_corrupt(self):
+        if self.action == "corrupt" and not self.field:
+            raise ValueError("corrupt requires a non-empty field")
+        return self
 
 
 class ScenarioSpec(BaseModel):

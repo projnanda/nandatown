@@ -9,7 +9,7 @@ from . import register
 
 @register("transport", "memory.v1")
 class MemoryTransport:
-    """Deterministic in-memory delivery with declared drop, duplicate, and delay faults."""
+    """Deterministic in-memory delivery with declared drop, duplicate, delay, and corrupt faults."""
 
     LATENCY = 0.1
 
@@ -44,10 +44,10 @@ class MemoryTransport:
         rule = self._match(envelope)
         latency = self.LATENCY
 
-        def deliver():
-            engine.emit("town", "message_delivered", envelope["message_id"],
-                        {"to": to, "kind": envelope["kind"]})
-            engine.deliver(to, envelope)
+        def deliver(env=envelope):
+            engine.emit("town", "message_delivered", env["message_id"],
+                        {"to": to, "kind": env["kind"]})
+            engine.deliver(to, env)
 
         if rule is None:
             engine.schedule(latency, deliver)
@@ -61,6 +61,18 @@ class MemoryTransport:
         if action == "drop":
             engine.emit("town", "message_dropped", envelope["message_id"],
                         {"to": to, "kind": envelope["kind"], "fault": "drop"})
+            return
+        if action == "corrupt":
+            field, value = rule["field"], rule.get("value", "")
+            if envelope.get("body", {}).get(field) == value:
+                engine.schedule(latency, deliver)
+                return
+            tampered = dict(envelope, body={**envelope.get("body", {}),
+                                            field: value})
+            engine.emit("town", "message_corrupted", envelope["message_id"],
+                        {"to": to, "kind": envelope["kind"], "fault": "corrupt",
+                         "field": field})
+            engine.schedule(latency, lambda: deliver(tampered))
             return
         if action == "duplicate":
             engine.emit("town", "message_duplicated", envelope["message_id"],

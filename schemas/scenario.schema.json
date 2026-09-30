@@ -31,7 +31,8 @@
             "drop",
             "duplicate",
             "delay",
-            "drop_rate"
+            "drop_rate",
+            "corrupt"
           ],
           "title": "Action",
           "type": "string"
@@ -41,6 +42,11 @@
           "minimum": 0,
           "title": "Delay",
           "type": "number"
+        },
+        "field": {
+          "default": "",
+          "title": "Field",
+          "type": "string"
         },
         "kind": {
           "default": "",
@@ -59,6 +65,11 @@
           "minimum": 0,
           "title": "Rate",
           "type": "number"
+        },
+        "value": {
+          "default": "",
+          "title": "Value",
+          "type": "string"
         }
       },
       "required": [

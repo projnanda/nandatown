@@ -319,7 +319,9 @@ class Proposer(SimAgent):
     def on_start(self):
         self.api.register(["consensus.propose"])
         self.acks: set[str] = set()
+        self.commit_acks: set[str] = set()
         self.committed = False
+        self.commit_retries = 0
         self.api.later(0.5, self.start_proposal)
 
     def start_proposal(self):
@@ -333,6 +335,19 @@ class Proposer(SimAgent):
         for a in targets:
             self.api.send(a, "prepare", {"value": self.config["value"]})
 
+    def _send_commit(self, targets):
+        for a in targets:
+            self.api.send(a, "commit", {"value": self.config["value"]})
+
+    def _retry_missing(self, acked, event, resend, again) -> bool:
+        missing = [a for a in self.acceptors if a not in acked]
+        if not missing:
+            return False
+        self.api.observe(event, self.name, {"missing": missing})
+        resend(missing)
+        self.api.later(self.config.get("retry_after", 1.5), again)
+        return True
+
     def handle_prepare_ack(self, msg):
         self.acks.add(msg["sender"])
         if not self.committed and len(self.acks) >= self.quorum:
@@ -340,18 +355,26 @@ class Proposer(SimAgent):
             self.api.observe("consensus_committed", self.config["value"],
                             {"acks": sorted(self.acks),
                              "quorum": self.quorum})
-            for a in self.acceptors:
-                self.api.send(a, "commit", {"value": self.config["value"]})
+            self._send_commit(self.acceptors)
+            if self.config.get("confirm_commit"):
+                self.api.later(self.config.get("retry_after", 1.5),
+                               self.check_commits)
+
+    def handle_commit_ack(self, msg):
+        self.commit_acks.add(msg["sender"])
 
     def check(self):
         if self.committed:
             return
-        missing = [a for a in self.acceptors if a not in self.acks]
-        if missing:
-            self.api.observe("proposal_retry", self.name,
-                            {"missing": missing})
-            self._send_prepare(missing)
-            self.api.later(self.config.get("retry_after", 1.5), self.check)
+        self._retry_missing(self.acks, "proposal_retry", self._send_prepare,
+                            self.check)
+
+    def check_commits(self):
+        if self.commit_retries >= self.config.get("max_commit_retries", 3):
+            return
+        if self._retry_missing(self.commit_acks, "commit_retry",
+                               self._send_commit, self.check_commits):
+            self.commit_retries += 1
 
 
 @role("acceptor")
@@ -366,6 +389,8 @@ class Acceptor(SimAgent):
         value = msg["body"]["value"]
         self.api.remember("committed", value)
         self.api.observe("value_committed", self.name, {"value": value})
+        if self.config.get("confirm_commit"):
+            self.api.reply(msg, "commit_ack", {"value": value})
 
 
 # -- supply chain ------------------------------------------------------

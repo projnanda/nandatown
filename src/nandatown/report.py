@@ -51,6 +51,10 @@ STAGE_MEANING = {
     "quorum_commit": "commit only after a quorum of acknowledgements",
     "agreement": "every honest agent committed the same value",
     "fault_recovered": "the dropped message was retried and recovered",
+    "corruption_injected": "a signed message body was rewritten in transit",
+    "corruption_rejected": "every rewritten message failed its signature"
+                           " check",
+    "corruption_recovered": "the rejected commit was re-sent and delivered",
     "procurement": "every component went to the lowest bid",
     "milestones": "each part was paid through its own escrow",
     "assembly_order": "parts before assembly, assembly before delivery",

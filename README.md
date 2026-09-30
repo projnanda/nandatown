@@ -91,7 +91,7 @@ The Lab has twelve replaceable protocol layers. Track uses the mailbox contract 
 
 | Layer | Default | What it does |
 |---|---|---|
-| transport | memory.v1 | delivers envelopes, injects drop, duplicate, delay, and rate faults |
+| transport | memory.v1 | delivers envelopes, injects drop, duplicate, delay, corrupt, and rate faults |
 | communication | envelope.v1 | message envelopes, conversation ids, correlation |
 | identity | keys.v1 | per-agent keys and AgentFacts-style cards |
 | registry | index.v1 | the town's internal index: publish cards, look up capabilities |
@@ -142,10 +142,12 @@ nandatown run auction --seed 7
 | supply_chain | contract-net bidding, milestone escrow per part, assembly ordering, delayed delivery survived |
 | capability_spoofing | a forged capability card is unverified, contained, and gets no business |
 | capability_spoofing_weak_auth | the same scenario with auth swapped for plain.v1: the run FAILS on purpose, showing what the auth layer is for |
+| consensus_corrupt | a commit's signed value is rewritten in transit: the bad signature is rejected, the proposer re-sends, every acceptor commits the proposed value |
+| consensus_corrupt_weak_auth | the same fault with auth swapped for plain.v1: the rewritten value is accepted, consensus splits, and the run FAILS on purpose |
 
 Every scenario also gets two standing checks: the ledger conserved money across every movement, and no redacted field leaked into the exported records.
 
-A scenario is a short YAML file: agents and roles, the plugin per layer, the faults, the seed. Point `nandatown run path/to/your.yaml` at your own; `plugin_files:` in the YAML loads your own plugin and validator modules first.
+A scenario is a short YAML file: agents and roles, the plugin per layer, the faults, the seed. A `corrupt` fault (`{action: corrupt, kind: commit, nth: 2, field: value, value: v666}`) rewrites one body field after signing and keeps the original signature; it tests body integrity only, since the envelope `kind` is not signed. Point `nandatown run path/to/your.yaml` at your own; `plugin_files:` in the YAML loads your own plugin and validator modules first.
 
 ## Track profiles
 

@@ -40,6 +40,11 @@ def test_fault_numbers_reject_malformed_values_even_when_unused(
         FaultRule.model_validate({"action": action, field: value})
 
 
+def test_corrupt_without_a_field_is_rejected():
+    with pytest.raises(ValidationError):
+        FaultRule.model_validate({"action": "corrupt", "kind": "commit"})
+
+
 def test_integer_yaml_values_remain_valid_for_float_fault_fields():
     spec = load_scenario_text("""
 name: integer-fault-values
