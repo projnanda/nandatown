@@ -162,6 +162,25 @@ def test_plain_release_cannot_bypass_the_key():
     assert any(e.kind == "escrow_release_refused" for e in engine.events)
 
 
+def test_a_buyer_refund_before_the_claim_never_yields_the_goods():
+    """The buyer may cancel before the seller claims, for instance while
+    the claim is still in transit. It gets its money back but never the
+    key, so it cannot end up with both: the box it holds stays sealed.
+    The seller's later claim is refused and the deadline refunds nothing
+    a second time."""
+    engine, ledger = _ledger()
+    _lock(ledger)
+    ledger.refund("o")
+    assert ledger.balance("buyer") == 5000
+    assert ledger.claim("o", "seller", KEY) is False
+    assert _refusal(engine) == ["escrow refunded"]
+    assert ledger.balance("seller") == 0
+    assert "o" not in ledger.revealed
+    _drain(engine)
+    assert ledger.balance("buyer") == 5000
+    assert [e.kind for e in engine.events].count("escrow_refunded") == 1
+
+
 def test_claim_on_an_unlocked_ref_raises():
     _, ledger = _ledger()
     ledger.hold("buyer", 100, "plain")
