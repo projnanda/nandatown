@@ -1,0 +1,20 @@
+name: fair_exchange
+description: One seller, an honest buyer, a buyer that takes delivery and releases escrow to itself, and a buyer that takes delivery and refunds escrow to itself. Under bound.v1 escrow names its payee, both attempts are refused, and the seller claims each held escrow against the town's recorded delivery, so every delivery is paid once; swap payments to ledger.v1 and both attempts succeed.
+seed: 42
+layers:
+  payments: bound.v1
+agents:
+  - name: seller-a
+    role: seller
+    config: {sku: widget, ask_cents: 2000, floor_cents: 1800, stock: 10, balance_cents: 0}
+  - name: buyer-1
+    role: buyer
+    config: {sku: widget, quantity: 2, cap_cents: 1900, balance_cents: 10000, rounds: 1, budget_cents: 10000}
+  - name: thief
+    role: self_paying_buyer
+    config: {sku: widget, quantity: 2, cap_cents: 1900, balance_cents: 10000, rounds: 1, budget_cents: 10000}
+  - name: refunder
+    role: self_refunding_buyer
+    config: {sku: widget, quantity: 2, cap_cents: 1900, balance_cents: 10000, rounds: 1, budget_cents: 10000}
+redact_fields: [budget_cents]
+max_time: 60

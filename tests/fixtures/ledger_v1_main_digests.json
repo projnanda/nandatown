@@ -1,0 +1,13 @@
+{
+  "generated_from": "projnanda/nandatown main 36e7f6c590fd7b3e5d223494ab8ce9f335cbe202",
+  "how": "sha256 of canonical events, intents, stages, and verdict per bundled scenario, with run_id removed (see tests/test_payments_bound.py::canonical_digest)",
+  "digests": {
+    "auction": "0e4a567f749563d452b6594c8ca4cb2f72aaaa89ea6d1ed8fc513103d213036b",
+    "capability_spoofing": "ab72083ec3fea60ccf60bcc02926a4620c8114dce15ad9cc1e19c7108185818b",
+    "capability_spoofing_weak_auth": "365f0d3cda8408db5b96413bf1fe5b6ff74dd08cda2992bee403e25c65fff0ed",
+    "consensus": "f5942e84dba8a5507cdd3aeeb57b64dc897cc54b53bb8966ff6be2bc813105a6",
+    "marketplace": "a8d2c40a2a51fcb808380d83e3f505b47c296581da4746c7740540ee0e7c9759",
+    "supply_chain": "859dad16258b4e4260f5c607b975a0a212b9747f2689a598fc819ced042af728",
+    "voting": "96a51f144766aa709c846088d24870fb5f0fdc13cabfe4bb32cfc040d740476f"
+  }
+}

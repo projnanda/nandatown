@@ -91,6 +91,7 @@ from . import (  # noqa: E402,F401
     memory,
     negotiation,
     payments,
+    payments_bound_v1,
     privacy,
     registry_layer,
     transport,

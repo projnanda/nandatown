@@ -1050,6 +1050,139 @@ def capability_spoofing(spec, trace: Trace) -> list[StageResult]:
     return stages
 
 
+def _body(event: TownEvent) -> dict:
+    detail = event.detail if isinstance(event.detail, dict) else {}
+    body = detail.get("body")
+    return body if isinstance(body, dict) else {}
+
+
+def _purchase_orders(trace: Trace) -> dict[str, TownEvent]:
+    orders: dict[str, TownEvent] = {}
+    for event in trace.find("message_sent", kind="purchase_order"):
+        order_id = _body(event).get("order_id")
+        if isinstance(order_id, str):
+            orders.setdefault(order_id, event)
+    return orders
+
+
+def goods_paid_for(trace: Trace) -> StageResult:
+    """Every delivery was paid to the seller who shipped it, through
+    escrow, for the negotiated unit price times the ordered quantity."""
+    name = "goods_paid_for"
+    orders = _purchase_orders(trace)
+    deliveries: dict[str, TownEvent] = {}
+    for event in trace.find("message_sent", kind="delivery"):
+        order_id = _body(event).get("order_id")
+        if isinstance(order_id, str):
+            deliveries.setdefault(order_id, event)
+    if not deliveries:
+        return _missing(name, "no delivery was recorded")
+
+    evidence: list[str] = []
+    problems: list[str] = []
+    gaps: list[str] = []
+    for order_id, delivery in deliveries.items():
+        seller = delivery.observer
+        buyer = delivery.detail.get("to")
+        order = orders.get(order_id)
+        evidence.append(delivery.event_id)
+        if (order is None or order.observer != buyer
+                or order.detail.get("to") != seller):
+            gaps.append(f"{order_id}: no purchase order from {buyer}"
+                        f" to {seller}")
+            continue
+        body = _body(order)
+        accepted = trace.find("offer_accepted", subject=body.get("nid"))
+        quantity = body.get("quantity")
+        if (len(accepted) != 1 or type(quantity) is not int
+                or type(accepted[0].detail.get("cents")) is not int):
+            gaps.append(f"{order_id}: no single agreed price")
+            continue
+        total = accepted[0].detail["cents"] * quantity
+        evidence += [order.event_id, accepted[0].event_id]
+        if (body.get("unit_cents") != accepted[0].detail["cents"]
+                or _body(delivery).get("quantity") != quantity):
+            problems.append(f"{order_id}: order or delivery does not match"
+                            " the agreed terms")
+            continue
+        held = trace.find("escrow_held", subject=order_id, cents=total)
+        settled = trace.find("payment_settled", subject=order_id,
+                             via="escrow")
+        evidence += _event_ids(held) + _event_ids(settled)
+        if len(held) != 1 or held[0].detail.get("from") != buyer:
+            problems.append(f"{order_id}: no escrow hold from {buyer} for"
+                            f" the agreed total {total}")
+        elif not settled:
+            refunded = trace.find("escrow_refunded", subject=order_id)
+            evidence += _event_ids(refunded)
+            problems.append(
+                f"{order_id}: delivered, then escrow refunded to {buyer}"
+                if refunded else
+                f"{order_id}: delivered but escrow never paid {seller}")
+        elif not (len(settled) == 1
+                  and settled[0].detail.get("from") == buyer
+                  and settled[0].detail.get("to") == seller
+                  and settled[0].detail.get("cents") == total):
+            problems.append(f"{order_id}: escrow paid"
+                            f" {settled[0].detail.get('to')}, not {seller},"
+                            f" or not the agreed total {total}")
+    if problems:
+        return _failed(name, evidence, "; ".join(problems))
+    if gaps:
+        return _missing(name, "; ".join(gaps))
+    return _passed(name, evidence,
+                   f"{len(deliveries)} deliveries each paid to their seller"
+                   " through escrow for the agreed total")
+
+
+def _delivered_orders(trace: Trace) -> set[str]:
+    """Order ids whose delivery message the town handed to the buyer."""
+    handed = {e.subject for e in trace.find("message_delivered",
+                                            kind="delivery")}
+    failed = {e.subject for e in trace.find("delivery_failed")}
+    return {_body(event).get("order_id")
+            for event in trace.find("message_sent", kind="delivery")
+            if event.subject in handed and event.subject not in failed}
+
+
+def escrow_bound(trace: Trace) -> StageResult:
+    """A buyer's attempt to take escrow back to itself after delivery was
+    refused, and no escrow ever paid anyone but the seller on its order."""
+    name = "escrow_bound"
+    orders = _purchase_orders(trace)
+    misdirected = []
+    for event in trace.find("payment_settled", via="escrow"):
+        order = orders.get(event.subject)
+        if order is not None and event.detail.get("to") != order.detail.get("to"):
+            misdirected.append(event)
+    delivered = _delivered_orders(trace)
+    misdirected += [event for event in trace.find("escrow_refunded")
+                    if event.subject in delivered]
+    refused = []
+    for event in (trace.find("escrow_release_refused")
+                  + trace.find("escrow_refund_refused")):
+        held = trace.find("escrow_held", subject=event.subject)
+        if (len(held) == 1
+                and event.detail.get("to") == held[0].detail.get("from")
+                and event.detail.get("to") != event.detail.get("payee")):
+            refused.append(event)
+    if misdirected:
+        return _failed(name, _event_ids(misdirected) + _event_ids(refused),
+                       "; ".join(f"escrow {bad.subject} went to"
+                                 f" {bad.detail.get('to')}, not the order's"
+                                 " seller" for bad in misdirected))
+    return _check(name, bool(refused), _event_ids(refused),
+                  "no attempt to take escrow back after delivery was"
+                  " recorded and refused",
+                  f"{len(refused)} attempt(s) to take escrow back refused;"
+                  " no escrow went to anyone but the order's seller")
+
+
+@validator("fair_exchange")
+def fair_exchange(spec, trace: Trace) -> list[StageResult]:
+    return [goods_paid_for(trace), escrow_bound(trace)]
+
+
 COMPLETION_KINDS = ["offer_accepted", "vote_result",
                     "consensus_committed", "task_awarded",
                     "escrow_released", "receipt_attested"]

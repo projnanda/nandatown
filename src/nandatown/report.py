@@ -38,6 +38,8 @@ STAGE_MEANING = {
     "discovery": "cards published and peers found through the index",
     "negotiation": "offers alternated to an agreed price inside bounds",
     "settlement": "money moved only through recorded escrow",
+    "goods_paid_for": "each delivery was paid to its seller through escrow for the agreed total",
+    "escrow_bound": "escrow could pay only the seller it was held for",
     "reputation": "receipts drove the public score",
     "memory_reuse": "a remembered counterparty replaced a fresh lookup",
     "announced": "the task was announced with its award rule",

@@ -85,10 +85,33 @@ class TownAPI:
                                    {"to": to, "cents": cents, "memo": memo})
         self._engine.layers["payments"].transfer(self.name, to, cents, memo)
 
-    def escrow_hold(self, cents: int, ref: str) -> None:
+    @property
+    def escrow_binds_payee(self) -> bool:
+        """True when the payments plugin declares it binds a hold to a
+        payee (and so offers hold_status)."""
+        return getattr(self._engine.layers["payments"],
+                       "binds_payee", False) is True
+
+    def escrow_hold(self, cents: int, ref: str,
+                    payee: str | None = None) -> None:
+        payments = self._engine.layers["payments"]
+        if payee is None:
+            self._engine.record_intent(self.name, "escrow_hold",
+                                       {"cents": cents, "ref": ref})
+            payments.hold(self.name, cents, ref)
+            return
         self._engine.record_intent(self.name, "escrow_hold",
-                                   {"cents": cents, "ref": ref})
-        self._engine.layers["payments"].hold(self.name, cents, ref)
+                                   {"cents": cents, "ref": ref,
+                                    "payee": payee})
+        payments.hold(self.name, cents, ref, payee=payee)
+
+    def escrow_claim(self, ref: str) -> None:
+        self._engine.record_intent(self.name, "escrow_claim", {"ref": ref})
+        self._engine.layers["payments"].claim(ref, self.name)
+
+    def escrow_status(self, ref: str) -> dict[str, Any] | None:
+        self._engine.record_intent(self.name, "escrow_status", {"ref": ref})
+        return self._engine.layers["payments"].hold_status(ref)
 
     def escrow_release(self, ref: str, to: str) -> None:
         self._engine.record_intent(self.name, "escrow_release",
