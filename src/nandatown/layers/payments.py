@@ -91,3 +91,46 @@ class Ledger:
         self.balances[h["from"]] += h["cents"]
         self.engine.emit("town", "escrow_refunded", ref,
                          {"to": h["from"], "cents": h["cents"]})
+
+
+@register("payments", "leased.v1")
+class LeasedLedger(Ledger):
+    """The same ledger, but every escrow hold carries a lease.
+
+    A hold nobody releases before its lease ends refunds itself to the
+    payer, on the logical clock, and a release that arrives after that is
+    refused and recorded rather than paid out. The Track fences a claim
+    whose lease ran out; this fences the money. A scenario that needs a
+    different lease registers a subclass with another LEASE.
+    """
+
+    LEASE = 5.0
+
+    def hold(self, frm: str, cents: int, ref: str) -> None:
+        super().hold(frm, cents, ref)
+        expires_at = self.engine.now + self.LEASE
+        self.escrow[ref]["expires_at"] = expires_at
+        self.engine.emit("town", "escrow_leased", ref,
+                         {"from": frm, "cents": cents,
+                          "expires_at": expires_at})
+        self.engine.schedule(self.LEASE, lambda: self._expire(ref))
+
+    def release(self, ref: str, to: str) -> None:
+        h = self.escrow.get(ref)
+        if h is not None and h["state"] == "expired":
+            self.engine.emit("town", "escrow_release_rejected", ref,
+                             {"to": to, "cents": h["cents"],
+                              "reason": "lease expired",
+                              "expires_at": h["expires_at"]})
+            return
+        super().release(ref, to)
+
+    def _expire(self, ref: str) -> None:
+        h = self.escrow[ref]
+        if h["state"] != "held":
+            return
+        self.engine.emit("town", "escrow_expired", ref,
+                         {"from": h["from"], "cents": h["cents"],
+                          "expires_at": h["expires_at"]})
+        super().refund(ref)
+        h["state"] = "expired"

@@ -1,0 +1,21 @@
+name: lost_delivery
+description: Two buyers pay one seller through escrow and one delivery message is dropped; with payments swapped for leased.v1 the stranded hold refunds itself when its lease ends, and the trade that completed is left alone.
+seed: 42
+layers:
+  payments: leased.v1
+agents:
+  - name: seller-a
+    role: seller
+    config: {sku: widget, ask_cents: 1995, floor_cents: 1700, stock: 10, balance_cents: 0}
+  - name: buyer-1
+    role: buyer
+    config: {sku: widget, quantity: 2, cap_cents: 1900, balance_cents: 10000, rounds: 1, budget_cents: 10000}
+  - name: buyer-2
+    role: buyer
+    config: {sku: widget, quantity: 2, cap_cents: 1900, balance_cents: 10000, rounds: 1, budget_cents: 10000}
+faults:
+  - action: drop
+    kind: delivery
+    nth: 1
+redact_fields: [budget_cents]
+max_time: 60

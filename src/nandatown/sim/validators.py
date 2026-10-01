@@ -1050,6 +1050,233 @@ def capability_spoofing(spec, trace: Trace) -> list[StageResult]:
     return stages
 
 
+def _delivery_senders(trace: Trace,
+                      deliveries: list[TownEvent]) -> dict[str, str]:
+    """The escrow ref each delivery message was meant to settle, read from
+    the order_id it carried when it was sent, to the agent that sent it."""
+    senders: dict[str, str] = {}
+    for delivery in deliveries:
+        for sent in trace.find("message_sent", subject=delivery.subject):
+            body = sent.detail.get("body")
+            ref = body.get("order_id") if isinstance(body, dict) else None
+            if isinstance(ref, str) and ref:
+                senders.setdefault(ref, sent.observer)
+    return senders
+
+
+def _closing_balance(trace: Trace, name: str) -> tuple[int | None, int | None]:
+    """One account's (opening, closing) balance replayed from the money
+    events; None where the opening or a movement is malformed."""
+    opened = None
+    balance = 0
+    for e in trace.events:
+        d = e.detail
+        if e.kind == "account_opened" and e.subject == name:
+            opened = d.get("balance_cents")
+            if type(opened) is not int:
+                return None, None
+            balance = opened
+            continue
+        moves = 0
+        if e.kind == "escrow_held" and d.get("from") == name:
+            moves = -1
+        elif (e.kind in ("escrow_released", "escrow_refunded")
+                and d.get("to") == name):
+            moves = 1
+        elif e.kind == "payment_settled" and d.get("via") != "escrow":
+            if d.get("from") == name:
+                moves -= 1
+            if d.get("to") == name:
+                moves += 1
+        if moves:
+            if type(d.get("cents")) is not int:
+                return opened, None
+            balance += moves * d["cents"]
+    return opened, balance
+
+
+@validator("lost_delivery")
+def lost_delivery(spec, trace: Trace) -> list[StageResult]:
+    """Money held for a trade whose delivery was lost must come back on
+    its own, at the lease the hold recorded, and the trade that did
+    complete must be left alone. These are correlated Lab records: they
+    do not show that goods existed or that either side was honest."""
+    stages = []
+    dropped = trace.find("message_dropped", observer="town", kind="delivery")
+    stages.append(_check(
+        "delivery_dropped", bool(dropped), _event_ids(dropped),
+        "the scenario must drop a delivery message"))
+
+    held = trace.find("escrow_held")
+    leases: dict[str, list[TownEvent]] = {}
+    for lease in trace.find("escrow_leased"):
+        leases.setdefault(lease.subject, []).append(lease)
+    unleased = []
+    leased_until = []
+    for hold in held:
+        found = leases.get(hold.subject, [])
+        expires_at = (found[0].detail.get("expires_at")
+                      if len(found) == 1 else None)
+        if not (len(found) == 1
+                and hold.observer == "town"
+                and found[0].observer == "town"
+                and found[0].at == hold.at
+                and found[0].detail.get("from") == hold.detail.get("from")
+                and found[0].detail.get("cents") == hold.detail.get("cents")
+                and type(expires_at) in (int, float)
+                and math.isfinite(expires_at)
+                and expires_at > hold.at):
+            unleased.append(hold.subject)
+        else:
+            leased_until.append(f"{hold.subject} until {expires_at}")
+    if not held:
+        stages.append(_missing("hold_leased",
+                               "no escrow hold was recorded, so there is no"
+                               " lease to check"))
+    else:
+        stages.append(_check(
+            "hold_leased", not unleased,
+            _event_ids(held) + _event_ids([e for group in leases.values()
+                                           for e in group]),
+            f"{len(unleased)} of {len(held)} holds carry no lease:"
+            f" {', '.join(unleased)}",
+            "leased " + ", ".join(leased_until)))
+
+    expired = trace.find("escrow_expired")
+    if not expired:
+        stages.append(_missing("refund_on_schedule",
+                               "no hold expired, so there is no refund to"
+                               " place on a schedule"))
+    else:
+        problems: list[str] = []
+        evidence: list[str] = []
+        on_schedule: list[str] = []
+        for event in expired:
+            ref = event.subject
+            lease = leases.get(ref, [])
+            refunds = trace.find("escrow_refunded", subject=ref)
+            evidence += (_event_ids(lease) + [event.event_id]
+                         + _event_ids(refunds))
+            terms = lease[0].detail if len(lease) == 1 else {}
+            if not terms or any(event.detail.get(k) != terms.get(k)
+                                for k in ("from", "cents", "expires_at")):
+                problems.append(f"{ref} expired without a matching lease")
+                continue
+            on_schedule.append(f"{ref} expired at {event.at} and refunded"
+                               f" {terms['cents']} cents to {terms['from']}")
+            if event.observer != "town":
+                problems.append(f"{ref} expiry was not recorded by the town")
+            if event.at != terms["expires_at"]:
+                problems.append(f"{ref} expired at {event.at}, not at its"
+                                f" lease end {terms['expires_at']}")
+            if trace.find("escrow_released", subject=ref):
+                problems.append(f"{ref} was released and still expired")
+            refund = refunds[0] if len(refunds) == 1 else None
+            if (refund is None
+                    or refund.observer != "town"
+                    or trace.index(refund) < trace.index(event)
+                    or refund.at != event.at
+                    or refund.detail.get("to") != terms["from"]
+                    or refund.detail.get("cents") != terms["cents"]):
+                problems.append(f"{ref} expired without one refund of the"
+                                " leased cents to the payer")
+        stages.append(_check(
+            "refund_on_schedule", not problems, evidence, "; ".join(problems),
+            "; ".join(on_schedule)))
+
+    finished = trace.find("run_finished")
+    if not held or not finished:
+        stages.append(_missing("no_hold_outlives_run",
+                               "no completed run with escrow holds to judge"))
+    else:
+        end = trace.index(finished[-1])
+        released_refs = {e.subject
+                         for e in trace.find("escrow_released", observer="town")
+                         if trace.index(e) < end}
+        refunded_refs = {e.subject
+                         for e in trace.find("escrow_refunded", observer="town")
+                         if trace.index(e) < end}
+        stranded = [h for h in held
+                    if h.subject not in released_refs | refunded_refs]
+        stages.append(_check(
+            "no_hold_outlives_run", not stranded,
+            _event_ids(held) + _event_ids(finished),
+            "still held when the run finished: " + ", ".join(
+                f"{h.subject} ({h.detail.get('cents')} cents)"
+                for h in stranded),
+            f"{len(held)} holds settled before the run finished:"
+            f" {sum(h.subject in released_refs for h in held)} released,"
+            f" {sum(h.subject in refunded_refs for h in held)} refunded"))
+
+    lost_refs = _delivery_senders(trace, dropped)
+    lost = [h for h in held if h.subject in lost_refs
+            and isinstance(h.detail.get("from"), str)]
+    if not lost:
+        stages.append(_missing(
+            "payer_made_whole",
+            "no dropped delivery names an escrow hold and its payer"))
+    else:
+        short: list[str] = []
+        balances: list[str] = []
+        evidence = _event_ids(lost)
+        for hold in lost:
+            ref, payer = hold.subject, hold.detail["from"]
+            refunds = trace.find("escrow_refunded", subject=ref)
+            evidence += (trace.ids("account_opened", subject=payer)
+                         + _event_ids(refunds))
+            opened, closing = _closing_balance(trace, payer)
+            if opened is not None and closing is not None:
+                balances.append(f"{payer} opened with {opened} cents and"
+                                f" finished with {closing}")
+            if (len(refunds) != 1
+                    or refunds[0].observer != "town"
+                    or refunds[0].detail.get("to") != payer
+                    or refunds[0].detail.get("cents") != hold.detail.get("cents")
+                    or trace.find("escrow_released", subject=ref)):
+                short.append(f"{ref}: {hold.detail.get('cents')} cents held"
+                             f" by {payer} never came back to it")
+        stages.append(_check(
+            "payer_made_whole", not short, evidence,
+            "; ".join(short + balances), "; ".join(balances)))
+
+    delivered = trace.find("message_delivered", observer="town",
+                           kind="delivery")
+    sellers = {ref: seller for ref, seller
+               in _delivery_senders(trace, delivered).items()
+               if ref not in lost_refs}
+    completed = [h for h in held if h.subject in sellers]
+    if not completed:
+        stages.append(_missing(
+            "completed_trade_untouched",
+            "no delivery reached a buyer, so there was no completed trade"
+            " to protect"))
+    else:
+        touched: list[str] = []
+        paid: list[str] = []
+        evidence = []
+        for hold in completed:
+            ref = hold.subject
+            released = trace.find("escrow_released", subject=ref)
+            interfered = (trace.find("escrow_expired", subject=ref)
+                          + trace.find("escrow_refunded", subject=ref)
+                          + trace.find("escrow_release_rejected", subject=ref))
+            evidence += ([hold.event_id] + _event_ids(released)
+                         + _event_ids(interfered))
+            if (len(released) != 1 or interfered
+                    or released[0].observer != "town"
+                    or released[0].detail.get("to") != sellers[ref]
+                    or released[0].detail.get("cents") != hold.detail.get("cents")):
+                touched.append(ref)
+            paid.append(f"{ref} paid {hold.detail.get('cents')} cents to"
+                        f" {sellers[ref]} once")
+        stages.append(_check(
+            "completed_trade_untouched", not touched, evidence,
+            "a completed trade did not pay its seller once and only once: "
+            + ", ".join(touched),
+            "; ".join(paid)))
+    return stages
+
+
 COMPLETION_KINDS = ["offer_accepted", "vote_result",
                     "consensus_committed", "task_awarded",
                     "escrow_released", "receipt_attested"]

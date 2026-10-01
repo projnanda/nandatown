@@ -59,6 +59,17 @@ STAGE_MEANING = {
     "honest_verified": "the honest card verified",
     "containment": "the spoofer got no traffic and no money",
     "honest_trade_completed": "the real trade still went through",
+    "delivery_dropped": "a delivery message was dropped after the money"
+                        " was held",
+    "hold_leased": "every escrow hold recorded the lease it would refund"
+                   " under",
+    "refund_on_schedule": "the stranded hold refunded itself exactly when"
+                          " its lease ended",
+    "no_hold_outlives_run": "no hold was still held when the run finished",
+    "payer_made_whole": "the buyer whose delivery was lost got its money"
+                        " back",
+    "completed_trade_untouched": "the trade that completed was released"
+                                 " once and its lease never fired",
     "ledger_conserved": "money was conserved across every movement",
     "privacy": "declared private fields never left the run",
     "resolution": "the subject was found through the declared path",

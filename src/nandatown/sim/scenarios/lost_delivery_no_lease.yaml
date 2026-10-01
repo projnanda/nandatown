@@ -1,0 +1,20 @@
+name: lost_delivery_no_lease
+description: The same lost delivery on the default ledger.v1; the ledger conserves every cent and the stranded hold is still held when the run ends, so the run fails on purpose. Swap the layer back, watch the money stay stuck.
+seed: 42
+validator: lost_delivery
+agents:
+  - name: seller-a
+    role: seller
+    config: {sku: widget, ask_cents: 1995, floor_cents: 1700, stock: 10, balance_cents: 0}
+  - name: buyer-1
+    role: buyer
+    config: {sku: widget, quantity: 2, cap_cents: 1900, balance_cents: 10000, rounds: 1, budget_cents: 10000}
+  - name: buyer-2
+    role: buyer
+    config: {sku: widget, quantity: 2, cap_cents: 1900, balance_cents: 10000, rounds: 1, budget_cents: 10000}
+faults:
+  - action: drop
+    kind: delivery
+    nth: 1
+redact_fields: [budget_cents]
+max_time: 60

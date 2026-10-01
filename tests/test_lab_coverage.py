@@ -35,6 +35,11 @@ NATIVE_SCENARIO_STAGES = {
         "spoof_detected", "honest_verified", "containment",
         "honest_trade_completed",
     },
+    "lost_delivery": {
+        "delivery_dropped", "hold_leased", "refund_on_schedule",
+        "no_hold_outlives_run", "payer_made_whole",
+        "completed_trade_untouched",
+    },
 }
 ADAPTED_STAGES = {
     "population_active", "discovery", "messages_flowed", "task_completed",
@@ -125,6 +130,7 @@ def test_declared_privacy_rejects_an_unredacted_event():
     ("consensus", NATIVE_SCENARIO_STAGES["consensus"]),
     ("supply_chain", NATIVE_SCENARIO_STAGES["supply_chain"]),
     ("capability_spoofing", NATIVE_SCENARIO_STAGES["capability_spoofing"]),
+    ("lost_delivery", NATIVE_SCENARIO_STAGES["lost_delivery"]),
 ])
 def test_healthy_native_scenarios_emit_their_literal_stage_set(name, expected):
     """Deleting a required native check must fail against this fixed matrix."""

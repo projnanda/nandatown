@@ -142,8 +142,10 @@ nandatown run auction --seed 7
 | supply_chain | contract-net bidding, milestone escrow per part, assembly ordering, delayed delivery survived |
 | capability_spoofing | a forged capability card is unverified, contained, and gets no business |
 | capability_spoofing_weak_auth | the same scenario with auth swapped for plain.v1: the run FAILS on purpose, showing what the auth layer is for |
+| lost_delivery | a delivery message is dropped after the buyer's money is in escrow; with payments swapped for leased.v1 the stranded hold refunds itself when its lease ends, and the trade that completed is untouched |
+| lost_delivery_no_lease | the same run on ledger.v1: every cent is conserved and the stranded hold is still held when the run ends, so the run FAILS on purpose, showing what a lease is for |
 
-Every scenario also gets two standing checks: the ledger conserved money across every movement, and no redacted field leaked into the exported records.
+Every scenario also gets two standing checks: the ledger conserved money across every movement, and no redacted field leaked into the exported records. The ledger check only counts money: `lost_delivery_no_lease` passes it while a buyer's held money never comes back.
 
 A scenario is a short YAML file: agents and roles, the plugin per layer, the faults, the seed. Point `nandatown run path/to/your.yaml` at your own; `plugin_files:` in the YAML loads your own plugin and validator modules first.
 
