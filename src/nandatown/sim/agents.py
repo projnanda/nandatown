@@ -109,8 +109,11 @@ class Buyer(SimAgent):
                             {"reason": "no sellers found"})
             return
         for t in targets:
-            self.api.send(t, "quote_request", {"sku": self.config["sku"]})
+            self.api.send(t, "quote_request", self.quote_request_body())
         self.api.later(self.config.get("quotes_wait", 1.0), self.close_quotes)
+
+    def quote_request_body(self) -> dict[str, Any]:
+        return {"sku": self.config["sku"]}
 
     def handle_quote_response(self, msg):
         self.quotes[msg["sender"]] = msg["body"]["unit_cents"]
@@ -166,6 +169,20 @@ class Buyer(SimAgent):
         self.api.remember("preferred_seller", msg["sender"])
         if self.round < self.config.get("rounds", 1):
             self.api.later(1.0, self.start_round)
+
+
+@role("chatty_buyer")
+class ChattyBuyer(Buyer):
+    """A buyer that overshares: it pastes its private api_key into the
+    note of every quote request, under a field name that is not declared
+    private. It records that it did so, naming the field but never the
+    value, so the attempt stays provable after the value is redacted."""
+
+    def quote_request_body(self):
+        self.api.observe("secret_shared", self.name,
+                         {"field": "api_key", "in_kind": "quote_request"})
+        return dict(super().quote_request_body(),
+                    note=f"my key is {self.config['api_key']}")
 
 
 @role("spoofer")
