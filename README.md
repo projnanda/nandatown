@@ -142,6 +142,8 @@ nandatown run auction --seed 7
 | supply_chain | contract-net bidding, milestone escrow per part, assembly ordering, delayed delivery survived |
 | capability_spoofing | a forged capability card is unverified, contained, and gets no business |
 | capability_spoofing_weak_auth | the same scenario with auth swapped for plain.v1: the run FAILS on purpose, showing what the auth layer is for |
+| registry_eviction | a rival republishes the honest seller's card under its name with the wrong key; with `index.owned.v1` the forged card is refused, the honest listing survives, and the honest seller is paid |
+| registry_eviction_unowned | the same scenario on the default `index.v1`: the forged card replaces the verified one, the buyer only finds the rival, and the run FAILS on purpose |
 
 Every scenario also gets two standing checks: the ledger conserved money across every movement, and no redacted field leaked into the exported records.
 

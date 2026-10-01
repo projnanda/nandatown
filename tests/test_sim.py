@@ -11,8 +11,9 @@ from nandatown.sim.scenario import (
 )
 
 ALL_SCENARIOS = ["marketplace", "auction", "voting", "consensus",
-                 "supply_chain", "capability_spoofing"]
-FAILING_SCENARIOS = ["capability_spoofing_weak_auth"]
+                 "supply_chain", "capability_spoofing", "registry_eviction"]
+FAILING_SCENARIOS = ["capability_spoofing_weak_auth",
+                     "registry_eviction_unowned"]
 
 
 def trace_of(spec):

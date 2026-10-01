@@ -1050,6 +1050,42 @@ def capability_spoofing(spec, trace: Trace) -> list[StageResult]:
     return stages
 
 
+@validator("registry_eviction")
+def registry_eviction(spec, trace: Trace) -> list[StageResult]:
+    """A forged card must not erase the listing it names: the forgery
+    is recorded, the buyer still reaches the honest seller after it,
+    and the honest seller is paid."""
+    stages = []
+    victims = {a.config.get("victim") for a in spec.agents
+               if a.role == "rival_forger"} - {None}
+    forgeries = [e for e in (trace.find("card_unverified")
+                             + trace.find("card_publish_refused"))
+                 if e.subject in victims
+                 and e.detail.get("publisher") not in victims]
+    forgeries.sort(key=trace.index)
+    stages.append(_check(
+        "forgery_detected", bool(forgeries),
+        [e.event_id for e in forgeries],
+        "the forged card must be recorded as unverified or refused"))
+
+    after = trace.index(forgeries[0]) if forgeries else len(trace.events)
+    reached = [e for e in trace.find("message_sent", kind="quote_request")
+               if e.detail.get("to") in victims and trace.index(e) > after]
+    gave_up = trace.find("buyer_gave_up")
+    stages.append(_check(
+        "listing_intact", bool(reached),
+        [e.event_id for e in reached] or _event_ids(forgeries + gave_up),
+        "the honest seller must stay discoverable after the forgery"))
+
+    released = trace.find("escrow_released")
+    paid = [e for e in released if e.detail.get("to") in victims]
+    stages.append(_check(
+        "honest_trade_completed", bool(paid),
+        _event_ids(paid or released) or trace.ids("run_finished"),
+        "the buyer must still complete the trade with the honest seller"))
+    return stages
+
+
 COMPLETION_KINDS = ["offer_accepted", "vote_result",
                     "consensus_committed", "task_awarded",
                     "escrow_released", "receipt_attested"]

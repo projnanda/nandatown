@@ -1,0 +1,16 @@
+name: registry_eviction
+description: A rival seller republishes the honest seller's card under the honest seller's name, signed with its own key, to erase it from the town index. Under index.owned.v1 the forged card is refused, the honest listing survives, and the buyer still trades with the honest seller.
+seed: 42
+layers:
+  registry: index.owned.v1
+agents:
+  - name: seller-honest
+    role: seller
+    config: {sku: widget, ask_cents: 1995, floor_cents: 1700, stock: 10, balance_cents: 0}
+  - name: seller-rival
+    role: rival_forger
+    config: {sku: widget, ask_cents: 2100, floor_cents: 1850, stock: 10, balance_cents: 0, victim: seller-honest, forge_at: 0.1}
+  - name: buyer-1
+    role: buyer
+    config: {sku: widget, quantity: 2, cap_cents: 1900, balance_cents: 10000, rounds: 1}
+max_time: 60
