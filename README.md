@@ -142,6 +142,8 @@ nandatown run auction --seed 7
 | supply_chain | contract-net bidding, milestone escrow per part, assembly ordering, delayed delivery survived |
 | capability_spoofing | a forged capability card is unverified, contained, and gets no business |
 | capability_spoofing_weak_auth | the same scenario with auth swapped for plain.v1: the run FAILS on purpose, showing what the auth layer is for |
+| supply_chain_claim_jump | a losing supplier claim-jumps a delayed delivery; an award-bound manufacturer refuses it and the escrow still lands on the actual winner |
+| supply_chain_claim_jump_unguarded | the same claim jump against a stock manufacturer: the run FAILS on purpose, showing the escrow paying the loser instead of the awarded winner |
 
 Every scenario also gets two standing checks: the ledger conserved money across every movement, and no redacted field leaked into the exported records.
 

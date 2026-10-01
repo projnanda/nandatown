@@ -1,0 +1,28 @@
+name: supply_chain_claim_jump
+description: A losing supplier jumps the claim, delivering a part it was never awarded; an award-bound manufacturer refuses the delivery and waits for the actual winner.
+seed: 42
+agents:
+  - name: customer
+    role: customer
+    config: {product: cart, price_cents: 10000, balance_cents: 12000}
+  - name: maker
+    role: award_bound_manufacturer
+    config: {product: cart, components: [axle, wheel], bid_wait: 1.0, assembly_delay: 0.5, balance_cents: 2000}
+  - name: axle-1
+    role: claim_jumper
+    config: {component: axle, price_cents: 500, balance_cents: 0}
+  - name: axle-2
+    role: supplier
+    config: {component: axle, price_cents: 450, balance_cents: 0}
+  - name: wheel-1
+    role: supplier
+    config: {component: wheel, price_cents: 300, balance_cents: 0}
+  - name: wheel-2
+    role: supplier
+    config: {component: wheel, price_cents: 350, balance_cents: 0}
+faults:
+  - action: delay
+    kind: part_delivery
+    nth: 1
+    delay: 1.0
+max_time: 60

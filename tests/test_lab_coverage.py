@@ -35,6 +35,10 @@ NATIVE_SCENARIO_STAGES = {
         "spoof_detected", "honest_verified", "containment",
         "honest_trade_completed",
     },
+    "supply_chain_claim_jump": {
+        "procurement", "milestones", "milestone_payee", "assembly_order",
+        "customer_settled",
+    },
 }
 ADAPTED_STAGES = {
     "population_active", "discovery", "messages_flowed", "task_completed",
@@ -125,6 +129,8 @@ def test_declared_privacy_rejects_an_unredacted_event():
     ("consensus", NATIVE_SCENARIO_STAGES["consensus"]),
     ("supply_chain", NATIVE_SCENARIO_STAGES["supply_chain"]),
     ("capability_spoofing", NATIVE_SCENARIO_STAGES["capability_spoofing"]),
+    ("supply_chain_claim_jump",
+     NATIVE_SCENARIO_STAGES["supply_chain_claim_jump"]),
 ])
 def test_healthy_native_scenarios_emit_their_literal_stage_set(name, expected):
     """Deleting a required native check must fail against this fixed matrix."""
@@ -169,6 +175,18 @@ def test_weak_auth_remains_a_deliberately_failing_native_control():
     )
     assert result.verdict == "failed"
     assert stage(result, "containment").status == "failed"
+
+
+def test_claim_jump_unguarded_remains_a_deliberately_failing_native_control():
+    spec = load_bundled("supply_chain_claim_jump_unguarded")
+    engine = build_engine(spec)
+    engine.run()
+    result = evaluate_scenario(spec, engine.run_id, engine.events)
+    assert {item.name for item in result.stages} == (
+        NATIVE_SCENARIO_STAGES["supply_chain_claim_jump"] | GENERIC_STAGES
+    )
+    assert result.verdict == "failed"
+    assert stage(result, "milestone_payee").status == "failed"
 
 
 @pytest.mark.parametrize("old_version", [
