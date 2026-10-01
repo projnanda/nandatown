@@ -815,3 +815,17 @@ def test_a_settlement_that_is_not_the_last_event_is_never_recorded(monkeypatch):
     assert [kind for kind, *_ in payment_events(engine)] == [
         "payment_settled", "payment_settled"]
     assert ledger.balances == {"a": 800, "b": 200, "c": 0}
+
+
+# -- the report a reader sees ------------------------------------------------
+
+
+def test_report_explains_the_duplicated_award_stages(tmp_path):
+    from nandatown.report import render_report
+
+    bundle_dir, _ = run_lab(POSITIVE, str(tmp_path))
+    report = render_report(load_bundle(bundle_dir))
+    for stage in ("duplicate_award_delivered", "duplicate_payment_replayed"):
+        line = next(line for line in report.splitlines()
+                    if line.strip().startswith(stage))
+        assert line.split("Passed", 1)[1].split("[", 1)[0].strip(), line
