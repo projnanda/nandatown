@@ -463,3 +463,43 @@ class Supplier(SimAgent):
         self.api.reply(msg, "part_delivery",
                        {"task_id": msg["body"]["task_id"],
                         "component": self.config["component"]})
+
+
+@role("claim_jumper")
+class ClaimJumper(Supplier):
+    """A supplier that bids honestly, then jumps the claim: whether or
+    not it wins, it sends its own part_delivery for the task anyway."""
+
+    def on_start(self):
+        super().on_start()
+        self._requests: dict[str, dict] = {}
+
+    def handle_supply_request(self, msg):
+        super().handle_supply_request(msg)
+        task_id = msg["body"]["task_id"]
+        self._requests[task_id] = msg
+        self.api.later(1.6, lambda: self._jump(task_id))
+
+    def _jump(self, task_id):
+        msg = self._requests.get(task_id)
+        if msg is None:
+            return
+        self.api.reply(msg, "part_delivery",
+                       {"task_id": task_id,
+                        "component": self.config["component"]})
+
+
+@role("award_bound_manufacturer")
+class AwardBoundManufacturer(Manufacturer):
+    """A manufacturer that refuses a part_delivery from anyone but the
+    task's actual awarded winner, instead of trusting whoever answers."""
+
+    def handle_part_delivery(self, msg):
+        task_id = msg["body"]["task_id"]
+        award = self.awards.get(task_id)
+        if award is None or msg["sender"] != award[0]:
+            self.api.observe("delivery_refused", task_id,
+                            {"from": msg["sender"],
+                             "expected": award[0] if award else None})
+            return
+        super().handle_part_delivery(msg)

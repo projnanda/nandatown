@@ -1013,6 +1013,78 @@ def supply_chain(spec, trace: Trace) -> list[StageResult]:
     return stages
 
 
+@validator("supply_chain_claim_jump")
+def supply_chain_claim_jump(spec, trace: Trace) -> list[StageResult]:
+    """Same shape as supply_chain, but the manufacturer may be the
+    award-bound guard rather than the stock role, and an extra stage
+    checks every milestone escrow lands on the actual awarded winner."""
+    manufacturers = [a for a in spec.agents
+                     if a.role == "manufacturer"
+                     or a.role.endswith("_manufacturer")]
+    if len(manufacturers) != 1:
+        return [_missing("milestones", "requires exactly one manufacturer")]
+
+    stages = []
+    awards = trace.find("task_awarded")
+    lowest_ok = bool(awards)
+    for award in awards:
+        bids = award.detail["bids"]
+        if award.detail["cents"] != min(bids.values()):
+            lowest_ok = False
+    components = manufacturers[0].config["components"]
+    stages.append(_check(
+        "procurement", lowest_ok and len(awards) == len(components),
+        [e.event_id for e in awards],
+        "every component must be awarded to the lowest bid"))
+
+    releases = trace.find("escrow_released")
+    award_refs = {e.subject: e.detail for e in awards}
+    milestone_ok = all(
+        any(r.subject == task for r in releases) for task in award_refs)
+    delayed = trace.ids("message_delayed")
+    stages.append(_check(
+        "milestones", milestone_ok and bool(delayed),
+        [e.event_id for e in releases] + delayed,
+        "each awarded part must be paid through escrow, including the"
+        " delayed delivery"))
+
+    payee_ok = bool(awards)
+    for award in awards:
+        task = award.subject
+        winner = award.detail.get("winner")
+        cents = award.detail.get("cents")
+        task_releases = [r for r in releases if r.subject == task]
+        if (len(task_releases) != 1
+                or task_releases[0].detail.get("to") != winner
+                or task_releases[0].detail.get("cents") != cents):
+            payee_ok = False
+    stages.append(_check(
+        "milestone_payee", payee_ok, [e.event_id for e in releases],
+        "each part's escrow must release to its task_awarded winner,"
+        " for the awarded amount, exactly once"))
+
+    assembled = trace.find("product_assembled")
+    final = trace.find("message_delivered", kind="product_delivery")
+    order_ok = (bool(assembled) and bool(final)
+                and trace.index(assembled[0]) < trace.index(final[0]))
+    parts = trace.find("message_delivered", kind="part_delivery")
+    if assembled and parts:
+        order_ok = order_ok and all(
+            trace.index(p) < trace.index(assembled[0]) for p in parts)
+    stages.append(_check(
+        "assembly_order", order_ok,
+        [e.event_id for e in assembled + final],
+        "all parts must arrive before assembly, and assembly before the"
+        " final delivery"))
+
+    customer_pay = [r for r in releases if r.subject.startswith("po-")]
+    stages.append(_check(
+        "customer_settled", len(customer_pay) == 1,
+        [e.event_id for e in customer_pay],
+        "the customer's escrow must be released exactly once"))
+    return stages
+
+
 @validator("capability_spoofing")
 def capability_spoofing(spec, trace: Trace) -> list[StageResult]:
     stages = []
