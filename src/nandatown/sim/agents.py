@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..layers.payments import PaymentError
 from .api import TownAPI
 
 ROLES: dict[str, type] = {}
@@ -79,10 +80,46 @@ class Seller(SimAgent):
                            {"order_id": body["order_id"],
                             "reason": "out of stock"})
             return
+        bound = self.api.escrow_binds_payee
+        if bound and not self._escrow_covers(msg):
+            self.api.reply(msg, "order_rejected",
+                           {"order_id": body["order_id"],
+                            "reason": "escrow not bound to seller"})
+            return
         self.stock -= body["quantity"]
         self.api.reply(msg, "delivery",
                        {"order_id": body["order_id"], "sku": body["sku"],
                         "quantity": body["quantity"]})
+        if bound:
+            order_id = body["order_id"]
+            self.api.later(self.config.get("claim_after", 1.0),
+                           lambda: self._claim(order_id))
+
+    def _escrow_covers(self, msg) -> bool:
+        """The hold for this order is held, from the sender, payable to
+        this seller, for exactly unit price times quantity."""
+        body = msg["body"]
+        status = self.api.escrow_status(body["order_id"])
+        return (status is not None and status["state"] == "held"
+                and status["from"] == msg["sender"]
+                and status["payee"] == self.name
+                and status["cents"] == body["unit_cents"] * body["quantity"])
+
+    def _claim(self, order_id: str, attempt: int = 1) -> None:
+        """Collect a hold the buyer has not released. The payments plugin
+        pays only against a recorded delivery and records any refusal; a
+        delivery still in transit is retried every claim_after, at most
+        max_claim_attempts times, so a delivery that never arrives costs a
+        bounded number of refusals and the run still ends."""
+        status = self.api.escrow_status(order_id)
+        if status is None or status["state"] != "held":
+            return
+        try:
+            self.api.escrow_claim(order_id)
+        except PaymentError:
+            if attempt < self.config.get("max_claim_attempts", 5):
+                self.api.later(self.config.get("claim_after", 1.0),
+                               lambda: self._claim(order_id, attempt + 1))
 
 
 @role("buyer")
@@ -148,7 +185,11 @@ class Buyer(SimAgent):
             return
         qty = self.config["quantity"]
         order_id = f"order-{self.name}-{self.round}"
-        self.api.escrow_hold(unit_cents * qty, ref=order_id)
+        if self.api.escrow_binds_payee:
+            self.api.escrow_hold(unit_cents * qty, ref=order_id,
+                                 payee=self.active["seller"])
+        else:
+            self.api.escrow_hold(unit_cents * qty, ref=order_id)
         self.api.send(self.active["seller"], "purchase_order",
                       {"nid": self.active["nid"], "order_id": order_id,
                        "sku": self.config["sku"],
@@ -166,6 +207,42 @@ class Buyer(SimAgent):
         self.api.remember("preferred_seller", msg["sender"])
         if self.round < self.config.get("rounds", 1):
             self.api.later(1.0, self.start_round)
+
+
+@role("self_paying_buyer")
+class SelfPayingBuyer(Buyer):
+    """Funds escrow honestly, takes delivery, then releases the escrow to
+    itself instead of the seller."""
+
+    def handle_delivery(self, msg):
+        order_id = msg["body"]["order_id"]
+        if order_id in self.released:
+            self.api.observe("duplicate_recognized", order_id,
+                            {"kind": "delivery"})
+            return
+        self.released.add(order_id)
+        try:
+            self.api.escrow_release(order_id, self.name)
+        except PaymentError:
+            pass  # the town records the refusal
+
+
+@role("self_refunding_buyer")
+class SelfRefundingBuyer(Buyer):
+    """Funds escrow honestly, takes delivery, then refunds the escrow to
+    itself instead of paying the seller."""
+
+    def handle_delivery(self, msg):
+        order_id = msg["body"]["order_id"]
+        if order_id in self.released:
+            self.api.observe("duplicate_recognized", order_id,
+                            {"kind": "delivery"})
+            return
+        self.released.add(order_id)
+        try:
+            self.api.escrow_refund(order_id)
+        except PaymentError:
+            pass  # the town records the refusal
 
 
 @role("spoofer")
@@ -387,7 +464,11 @@ class Customer(SimAgent):
             return
         maker = makers[0]["name"]
         self.order_id = f"po-{c['product']}"
-        self.api.escrow_hold(c["price_cents"], ref=self.order_id)
+        if self.api.escrow_binds_payee:
+            self.api.escrow_hold(c["price_cents"], ref=self.order_id,
+                                 payee=maker)
+        else:
+            self.api.escrow_hold(c["price_cents"], ref=self.order_id)
         self.api.send(maker, "order",
                       {"order_id": self.order_id, "product": c["product"],
                        "price_cents": c["price_cents"]})
