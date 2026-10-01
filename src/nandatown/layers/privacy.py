@@ -38,3 +38,33 @@ class FieldRedaction:
         if not self.fields:
             return record
         return self._scrub(deepcopy(record))
+
+
+@register("privacy", "redact.values.v1")
+class ValueRedaction(FieldRedaction):
+    """Also removes declared secret text values wherever they are copied."""
+
+    MIN_SECRET_CHARS = 8
+
+    def __init__(self, engine):
+        super().__init__(engine)
+        self.secrets: list[str] = []
+
+    def configure(self, fields: list[str]) -> None:
+        super().configure(fields)
+        found = {
+            value
+            for agent in self.engine.spec.agents
+            for key, value in agent.config.items()
+            if key in self.fields and isinstance(value, str)
+            and len(value) >= self.MIN_SECRET_CHARS
+        }
+        # Longest first, so a secret that contains another is removed whole.
+        self.secrets = sorted(found, key=lambda s: (-len(s), s))
+
+    def _scrub(self, obj: Any) -> Any:
+        if isinstance(obj, str):
+            for secret in self.secrets:
+                obj = obj.replace(secret, REDACTED)
+            return obj
+        return super()._scrub(obj)
