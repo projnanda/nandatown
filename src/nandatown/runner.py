@@ -498,6 +498,11 @@ def _quiescent(profile: TestProfile, events: list[dict[str, Any]]) -> bool:
                       if e["detail"]["note"].get("duplicate")
                       and e["detail"].get("fence") in offered]
         return bool(applied) and bool(duplicates)
+    if profile.fault == "poison_request":
+        # Nothing will be applied: done once custody ends, or at once with
+        # no budget, since waiting then only adds deliveries.
+        return profile.max_attempts is None or any(
+            e["kind"] == "message_dead_lettered" for e in events)
     return bool(applied)
 
 

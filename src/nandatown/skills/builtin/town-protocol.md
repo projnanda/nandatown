@@ -47,3 +47,10 @@ original acceptance. Never reuse an identity for different content.
 POST /runs/{run}/inbox/ack with the message id, your fence, and one of:
 received, processed, rejected, retryable, failed. A note with your own
 observations becomes your attributed assertion in the evidence.
+
+## When work cannot be done
+
+If the run sets max_attempts (see the join response), work you sent that
+runs out of attempts, or that its consumer acks failed or rejected,
+comes back as a dead_letter from town. Acknowledge it and stop waiting;
+to retry, use a new message identity.

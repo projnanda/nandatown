@@ -442,6 +442,55 @@ class TownDB:
             self._event(conn, run_id, now, "town", "claim_expired",
                         r["message_id"],
                         {"claimant": r["claimant"], "fence": r["fence"]})
+            self._dead_letter(conn, run_id, r["message_id"], now,
+                              "lease_expired")
+
+    def _dead_letter(self, conn, run_id: str, message_id: str, now: float,
+                     outcome: str) -> None:
+        # Under a budget, end custody of work that cannot be done (its last
+        # allowed delivery failed, or its consumer refused it) and tell its
+        # sender. A notice is never noticed in turn: that would only loop.
+        row = conn.execute(
+            "SELECT m.sender, m.recipient, m.kind, m.attempts, r.profile_json"
+            " FROM messages m JOIN runs r ON r.run_id=m.run_id"
+            " WHERE m.run_id=? AND m.message_id=?", (run_id, message_id),
+        ).fetchone()
+        budget = json.loads(row["profile_json"]).get("max_attempts")
+        spent = outcome not in ("failed", "rejected")
+        if budget is None or (spent and row["attempts"] < budget):
+            return
+        if not spent and conn.execute(
+                "SELECT 1 FROM acks WHERE run_id=? AND message_id=? AND"
+                " status IN ('received','processed')", (run_id, message_id),
+        ).fetchone():
+            return  # refusing a re-offer of done work leaves it done
+        conn.execute("UPDATE messages SET status='dead' WHERE run_id=?"
+                     " AND message_id=?", (run_id, message_id))
+        notice = (None if row["sender"] == "town"
+                  else "dead-letter-" + uuid.uuid4().hex)
+        self._event(conn, run_id, now, "town", "message_dead_lettered",
+                    message_id,
+                    {"sender": row["sender"], "to": row["recipient"],
+                     "attempts": row["attempts"], "max_attempts": budget,
+                     "last_outcome": outcome, "notice": notice})
+        if notice is None:
+            return
+        body = {"request_id": message_id, "kind": row["kind"],
+                "attempts": row["attempts"], "last_outcome": outcome}
+        conn.execute(
+            "INSERT INTO messages (run_id, message_id, sender, recipient,"
+            " kind, body_json, content_fingerprint, accepted_at)"
+            " VALUES (?,?,?,?,?,?,?,?)",
+            (run_id, notice, "town", row["sender"], "dead_letter",
+             json.dumps(body), fingerprint(body), now))
+        conn.execute("INSERT INTO notifications (run_id, recipient,"
+                     " message_id, status) VALUES (?,?,?,'pending')",
+                     (run_id, row["sender"], notice))
+        self._event(conn, run_id, now, "town", "message_accepted", notice,
+                    {"sender": "town", "to": row["sender"],
+                     "kind": "dead_letter",
+                     "content_fingerprint": fingerprint(body),
+                     **_correlation_detail(body)})
 
     def claim_next(self, run_id: str, claimant: str, lease_seconds: float,
                    now: float) -> dict[str, Any] | None:
@@ -577,6 +626,8 @@ class TownDB:
                         " AND message_id=? AND status='claimed'",
                         (run_id, message_id),
                     )
+                    self._dead_letter(conn, run_id, message_id, now,
+                                      "lease_expired")
                 self._event(conn, run_id, now, "town", "stale_fence_rejected",
                             message_id,
                             {"participant": participant, "fence": fence})
@@ -616,6 +667,9 @@ class TownDB:
                         {"status": status, "note": note, "fence": fence,
                          "attempt": claim["attempt"]},
                     )
+                    if status in ("retryable", "failed", "rejected"):
+                        self._dead_letter(conn, run_id, message_id, now,
+                                          status)
         if stale:
             raise StaleFence(fence)
 

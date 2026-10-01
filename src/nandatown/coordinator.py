@@ -320,7 +320,8 @@ def build_app(db_path: str, admin_token: str) -> FastAPI:
             "participant_id": body.name,
             "run": {"run_id": run_id, "task": profile["task"],
                     "roles": profile["roles"],
-                    "lease_seconds": profile["lease_seconds"]},
+                    "lease_seconds": profile["lease_seconds"],
+                    "max_attempts": profile.get("max_attempts")},
         }
 
     @app.get("/runs/{run_id}/participants")

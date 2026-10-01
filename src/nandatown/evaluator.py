@@ -240,6 +240,72 @@ def _show_digest(digest: object) -> tuple[str, str]:
             f" characters ({digest['fingerprint'][:23]}…)")
 
 
+def _custody_stages(profile: TestProfile, stages: list[StageResult],
+                    request: TownEvent | None, claims: list[TownEvent],
+                    seller_acks: list[TownEvent], find) -> list[StageResult]:
+    # poison_request: the seller fails every delivery, so the work stages are
+    # not tested and custody of the request is judged instead.
+    names = ("custody_ended", "sender_notified")
+    if any(a.detail.get("status") in ("received", "processed")
+           for a in seller_acks):
+        return [_missing(n, "the seller settled the request, so the poison"
+                            " never took effect") for n in names]
+    for i, stage in enumerate(stages):
+        if (stage.name in ("received", "processed", "response", "correct")
+                and stage.status == "not_enough_evidence"):
+            stages[i] = StageResult(name=stage.name, status="not_tested",
+                                    note="under poison_request the work"
+                                         " cannot be done")
+    rid = request.subject if request else None
+    dead = find("message_dead_lettered", subject=rid) if rid else []
+    finished = find("run_finished")
+    if not dead:
+        if claims and finished:
+            custody = _failed(
+                names[0], [claims[-1].event_id, finished[0].event_id],
+                f"{_show_value(rid)} was delivered {len(claims)} times and"
+                " was still in the town's custody when the run finished")
+        else:
+            custody = _missing(names[0], "custody of the request never ended")
+        return [custody, _missing(names[1], "nothing was dead-lettered")]
+    attempts, outcome = dead[0].detail.get("attempts"), dead[0].detail.get(
+        "last_outcome")
+    expected = (profile.max_attempts if outcome in ("retryable",
+                                                    "lease_expired")
+                else attempts)
+    if len(dead) == 1 and attempts == len(claims) == expected:
+        custody = _passed(names[0], [claims[-1].event_id, dead[0].event_id],
+                          f"dead-lettered after {attempts} of"
+                          f" {profile.max_attempts} allowed deliveries (last"
+                          f" outcome {_show_value(outcome)})")
+    else:
+        custody = _failed(names[0], [d.event_id for d in dead[:4]],
+                          f"{len(dead)} dead letters recording"
+                          f" {_show_value(attempts)} attempts do not match"
+                          f" {len(claims)} deliveries under max_attempts"
+                          f" {profile.max_attempts}")
+    notice = dead[0].detail.get("notice")
+    sent = find("message_accepted", observer="town", subject=notice,
+                sender="town", kind="dead_letter")
+    if not (sent and sent[0].detail.get("to") == request.detail.get("sender")
+            and _names_request(sent[0], rid)):
+        return [custody, _failed(names[1], [dead[0].event_id],
+                                 "no dead_letter from the town reached the"
+                                 " request's sender")]
+    acks = [a for a in find("ack_recorded", subject=notice,
+                            observer=request.detail.get("sender"))
+            if a.detail.get("status") != "retryable"]
+    if any(a.detail.get("status") in ("received", "processed")
+           for a in acks):
+        notified = _passed(names[1], [sent[0].event_id, acks[0].event_id])
+    elif acks:
+        notified = _failed(names[1], [acks[0].event_id],
+                           "the sender refused the notice")
+    else:
+        notified = _missing(names[1], "the sender never settled the notice")
+    return [custody, notified]
+
+
 def evaluate(profile: TestProfile, run_id: str, events: list[TownEvent],
              version: str = EVALUATOR_VERSION) -> EvidenceResult:
     if version not in EVALUATOR_RULES:
@@ -572,6 +638,10 @@ def evaluate(profile: TestProfile, run_id: str, events: list[TownEvent],
             stages.append(_missing(
                 "truncation_survived",
                 "no participant reported a context truncation"))
+    elif fault == "poison_request":
+        stages.extend(_custody_stages(
+            profile, stages, accepted_req[0] if accepted_req else None,
+            claims, seller_acks, find))
 
     # Every accepted request, not only the first. A buyer that asked twice
     # and was answered once has not had its exchange completed, and saying

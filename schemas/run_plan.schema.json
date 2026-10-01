@@ -60,7 +60,8 @@
         "lost_ack",
         "crash_after_claim",
         "context_truncation",
-        "tool_error"
+        "tool_error",
+        "poison_request"
       ],
       "title": "Fault",
       "type": "string"
@@ -68,6 +69,19 @@
     "lease_seconds": {
       "title": "Lease Seconds",
       "type": "number"
+    },
+    "max_attempts": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Max Attempts"
     },
     "name": {
       "title": "Name",

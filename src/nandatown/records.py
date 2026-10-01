@@ -11,9 +11,10 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import (BaseModel, ConfigDict, Field, StrictInt, field_validator,
+                      model_serializer)
 
 
 def canonical_json(obj: Any) -> str:
@@ -56,7 +57,7 @@ class QuoteTask(BaseModel):
 
 Fault = Literal[
     "none", "drop_wakeup", "duplicate_delivery", "lost_ack",
-    "crash_after_claim", "context_truncation", "tool_error"
+    "crash_after_claim", "context_truncation", "tool_error", "poison_request"
 ]
 
 
@@ -73,6 +74,24 @@ class TestProfile(BaseModel):
     lease_seconds: float
     evaluator: str
     runtimes: dict[str, str] = {}
+    # Deliveries before the town dead-letters a message; None is unbounded.
+    max_attempts: Annotated[StrictInt, Field(ge=1)] | None = None
+
+    @field_validator("roles")
+    @classmethod
+    def _town_is_reserved(cls, roles: dict[str, str]) -> dict[str, str]:
+        # Dead-letter notices come from "town"; no participant may claim it.
+        if "town" in roles:
+            raise ValueError("participant name 'town' is reserved")
+        return roles
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_max_attempts(self, handler) -> dict[str, Any]:
+        # Unset, the recipe serializes as before, so fingerprints hold.
+        data = handler(self)
+        if data.get("max_attempts") is None:
+            data.pop("max_attempts", None)
+        return data
 
 
 class RunRecord(BaseModel):

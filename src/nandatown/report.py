@@ -34,6 +34,9 @@ STAGE_MEANING = {
                             " handled",
     "wakeup_loss_tolerated": "a lost wake-up hint did not lose inbox work",
     "ack_retry_survived": "a lost acknowledgement was retried and recorded",
+    "custody_ended": "work that could not be done left custody as a dead"
+                     " letter",
+    "sender_notified": "the sender was told and acknowledged it",
     "portable_identity": "the participant joined with a verified portable identity grant",
     "discovery": "cards published and peers found through the index",
     "negotiation": "offers alternated to an agreed price inside bounds",

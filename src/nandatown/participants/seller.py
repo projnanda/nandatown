@@ -97,6 +97,18 @@ def crash_wrapper(client: TownClient, journal: Journal, state_dir: str,
     return handler
 
 
+def poison_wrapper(inner):
+    # poison_request: fail every quote request, as a consumer that hits the
+    # same error each time would. Only the town can end that loop.
+    def handler(claim: dict[str, Any]):
+        if claim["kind"] == "quote_request":
+            return "retryable", {"reason": "cannot process",
+                                 "applied": False}, []
+        return inner(claim)
+
+    return handler
+
+
 def ack_accepted(journal: Journal):
     """Clear the mark once the record carries the application.
 
@@ -122,6 +134,8 @@ def run(client: TownClient, name: str, token: str, state_dir: str,
     if fault == "crash_after_claim":
         lease = float(client.run_context.get("lease_seconds", 5.0))
         handler = crash_wrapper(client, journal, state_dir, lease, handler)
+    elif fault == "poison_request":
+        handler = poison_wrapper(handler)
     deadline = time.time() + deadline_seconds
     run_loop(client, handler, until=lambda: time.time() > deadline,
              on_ack_accepted=ack_accepted(journal))

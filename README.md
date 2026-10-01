@@ -163,6 +163,8 @@ nandatown profiles
 | quote-llm | nothing (tier two baseline) | model-driven participants complete the task through the tool loop |
 | quote-llm-truncation | the agents' context is truncated mid-run | the protocol carries the recovery: rediscover, resend the same identity, reclaim |
 | quote-llm-tool-error | a tool result is lost mid-call | the agent notices the error, retries the tool, and the claimed work survives its lease |
+| quote-poison-request | the seller fails every delivery | at most 3 deliveries (`max_attempts`), then one dead letter and the buyer is told |
+| quote-poison-unbounded | the same, without `max_attempts` | negative control: FAILS on purpose at `custody_ended` |
 
 Delivery semantics, in one paragraph: the coordinator's database is the source of operational truth. Accepted work and the intent to notify are recorded in one transaction. Delivery is at least once, under leases with fencing tokens; an expired fence can never acknowledge. Duplicate delivery is possible by design, and each participant keeps a durable journal so effects apply once. Retrying the same message identity with identical content returns the original acceptance; the same identity with different content is rejected. Notifications are wake-up hints, never the only copy of the work.
 
@@ -680,6 +682,11 @@ nandatown coordinator --port 8477
 A seller's `quote_response` body must carry `request_id` equal to the claimed
 request's message id, as the bundled `quote.read` skill and
 `examples/byoa_seller.py` do.
+
+With `max_attempts` set, a message gets at most that many deliveries. When
+the last fails, or the consumer acks `failed` or `rejected`, the town marks it
+dead, records `message_dead_lettered` and sends the sender one `dead_letter`
+from `town`. To retry, use a new message identity.
 
 Agent routes take `X-Town-Session` from join; admin routes take `X-Town-Admin`. Run creation and fault plans are never agent tools. The shared concepts (run plan, agent message, town event, release reference, evidence record) ship as JSON Schemas under `schemas/`, regenerated with `nandatown schemas`. Python is the first implementation, not the protocol.
 

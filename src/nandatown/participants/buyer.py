@@ -18,6 +18,7 @@ from .base import Journal, run_loop
 EXIT_CORRECT = 0
 EXIT_INCORRECT = 4
 EXIT_NO_RESPONSE = 5
+EXIT_DEAD_LETTER = 6
 
 
 def find_seller(client: TownClient, capability: str = "quote.read") -> str | None:
@@ -44,6 +45,12 @@ def run(client: TownClient, name: str, token: str, state_dir: str,
     outcome: dict[str, Any] = {}
 
     def handler(claim: dict[str, Any]):
+        if claim["kind"] == "dead_letter":
+            # Only the town ends a request this way, and only one we sent.
+            if (claim["from"] != "town"
+                    or claim["body"].get("request_id") != "q-1"):
+                return "rejected", {"reason": "not my dead letter"}, []
+            return "processed", {"dead_letter": True}, []
         if claim["kind"] != "quote_response":
             return "rejected", {"reason": "unknown kind"}, []
         if journal.seen(claim["message_id"]):
@@ -56,9 +63,18 @@ def run(client: TownClient, name: str, token: str, state_dir: str,
                              "expected_total_cents":
                                  task["expected_total_cents"]}, []
 
+    def settled(claim: dict[str, Any], note: dict[str, Any]) -> None:
+        # Stop only once the town has recorded the notice's ack.
+        if note.get("dead_letter") is True:
+            outcome["dead_letter"] = True
+
     deadline = time.time() + deadline_seconds
     run_loop(client, handler,
-             until=lambda: "correct" in outcome or time.time() > deadline)
+             until=lambda: ("correct" in outcome or "dead_letter" in outcome
+                            or time.time() > deadline),
+             on_ack_accepted=settled)
+    if "dead_letter" in outcome:
+        return EXIT_DEAD_LETTER
     if "correct" not in outcome:
         return EXIT_NO_RESPONSE
     return EXIT_CORRECT if outcome["correct"] else EXIT_INCORRECT

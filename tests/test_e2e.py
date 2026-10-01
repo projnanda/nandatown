@@ -30,3 +30,19 @@ def test_duplicate_delivery_run_end_to_end(tmp_path):
     assert stage(result, "duplicate_recognized").status == "passed", detail
     assert result.verdict == "passed", detail
     assert verify_bundle(bundle_dir) == []
+
+
+def test_poison_request_run_end_to_end(tmp_path):
+    bundle_dir, result = run_town("quote-poison-request", str(tmp_path))
+    detail = [(s.name, s.status, s.note) for s in result.stages]
+    assert result.verdict == "passed", detail
+    assert verify_bundle(bundle_dir) == []
+
+
+def test_poison_unbounded_control_fails_where_predicted(tmp_path):
+    bundle_dir, result = run_town("quote-poison-unbounded", str(tmp_path),
+                                  wait_timeout=25.0)
+    assert result.verdict == "failed"
+    assert [s.name for s in result.stages if s.status == "failed"] == [
+        "custody_ended"]
+    assert verify_bundle(bundle_dir) == []
