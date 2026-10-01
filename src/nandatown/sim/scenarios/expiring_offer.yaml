@@ -1,0 +1,15 @@
+name: expiring_offer
+description: A negotiation offer lapses after its validity window; a delayed acceptance is refused and no trade settles at the stale price.
+seed: 42
+layers:
+  negotiation: haggle.expiring.v1
+agents:
+  - name: seller-1
+    role: seller
+    config: {sku: widget, ask_cents: 2000, floor_cents: 1700, stock: 10, balance_cents: 0}
+  - name: buyer-1
+    role: expiring_buyer
+    config: {sku: widget, quantity: 2, cap_cents: 1800, balance_cents: 10000, rounds: 1}
+faults:
+  - {action: delay, kind: nego_counter, nth: 1, delay: 5.0}
+max_time: 60

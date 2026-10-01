@@ -63,3 +63,39 @@ class Haggle:
     def agreed_price(self, nid: str) -> int | None:
         s = self.sessions[nid]
         return s["last_cents"] if s["state"] == "agreed" else None
+
+
+# How long an offer stays acceptable after it is made, in logical seconds.
+# A module constant: the Lab has no per-layer config channel (only transport
+# and privacy get .configure()), so per-scenario tuning would need a
+# layer_config field on ScenarioSpec threaded to plugin.configure(cfg).
+OFFER_WINDOW_SECONDS = 1.0
+
+
+@register("negotiation", "haggle.expiring.v1")
+class ExpiringHaggle(Haggle):
+    """Haggle with an offer validity window: a stale acceptance is refused.
+
+    Every offer is acceptable only for OFFER_WINDOW_SECONDS after it is made.
+    Accepting later emits offer_expired and returns None instead of a price,
+    so a caller that honours the result does not trade at a lapsed offer.
+    """
+
+    def offer(self, nid: str, by: str, cents: int) -> None:
+        super().offer(nid, by, cents)
+        self.sessions[nid]["expires_at"] = self.engine.now + OFFER_WINDOW_SECONDS
+
+    def accept(self, nid: str, by: str) -> int | None:
+        s = self._step(nid, by)
+        deadline = s.get("expires_at")
+        if deadline is not None and self.engine.now > deadline:
+            s["state"] = "expired"
+            self.engine.emit(by, "offer_expired", nid,
+                             {"cents": s["last_cents"],
+                              "made_at": deadline - OFFER_WINDOW_SECONDS,
+                              "now": self.engine.now,
+                              "window": OFFER_WINDOW_SECONDS})
+            return None
+        s["state"] = "agreed"
+        self.engine.emit(by, "offer_accepted", nid, {"cents": s["last_cents"]})
+        return s["last_cents"]

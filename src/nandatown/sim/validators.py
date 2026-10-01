@@ -1097,6 +1097,66 @@ def adapted(spec, trace: Trace) -> list[StageResult]:
     return stages
 
 
+@validator("expiring_offer")
+def expiring_offer(spec, trace: Trace) -> list[StageResult]:
+    """An offer is acceptable only within its validity window.
+
+    The primary stage is a layer-level invariant recoverable from the trace
+    alone: no offer_accepted may sit further than the window from the offer
+    it accepted. The secondary stage is the system effect a cooperating
+    buyer produces: an expired negotiation settles no escrow.
+    """
+    from ..layers.negotiation import OFFER_WINDOW_SECONDS
+
+    accepts = trace.find("offer_accepted")
+    expired = trace.find("offer_expired")
+    released = trace.find("escrow_released")
+    offers = trace.find("offer_made") + trace.find("counter_made")
+
+    def made_at(nid, before):
+        times = [e.at for e in offers if e.subject == nid and e.at <= before]
+        return max(times) if times else None
+
+    late = [(a, a.at - made_at(a.subject, a.at)) for a in accepts
+            if made_at(a.subject, a.at) is not None
+            and a.at - made_at(a.subject, a.at) > OFFER_WINDOW_SECONDS]
+    if late:
+        event, gap = late[0]
+        validity = _failed(
+            "offer_validity", [event.event_id],
+            f"accepted an offer {gap:.1f}s after it was made;"
+            f" the window is {OFFER_WINDOW_SECONDS}s")
+    elif expired:
+        validity = _passed(
+            "offer_validity", [e.event_id for e in expired],
+            "a late acceptance was refused; nothing was accepted past its"
+            " window")
+    elif accepts:
+        validity = _passed(
+            "offer_validity", [a.event_id for a in accepts],
+            "every acceptance fell within the offer's validity window")
+    else:
+        validity = _missing("offer_validity",
+                            "no acceptance or expiry was recorded")
+
+    if expired and not accepts:
+        settlement = _check(
+            "no_stale_settlement", not released,
+            [e.event_id for e in expired],
+            "an expired negotiation must not settle through escrow",
+            "the expired negotiation settled nothing")
+    elif late and released:
+        settlement = _failed(
+            "no_stale_settlement", [r.event_id for r in released],
+            "escrow settled against an offer accepted past its window")
+    else:
+        settlement = _check(
+            "no_stale_settlement", True,
+            [r.event_id for r in released] or trace.ids("run_finished"),
+            "", "settlement, if any, followed a valid acceptance")
+    return [validity, settlement]
+
+
 def evaluate_scenario(spec, run_id: str,
                       events: list[TownEvent]) -> EvidenceResult:
     trace = Trace(events, run_id)

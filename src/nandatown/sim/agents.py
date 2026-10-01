@@ -463,3 +463,32 @@ class Supplier(SimAgent):
         self.api.reply(msg, "part_delivery",
                        {"task_id": msg["body"]["task_id"],
                         "component": self.config["component"]})
+
+
+# -- expiring offers ---------------------------------------------------
+
+
+@role("expiring_buyer")
+class ExpiringBuyer(Buyer):
+    """A buyer that honours the acceptance result: it does not purchase an
+    offer the negotiation layer has let expire.
+
+    Identical to Buyer except that it reads what negotiation_accept returns.
+    The stock Buyer ignores it and pays from the counter message regardless,
+    which is exactly the behaviour an expiry rule needs a cooperating agent
+    to drop.
+    """
+
+    def handle_nego_counter(self, msg):
+        nid = msg["body"]["nid"]
+        cents = msg["body"]["cents"]
+        if cents > self.config["cap_cents"]:
+            self.api._engine.layers["negotiation"].abandon(
+                nid, self.name, reason="price_above_cap")
+            return
+        agreed = self.api.negotiation_accept(nid)
+        if agreed is None:
+            self.api.observe("purchase_skipped", nid,
+                            {"reason": "offer_expired"})
+            return
+        self._purchase(agreed)
