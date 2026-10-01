@@ -91,3 +91,8 @@ class Ledger:
         self.balances[h["from"]] += h["cents"]
         self.engine.emit("town", "escrow_refunded", ref,
                          {"to": h["from"], "cents": h["cents"]})
+
+
+@register("payments", "ledger.idempotent.v1")
+class IdempotentLedger(Ledger):
+    """ledger.v1 with idempotent transfers (stub: not implemented yet)."""

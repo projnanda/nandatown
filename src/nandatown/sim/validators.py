@@ -774,6 +774,139 @@ def auction(spec, trace: Trace) -> list[StageResult]:
     return stages
 
 
+NO_DUPLICATED_AWARD = "no duplicated auction_won delivery to the recorded winner"
+
+
+def duplicate_award_delivered(trace: Trace) -> tuple[StageResult, dict | None]:
+    """Was the award message itself delivered twice?
+
+    Judged from what the transport recorded, not from the scenario's fault
+    declaration: any fault that duplicated the award envelope to the winner
+    counts, and one that duplicated something else does not. Returns the
+    stage and, when it passed, the records it rests on.
+    """
+    positions = {id(event): index for index, event in enumerate(trace.events)}
+    awards = trace.find("task_awarded")
+    award = awards[0] if len(awards) == 1 else None
+    detail = award.detail if award is not None else {}
+    winner, cents = detail.get("winner"), detail.get("cents")
+    if (award is None or not isinstance(winner, str) or not winner
+            or type(cents) is not int or not isinstance(award.subject, str)):
+        return _missing("duplicate_award_delivered",
+                        "no single recorded award to duplicate"), None
+    duplicated = [e for e in trace.find("message_duplicated",
+                                        observer="town", kind="auction_won")
+                  if e.detail.get("to") == winner]
+    if not duplicated:
+        return _missing("duplicate_award_delivered", NO_DUPLICATED_AWARD), None
+    message = duplicated[0].subject
+    deliveries = [e for e in trace.find("message_delivered", observer="town",
+                                        subject=message, kind="auction_won")
+                  if e.detail.get("to") == winner]
+    if len(deliveries) < 2:
+        return _missing("duplicate_award_delivered", NO_DUPLICATED_AWARD), None
+    sent = trace.find("message_sent", subject=message)
+    body = (sent[0].detail.get("body") if len(sent) == 1
+            and isinstance(sent[0].detail.get("body"), dict) else {})
+    chain = [award, *sent[:1], duplicated[0], *deliveries]
+    if (len(duplicated) != 1 or len(sent) != 1 or len(deliveries) != 2
+            or sent[0].observer != award.observer
+            or sent[0].detail.get("kind") != "auction_won"
+            or sent[0].detail.get("to") != winner
+            or body.get("task_id") != award.subject
+            or type(body.get("cents")) is not int or body["cents"] != cents
+            or any(positions[id(a)] >= positions[id(b)] or a.at > b.at
+                   for a, b in zip(chain, chain[1:]))):
+        return _failed("duplicate_award_delivered", _event_ids(chain),
+                       "the duplicated auction_won does not match the"
+                       " recorded award"), None
+    return (_passed("duplicate_award_delivered", _event_ids(chain),
+                    f"the award to {winner} was delivered twice under one"
+                    " message identity"),
+            {"award": award, "first": deliveries[0], "second": deliveries[1]})
+
+
+def duplicate_payment_replayed(trace: Trace, chain: dict | None) -> StageResult:
+    """Did the second award delivery replay the first payment?
+
+    A replay record alone proves nothing: it must answer the second
+    delivery, point at the one settlement the first delivery produced, and
+    carry the award's terms. These are the payments layer's own records,
+    correlated with the transport's; the agent's intents are not read.
+    """
+    name = "duplicate_payment_replayed"
+    if chain is None:
+        return _missing(name, "the duplicated award delivery is not in evidence")
+    award, first, second = chain["award"], chain["first"], chain["second"]
+    winner, cents = award.detail["winner"], award.detail["cents"]
+    issuer, task = award.observer, award.subject
+    positions = {id(event): index for index, event in enumerate(trace.events)}
+
+    def next_payment_after(delivery):
+        for event in trace.events[positions[id(delivery)] + 1:]:
+            if event.kind.startswith("payment_"):
+                return event
+        return None
+
+    settled = [e for e in trace.find("payment_settled", observer="town",
+                                     **{"from": winner})
+               if e.detail.get("via") != "escrow"]
+    if len(settled) >= 2:
+        return _failed(name, _event_ids(settled),
+                       f"the duplicated award settled {len(settled)} payments"
+                       " under one payment identity")
+    if not settled:
+        return _missing(name, "the award payment never settled")
+    settlement = settled[0]
+    if (settlement.subject != task or settlement.detail.get("to") != issuer
+            or type(settlement.detail.get("cents")) is not int
+            or settlement.detail["cents"] != cents
+            or settlement.at != first.at
+            or next_payment_after(first) is not settlement
+            or positions[id(settlement)] > positions[id(second)]):
+        return _failed(name, _event_ids([first, settlement]),
+                       "the settlement does not match the award and its first"
+                       " delivery")
+    rejected = trace.find("payment_reuse_rejected", observer="town",
+                          subject=task, **{"from": winner})
+    if rejected:
+        return _failed(name, _event_ids(rejected),
+                       "a payment under the award's identity was rejected for"
+                       " changed terms")
+    replays = trace.find("payment_replay_ignored", observer="town",
+                         subject=task, **{"from": winner})
+    if not replays:
+        return _missing(name, "no replayed payment is recorded for the second"
+                              " delivery")
+    if len(replays) != 1:
+        return _failed(name, _event_ids(replays),
+                       "exactly one replayed payment is required")
+    replay = replays[0]
+    if (replay.detail.get("to") != issuer
+            or type(replay.detail.get("cents")) is not int
+            or replay.detail["cents"] != cents
+            or replay.detail.get("settlement") != settlement.event_id
+            or replay.at != second.at
+            or next_payment_after(second) is not replay):
+        return _failed(name, _event_ids([second, settlement, replay]),
+                       "the replayed payment does not match the original"
+                       " settlement and the second delivery")
+    return _passed(name, _event_ids([second, settlement, replay]),
+                   "the second delivery replayed the original settlement;"
+                   " no second payment settled")
+
+
+@validator("auction_duplicate_award")
+def auction_duplicate_award(spec, trace: Trace) -> list[StageResult]:
+    """The auction's own checks, then whether its duplicated award was
+    delivered twice and settled once."""
+    stages = auction(spec, trace)
+    delivered, chain = duplicate_award_delivered(trace)
+    stages.append(delivered)
+    stages.append(duplicate_payment_replayed(trace, chain))
+    return stages
+
+
 @validator("voting")
 def voting(spec, trace: Trace) -> list[StageResult]:
     stages = []
