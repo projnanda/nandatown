@@ -1,0 +1,32 @@
+name: voting_finality
+description: A delayed ballot arrives after nominal close but before the bounded grace period ends; publish one stable tally.
+seed: 42
+# All twelve replaceable layers use their default plugins here.
+# A layers mapping can override a layer with a registered plugin.
+# Use plugin_files for scenario-local custom plugin or validator files.
+# No plugin_files entry is set; voting_finality must be registered in code.
+validator: voting_finality
+agents:
+  - name: ballot-box
+    role: deferred_ballot_box
+    config: {choices: [apricot, plum], close_after: 3.0, grace_after: 2.0}
+  - name: voter-1
+    role: voter
+    config: {choice: apricot}
+  - name: voter-2
+    role: voter
+    config: {choice: plum}
+  - name: voter-3
+    role: voter
+    config: {choice: apricot}
+  - name: voter-double
+    role: voter
+    config: {choice: plum, double_vote: true}
+# Transport faults support drop, duplicate, delay, and drop_rate.
+# The first ballot message arrives after nominal close, within the grace period.
+faults:
+  - action: delay
+    kind: ballot
+    nth: 1
+    delay: 4.0
+max_time: 60

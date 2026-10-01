@@ -296,6 +296,56 @@ class BallotBox(SimAgent):
             self.api.send(v, "vote_result", {"counts": self.counts})
 
 
+@role("deferred_ballot_box")
+class DeferredBallotBox(BallotBox):
+    """Wait a bounded time for missing ballots, then freeze one tally."""
+
+    def on_start(self):
+        self.pending = False
+        self.finalized = False
+        self.voters: list[str] = []
+        super().on_start()
+
+    def handle_ballot(self, msg):
+        voter = msg["sender"]
+        if self.finalized or voter not in self.voters:
+            self.api.observe("ballot_rejected", voter,
+                             {"reason": ("poll closed" if self.finalized
+                                         else "unknown voter"),
+                              "choice": msg["body"].get("choice"),
+                              "message_id": msg["message_id"]})
+            return
+        super().handle_ballot(msg)
+        if self.pending and len(self.voted) == len(self.voters):
+            self.finalize()
+
+    def tally(self):
+        if len(self.voted) == len(self.voters):
+            self.finalize()
+            return
+        self.pending = True
+        missing = sorted(set(self.voters) - self.voted)
+        self.api.observe("vote_pending", "vote",
+                         {"received": len(self.voted),
+                          "expected": len(self.voters), "missing": missing})
+        self.api.later(self.config.get("grace_after", 2.0), self.finalize)
+
+    def finalize(self):
+        if self.finalized:
+            return
+        self.finalized = True
+        missing = sorted(set(self.voters) - self.voted)
+        counts = dict(self.counts)
+        result = {"counts": counts, "total": sum(counts.values()),
+                  "complete": not missing, "missing": missing}
+        self.api.observe("vote_result", "vote", result)
+        for voter in self.voters:
+            self.api.send(voter, "vote_result",
+                          {"counts": dict(counts), "total": result["total"],
+                           "complete": result["complete"],
+                           "missing": list(missing)})
+
+
 @role("voter")
 class Voter(SimAgent):
     def on_start(self):
