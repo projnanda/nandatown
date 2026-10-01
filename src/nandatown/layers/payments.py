@@ -95,4 +95,40 @@ class Ledger:
 
 @register("payments", "ledger.idempotent.v1")
 class IdempotentLedger(Ledger):
-    """ledger.v1 with idempotent transfers (stub: not implemented yet)."""
+    """ledger.v1 whose transfers settle at most once per payer and memo.
+
+    A transfer's payer and non-empty memo name one logical payment. Sending
+    it again to the same payee for the same amount replays the original
+    settlement; sending it with other terms is refused. Either way nothing
+    moves and nothing raises, and the attempt is recorded against the
+    settlement it repeats. An empty memo names no payment and settles as
+    ledger.v1 settles it. Escrow is unchanged.
+    """
+
+    def __init__(self, engine):
+        super().__init__(engine)
+        self.settled: dict[tuple[str, str], tuple[str, int, str]] = {}
+
+    def transfer(self, frm: str, to: str, cents: int, memo: str) -> None:
+        _require_cents(cents, 1)
+        if not isinstance(memo, str) or not memo:
+            super().transfer(frm, to, cents, memo)
+            return
+        key = (frm, memo)
+        if key in self.settled:
+            settled_to, settled_cents, settlement = self.settled[key]
+            kind = ("payment_replay_ignored"
+                    if (to, cents) == (settled_to, settled_cents)
+                    else "payment_reuse_rejected")
+            self.engine.emit("town", kind, memo,
+                             {"from": frm, "to": to, "cents": cents,
+                              "settlement": settlement})
+            return
+        super().transfer(frm, to, cents, memo)
+        event = self.engine.events[-1]
+        if (event.kind, event.observer, event.subject, event.detail) != (
+                "payment_settled", "town", memo,
+                {"from": frm, "to": to, "cents": cents}):
+            raise RuntimeError(f"transfer {memo!r} did not record its"
+                               " settlement last")
+        self.settled[key] = (to, cents, event.event_id)
