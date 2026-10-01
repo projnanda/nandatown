@@ -1,0 +1,27 @@
+name: auction_duplicate_consign
+description: The sealed-bid auction opened by a consign message that the town delivers twice; with contractnet.once.v1 the repeated announcement is a replay and the second close is rejected, so the task is announced once, awarded once, and paid once.
+seed: 42
+validator: auction_duplicate_consign
+layers:
+  coordination: contractnet.once.v1
+agents:
+  - name: auctioneer
+    role: auctioneer
+    config: {item: print-001, close_after: 3.0, balance_cents: 0, open_on: consign}
+  - name: bidder-x
+    role: bidder
+    config: {valuation_cents: 700, bid_delay: 1.0, balance_cents: 2000}
+  - name: bidder-y
+    role: bidder
+    config: {valuation_cents: 900, bid_delay: 1.2, balance_cents: 2000}
+  - name: bidder-late
+    role: bidder
+    config: {valuation_cents: 950, bid_delay: 6.0, balance_cents: 2000}
+  - name: consignor
+    role: consignor
+    config: {item: print-001}
+faults:
+  - action: duplicate
+    kind: consign
+    nth: 1
+max_time: 60

@@ -44,6 +44,9 @@ STAGE_MEANING = {
     "bidding": "on-time bids counted, late bids rejected",
     "award": "the award followed the declared rule",
     "delivery": "the item reached the winner",
+    "task_finalized_once": "a duplicated consign reached the handler twice"
+                           " without repeated task announcement or"
+                           " finalization",
     "ballots": "every voter's first ballot counted",
     "one_agent_one_vote": "a second ballot from the same voter was rejected",
     "tally": "the count matches the ballots",

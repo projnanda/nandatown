@@ -142,6 +142,13 @@ nandatown run auction --seed 7
 | supply_chain | contract-net bidding, milestone escrow per part, assembly ordering, delayed delivery survived |
 | capability_spoofing | a forged capability card is unverified, contained, and gets no business |
 | capability_spoofing_weak_auth | the same scenario with auth swapped for plain.v1: the run FAILS on purpose, showing what the auth layer is for |
+| auction_duplicate_consign | duplicated consign reaches the auctioneer twice; contractnet.once.v1 preserves one task announcement, award and payment |
+| auction_duplicate_consign_v1_control | the same duplicated consign under stock contractnet.v1; repeated announcements, awards and payments intentionally fail settlement |
+
+```
+nandatown run auction_duplicate_consign
+nandatown compare auction_duplicate_consign --swap coordination=contractnet.v1
+```
 
 Every scenario also gets two standing checks: the ledger conserved money across every movement, and no redacted field leaked into the exported records.
 

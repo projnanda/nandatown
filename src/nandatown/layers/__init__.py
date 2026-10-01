@@ -86,6 +86,7 @@ from . import (  # noqa: E402,F401
     auth,
     communication,
     coordination,
+    coordination_once,
     data_facts,
     identity,
     memory,
