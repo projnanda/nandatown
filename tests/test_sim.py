@@ -10,7 +10,7 @@ from nandatown.sim.scenario import (
     load_bundled,
 )
 
-ALL_SCENARIOS = ["marketplace", "auction", "voting", "consensus",
+ALL_SCENARIOS = ["marketplace", "marketplace_expiring_memory", "auction", "voting", "consensus",
                  "supply_chain", "capability_spoofing"]
 FAILING_SCENARIOS = ["capability_spoofing_weak_auth"]
 

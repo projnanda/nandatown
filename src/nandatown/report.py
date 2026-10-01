@@ -40,6 +40,7 @@ STAGE_MEANING = {
     "settlement": "money moved only through recorded escrow",
     "reputation": "receipts drove the public score",
     "memory_reuse": "a remembered counterparty replaced a fresh lookup",
+    "memory_expiry": "an expired memory entry was never served; the buyer rediscovered",
     "announced": "the task was announced with its award rule",
     "bidding": "on-time bids counted, late bids rejected",
     "award": "the award followed the declared rule",

@@ -89,6 +89,7 @@ from . import (  # noqa: E402,F401
     data_facts,
     identity,
     memory,
+    memory_ttl,
     negotiation,
     payments,
     privacy,

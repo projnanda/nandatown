@@ -1127,3 +1127,34 @@ def evaluate_scenario(spec, run_id: str,
                           evaluator_version=LAB_EVALUATOR_VERSION,
                           stages=stages, verdict=stage_verdict(stages),
                           evaluated_at=time.time())
+
+
+@validator("marketplace_expiring_memory")
+def marketplace_expiring_memory(spec, trace: Trace) -> list[StageResult]:
+    """Marketplace with expiring memory: an expired entry is never used."""
+    kept = [s for s in marketplace(spec, trace)
+            if s.name not in ("discovery", "memory_reuse")]
+    registered = trace.ids("card_registered")
+    quote_requests = trace.find("message_sent", kind="quote_request")
+    discovery = _check(
+        "discovery", len(registered) >= 3 and len(quote_requests) >= 3,
+        registered + [q.event_id for q in quote_requests],
+        "expected both sellers plus buyer registered and at least three"
+        " quote requests")
+
+    stale_reads = [e for e in trace.find("memory_recalled")
+                   if e.detail.get("stale") is True]
+    expired = trace.ids("memory_expired")
+    if stale_reads:
+        expiry = _failed(
+            "memory_expiry", [e.event_id for e in stale_reads],
+            "the buyer recalled a memory entry after its expiry time")
+    elif not expired:
+        expiry = _missing(
+            "memory_expiry",
+            "no memory entry expired, so the rule was never exercised")
+    else:
+        expiry = _passed(
+            "memory_expiry", expired,
+            "an expired entry was dropped and never recalled")
+    return [discovery] + kept + [expiry]
