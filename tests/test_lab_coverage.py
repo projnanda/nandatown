@@ -27,6 +27,10 @@ NATIVE_SCENARIO_STAGES = {
     },
     "auction": {"announced", "bidding", "award", "settlement", "delivery"},
     "voting": {"ballots", "one_agent_one_vote", "tally", "result_broadcast"},
+    "voting_finality": {
+        "delayed_ballot", "bounded_finality", "one_agent_one_vote",
+        "tally_integrity", "result_broadcast",
+    },
     "consensus": {"quorum_commit", "agreement", "fault_recovered"},
     "supply_chain": {
         "procurement", "milestones", "assembly_order", "customer_settled",
@@ -122,6 +126,7 @@ def test_declared_privacy_rejects_an_unredacted_event():
     ("marketplace", NATIVE_SCENARIO_STAGES["marketplace"]),
     ("auction", NATIVE_SCENARIO_STAGES["auction"]),
     ("voting", NATIVE_SCENARIO_STAGES["voting"]),
+    ("voting_finality", NATIVE_SCENARIO_STAGES["voting_finality"]),
     ("consensus", NATIVE_SCENARIO_STAGES["consensus"]),
     ("supply_chain", NATIVE_SCENARIO_STAGES["supply_chain"]),
     ("capability_spoofing", NATIVE_SCENARIO_STAGES["capability_spoofing"]),

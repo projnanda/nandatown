@@ -810,6 +810,164 @@ def voting(spec, trace: Trace) -> list[StageResult]:
     return stages
 
 
+@validator("voting_finality")
+def voting_finality(spec, trace: Trace) -> list[StageResult]:
+    """Prove one bounded, stable result from the recorded vote trace."""
+    voters = {a.name: a for a in spec.agents if a.role == "voter"}
+    boxes = [a for a in spec.agents
+             if a.role in {"ballot_box", "deferred_ballot_box"}]
+    if len(boxes) != 1 or not voters:
+        return [_missing("voting_setup", "requires one box and voters")]
+    box = boxes[0]
+    choices = box.config.get("choices")
+    close_after = box.config.get("close_after", 3.0)
+    grace_after = box.config.get("grace_after", 2.0)
+    if (not isinstance(choices, list) or not choices
+            or not all(isinstance(c, str) and c for c in choices)
+            or len(set(choices)) != len(choices)
+            or type(close_after) not in (int, float)
+            or type(grace_after) not in (int, float)
+            or not math.isfinite(close_after)
+            or not math.isfinite(grace_after)
+            or close_after < 0 or grace_after < 0):
+        return [_missing("voting_setup", "invalid choices or timing")]
+
+    opens = trace.find("message_sent", observer=box.name, kind="vote_open")
+    delays = trace.find("message_delayed", kind="ballot", fault="delay")
+    sent = {e.subject: e for e in trace.find("message_sent", kind="ballot")}
+    delivered = trace.find("message_delivered", kind="ballot")
+    if not opens or len(delays) != 1:
+        return [_missing("delayed_ballot", "missing opening or delay")]
+    delay = delays[0]
+    ballot = sent.get(delay.subject)
+    arrival = next((e for e in delivered if e.subject == delay.subject), None)
+    if ballot is None or arrival is None:
+        return [_missing("delayed_ballot", "delayed ballot was not delivered")]
+    order = {e.event_id: i for i, e in enumerate(trace.events)}
+
+    def before(a, b):
+        return order[a.event_id] < order[b.event_id]
+
+    close_at = opens[0].at + close_after
+    deadline = close_at + grace_after
+    faults = [f for f in spec.faults
+              if f.action == "delay" and f.kind == "ballot"]
+    fault_ok = (
+        len(faults) == 1 and delay.detail.get("delay") == faults[0].delay
+        and ballot.observer in voters and ballot.detail.get("to") == box.name
+        and arrival.detail.get("to") == box.name
+        and before(ballot, delay) and before(delay, arrival)
+        and ballot.at <= close_at < arrival.at)
+    stages = [_check(
+        "delayed_ballot", fault_ok,
+        _event_ids([opens[0], ballot, delay, arrival]),
+        "one ballot must arrive after nominal close")]
+
+    casts = trace.find("ballot_cast")
+    rejected = trace.find("ballot_rejected", observer=box.name)
+    pending = trace.find("vote_pending", observer=box.name, subject="vote")
+    results = trace.find("vote_result", observer=box.name, subject="vote")
+    if len(results) != 1:
+        stages.append(_check("bounded_finality", False,
+                             _event_ids(results + [arrival]),
+                             "exactly one final result is required"))
+        return stages
+    result = results[0]
+    pre_close = {e.subject for e in casts if e.at < close_at}
+    pending_ok = (
+        len(pending) == 1
+        and math.isclose(pending[0].at, close_at, abs_tol=1e-9)
+        and pending[0].detail == {
+            "received": len(pre_close), "expected": len(voters),
+            "missing": sorted(set(voters) - pre_close)})
+
+    def closed_ballot(delivery):
+        message = sent.get(delivery.subject)
+        body = message.detail.get("body") if message else None
+        return isinstance(body, dict) and any(
+            e.subject == message.observer
+            and e.detail.get("reason") == "poll closed"
+            and e.detail.get("message_id") == delivery.subject
+            and e.detail.get("choice") == body.get("choice")
+            and before(delivery, e) for e in rejected)
+
+    late = [e for e in delivered if before(result, e)]
+    finality_ok = (pending_ok and all(before(e, result) for e in casts)
+                   and all(closed_ballot(e) for e in late))
+    if arrival.at <= deadline:
+        finality_ok = (
+            finality_ok and close_at <= result.at <= deadline
+            and {e.subject for e in casts} == set(voters)
+            and any(e.subject == ballot.observer
+                    and before(arrival, e) and before(e, result)
+                    for e in casts))
+    else:
+        finality_ok = (
+            finality_ok and math.isclose(result.at, deadline, abs_tol=1e-9)
+            and before(result, arrival)
+            and ballot.observer not in {e.subject for e in casts})
+    stages.append(_check(
+        "bounded_finality", finality_ok,
+        _event_ids(pending + results + casts + rejected + [arrival]),
+        "wait for every voter within grace, or finalize at the deadline"
+        " and record late ballots as rejected"))
+
+    names = [e.subject for e in casts]
+    double_voters = {name for name, agent in voters.items()
+                     if agent.config.get("double_vote")}
+    ballots_ok = (
+        bool(casts) and len(names) == len(set(names))
+        and all(e.observer == box.name and e.subject in voters
+                and e.detail.get("choice") in choices for e in casts)
+        and all(any(e.subject == name
+                    and e.detail.get("reason") == "already voted"
+                    for e in rejected) for name in double_voters))
+    stages.append(_check(
+        "one_agent_one_vote", ballots_ok, _event_ids(casts + rejected),
+        "count one valid ballot per eligible voter and reject duplicates"))
+
+    earlier_casts = [e for e in casts if before(e, result)]
+    expected = {choice: 0 for choice in choices}
+    for cast in earlier_casts:
+        choice = cast.detail.get("choice")
+        if isinstance(choice, str) and choice in expected:
+            expected[choice] += 1
+    missing = sorted(set(voters) - {e.subject for e in earlier_casts})
+    detail = result.detail
+    counts = detail.get("counts")
+    total = detail.get("total")
+    tally_ok = (
+        isinstance(counts, dict)
+        and all(type(value) is int for value in counts.values())
+        and counts == expected and type(total) is int
+        and total == sum(counts.values()) == len(earlier_casts)
+        and type(detail.get("complete")) is bool
+        and detail["complete"] == (not missing)
+        and detail.get("missing") == missing)
+    stages.append(_check(
+        "tally_integrity", tally_ok, _event_ids(results + casts),
+        "frozen counts and completion fields must match pre-result ballots"))
+
+    broadcasts = trace.find("message_sent", observer=box.name,
+                            kind="vote_result")
+    received = {e.subject: e for e in trace.find("message_delivered",
+                                                 kind="vote_result")}
+    broadcast_ok = (
+        len(broadcasts) == len(voters)
+        and all(isinstance(e.detail.get("to"), str) for e in broadcasts)
+        and {e.detail["to"] for e in broadcasts} == set(voters)
+        and all(e.detail.get("body") == detail and before(result, e)
+                and e.subject in received
+                and received[e.subject].detail.get("to") == e.detail["to"]
+                and before(e, received[e.subject])
+                for e in broadcasts))
+    stages.append(_check(
+        "result_broadcast", broadcast_ok,
+        _event_ids(results + broadcasts + list(received.values())),
+        "every voter must receive the same final result"))
+    return stages
+
+
 def quorum_commit(spec, trace: Trace) -> StageResult:
     """Check the Lab's single-proposer majority, not a BFT certificate.
 
