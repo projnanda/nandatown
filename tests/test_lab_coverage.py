@@ -35,6 +35,10 @@ NATIVE_SCENARIO_STAGES = {
         "spoof_detected", "honest_verified", "containment",
         "honest_trade_completed",
     },
+    "auction_duplicate_consign": {
+        "announced", "bidding", "award", "settlement", "delivery",
+        "task_finalized_once",
+    },
 }
 ADAPTED_STAGES = {
     "population_active", "discovery", "messages_flowed", "task_completed",
@@ -125,6 +129,8 @@ def test_declared_privacy_rejects_an_unredacted_event():
     ("consensus", NATIVE_SCENARIO_STAGES["consensus"]),
     ("supply_chain", NATIVE_SCENARIO_STAGES["supply_chain"]),
     ("capability_spoofing", NATIVE_SCENARIO_STAGES["capability_spoofing"]),
+    ("auction_duplicate_consign",
+     NATIVE_SCENARIO_STAGES["auction_duplicate_consign"]),
 ])
 def test_healthy_native_scenarios_emit_their_literal_stage_set(name, expected):
     """Deleting a required native check must fail against this fixed matrix."""
@@ -169,6 +175,18 @@ def test_weak_auth_remains_a_deliberately_failing_native_control():
     )
     assert result.verdict == "failed"
     assert stage(result, "containment").status == "failed"
+
+
+def test_duplicate_consign_control_is_judged_on_the_same_stage_set():
+    """The v1 control is judged on exactly the positive arm's claims."""
+    spec = load_bundled("auction_duplicate_consign_v1_control")
+    engine = build_engine(spec)
+    engine.run()
+    result = evaluate_scenario(spec, engine.run_id, engine.events)
+    assert {item.name for item in result.stages} == (
+        NATIVE_SCENARIO_STAGES["auction_duplicate_consign"] | GENERIC_STAGES
+    )
+    assert result.verdict == "failed"
 
 
 @pytest.mark.parametrize("old_version", [

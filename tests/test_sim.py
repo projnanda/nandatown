@@ -5,14 +5,17 @@ from nandatown.layers import UnknownPlugin
 from nandatown.sim.engine import Engine
 from nandatown.sim.runner import build_engine, run_lab
 from nandatown.sim.scenario import (
+    FaultRule,
     ScenarioSpec,
     bundled_scenarios,
     load_bundled,
 )
 
 ALL_SCENARIOS = ["marketplace", "auction", "voting", "consensus",
-                 "supply_chain", "capability_spoofing"]
-FAILING_SCENARIOS = ["capability_spoofing_weak_auth"]
+                 "supply_chain", "capability_spoofing",
+                 "auction_duplicate_consign"]
+FAILING_SCENARIOS = ["capability_spoofing_weak_auth",
+                     "auction_duplicate_consign_v1_control"]
 
 
 def trace_of(spec):
@@ -47,6 +50,51 @@ def test_weak_auth_swap_breaks_the_town(tmp_path):
                   if e.kind == "message_sent"
                   and e.detail.get("to") == "spoofer"]
     assert to_spoofer, "with plain auth the buyer should reach the spoofer"
+
+
+def test_duplicate_consign_arms_differ_only_in_coordination():
+    """The positive arm is the bundled auction plus a consignor, consign
+    mode, and the duplicate fault; the control swaps only Coordination."""
+    identity = {"name", "description"}
+    once = load_bundled("auction_duplicate_consign").model_dump(
+        exclude=identity)
+    control = load_bundled("auction_duplicate_consign_v1_control").model_dump(
+        exclude=identity)
+    expected = load_bundled("auction").model_dump(exclude=identity)
+    expected["agents"][0]["config"]["open_on"] = "consign"
+    expected["agents"].append({"name": "consignor", "role": "consignor",
+                               "config": {"item": "print-001"}})
+    expected["faults"] = [
+        FaultRule(action="duplicate", kind="consign", nth=1).model_dump()]
+    expected["validator"] = "auction_duplicate_consign"
+    expected["layers"]["coordination"] = "contractnet.once.v1"
+
+    assert once == expected
+    assert control["layers"].pop("coordination") == "contractnet.v1"
+    assert once["layers"].pop("coordination") == "contractnet.once.v1"
+    assert control == once
+
+
+@pytest.mark.parametrize("name, verdict, failed, finalized", [
+    ("auction_duplicate_consign", "passed", set(), 1),
+    ("auction_duplicate_consign_v1_control", "failed",
+     {"settlement", "task_finalized_once"}, 2),
+])
+def test_duplicated_consign_is_finalized_once_only_by_the_one_shot_policy(
+        name, verdict, failed, finalized, tmp_path):
+    """Both arms handle the same duplicated consign twice. contractnet.once.v1
+    keeps one announcement, award, and payment; contractnet.v1 repeats all
+    three and the run fails on purpose. Both bundles verify."""
+    bundle_dir, result = run_lab(name, str(tmp_path))
+    stages = {s.name: s.status for s in result.stages}
+    assert result.verdict == verdict, stages
+    assert {n for n, s in stages.items() if s == "failed"} == failed
+    assert verify_bundle(bundle_dir) == []
+    kinds = [e.kind for e in load_bundle(bundle_dir)["events"]]
+    assert kinds.count("message_duplicated") == 1
+    assert kinds.count("consign_received") == 2
+    effects = ("task_announced", "task_awarded", "payment_settled")
+    assert [kinds.count(k) for k in effects] == [finalized] * 3
 
 
 def test_determinism_same_seed_same_trace():

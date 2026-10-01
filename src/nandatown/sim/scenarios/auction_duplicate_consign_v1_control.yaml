@@ -1,0 +1,27 @@
+name: auction_duplicate_consign_v1_control
+description: The same duplicated-consign auction with coordination swapped back to contractnet.v1 (no one-shot guard); the duplicate re-announces the task and it is closed twice, so the run fails on purpose. Only the coordination policy differs.
+seed: 42
+validator: auction_duplicate_consign
+layers:
+  coordination: contractnet.v1
+agents:
+  - name: auctioneer
+    role: auctioneer
+    config: {item: print-001, close_after: 3.0, balance_cents: 0, open_on: consign}
+  - name: bidder-x
+    role: bidder
+    config: {valuation_cents: 700, bid_delay: 1.0, balance_cents: 2000}
+  - name: bidder-y
+    role: bidder
+    config: {valuation_cents: 900, bid_delay: 1.2, balance_cents: 2000}
+  - name: bidder-late
+    role: bidder
+    config: {valuation_cents: 950, bid_delay: 6.0, balance_cents: 2000}
+  - name: consignor
+    role: consignor
+    config: {item: print-001}
+faults:
+  - action: duplicate
+    kind: consign
+    nth: 1
+max_time: 60

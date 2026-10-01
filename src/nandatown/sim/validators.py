@@ -774,6 +774,171 @@ def auction(spec, trace: Trace) -> list[StageResult]:
     return stages
 
 
+def task_finalized_once(spec, trace: Trace) -> StageResult:
+    """A duplicated consign reaches the auctioneer's handler twice, yet its
+    auction task is announced once and awarded at most once.
+
+    The scenario must make consign the auctioneer's only trigger (open_on:
+    consign, so no startup auction) and declare the Town-native duplicate
+    fault on consign. Transport records message_delivered before
+    authentication and dispatch, so only the auctioneer's consign_received
+    proves the handler ran. The stage binds to the one controlled send and
+    judges every record naming its message, whatever kind it claims; any
+    other consign reaching the auctioneer contradicts it, while consign
+    traffic elsewhere is ignored. The target announcement must fall between
+    the two handler runs, and the auctioneer's announcements and awards are
+    judged unfiltered. Reads scenario configuration and events only, never
+    the Coordination plugin; the auction stages still judge the award and
+    settlement.
+    """
+    name = "task_finalized_once"
+    issuers = [a for a in spec.agents if a.role == "auctioneer"]
+    consignors = [a for a in spec.agents if a.role == "consignor"]
+    if (len(issuers) != 1 or len(consignors) != 1
+            or "item" not in issuers[0].config or trace.run_id is None):
+        return _missing(name, "requires one configured consignor, auctioneer,"
+                              " item, and run")
+    if issuers[0].config.get("open_on") != "consign":
+        return _missing(name, "requires the auctioneer to open on consign")
+    if not any(f.action == "duplicate" and f.kind == "consign"
+               for f in spec.faults):
+        return _missing(name, "requires a declared duplicate fault on consign")
+    issuer, consignor = issuers[0].name, consignors[0].name
+    item = issuers[0].config["item"]
+    task = f"auction-{item}"
+    problems, gaps, bad = [], [], []
+
+    def problem(event, note):
+        problems.append(note)
+        bad.append(event.event_id)
+
+    def precedes(first, second):
+        return (trace.index(first) < trace.index(second)
+                and first.at <= second.at)
+
+    def at_issuer(event):
+        """A consign copied to, delivered to, or handled by the issuer."""
+        if event.kind == "consign_received":
+            return event.observer == issuer
+        return (event.kind in ("message_duplicated", "message_delivered")
+                and event.detail.get("kind") == "consign"
+                and event.detail.get("to") == issuer)
+
+    def as_expected(event):
+        """A record of the controlled consign in the form the fault and
+        handler produce."""
+        d = event.detail
+        if event.kind == "consign_received":
+            return (event.observer == issuer and d.get("from") == consignor
+                    and d.get("item") == item)
+        return (event.kind in ("message_duplicated", "message_delivered")
+                and event.observer == "town" and d.get("to") == issuer
+                and d.get("kind") == "consign"
+                and (event.kind == "message_delivered"
+                     or d.get("fault") == "duplicate"))
+
+    controlled = []
+    for event in trace.find("message_sent", kind="consign"):
+        body = event.detail.get("body")
+        if (event.observer == consignor and event.detail.get("to") == issuer
+                and isinstance(body, dict) and body.get("item") == item):
+            controlled.append(event)
+    if len(controlled) > 1:
+        problem(controlled[1],
+                f"expected one controlled consign, found {len(controlled)}")
+    elif not controlled:
+        gaps.append(f"no consign from {consignor} to {issuer} for {item}")
+    message = controlled[0].subject if len(controlled) == 1 else None
+
+    # Judge every record naming the controlled message before counting any.
+    named = [e for e in trace.events
+             if message is not None and e.subject == message
+             and e is not controlled[0]]
+    wanted = {"message_duplicated": 1, "message_delivered": 2,
+              "consign_received": 2}
+    found = {kind: [] for kind in wanted}
+    for event in named:
+        if as_expected(event):
+            found[event.kind].append(event)
+        else:
+            problem(event, f"{event.kind} {event.event_id} contradicts"
+                           f" consign {message} from {consignor} to {issuer}")
+    for event in trace.events:
+        if at_issuer(event) and event.subject != message:
+            problem(event, f"{event.kind} {event.event_id} brings {issuer}"
+                           f" consign {event.subject}, not the controlled"
+                           f" consign {message}")
+    lifecycle = [e for e in trace.events
+                 if e.kind in ("task_announced", "task_awarded")
+                 and (e.observer == issuer or e.subject == task)]
+    for event in controlled + named + lifecycle:
+        if event.run_id != trace.run_id:
+            problem(event, f"{event.kind} {event.event_id} is from another run")
+    for kind, want in wanted.items():
+        note = (f"expected {want} {kind} for consign {message},"
+                f" found {len(found[kind])}")
+        if len(found[kind]) > want:
+            problem(found[kind][want], note)
+        elif len(found[kind]) < want:
+            gaps.append(note)
+    copies, arrivals, receipts = found.values()
+
+    chain = []
+    if (message is not None and len(copies) == 1
+            and len(arrivals) == len(receipts) == 2):
+        chain = [controlled[0], copies[0], arrivals[0], receipts[0],
+                 arrivals[1], receipts[1]]
+        for before, after in zip(chain, chain[1:]):
+            if not precedes(before, after):
+                problem(after, f"consign {message} records are out of causal"
+                               f" order at {after.event_id}")
+
+    announced = [e for e in lifecycle
+                 if e.kind == "task_announced" and e.subject == task]
+    awarded = [e for e in lifecycle
+               if e.kind == "task_awarded" and e.subject == task]
+    for event in lifecycle:
+        if event.subject != task:
+            problem(event, f"{issuer} {event.kind} off-target task"
+                           f" {event.subject}")
+        elif event.observer != issuer:
+            problem(event, f"{event.kind} for {task} is by {event.observer},"
+                           f" not {issuer}")
+    counts = f"announced={len(announced)} awarded={len(awarded)}"
+    if len(announced) > 1 or len(awarded) > 1:
+        problem((announced[1:] + awarded[1:])[0],
+                f"expected one {task} announcement and at most one award;"
+                f" observed {counts}")
+    elif not announced:
+        gaps.append(f"no {task} announcement; observed {counts}")
+    # open_on: consign removed the startup trigger; the first handler run
+    # must be what announced the task, before the duplicate arrived.
+    if chain and announced and not (precedes(receipts[0], announced[0])
+                                    and precedes(announced[0], arrivals[1])):
+        problem(announced[0], f"{task} was not announced between {issuer}'s"
+                              f" first receipt of consign {message} and its"
+                              f" second delivery")
+
+    evidence = [e.event_id
+                for e in chain[:4] + announced + chain[4:] + awarded]
+    if problems:
+        return _failed(name, list(dict.fromkeys(bad + evidence)), problems[0])
+    if gaps:
+        return _missing(name, gaps[0])
+    return _passed(name, evidence,
+                   f"consign {message} reached {issuer}'s handler twice;"
+                   f" {task} {counts}")
+
+
+@validator("auction_duplicate_consign")
+def auction_duplicate_consign(spec, trace: Trace) -> list[StageResult]:
+    """The bundled auction's stages plus one-shot finalization of the task
+    that a duplicated consign opened."""
+    stages = auction(spec, trace)
+    stages.append(task_finalized_once(spec, trace))
+    return stages
+
+
 @validator("voting")
 def voting(spec, trace: Trace) -> list[StageResult]:
     stages = []

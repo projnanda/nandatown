@@ -191,7 +191,21 @@ class Auctioneer(SimAgent):
     def on_start(self):
         self.api.register(["auction.host"])
         self.paid = False
-        self.api.later(0.5, self.open_auction)
+        # open_on: consign makes a consign message the only auction trigger.
+        if self.config.get("open_on") != "consign":
+            self.api.later(0.5, self.open_auction)
+
+    def handle_consign(self, msg):
+        if self.config.get("open_on") != "consign":
+            # Outside consign mode a consign stays unhandled and unread,
+            # exactly as SimAgent.on_message records it.
+            self.api.observe("message_unhandled", msg["message_id"],
+                             {"kind": msg["kind"]})
+            return
+        # Delivery is recorded before dispatch; this proves the handler ran.
+        self.api.observe("consign_received", msg["message_id"],
+                         {"from": msg["sender"], "item": msg["body"]["item"]})
+        self.open_auction()
 
     def open_auction(self):
         c = self.config
@@ -253,6 +267,23 @@ class Bidder(SimAgent):
 
     def handle_item_delivery(self, msg):
         self.api.rate(msg["sender"], "good")
+
+
+@role("consignor")
+class Consignor(SimAgent):
+    """Consigns one item to the first auction host in the index."""
+
+    def on_start(self):
+        self.api.later(0.5, self.consign)
+
+    def consign(self):
+        hosts = self.api.lookup("auction.host")
+        if not hosts:
+            self.api.observe("consignor_gave_up", self.name,
+                             {"reason": "no auctioneer"})
+            return
+        self.api.send(hosts[0]["name"], "consign",
+                      {"item": self.config["item"]})
 
 
 # -- voting ------------------------------------------------------------
