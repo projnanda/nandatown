@@ -157,6 +157,8 @@ nandatown profiles
 |---|---|---|
 | quote-clean | nothing | the calibration baseline |
 | quote-crash-restart | the seller stops after claiming | the stale attempt is fenced, the town redelivers, the task applies once |
+| quote-amnesia-restart | the seller answers, then loses its journal and dies before acknowledging | its second application is absorbed as a replay; the buyer gets one response |
+| quote-amnesia-fresh-ids | the same, with response ids minted per application | FAILS on purpose: two distinct responses, showing what derived response identity is for |
 | quote-drop-wakeup | the wake-up hint is lost | the durable inbox still delivers |
 | quote-duplicate-delivery | the same work is offered twice | the seller recognizes work it already handled |
 | quote-lost-ack | the first acknowledgement is lost | the retry is safe, nothing applies twice |

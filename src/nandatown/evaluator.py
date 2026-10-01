@@ -474,6 +474,39 @@ def evaluate(profile: TestProfile, run_id: str, events: list[TownEvent],
         else:
             stages.append(_missing("stale_fence_rejected",
                                    "no stale fence was rejected"))
+    elif fault in ("crash_amnesia", "crash_amnesia_fresh_ids"):
+        # The seller answered, lost its journal and died unacknowledged, so
+        # attempt two applies the work again. The seller's own "applied"
+        # flag cannot see that; the town's record can. Held means the town
+        # redelivered after the restart and absorbed the second answer as a
+        # replay of the response it already accepted.
+        crashed = find("participant_crashed", subject=seller)
+        restarts = find("participant_restarted", subject=seller)
+        reclaimed = [c for c in claims if c.detail.get("attempt", 1) >= 2]
+        replays = [e for r in accepted_resp
+                   for e in find("replay_returned", subject=r.subject,
+                                 sender=seller)]
+        if not (crashed and restarts and reclaimed):
+            stages.append(_missing("amnesia_survived",
+                                   "no seller crash followed by a restart"
+                                   " and redelivery"))
+        elif len(accepted_resp) == 1 and replays:
+            stages.append(_passed(
+                "amnesia_survived",
+                [crashed[0].event_id, restarts[0].event_id,
+                 reclaimed[0].event_id, replays[0].event_id],
+                "the forgotten work was applied again, and the town"
+                " returned the original acceptance for its answer"))
+        elif len(accepted_resp) > 1:
+            stages.append(_failed(
+                "amnesia_survived",
+                [e.event_id for e in accepted_resp],
+                f"the forgotten work answered again under a new identity:"
+                f" {len(accepted_resp)} distinct responses accepted"))
+        else:
+            stages.append(_missing("amnesia_survived",
+                                   "the restarted seller's answer was never"
+                                   " resent, so no replay was observed"))
     elif fault == "duplicate_delivery":
         offered = find("duplicate_offered")
         recognized = [a for a in seller_acks

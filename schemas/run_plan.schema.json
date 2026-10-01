@@ -60,7 +60,9 @@
         "lost_ack",
         "crash_after_claim",
         "context_truncation",
-        "tool_error"
+        "tool_error",
+        "crash_amnesia",
+        "crash_amnesia_fresh_ids"
       ],
       "title": "Fault",
       "type": "string"

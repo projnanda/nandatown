@@ -35,6 +35,10 @@ PROFILES: dict[str, TestProfile] = {
     "quote-clean": _profile("quote-clean", "none", 5.0),
     "quote-crash-restart": _profile("quote-crash-restart",
                                     "crash_after_claim", 1.5),
+    "quote-amnesia-restart": _profile("quote-amnesia-restart",
+                                      "crash_amnesia", 1.5),
+    "quote-amnesia-fresh-ids": _profile("quote-amnesia-fresh-ids",
+                                        "crash_amnesia_fresh_ids", 1.5),
     "quote-drop-wakeup": _profile("quote-drop-wakeup", "drop_wakeup", 5.0),
     "quote-duplicate-delivery": _profile("quote-duplicate-delivery",
                                          "duplicate_delivery", 5.0),
@@ -52,6 +56,13 @@ FAULT_DESCRIPTIONS = {
     "quote-clean": "no fault; the calibration baseline",
     "quote-crash-restart": "the seller stops after claiming the work, the"
                            " stale attempt is fenced, the town redelivers",
+    "quote-amnesia-restart": "the seller answers, then loses its journal"
+                             " and dies before acknowledging; its second"
+                             " application must not become a second"
+                             " response",
+    "quote-amnesia-fresh-ids": "negative control: the same fault with"
+                               " response ids minted fresh per application;"
+                               " FAILS on purpose with two responses",
     "quote-drop-wakeup": "the wake-up hint is lost; the durable inbox must"
                          " still deliver",
     "quote-duplicate-delivery": "the same work is offered twice; the seller"

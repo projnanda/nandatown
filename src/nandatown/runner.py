@@ -754,6 +754,17 @@ def run_town(profile_name: str, out_dir: str, port: int = 0,
         while time.time() < quiet_deadline:
             if seller_done or _quiescent(profile, get_events()):
                 break
+            # A seller can crash after the buyer has already settled its
+            # response (crash_amnesia answers, then dies before its ack),
+            # so the work it never acknowledged still gets its restart.
+            if (seller is not None and not restarted
+                    and seller.poll() == SELLER_CRASH_EXIT):
+                _stop_process(seller)
+                post_event("runner", "participant_crashed", "seller",
+                           {"exit_code": SELLER_CRASH_EXIT})
+                seller = spawn_seller()
+                post_event("runner", "participant_restarted", "seller")
+                restarted = True
             time.sleep(0.2)
 
         if seller is not None:

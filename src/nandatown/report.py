@@ -30,6 +30,7 @@ STAGE_MEANING = {
     "recovered_after_restart": "accepted work survived the crash and was"
                                " redelivered",
     "stale_fence_rejected": "the old attempt could not act after its lease",
+    "amnesia_survived": "work the seller forgot was not answered twice",
     "duplicate_recognized": "the participant recognized work it already"
                             " handled",
     "wakeup_loss_tolerated": "a lost wake-up hint did not lose inbox work",
