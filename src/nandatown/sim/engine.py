@@ -63,7 +63,16 @@ class Engine:
         if agent is None:
             self.emit("town", "delivery_failed", envelope["message_id"],
                       {"to": to, "reason": "unknown recipient"})
-            return
+            return 
+        # NEW: Integrity check (before auth check)
+        # Verify message body hasn't been corrupted in transit
+        comms = self.layers["communication"]
+        if hasattr(comms, "verify"):  # Only if communication layer supports it
+            if not comms.verify(envelope):
+                # Body doesn't match checksum - message corrupted
+                self.emit("town", "integrity_failed", envelope["message_id"],
+                          {"to": to, "reason": "body checksum mismatch"})
+                return
         auth = self.layers["auth"]
         if not auth.verify(envelope["sender"], envelope["body"],
                            envelope.get("signature", ""),

@@ -55,9 +55,13 @@ def load_plugin_files(paths: list[str]) -> None:
 
 def resolve_spec(name_or_path: str) -> ScenarioSpec:
     if name_or_path.endswith((".yaml", ".yml")) or os.sep in name_or_path:
-        spec = load_scenario_file(name_or_path)
-        load_plugin_files(spec.plugin_files)
-        return spec
+        if os.path.exists(name_or_path):
+            spec = load_scenario_file(name_or_path)
+            load_plugin_files(spec.plugin_files)
+            return spec
+        # Try as bundled scenario by stripping path prefix
+        name = os.path.splitext(os.path.basename(name_or_path))[0]
+        return load_bundled(name)
     return load_bundled(name_or_path)
 
 
