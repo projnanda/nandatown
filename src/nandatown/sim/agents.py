@@ -311,6 +311,50 @@ class Voter(SimAgent):
         self.api.remember("vote_result", msg["body"]["counts"])
 
 
+# -- cancellable contract-net -----------------------------------------
+
+
+@role("task_issuer")
+class TaskIssuer(SimAgent):
+    def on_start(self):
+        self.api.register(["contract.issue"])
+        self.api.later(self.config.get("start_after", 0.5), self.start_task)
+
+    def start_task(self):
+        c = self.config
+        self.task_id = c["task_id"]
+        self.api.announce(self.task_id, {"work": c["work"]}, rule="lowest")
+        for bidder in self.api.lookup("contract.bid"):
+            self.api.send(bidder["name"], "task_open",
+                          {"task_id": self.task_id, "work": c["work"]})
+        self.api.later(c["cancel_after"], self.cancel_task)
+        self.api.later(c["award_after"], self.finalize_task)
+
+    def cancel_task(self):
+        self.api.cancel_task(self.task_id)
+
+    def finalize_task(self):
+        self.api.award(self.task_id)
+
+    def handle_task_bid(self, msg):
+        body = msg["body"]
+        coordination = self.api._engine.layers["coordination"]
+        coordination.bid(body["task_id"], msg["sender"], body["cents"])
+
+
+@role("task_bidder")
+class TaskBidder(SimAgent):
+    def on_start(self):
+        self.api.register(["contract.bid"])
+
+    def handle_task_open(self, msg):
+        body = msg["body"]
+        self.api.later(self.config.get("send_after", 0.0), lambda: self.api.send(
+            msg["sender"], "task_bid",
+            {"task_id": body["task_id"],
+             "cents": self.config["bid_cents"]}))
+
+
 # -- consensus ---------------------------------------------------------
 
 
