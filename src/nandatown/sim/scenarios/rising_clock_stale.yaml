@@ -1,0 +1,20 @@
+name: rising_clock_stale
+description: The same delayed accept on a rising clock with negotiation swapped for rising.stale.v1, which honours the stale named price; the buyer gets the old price while the seller is asking more, and the run fails on purpose.
+seed: 42
+validator: rising_clock
+layers:
+  negotiation: rising.stale.v1
+agents:
+  - name: seller-1
+    role: dutch_seller
+    config: {sku: widget, start_cents: 1500, step_cents: 50, cap_cents: 2000, tick_every: 0.25, balance_cents: 0}
+  - name: buyer-1
+    role: dutch_buyer
+    config: {valuation_cents: 1800, quantity: 2, balance_cents: 10000}
+redact_fields: [valuation_cents]
+faults:
+  - action: delay
+    kind: dutch_accept
+    nth: 1
+    delay: 1.0
+max_time: 60

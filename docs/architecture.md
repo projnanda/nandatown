@@ -14,6 +14,10 @@ src/nandatown/
 
   layers/          the twelve protocol layers, one module each, plus the
                    plugin registry (register, resolve, plugins)
+    negotiation_clock.py  posted-price clocks for the negotiation layer:
+                   dutch.v1 (falling; a delayed accept binds to the price
+                   it named) and rising.v1 (rising; an accept is an
+                   immediate-or-cancel limit), each with a weak twin
 
   sim/             the Lab
     engine.py      seeded discrete event queue, logical clock, layer wiring

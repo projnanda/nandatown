@@ -1050,6 +1050,297 @@ def capability_spoofing(spec, trace: Trace) -> list[StageResult]:
     return stages
 
 
+def _dutch_records_problem(trace: Trace, records: list[TownEvent]) -> str:
+    """Cited records must be distinct, from this run, and in trace order."""
+    ids = [e.event_id for e in records]
+    if len(set(ids)) != len(ids):
+        return "dutch records have ambiguous event IDs"
+    if any(e.run_id != trace.run_id for e in records):
+        return "dutch records must all come from this run"
+    positions = [trace.index(e) for e in records]
+    if positions != sorted(positions):
+        return "dutch records are out of causal order"
+    return ""
+
+
+def _clock_stage(trace: Trace, seller: str, start: int, step: int,
+                 bound: int, direction: int, bound_key: str):
+    """The posted prices follow the configured schedule exactly.
+
+    Returns the clock stage plus the seller's posts and sales, which the
+    acceptance checks reuse. direction is -1 for a falling clock, +1 for
+    a rising one; bound is its floor or cap.
+    """
+    opened = trace.find("negotiation_started", observer=seller)
+    sales = trace.find("offer_accepted", observer=seller)
+    posts = (trace.find("price_posted", observer=seller,
+                        subject=opened[0].subject) if opened else [])
+    problem = ""
+    if len(opened) != 1:
+        problem = "expected exactly one clock opened by the seller"
+    elif (opened[0].detail.get("start_cents"), opened[0].detail.get(
+            "step_cents"), opened[0].detail.get(bound_key)) != (
+            start, step, bound):
+        problem = "the clock was not opened with the configured prices"
+    for k, post in enumerate(posts, start=1):
+        want = start + direction * (k - 1) * step
+        beyond = want < bound if direction < 0 else want > bound
+        if (post.detail.get("tick") != k
+                or type(post.detail.get("cents")) is not int
+                or post.detail.get("cents") != want or beyond):
+            problem = problem or (f"tick {k} posted {post.detail.get('cents')},"
+                                  f" the schedule says {want}")
+    if sales and posts and trace.index(posts[-1]) > trace.index(sales[0]):
+        problem = problem or "the clock kept posting after the sale"
+    problem = problem or _dutch_records_problem(trace, opened + posts)
+    evidence = _event_ids(opened + posts)
+    moved, edge = ("fell", "below") if direction < 0 else ("rose", "above")
+    stage = (_failed("clock", evidence, problem) if problem and evidence
+             else _check("clock", bool(posts), evidence,
+                         problem or "the seller never posted a price",
+                         f"{len(posts)} prices {moved} {step} cents per tick"
+                         f" from {start}, never {edge} {bound}"))
+    return stage, posts, sales
+
+
+@validator("dutch_auction")
+def dutch_auction(spec, trace: Trace) -> list[StageResult]:
+    """Judge a descending clock from the town's own records.
+
+    The buyer's commitment is the transport's record of the accept it
+    sent; the sale must match it exactly, whenever the accept arrived.
+    Ticks and trace order are compared, never float times.
+    """
+    names = ("clock", "acceptance", "payment", "delayed_accept")
+    sellers = [a for a in spec.agents if a.role == "dutch_seller"]
+    buyers = [a for a in spec.agents if a.role == "dutch_buyer"]
+    if len(sellers) != 1 or len(buyers) != 1:
+        return [_missing(n, "requires one dutch_seller and one dutch_buyer")
+                for n in names]
+    seller, buyer = sellers[0], buyers[0]
+    c = seller.config
+    start, step, floor = (c.get("start_cents"), c.get("step_cents"),
+                          c.get("floor_cents"))
+    quantity = buyer.config.get("quantity")
+    if any(type(v) is not int for v in (start, step, floor, quantity)):
+        return [_missing(n, "the scenario must configure integer clock"
+                         " prices and quantity") for n in names]
+    clock, posts, sales = _clock_stage(trace, seller.name, start, step,
+                                       floor, -1, "floor_cents")
+    stages = [clock]
+
+    # acceptance: the one sale binds to the posted price the buyer sent.
+    accepts = trace.find("message_sent", observer=buyer.name,
+                         kind="dutch_accept")
+    if len(accepts) != 1:
+        stages.append(_missing("acceptance", f"expected one accept from"
+                               f" {buyer.name}, found {len(accepts)}"))
+        stages.append(_missing("payment", "no single accept to pay for"))
+        stages.append(_missing("delayed_accept", "no single accept to delay"))
+        return stages
+    accept = accepts[0]
+    body = accept.detail.get("body")
+    body = body if isinstance(body, dict) else {}
+    tick, cents = body.get("tick"), body.get("cents")
+    seen = [p for p in posts if trace.index(p) < trace.index(accept)
+            and p.detail.get("tick") == tick and p.detail.get("cents") == cents]
+    if type(tick) is not int or type(cents) is not int or not seen:
+        problem = "the buyer accepted a price that was never posted before it"
+    elif len(sales) != 1:
+        problem = (f"expected one sale for the accept, found {len(sales)}"
+                   if sales or trace.find("accept_rejected") else "")
+    else:
+        sale = sales[0].detail
+        if sale.get("buyer") != buyer.name or sale.get("tick") != tick:
+            problem = "the sale does not name the buyer's accepted tick"
+        elif sale.get("cents") != cents:
+            problem = (f"sale price {sale.get('cents')} differs from the"
+                       f" price the buyer accepted, {cents} at tick {tick}")
+        else:
+            problem = _dutch_records_problem(trace, seen[:1] + [accept]
+                                             + sales)
+    evidence = _event_ids(seen[:1] + [accept] + sales)
+    if problem:
+        stages.append(_failed("acceptance", evidence, problem))
+    elif not sales:
+        stages.append(_missing("acceptance", "the seller never answered"
+                               " the buyer's accept"))
+    else:
+        stages.append(_passed("acceptance", evidence,
+                              f"sold at {cents}, the price posted at tick"
+                              f" {tick} that the buyer accepted"))
+
+    # payment: exactly one transfer of the accepted price times quantity.
+    owed = cents * quantity if type(cents) is int else None
+    pays = [e for e in trace.find("payment_settled")
+            if e.detail.get("from") == buyer.name
+            and e.detail.get("to") == seller.name]
+    if not pays:
+        stages.append(_missing("payment", "the buyer never paid the seller"))
+    elif (len(pays) != 1 or pays[0].observer != "town"
+          or pays[0].subject != body.get("nid")
+          or pays[0].detail.get("cents") != owed
+          or (sales and trace.index(pays[0]) < trace.index(sales[0]))):
+        stages.append(_failed(
+            "payment", _event_ids(pays),
+            f"paid {[e.detail.get('cents') for e in pays]} for this clock,"
+            f" but the accepted total is {owed}"))
+    else:
+        stages.append(_passed("payment", _event_ids(pays),
+                              f"one payment of {owed}: the accepted price"
+                              f" times {quantity}"))
+
+    stages.append(_delayed_accept_stage(trace, accept, posts, "lower"))
+    return stages
+
+
+def _delayed_accept_stage(trace: Trace, accept: TownEvent,
+                          posts: list[TownEvent], word: str) -> StageResult:
+    """The fault really held the accept while the clock kept moving.
+
+    Without this, a run where the fault never bit could pass for free.
+    """
+    delayed = trace.find("message_delayed", subject=accept.subject)
+    arrived = trace.find("message_delivered", subject=accept.subject)
+    moved = ([p for p in posts
+              if trace.index(accept) < trace.index(p) < trace.index(arrived[0])]
+             if arrived else [])
+    if delayed and moved:
+        return _passed("delayed_accept", _event_ids(delayed + moved),
+                       f"the clock posted {len(moved)} {word} prices"
+                       " while the accept was in flight")
+    return _missing("delayed_accept", "the delay fault did not hold the"
+                    " accept while the price moved")
+
+
+def _price_before(trace: Trace, posts: list[TownEvent],
+                  event: TownEvent) -> int | None:
+    """The seller's current price when it answered: its last post before."""
+    earlier = [p for p in posts if trace.index(p) < trace.index(event)]
+    return earlier[-1].detail.get("cents") if earlier else None
+
+
+@validator("rising_clock")
+def rising_clock(spec, trace: Trace) -> list[StageResult]:
+    """Judge a rising clock whose accepts are immediate-or-cancel limits.
+
+    The buyer's named price is the most it will pay. A fill must be at the
+    seller's current price and within that limit; a refusal is right only
+    when the current price had moved above it. Either way the buyer never
+    pays more than it accepted and the seller is never paid below its
+    current price, so a stale quote cannot be sniped as a bargain.
+    """
+    names = ("clock", "limit_respected", "paid_as_filled", "delayed_accept")
+    sellers = [a for a in spec.agents if a.role == "dutch_seller"]
+    buyers = [a for a in spec.agents if a.role == "dutch_buyer"]
+    if len(sellers) != 1 or len(buyers) != 1:
+        return [_missing(n, "requires one dutch_seller and one dutch_buyer")
+                for n in names]
+    seller, buyer = sellers[0], buyers[0]
+    c = seller.config
+    start, step, cap = (c.get("start_cents"), c.get("step_cents"),
+                        c.get("cap_cents"))
+    quantity = buyer.config.get("quantity")
+    if any(type(v) is not int for v in (start, step, cap, quantity)):
+        return [_missing(n, "the scenario must configure integer clock"
+                         " prices, a cap and quantity") for n in names]
+    clock, posts, sales = _clock_stage(trace, seller.name, start, step,
+                                       cap, +1, "cap_cents")
+    stages = [clock]
+
+    accepts = trace.find("message_sent", observer=buyer.name,
+                         kind="dutch_accept")
+    if len(accepts) != 1:
+        stages += [_missing(n, f"expected one accept from {buyer.name},"
+                            f" found {len(accepts)}") for n in names[1:]]
+        return stages
+    accept = accepts[0]
+    body = accept.detail.get("body")
+    body = body if isinstance(body, dict) else {}
+    tick, limit = body.get("tick"), body.get("cents")
+    seen = [p for p in posts if trace.index(p) < trace.index(accept)
+            and p.detail.get("tick") == tick and p.detail.get("cents") == limit]
+    refusals = [e for e in trace.find("accept_rejected", observer=seller.name)
+                if e.detail.get("buyer") == buyer.name]
+    answer = sales[0] if sales else (refusals[0] if refusals else None)
+    current = _price_before(trace, posts, answer) if answer else None
+    filled = refused = False
+    if type(tick) is not int or type(limit) is not int or not seen:
+        problem = "the buyer accepted a price that was never posted before it"
+    elif len(sales) > 1 or (sales and refusals):
+        problem = "expected one answer to the accept"
+    elif sales:
+        sale = sales[0].detail
+        if sale.get("buyer") != buyer.name or sale.get("tick") != tick:
+            problem = "the sale does not name the buyer's accepted tick"
+        elif sale.get("cents") != current:
+            problem = (f"sold at {sale.get('cents')} while the seller's"
+                       f" current price was {current}")
+        elif current > limit:
+            problem = (f"filled at {current}, above the buyer's limit"
+                       f" {limit}")
+        else:
+            filled = True
+            problem = _dutch_records_problem(trace, [seen[0], accept,
+                                                     sales[0]])
+    elif refusals:
+        reason = refusals[0].detail.get("reason")
+        if (len(refusals) == 1 and reason == "price moved above the limit"
+                and type(current) is int and current > limit):
+            refused = True
+            problem = _dutch_records_problem(trace, [seen[0], accept,
+                                                     refusals[0]])
+        else:
+            problem = (f"refused ({reason}) although the current price"
+                       f" {current} was within the limit {limit}")
+    else:
+        problem = ""
+    evidence = _event_ids(seen[:1] + [accept] + ([answer] if answer else []))
+    if problem:
+        stages.append(_failed("limit_respected", evidence, problem))
+    elif filled:
+        stages.append(_passed("limit_respected", evidence,
+                              f"filled at the current price {current},"
+                              f" within the buyer's limit {limit}"))
+    elif refused:
+        stages.append(_passed("limit_respected", evidence,
+                              f"refused: the price had moved to {current},"
+                              f" above the buyer's limit {limit}"))
+    else:
+        stages.append(_missing("limit_respected",
+                               "the seller never answered the buyer's accept"))
+
+    pays = [e for e in trace.find("payment_settled")
+            if e.detail.get("from") == buyer.name
+            and e.detail.get("to") == seller.name]
+    if refused:
+        stages.append(_failed("paid_as_filled", _event_ids(pays),
+                              "money moved although the accept was refused")
+                      if pays else
+                      _passed("paid_as_filled", _event_ids(refusals[:1]),
+                              "the accept was refused, so nothing was paid"))
+    elif not filled:
+        stages.append(_failed("paid_as_filled", _event_ids(pays),
+                              "money moved for a sale the limit rule"
+                              " forbids")
+                      if pays and sales else
+                      _missing("paid_as_filled", "no valid fill to pay for"))
+    else:
+        owed = current * quantity
+        ok = (len(pays) == 1 and pays[0].observer == "town"
+              and pays[0].subject == body.get("nid")
+              and pays[0].detail.get("cents") == owed
+              and trace.index(pays[0]) > trace.index(sales[0]))
+        stages.append(_passed("paid_as_filled", _event_ids(pays),
+                              f"one payment of {owed}: the filled price"
+                              f" times {quantity}") if ok else
+                      _failed("paid_as_filled", _event_ids(pays),
+                              f"paid {[e.detail.get('cents') for e in pays]}"
+                              f" but the fill owes {owed}"))
+    stages.append(_delayed_accept_stage(trace, accept, posts, "higher"))
+    return stages
+
+
 COMPLETION_KINDS = ["offer_accepted", "vote_result",
                     "consensus_committed", "task_awarded",
                     "escrow_released", "receipt_attested"]

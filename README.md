@@ -142,6 +142,10 @@ nandatown run auction --seed 7
 | supply_chain | contract-net bidding, milestone escrow per part, assembly ordering, delayed delivery survived |
 | capability_spoofing | a forged capability card is unverified, contained, and gets no business |
 | capability_spoofing_weak_auth | the same scenario with auth swapped for plain.v1: the run FAILS on purpose, showing what the auth layer is for |
+| dutch_auction | negotiation dutch.v1, a descending price clock: the buyer's accept is delayed while the price keeps falling, and the one sale and payment still bind to the posted price the buyer accepted |
+| dutch_auction_naive | the same clock with negotiation swapped for dutch.naive.v1, which charges the price showing on arrival: the run FAILS on purpose, selling below the accepted price while money is still conserved |
+| rising_clock | negotiation rising.v1, a rising price clock whose accepts are immediate-or-cancel limit orders: the accept is delayed while the price rises past the buyer's limit, and it is refused rather than filled at the stale price, so nothing is paid |
+| rising_clock_stale | the same rising clock with negotiation swapped for rising.stale.v1, which honours the stale named price: the run FAILS on purpose, selling below the seller's current price while money is still conserved |
 
 Every scenario also gets two standing checks: the ledger conserved money across every movement, and no redacted field leaked into the exported records.
 

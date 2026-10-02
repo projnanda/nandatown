@@ -35,6 +35,10 @@ NATIVE_SCENARIO_STAGES = {
         "spoof_detected", "honest_verified", "containment",
         "honest_trade_completed",
     },
+    "dutch_auction": {"clock", "acceptance", "payment", "delayed_accept"},
+    "rising_clock": {
+        "clock", "limit_respected", "paid_as_filled", "delayed_accept",
+    },
 }
 ADAPTED_STAGES = {
     "population_active", "discovery", "messages_flowed", "task_completed",
@@ -125,6 +129,8 @@ def test_declared_privacy_rejects_an_unredacted_event():
     ("consensus", NATIVE_SCENARIO_STAGES["consensus"]),
     ("supply_chain", NATIVE_SCENARIO_STAGES["supply_chain"]),
     ("capability_spoofing", NATIVE_SCENARIO_STAGES["capability_spoofing"]),
+    ("dutch_auction", NATIVE_SCENARIO_STAGES["dutch_auction"]),
+    ("rising_clock", NATIVE_SCENARIO_STAGES["rising_clock"]),
 ])
 def test_healthy_native_scenarios_emit_their_literal_stage_set(name, expected):
     """Deleting a required native check must fail against this fixed matrix."""
@@ -171,6 +177,19 @@ def test_weak_auth_remains_a_deliberately_failing_native_control():
     assert stage(result, "containment").status == "failed"
 
 
+def test_naive_dutch_remains_a_deliberately_failing_native_control():
+    spec = load_bundled("dutch_auction_naive")
+    engine = build_engine(spec)
+    engine.run()
+    result = evaluate_scenario(spec, engine.run_id, engine.events)
+    assert {item.name for item in result.stages} == (
+        NATIVE_SCENARIO_STAGES["dutch_auction"] | GENERIC_STAGES
+    )
+    assert result.verdict == "failed"
+    assert stage(result, "acceptance").status == "failed"
+    assert stage(result, "payment").status == "failed"
+
+
 @pytest.mark.parametrize("old_version", [
     "lab-0.2.0", "lab-0.2.1", "lab-0.2.2", "lab-0.2.3", "lab-0.2.4",
     "lab-0.2.5"])
@@ -208,3 +227,16 @@ def test_new_lab_bundles_replay_and_old_lab_versions_do_not(tmp_path, old_versio
         f"evaluator version differs: bundle {old_version}, local "
         f"{LAB_EVALUATOR_VERSION}; reproducibility not checked",
     ]
+
+
+def test_stale_rising_remains_a_deliberately_failing_native_control():
+    spec = load_bundled("rising_clock_stale")
+    engine = build_engine(spec)
+    engine.run()
+    result = evaluate_scenario(spec, engine.run_id, engine.events)
+    assert {item.name for item in result.stages} == (
+        NATIVE_SCENARIO_STAGES["rising_clock"] | GENERIC_STAGES
+    )
+    assert result.verdict == "failed"
+    assert stage(result, "limit_respected").status == "failed"
+    assert stage(result, "paid_as_filled").status == "failed"

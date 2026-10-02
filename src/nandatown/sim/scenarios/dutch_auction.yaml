@@ -1,0 +1,19 @@
+name: dutch_auction
+description: Descending-price clock where the buyer's accept is delayed while the price keeps falling; the sale still binds to the posted price the buyer accepted, exactly once.
+seed: 42
+layers:
+  negotiation: dutch.v1
+agents:
+  - name: seller-1
+    role: dutch_seller
+    config: {sku: widget, start_cents: 2000, step_cents: 50, floor_cents: 1500, tick_every: 0.25, balance_cents: 0}
+  - name: buyer-1
+    role: dutch_buyer
+    config: {valuation_cents: 1800, quantity: 2, balance_cents: 10000}
+redact_fields: [valuation_cents]
+faults:
+  - action: delay
+    kind: dutch_accept
+    nth: 1
+    delay: 1.0
+max_time: 60

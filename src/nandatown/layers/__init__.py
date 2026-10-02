@@ -90,6 +90,7 @@ from . import (  # noqa: E402,F401
     identity,
     memory,
     negotiation,
+    negotiation_clock,
     payments,
     privacy,
     registry_layer,

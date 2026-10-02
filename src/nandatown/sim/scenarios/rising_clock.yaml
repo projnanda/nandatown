@@ -1,0 +1,19 @@
+name: rising_clock
+description: Rising-price clock where the buyer's accept is an immediate-or-cancel limit order; the accept is delayed while the price rises past the limit, and it is refused rather than filled at a stale bargain, so nothing is paid.
+seed: 42
+layers:
+  negotiation: rising.v1
+agents:
+  - name: seller-1
+    role: dutch_seller
+    config: {sku: widget, start_cents: 1500, step_cents: 50, cap_cents: 2000, tick_every: 0.25, balance_cents: 0}
+  - name: buyer-1
+    role: dutch_buyer
+    config: {valuation_cents: 1800, quantity: 2, balance_cents: 10000}
+redact_fields: [valuation_cents]
+faults:
+  - action: delay
+    kind: dutch_accept
+    nth: 1
+    delay: 1.0
+max_time: 60

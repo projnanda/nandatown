@@ -463,3 +463,79 @@ class Supplier(SimAgent):
         self.api.reply(msg, "part_delivery",
                        {"task_id": msg["body"]["task_id"],
                         "component": self.config["component"]})
+
+
+# -- dutch auction -----------------------------------------------------
+
+
+@role("dutch_seller")
+class DutchSeller(SimAgent):
+    """Runs a price clock (falling or rising) and answers each accept."""
+
+    def on_start(self):
+        self.api.register([f"sell.{self.config['sku']}"],
+                          {"sku": self.config["sku"]})
+        self.api.later(self.config.get("open_after", 0.5), self.open_clock)
+
+    def open_clock(self):
+        c = self.config
+        self.neg = self.api._engine.layers["negotiation"]
+        self.buyers = [card["name"] for card in self.api.lookup("buy")]
+        bound = c["floor_cents"] if "floor_cents" in c else c["cap_cents"]
+        self.nid = self.neg.open(self.name, c["sku"], c["start_cents"],
+                                 c["step_cents"], bound)
+        self.tick()
+
+    def tick(self):
+        posted = self.neg.post(self.nid, self.name)
+        if posted is None:
+            return
+        tick, cents = posted
+        for buyer in self.buyers:
+            self.api.send(buyer, "dutch_price",
+                          {"nid": self.nid, "tick": tick, "cents": cents})
+        self.api.later(self.config["tick_every"], self.tick)
+
+    def handle_dutch_accept(self, msg):
+        body = msg["body"]
+        price = self.neg.accept(body["nid"], msg["sender"], body["tick"],
+                                body["cents"])
+        if price is None:
+            self.api.reply(msg, "dutch_rejected", {"nid": body["nid"]})
+            return
+        self.api.reply(msg, "sale_confirmed",
+                       {"nid": body["nid"], "cents": price})
+
+
+@role("dutch_buyer")
+class DutchBuyer(SimAgent):
+    """Accepts the first posted price within its valuation, pays once."""
+
+    def on_start(self):
+        self.accepted = None
+        self.paid = False
+        self.api.register(["buy"])
+
+    def handle_dutch_price(self, msg):
+        body = msg["body"]
+        if self.accepted is not None:
+            return
+        if body["cents"] > self.config["valuation_cents"]:
+            return
+        self.accepted = (body["nid"], body["tick"], body["cents"])
+        self.api.reply(msg, "dutch_accept",
+                       {"nid": body["nid"], "tick": body["tick"],
+                        "cents": body["cents"]})
+
+    def handle_sale_confirmed(self, msg):
+        if self.paid:
+            self.api.observe("duplicate_recognized", msg["body"]["nid"],
+                            {"kind": "sale_confirmed"})
+            return
+        self.paid = True
+        self.api.pay(msg["sender"],
+                     msg["body"]["cents"] * self.config["quantity"],
+                     memo=msg["body"]["nid"])
+
+    def handle_dutch_rejected(self, msg):
+        self.api.observe("purchase_refused", msg["body"]["nid"], {})
