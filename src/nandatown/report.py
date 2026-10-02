@@ -44,6 +44,10 @@ STAGE_MEANING = {
     "bidding": "on-time bids counted, late bids rejected",
     "award": "the award followed the declared rule",
     "delivery": "the item reached the winner",
+    "duplicate_award_delivered": "the recorded award reached the winner twice"
+                                 " under one message id",
+    "duplicate_payment_replayed": "the second delivery replayed the first"
+                                  " settlement; nothing settled twice",
     "ballots": "every voter's first ballot counted",
     "one_agent_one_vote": "a second ballot from the same voter was rejected",
     "tally": "the count matches the ballots",
