@@ -12,15 +12,25 @@ rules that the town enforces and records.
 
 ## The scenario
 
+Three agents take part. Roles are configuration, not code; the default
+cast is:
+
+- **Agent A**, Instinct-like personal agent: plans a dinner for its user
+  and negotiates with the restaurant.
+- **Agent B**, Muse-like personal agent: the other diner's agent; shares
+  free/busy time with A under a relationship.
+- **Agent C**, OpenClaw agent: the booking agent for MoonRestaurant,
+  holding the restaurant's own made-up table schedule.
+
 | # | Step | Town Square piece |
 |---|---|---|
-| 1 | Discover each other | square directory over the existing `index.v1` signed cards |
+| 1 | Discover each other, using NANDA Index | **index client**: register by agent email, search the index |
 | 2 | Establish identity | existing `Keystore` controller keys (`did:town:`) |
 | 3 | Establish relationship | **relationships**: mutually signed, scoped |
-| 4 | Jointly book a mock restaurant from made-up calendars | **calendars** and **MoonRestaurant** services |
-| 5 | Negotiate restaurant availability | **slot negotiation** over the calendars |
+| 4 | Jointly book from made-up calendars | **calendars** for A and B; **MoonRestaurant** schedule held by C |
+| 5 | Negotiate availability, A with booking agent C | **slot negotiation**: propose, counter, accept, hold |
 | 6 | Purchase something | **payment desk** over the existing `ledger.v1` |
-| 7 | Detect an unauthorized data request | **relationships** `authorize` on every data request |
+| 7 | Detect an unauthorized data request | **relationships** `authorize` on every calendar read |
 | 8 | Revoke a relationship | **relationships** unilateral, signed revocation |
 | 9 | Generate signed receipts | **per-action receipts**, signed by the acting agent |
 
@@ -54,3 +64,44 @@ the fingerprint of the terms, so either party can cite it exactly.
   relationship id. Revocation takes effect on the very next request; it is
   checked on every request, not only when the relationship is formed.
 - Time is passed in, never read from the wall clock, so runs replay.
+
+## Discovery through NANDA Index
+
+Agents register on NANDA Index (`api.nandaindex.org`, source
+`nanda-index-v2`) the way a person would: an account for the agent's
+email (`POST /auth/register`, or `/auth/login` if it exists), then a
+personal index record (`POST /api/v1/orgs`, `hosting_path: personal`,
+`contact_email` the agent email, `registry_url` its agent card). Peers
+are found with `GET /api/v1/search` and `GET /api/v1/agentic-search`.
+
+Activation: the index emails a verification link to the contact email;
+following it (`GET /api/v1/verify-email?token=`) activates a personal,
+no-domain record (nanda-index-v2 `5b8b0d8`). Until then the record is
+`pending` and search does not return it, so an agent must be able to read
+its own inbox to finish registering. Town Square reports a pending
+registration as not yet discoverable rather than failing silently. Tests
+use an in-process stand-in with the same endpoints and the same rule.
+
+## Calendars and the booking agent
+
+A and B each hold a made-up calendar. Reading another agent's calendar
+is a data request: `calendar.freebusy` returns busy intervals only,
+`calendar.details` also returns titles, and each is authorized against
+the relationships in force. C keeps MoonRestaurant's tables, opening
+hours and existing reservations; its availability is public.
+
+Slot negotiation alternates, like `haggle.v1` but over times: A proposes
+slots both diners are free for; C accepts the first one a table can seat
+and holds it, or counters with the nearest available slots; A may accept
+a countered slot. Rounds are bounded, and every step is an event.
+
+Rules the square enforces here:
+
+- Times are local wall-clock times of the scenario; a time with a time
+  zone is refused rather than compared with local ones.
+- A guest holds at most one table at a time, so no guest can take every
+  table. Holds do not yet expire; a hold lifetime is still open.
+- A countered round always shows its counters, and they stay acceptable;
+  only a proposal beyond `max_rounds` fails as `out_of_rounds`.
+- A calendar read is authorized before anything else is looked at, so a
+  stranger's request is recorded and learns nothing.
