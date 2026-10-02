@@ -146,6 +146,11 @@ class TownAPI:
         self._engine.record_intent(self.name, "award", {"task_id": task_id})
         return self._engine.layers["coordination"].award(task_id)
 
+    def cancel_task(self, task_id: str) -> bool:
+        self._engine.record_intent(self.name, "cancel_task",
+                                   {"task_id": task_id})
+        return self._engine.layers["coordination"].cancel(task_id, self.name)
+
     # -- negotiation ----------------------------------------------------
 
     def negotiation_start(self, seller: str, subject: str) -> str:

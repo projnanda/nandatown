@@ -810,6 +810,230 @@ def voting(spec, trace: Trace) -> list[StageResult]:
     return stages
 
 
+@validator("cancellable_contractnet")
+def cancellable_contractnet(spec, trace: Trace) -> list[StageResult]:
+    """Prove that cancellation remains terminal for an in-flight bid."""
+    stage_names = (
+        "fault_exercised", "task_cancelled", "late_bid_rejected",
+        "cancelled_task_not_awarded",
+    )
+    issuers = [agent for agent in spec.agents if agent.role == "task_issuer"]
+    bidders = [agent for agent in spec.agents if agent.role == "task_bidder"]
+    if len(issuers) != 1 or len(bidders) != 1:
+        note = "requires exactly one configured task issuer and bidder"
+        return [_missing(name, note) for name in stage_names]
+
+    issuer, bidder = issuers[0], bidders[0]
+    issuer_config = issuer.config if isinstance(issuer.config, dict) else {}
+    bidder_config = bidder.config if isinstance(bidder.config, dict) else {}
+    task_id = issuer_config.get("task_id")
+    work = issuer_config.get("work")
+    cents = bidder_config.get("bid_cents")
+    if (not isinstance(issuer.name, str) or not issuer.name
+            or not isinstance(bidder.name, str) or not bidder.name
+            or not isinstance(task_id, str) or not task_id
+            or not isinstance(work, str) or not work
+            or type(cents) is not int):
+        note = "configured issuer, bidder, task, work, and bid must be identifiable"
+        return [_missing(name, note) for name in stage_names]
+
+    positions = {id(event): index
+                 for index, event in enumerate(trace.events)}
+    id_counts: dict[str, int] = {}
+    for event in trace.events:
+        if isinstance(event.event_id, str) and event.event_id:
+            id_counts[event.event_id] = id_counts.get(event.event_id, 0) + 1
+
+    def valid_records(records):
+        return all(
+            isinstance(event.event_id, str) and event.event_id
+            and id_counts.get(event.event_id) == 1
+            and isinstance(event.run_id, str) and event.run_id == trace.run_id
+            and type(event.at) in (int, float) and math.isfinite(event.at)
+            for event in records
+        )
+
+    def ordered(records):
+        return (valid_records(records)
+                and all(positions[id(before)] < positions[id(after)]
+                        and before.at <= after.at
+                        for before, after in zip(records, records[1:])))
+
+    announcements = trace.find("task_announced", subject=task_id)
+    cancellations = trace.find("task_cancelled", subject=task_id)
+    delayed = trace.find("message_delayed", kind="task_bid")
+    bid_rejections = trace.find("bid_rejected", subject=task_id)
+    bid_placements = trace.find("bid_placed", subject=task_id)
+    award_rejections = trace.find("award_rejected", subject=task_id)
+    awards = trace.find("task_awarded", subject=task_id)
+
+    declared_delays = [
+        fault for fault in spec.faults
+        if fault.action == "delay" and fault.kind == "task_bid"
+    ]
+    declared_delay = (declared_delays[0]
+                      if len(declared_delays) == 1 else None)
+
+    delayed_message = delayed[0] if len(delayed) == 1 else None
+    sent = []
+    delivered = []
+    if delayed_message is not None:
+        sent = [event for event in trace.find("message_sent", kind="task_bid")
+                if event.subject == delayed_message.subject]
+        delivered = [
+            event for event in trace.find("message_delivered", kind="task_bid")
+            if event.subject == delayed_message.subject
+        ]
+
+    if (declared_delay is None or declared_delay.nth != 1
+            or declared_delay.delay <= 0):
+        fault_stage = _failed(
+            "fault_exercised", [],
+            "scenario must declare exactly one first task-bid delay fault")
+    elif not delayed:
+        fault_stage = _missing(
+            "fault_exercised", "missing delayed task-bid evidence")
+    elif len(delayed) != 1:
+        fault_stage = _failed(
+            "fault_exercised", _event_ids(delayed),
+            "expected exactly one delayed task-bid message")
+    elif len(sent) != 1 or len(delivered) != 1:
+        fault_stage = _missing(
+            "fault_exercised",
+            "the delayed task bid needs matching send and delivery evidence")
+    else:
+        send, delay, delivery = sent[0], delayed[0], delivered[0]
+        send_detail = send.detail if isinstance(send.detail, dict) else {}
+        send_body = send_detail.get("body")
+        send_body = send_body if isinstance(send_body, dict) else {}
+        delay_detail = delay.detail if isinstance(delay.detail, dict) else {}
+        delivery_detail = (delivery.detail
+                           if isinstance(delivery.detail, dict) else {})
+        fault_ok = (
+            send.observer == bidder.name
+            and send_detail.get("to") == issuer.name
+            and send_body.get("task_id") == task_id
+            and type(send_body.get("cents")) is int
+            and send_body.get("cents") == cents
+            and delay.observer == "town"
+            and delay_detail.get("to") == issuer.name
+            and delay_detail.get("fault") == "delay"
+            and delay_detail.get("delay") == declared_delay.delay
+            and delivery.observer == "town"
+            and delivery_detail.get("to") == issuer.name
+            and ordered([send, delay, delivery])
+        )
+        fault_stage = (_passed(
+            "fault_exercised", _event_ids([send, delay, delivery]),
+            "the configured bid was delayed and later delivered")
+            if fault_ok else _failed(
+                "fault_exercised", _event_ids([send, delay, delivery]),
+                "delay evidence does not bind the declared fault, bidder, task, and issuer"))
+
+    if not announcements or not cancellations:
+        cancellation_stage = _missing(
+            "task_cancelled",
+            "missing announcement or successful cancellation evidence")
+    elif len(announcements) != 1 or len(cancellations) != 1:
+        cancellation_stage = _failed(
+            "task_cancelled", _event_ids(announcements + cancellations),
+            "expected one announcement and one cancellation for the task")
+    else:
+        announcement, cancellation = announcements[0], cancellations[0]
+        announcement_detail = (announcement.detail
+                               if isinstance(announcement.detail, dict) else {})
+        cancellation_detail = (cancellation.detail
+                                if isinstance(cancellation.detail, dict) else {})
+        terms = announcement_detail.get("spec")
+        cancellation_ok = (
+            announcement.observer == issuer.name
+            and announcement_detail.get("rule") == "lowest"
+            and isinstance(terms, dict) and terms.get("work") == work
+            and cancellation.observer == issuer.name
+            and cancellation_detail.get("issuer") == issuer.name
+            and ordered([announcement, cancellation])
+        )
+        cancellation_stage = (_passed(
+            "task_cancelled", _event_ids([announcement, cancellation]),
+            "the configured issuer cancelled its open task")
+            if cancellation_ok else _failed(
+                "task_cancelled", _event_ids([announcement, cancellation]),
+                "cancellation does not bind the configured issuer and task"))
+
+    relevant_placements = [
+        event for event in bid_placements
+        if event.observer == bidder.name
+    ]
+    if relevant_placements:
+        late_bid_stage = _failed(
+            "late_bid_rejected", _event_ids(relevant_placements),
+            "the delayed bid remained actionable after cancellation")
+    elif not bid_rejections:
+        late_bid_stage = _missing(
+            "late_bid_rejected", "missing rejected late-bid evidence")
+    elif len(bid_rejections) != 1:
+        late_bid_stage = _failed(
+            "late_bid_rejected", _event_ids(bid_rejections),
+            "expected exactly one rejection for the delayed bid")
+    else:
+        rejection = bid_rejections[0]
+        rejection_detail = (rejection.detail
+                            if isinstance(rejection.detail, dict) else {})
+        chain = []
+        if len(cancellations) == 1 and len(delivered) == 1:
+            chain = [cancellations[0], delivered[0], rejection]
+        rejection_ok = (
+            rejection.observer == "town"
+            and rejection_detail.get("bidder") == bidder.name
+            and type(rejection_detail.get("cents")) is int
+            and rejection_detail.get("cents") == cents
+            and rejection_detail.get("reason") == "task cancelled"
+            and len(chain) == 3 and ordered(chain)
+        )
+        late_bid_stage = (_passed(
+            "late_bid_rejected", _event_ids(chain),
+            "the in-flight bid arrived after cancellation and was rejected")
+            if rejection_ok else _failed(
+                "late_bid_rejected", _event_ids(chain or [rejection]),
+                "late-bid rejection is not causally bound to cancellation and delivery"))
+
+    if awards:
+        not_awarded_stage = _failed(
+            "cancelled_task_not_awarded",
+            _event_ids(award_rejections + awards),
+            "the cancelled task was awarded")
+    elif not award_rejections:
+        not_awarded_stage = _missing(
+            "cancelled_task_not_awarded",
+            "missing evidence that a later award attempt was rejected")
+    elif len(award_rejections) != 1:
+        not_awarded_stage = _failed(
+            "cancelled_task_not_awarded", _event_ids(award_rejections),
+            "expected exactly one rejected award attempt")
+    else:
+        rejection = award_rejections[0]
+        rejection_detail = (rejection.detail
+                            if isinstance(rejection.detail, dict) else {})
+        chain = ([cancellations[0], rejection]
+                 if len(cancellations) == 1 else [])
+        award_ok = (
+            rejection.observer == "town"
+            and rejection_detail.get("issuer") == issuer.name
+            and rejection_detail.get("reason") == "task cancelled"
+            and len(chain) == 2 and ordered(chain)
+        )
+        not_awarded_stage = (_passed(
+            "cancelled_task_not_awarded", _event_ids(chain),
+            "a later award attempt was rejected and no award was recorded")
+            if award_ok else _failed(
+                "cancelled_task_not_awarded",
+                _event_ids(chain or [rejection]),
+                "award rejection is not bound to the cancelled task"))
+
+    return [fault_stage, cancellation_stage, late_bid_stage,
+            not_awarded_stage]
+
+
 def quorum_commit(spec, trace: Trace) -> StageResult:
     """Check the Lab's single-proposer majority, not a BFT certificate.
 
