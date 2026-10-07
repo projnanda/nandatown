@@ -22,7 +22,7 @@ from .records import (
     json_type,
 )
 
-EVALUATOR_VERSION = "0.5.0"
+EVALUATOR_VERSION = "0.6.0"
 LEGACY_EVALUATOR_VERSION = "0.2.0"
 CORRELATION_EVALUATOR_VERSION = "0.3.0"
 # The rules each Track evaluator version applies. A recorded bundle replays
@@ -40,13 +40,21 @@ CORRELATION_EVALUATOR_VERSION = "0.3.0"
 # ("every_request"). 0.5.0 recognises the injected duplicate only from an
 # acknowledgement of that delivery, bound by its fence ("bound_duplicate"),
 # and lets only the buyer's terminal acknowledgement, any status but
-# retryable, decide `correct` ("terminal_verdict").
+# retryable, decide `correct` ("terminal_verdict"). 0.6.0 does not pass
+# `correct` on an assertion the run's own records contradict
+# ("consistent_verdict"): a buyer whose terminal acknowledgement records a
+# total, or an expected total, other than the task's fails it, and a
+# seller's processed acknowledgement recording another total leaves it
+# inconclusive.
 EVALUATOR_RULES: dict[str, frozenset[str]] = {
     LEGACY_EVALUATOR_VERSION: frozenset(),
     CORRELATION_EVALUATOR_VERSION: frozenset({"correlation"}),
     "0.4.0": frozenset({"correlation", "boolean_flags", "every_request"}),
     "0.5.0": frozenset({"correlation", "boolean_flags", "every_request",
                         "bound_duplicate", "terminal_verdict"}),
+    "0.6.0": frozenset({"correlation", "boolean_flags", "every_request",
+                        "bound_duplicate", "terminal_verdict",
+                        "consistent_verdict"}),
 }
 EVALUATOR_VERSIONS = tuple(EVALUATOR_RULES)
 assert EVALUATOR_VERSION in EVALUATOR_RULES
@@ -193,6 +201,47 @@ def _counted(note: object, field: str) -> int | None:
     if isinstance(value, bool) or not isinstance(value, int):
         return None
     return value
+
+
+def _contradicted_verdict(verdict_acks: list[TownEvent],
+                          seller_processed: list[TownEvent],
+                          expected: int) -> tuple[str, list[str], str] | None:
+    """Why the buyer's `correct: true` cannot pass, as (status, evidence,
+    note), or None when nothing the run recorded contradicts it.
+
+    A total counts only when it is a JSON integer, read as counts are.
+    The buyer's own acknowledgement is the buyer's record: a total or an
+    expected total there other than the task's contradicts the assertion
+    it sits beside, so the stage fails. A seller's processed
+    acknowledgement recording another total is the seller's record
+    against the buyer's: the town did not record the response's total, so
+    the stage is inconclusive rather than a choice between them.
+    """
+    for ack in verdict_acks:
+        note = ack.detail["note"]
+        total = _counted(note, "total_cents")
+        if total is not None and total != expected:
+            return "failed", [ack.event_id], (
+                "the buyer asserted the total correct, but its own"
+                f" acknowledgement records total_cents {total} against the"
+                f" task's expected {expected}")
+        checked = _counted(note, "expected_total_cents")
+        if checked is not None and checked != expected:
+            return "failed", [ack.event_id], (
+                "the buyer asserted the total correct, but its own"
+                " acknowledgement records it checked against"
+                f" expected_total_cents {checked}; the task expects"
+                f" {expected}")
+    for ack in seller_processed:
+        total = _counted(ack.detail.get("note"), "total_cents")
+        if total is not None and total != expected:
+            return "not_enough_evidence", [], (
+                "the buyer asserted the total correct, but the seller's"
+                f" processed acknowledgement records total_cents {total}"
+                f" against the task's expected {expected}; the town did not"
+                " record the response's total, so the records disagree and"
+                " neither decides")
+    return None
 
 
 def _unreadable_flags(acks: list[TownEvent], field: str) -> list[TownEvent]:
@@ -429,7 +478,15 @@ def evaluate(profile: TestProfile, run_id: str, events: list[TownEvent],
                        f" to answer the accepted request: {mismatch[1]}"))
     elif verdict_acks:
         note = verdict_acks[0].detail["note"]
-        if note["correct"]:
+        contradiction = (_contradicted_verdict(
+            verdict_acks, processed, profile.task.expected_total_cents)
+            if note["correct"] and "consistent_verdict" in rules else None)
+        if contradiction is not None and contradiction[0] == "failed":
+            stages.append(_failed("correct", contradiction[1],
+                                  contradiction[2]))
+        elif contradiction is not None:
+            stages.append(_missing("correct", contradiction[2]))
+        elif note["correct"]:
             stages.append(_passed("correct", [verdict_acks[0].event_id]))
         else:
             stages.append(_failed(
