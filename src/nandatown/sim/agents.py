@@ -368,6 +368,115 @@ class Acceptor(SimAgent):
         self.api.observe("value_committed", self.name, {"value": value})
 
 
+# -- grid BFT (Bracha reliable broadcast over a frequency-regulation
+# action; tolerates a Byzantine sender and/or Byzantine receivers, not
+# just dropped messages) -------------------------------------------
+
+
+@role("grid_node")
+class GridNode(SimAgent):
+    """One grid controller/substation node in a Byzantine broadcast round.
+
+    n participants, tolerance f = (n-1)//3. A node whose config carries
+    an `equivocation` block (targets_a/value_a, targets_b/value_b) sends
+    a different value to each named group at every broadcast it makes,
+    regardless of the value it actually computed or received; everything
+    else about it behaves exactly like an honest node. This is the only
+    way a Byzantine node here differs from an honest one: content, never
+    protocol timing.
+    """
+
+    def on_start(self):
+        self.api.register(["grid.bft"])
+        self.echo_sent = False
+        self.ready_sent = False
+        self.delivered_value = None
+        self.echo_from: dict[str, str] = {}
+        self.ready_from: dict[str, str] = {}
+        if self.config.get("initiator"):
+            self.api.later(0.5, self.propose)
+
+    def _peers(self) -> list[str]:
+        return sorted(a["name"] for a in self.api.lookup("grid.bft")
+                     if a["name"] != self.name)
+
+    def _n_f(self) -> tuple[int, int]:
+        n = len(self.api.lookup("grid.bft"))
+        return n, (n - 1) // 3
+
+    def _broadcast(self, kind: str, value) -> None:
+        peers = self._peers()
+        eq = self.config.get("equivocation")
+        if not eq:
+            for p in peers:
+                self.api.send(p, kind, {"value": value})
+            return
+        targets_a = eq.get("targets_a", [])
+        targets_b = eq.get("targets_b", [])
+        for p in targets_a:
+            if p in peers:
+                self.api.send(p, kind, {"value": eq["value_a"]})
+        for p in targets_b:
+            if p in peers:
+                self.api.send(p, kind, {"value": eq["value_b"]})
+        for p in peers:
+            if p not in targets_a and p not in targets_b:
+                self.api.send(p, kind, {"value": value})
+        self.api.observe("byzantine_equivocation", self.name,
+                         {"phase": kind, "value_a": eq["value_a"],
+                          "value_b": eq["value_b"]})
+
+    def propose(self):
+        value = self.config["value"]
+        self._broadcast("propose_action", value)
+        self.echo_sent = True
+        self.echo_from[self.name] = value
+        self._broadcast("echo_action", value)
+        self._check_echo_quorum()
+
+    def handle_propose_action(self, msg):
+        if self.echo_sent:
+            return
+        value = msg["body"]["value"]
+        self.echo_sent = True
+        self.echo_from[self.name] = value
+        self._broadcast("echo_action", value)
+        self._check_echo_quorum()
+
+    def handle_echo_action(self, msg):
+        self.echo_from.setdefault(msg["sender"], msg["body"]["value"])
+        self._check_echo_quorum()
+
+    def _check_echo_quorum(self):
+        if self.ready_sent:
+            return
+        n, f = self._n_f()
+        for v in set(self.echo_from.values()):
+            if sum(1 for sv in self.echo_from.values() if sv == v) >= n - f:
+                self.ready_sent = True
+                self.ready_from[self.name] = v
+                self._broadcast("ready_action", v)
+                self._check_ready_quorum()
+                return
+
+    def handle_ready_action(self, msg):
+        self.ready_from.setdefault(msg["sender"], msg["body"]["value"])
+        self._check_ready_quorum()
+
+    def _check_ready_quorum(self):
+        n, f = self._n_f()
+        for v in set(self.ready_from.values()):
+            count = sum(1 for sv in self.ready_from.values() if sv == v)
+            if count >= f + 1 and not self.ready_sent:
+                self.ready_sent = True
+                self.ready_from[self.name] = v
+                self._broadcast("ready_action", v)
+            if count >= n - f and self.delivered_value is None:
+                self.delivered_value = v
+                self.api.remember("committed_action", v)
+                self.api.observe("value_committed", self.name, {"value": v})
+
+
 # -- supply chain ------------------------------------------------------
 
 

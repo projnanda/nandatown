@@ -964,6 +964,85 @@ def consensus(spec, trace: Trace) -> list[StageResult]:
     return stages
 
 
+@validator("grid_bft")
+def grid_bft(spec, trace: Trace) -> list[StageResult]:
+    """Byzantine broadcast agreement over a frequency-regulation action.
+
+    Checks agreement among honest nodes only: a node counts as Byzantine
+    here because its own scenario config declares an `equivocation`
+    block, not because of anything inferred from behaviour. Below the
+    declared tolerance f=(n-1)//3, honest nodes must agree on one value.
+    At or past it, this validator reports whatever the trace actually
+    shows, including disagreement, by design: proving the boundary is
+    the point of the scenarios that exceed it, not a town malfunction.
+    """
+    nodes = [a for a in spec.agents if a.role == "grid_node"]
+    stages: list[StageResult] = []
+    if not nodes:
+        return [_missing("participation", "no grid_node agents configured")]
+    n = len(nodes)
+    f_tolerance = (n - 1) // 3
+    byzantine = {a.name for a in nodes
+                 if isinstance(a.config, dict) and a.config.get("equivocation")}
+    honest = {a.name for a in nodes} - byzantine
+    node_names = {a.name for a in nodes}
+
+    joined = trace.find("participant_joined")
+    joined_nodes = [e for e in joined if e.subject in node_names]
+    stages.append(_check(
+        "participation", len({e.subject for e in joined_nodes}) == n,
+        [e.event_id for e in joined_nodes],
+        f"expected all {n} grid nodes to join"))
+
+    if not byzantine:
+        stages.append(StageResult(
+            name="byzantine_behavior_injected", status="not_tested",
+            note="no Byzantine node is configured in this scenario"))
+    else:
+        equivocations = trace.find("byzantine_equivocation")
+        stages.append(_check(
+            "byzantine_behavior_injected", bool(equivocations),
+            [e.event_id for e in equivocations],
+            "expected the configured Byzantine node(s) to actually equivocate"))
+
+    committed = trace.find("value_committed")
+    honest_committed = [e for e in committed if e.observer in honest]
+    values = {e.detail.get("value") for e in honest_committed
+              if isinstance(e.detail, dict)}
+    evidence = [e.event_id for e in honest_committed]
+    within_tolerance = len(byzantine) <= f_tolerance
+
+    if not honest_committed:
+        stages.append(_missing(
+            "agreement",
+            "no honest node committed a value; nothing to check agreement over"))
+    elif len(values) > 1:
+        note = (f"{len(byzantine)} Byzantine node(s) past the declared"
+                f" tolerance f<={f_tolerance} for n={n}, and honest nodes"
+                f" committed conflicting values {sorted(values)}"
+                if not within_tolerance else
+                f"{len(byzantine)} Byzantine node(s) within declared tolerance"
+                f" f<={f_tolerance} for n={n}, but honest nodes committed"
+                f" different values {sorted(values)}")
+        stages.append(_failed("agreement", evidence, note))
+    else:
+        stages.append(_passed(
+            "agreement", evidence,
+            f"every honest node that committed agrees on one value,"
+            f" with {len(byzantine)} Byzantine node(s) against tolerance"
+            f" f<={f_tolerance} for n={n}"))
+
+    initiators = [a for a in nodes if a.config.get("initiator")]
+    if (len(values) == 1 and initiators
+            and initiators[0].name not in byzantine):
+        expected = initiators[0].config.get("value")
+        stages.append(_check(
+            "validity", next(iter(values)) == expected, evidence,
+            "with an honest proposer, every honest commit must match the"
+            " value it proposed"))
+    return stages
+
+
 @validator("supply_chain")
 def supply_chain(spec, trace: Trace) -> list[StageResult]:
     stages = []

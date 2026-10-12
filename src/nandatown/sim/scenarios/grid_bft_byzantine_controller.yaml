@@ -1,0 +1,33 @@
+name: grid_bft_byzantine_controller
+description: >
+  The proposer itself is Byzantine this time: frequency-controller
+  detects the anomaly but equivocates, telling substation-1 to
+  shed_load_5mw while telling substation-2 and substation-3 to
+  inject_reserve_3mw instead. Three honest substations, one Byzantine
+  controller, n=4 so f=1 is still inside tolerance. The minority-told
+  substation must converge onto whatever the majority-told substations
+  committed via the ready-amplification step, not keep its own belief.
+validator: grid_bft
+seed: 11
+agents:
+  - name: frequency-controller
+    role: grid_node
+    config:
+      initiator: true
+      value: shed_load_5mw
+      equivocation:
+        targets_a: [substation-1]
+        value_a: shed_load_5mw
+        targets_b: [substation-2, substation-3]
+        value_b: inject_reserve_3mw
+  - name: substation-1
+    role: grid_node
+    config: {}
+  - name: substation-2
+    role: grid_node
+    config: {}
+  - name: substation-3
+    role: grid_node
+    config: {}
+faults: []
+max_time: 30
