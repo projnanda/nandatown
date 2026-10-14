@@ -196,7 +196,14 @@ Path evaluators are versioned. Replay a `path-0.1` bundle with its matching
 than treating the bundle as corrupt. The bundle's existing signature remains
 valid for its recorded bytes.
 
-The Track evaluator is `0.5.0`. Under `quote-duplicate-delivery` it recognises
+The Track evaluator is `0.6.0`. A buyer's `correct: true` passes only when
+nothing the run recorded contradicts it: a terminal acknowledgement that also
+records `total_cents` or `expected_total_cents` other than the task's expected
+total fails `correct`, because that record is the buyer's own, and a seller's
+processed acknowledgement recording another `total_cents` leaves `correct`
+inconclusive, because the town does not record the response's total and the
+two participants disagree. Totals are read only as JSON integers. `0.5.0` and
+earlier bundles replay on the assertion alone. Under `quote-duplicate-delivery` it recognises
 the injected duplicate only from a `processed` acknowledgement of that delivery,
 which the town names by recording the offer's fence; a seller that lost its lease also
 acknowledges the redelivery as a duplicate, but that earlier acknowledgement

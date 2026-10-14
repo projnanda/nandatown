@@ -10,6 +10,8 @@ modes:
   norequestid  answer with a request_id naming a request that does not exist
   hugerequestid  answer with a ~200 KB request_id that starts with the
                request's id but is not it
+  wrongtotal   answer once with a total 9 cents above quantity times unit
+               price, and acknowledge that wrong total as applied
 """
 
 import json
@@ -76,6 +78,8 @@ def main():
             continue
         body = claim["body"]
         total = body["quantity"] * body["unit_price_cents"]
+        if MODE == "wrongtotal":
+            total += 9
         request_id = "q-does-not-exist" if MODE == "norequestid" else mid
         if MODE == "hugerequestid":
             request_id = mid + "-" + "x" * 200_000
