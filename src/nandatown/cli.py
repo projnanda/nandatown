@@ -87,13 +87,18 @@ def cmd_run(args: argparse.Namespace) -> int:
             print("--agent applies to Track profiles; Lab scenarios use"
                   " the scripted reference agents")
             return 2
-        from .sim.runner import run_lab
+        from .layers.privacy import RedactionCollision
+        from .sim.runner import UnsupportedValue, run_lab
         print(f"nandatown {__version__}: Lab run of {name}"
               " (deterministic, no model, no tokens)")
-        bundle_dir, result = run_lab(name, args.out, seed=args.seed,
-                                     plugins=args.plugin or None,
-                                     layer_overrides=layer_overrides
-                                     or None)
+        try:
+            bundle_dir, result = run_lab(name, args.out, seed=args.seed,
+                                         plugins=args.plugin or None,
+                                         layer_overrides=layer_overrides
+                                         or None)
+        except (RedactionCollision, UnsupportedValue) as exc:
+            print(f"run refused: {exc}; no bundle was written")
+            return 1
     else:
         from .sim.scenario import bundled_scenarios
         print(f"unknown target {name!r}")
@@ -456,9 +461,16 @@ def cmd_compare(args: argparse.Namespace) -> int:
         print("give at least one --swap layer=plugin.id to compare"
               " against the baseline")
         return 2
-    compare_dir, comparison = run_comparison(
-        args.target, swaps, args.out, seed=args.seed,
-        plugins=args.plugin or None)
+    from .layers.privacy import RedactionCollision
+    from .sim.runner import UnsupportedValue
+
+    try:
+        compare_dir, comparison = run_comparison(
+            args.target, swaps, args.out, seed=args.seed,
+            plugins=args.plugin or None)
+    except (RedactionCollision, UnsupportedValue) as exc:
+        print(f"comparison refused: {exc}; the refused run wrote no bundle")
+        return 1
     with open(f"{compare_dir}/comparison.md") as f:
         print(f.read())
     print(f"Comparison bundle: {compare_dir}")

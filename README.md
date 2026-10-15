@@ -146,6 +146,8 @@ nandatown run auction --seed 7
 | capped_influence_uncapped_control | the same scenario with trust left at reputation.v1: the run FAILS on purpose, showing that one voice that never trades can bury an honest seller |
 | registry_eviction | a rival republishes the honest seller's card under its name with the wrong key; with `index.owned.v1` the forged card is refused, the honest listing survives, and the honest seller is paid |
 | registry_eviction_unowned | the same scenario on the default `index.v1`: the forged card replaces the verified one, the buyer only finds the rival, and the run FAILS on purpose |
+| secret_leak | a chatty buyer pastes its private API key into a message note; privacy `redact.values.v1` removes the key from every exported record and the trade still completes |
+| secret_leak_name_only | the same run on name-only `redact.v1`: the key reaches `events.jsonl`, `secret_withheld` FAILS on purpose, while the name-based privacy stage still passes |
 
 Every scenario also gets two standing checks: the ledger conserved money across every movement, and no redacted field leaked into the exported records.
 
