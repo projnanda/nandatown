@@ -1439,11 +1439,6 @@ def _count(n: int, noun: str) -> str:
     return f"{n} {noun}" + ("" if n == 1 else "s")
 
 
-def _is_time(value: Any) -> bool:
-    return (type(value) in (int, float)
-            and math.isfinite(value))
-
-
 def _escrow_index(trace: Trace):
     position = {id(e): i for i, e in enumerate(trace.events)}
     holds: dict[str, TownEvent] = {}
@@ -1452,16 +1447,12 @@ def _escrow_index(trace: Trace):
     for e in trace.find("escrow_held", observer="town"):
         if isinstance(e.subject, str) and e.subject:
             holds.setdefault(e.subject, e)
-    deadlines: dict[str, TownEvent] = {}
-    for e in trace.find("escrow_deadline_set", observer="town"):
-        if _is_time(_detail(e).get("expires_at")):
-            deadlines.setdefault(e.subject, e)
     terminals: dict[str, list[TownEvent]] = {}
     for e in trace.events:
         if (e.kind in ("escrow_released", "escrow_refunded")
                 and e.observer == "town"):
             terminals.setdefault(e.subject, []).append(e)
-    return position, holds, deadlines, terminals
+    return position, holds, terminals
 
 
 def _escrow_resolved(holds, terminals) -> StageResult:
@@ -1521,7 +1512,7 @@ def sealed_delivery(spec, trace: Trace) -> list[StageResult]:
     the payer could open the listed goods; damaged boxes are refused
     before payment; wrong content and late claims are refused at the
     ledger. Each revealed key is re-hashed here, from the record."""
-    position, holds, _, terminals = _escrow_index(trace)
+    position, holds, terminals = _escrow_index(trace)
     stages = [_escrow_resolved(holds, terminals)]
     declared = _declared_sealed_faults(spec)
 

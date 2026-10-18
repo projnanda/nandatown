@@ -401,3 +401,53 @@ def test_a_declared_fault_that_never_fired_is_missing_evidence():
     stages = {s.name: s for s in sealed_delivery(
         spec, Trace(engine.events, engine.run_id))}
     assert stages["late_claim_refused"].status == "not_enough_evidence"
+
+
+# -- review follow-ups -------------------------------------------------------
+
+
+def test_escrow_state_is_visible_only_to_the_escrow_parties():
+    """Like revealed_key, an escrow's state is readable by its payer and
+    by the payee a hashlocked escrow names; any other agent gets None."""
+    from nandatown.sim.api import TownAPI
+
+    engine, ledger = _ledger()
+    _lock(ledger)
+    assert TownAPI(engine, "buyer").escrow_state("o") == "held"
+    assert TownAPI(engine, "seller").escrow_state("o") == "held"
+    assert TownAPI(engine, "mallory").escrow_state("o") is None
+    assert TownAPI(engine, "buyer").escrow_state("unknown") is None
+
+
+def _relabel_deadlines(events):
+    """Record each deadline the way #291's leased.v1 does: escrow_leased
+    {from, cents, expires_at} instead of escrow_deadline_set."""
+    held = {e.subject: e.detail for e in events if e.kind == "escrow_held"}
+    return [e.model_copy(update={
+                "kind": "escrow_leased",
+                "detail": {"from": held[e.subject]["from"],
+                           "cents": held[e.subject]["cents"],
+                           "expires_at": e.detail["expires_at"]}})
+            if e.kind == "escrow_deadline_set" else e for e in events]
+
+
+def test_the_judgment_does_not_depend_on_the_deadline_event(tmp_path):
+    """Building hashlock.v1 on #291's leased.v1 would rename the deadline
+    event. The validator never reads it, so both runs keep every stage
+    verdict and the same three stages still separate them."""
+    from nandatown.sim.validators import evaluate_scenario
+
+    verdicts = {}
+    for name in ["sealed_delivery", "sealed_delivery_no_hashlock"]:
+        bundle_dir, recorded = run_lab(name, str(tmp_path / name))
+        bundle = load_bundle(bundle_dir)
+        events = _relabel_deadlines(bundle["events"])
+        assert any(e.kind == "escrow_leased" for e in events)
+        assert not any(e.kind == "escrow_deadline_set" for e in events)
+        replayed = evaluate_scenario(load_bundled(name), recorded.run_id,
+                                     events)
+        verdicts[name] = {s.name: s.status for s in replayed.stages}
+        assert verdicts[name] == {s.name: s.status for s in recorded.stages}
+    on, off = verdicts["sealed_delivery"], verdicts["sealed_delivery_no_hashlock"]
+    assert sorted(n for n in on if on[n] != off[n]) == [
+        "atomic_exchange", "late_claim_refused", "wrong_content_refused"]

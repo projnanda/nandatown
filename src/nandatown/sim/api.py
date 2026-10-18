@@ -110,9 +110,17 @@ class TownAPI:
         return self._engine.layers["payments"].balance(self.name)
 
     def escrow_state(self, ref: str) -> str | None:
-        escrow = getattr(self._engine.layers["payments"], "escrow", {})
-        held = escrow.get(ref)
-        return held["state"] if held else None
+        """The state of an escrow this agent is party to: its payer, or
+        the payee a hashlocked escrow names. Like revealed_key, other
+        agents get None."""
+        payments = self._engine.layers["payments"]
+        held = getattr(payments, "escrow", {}).get(ref)
+        if held is None:
+            return None
+        payee = getattr(payments, "locks", {}).get(ref, {}).get("payee")
+        if self.name not in (held["from"], payee):
+            return None
+        return held["state"]
 
     # -- hash-locked exchange (payments plugins that support it) --------
 
