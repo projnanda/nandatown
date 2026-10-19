@@ -177,6 +177,11 @@ class HashlockLedger(DeadlineEscrow):
     This binds payment to the exact listed bytes; it does not judge
     whether those bytes were worth buying. The ledger sees the plaintext
     while checking it.
+
+    It verifies integrity, not confidentiality. The evidence bundle
+    records the sealed box in the sealed_box message body (box_hex) and
+    the key in key_revealed (key_hex), so anyone holding events.jsonl
+    can decrypt every paid order.
     """
 
     def __init__(self, engine):

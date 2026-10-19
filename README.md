@@ -168,6 +168,8 @@ The `sealed_delivery` validator checks that each seller was paid if and only if 
 
 This binds payment to the listed bytes, not to their usefulness. It covers digital goods only, and the ledger sees the plaintext while checking it.
 
+It verifies integrity, not confidentiality. The evidence bundle records the sealed box in the `sealed_box` message body (`box_hex`) and the key in `key_revealed` (`key_hex`), so anyone holding `events.jsonl` can decrypt every paid order. Keeping the ciphertext out of exported records is a separate redesign.
+
 A scenario is a short YAML file: agents and roles, the plugin per layer, the faults, the seed. Point `nandatown run path/to/your.yaml` at your own; `plugin_files:` in the YAML loads your own plugin and validator modules first.
 
 ## Track profiles
