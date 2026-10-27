@@ -86,6 +86,7 @@ from . import (  # noqa: E402,F401
     auth,
     communication,
     coordination,
+    coordination_contractnet_cancel_v1,
     data_facts,
     identity,
     memory,
