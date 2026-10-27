@@ -1,0 +1,51 @@
+# 'What happens when agents keep missing acknowledgments?'
+# Five acceptors respond to a proposal; two of the acknowledgements
+# are dropped. Property: every message is eventually acknowledged and
+# applied (via retry recovery), none silently lost — agreement still
+# reached on one value. Retry recovery here plays the role of the
+# escalation path in an ack-missing sweeper.
+name: missed-ack-escalation
+description: Five acceptors, two dropped acknowledgements; the proposer retries the missing acceptors, reaches quorum on a later round, and every acceptor commits the same value.
+seed: 42
+# No layer overrides; the default transport plugin (memory.v1) injects
+# the declared faults itself.
+validator: consensus
+agents:
+  - name: proposer
+    role: proposer
+    config: {value: v42, retry_after: 1.0}
+  - name: acceptor-1
+    role: acceptor
+    config: {}
+  - name: acceptor-2
+    role: acceptor
+    config: {}
+  - name: acceptor-3
+    role: acceptor
+    config: {}
+  - name: acceptor-4
+    role: acceptor
+    config: {}
+  - name: acceptor-5
+    role: acceptor
+    config: {}
+# Three of the five acks are dropped (nth 1, 2 and 3 prepare_ack sent,
+# wherever they come from), so only two acks survive the first round,
+# below the quorum of three: the proposer must retry the missing
+# acceptors, and those retried acks recover the round. Swapping these
+# rules for
+#   - action: drop_rate
+#     kind: prepare_ack
+#     rate: 0.4
+# gives the seeded-random variant (~2 of 5 acks dropped per envelope).
+faults:
+  - action: drop
+    kind: prepare_ack
+    nth: 1
+  - action: drop
+    kind: prepare_ack
+    nth: 2
+  - action: drop
+    kind: prepare_ack
+    nth: 3
+max_time: 60
