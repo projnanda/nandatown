@@ -146,8 +146,29 @@ nandatown run auction --seed 7
 | capped_influence_uncapped_control | the same scenario with trust left at reputation.v1: the run FAILS on purpose, showing that one voice that never trades can bury an honest seller |
 | registry_eviction | a rival republishes the honest seller's card under its name with the wrong key; with `index.owned.v1` the forged card is refused, the honest listing survives, and the honest seller is paid |
 | registry_eviction_unowned | the same scenario on the default `index.v1`: the forged card replaces the verified one, the buyer only finds the rival, and the run FAILS on purpose |
+| sealed_delivery | payments on hashlock.v1: sealed datasets survive a lost box, a damaged box, wrong content and a late key claim; a seller is paid exactly when its buyer opens the listed data |
+| sealed_delivery_no_hashlock | the same market on deadline.v1: the seller sends the key itself, the late key opens goods whose payment was refunded, and the run FAILS on purpose |
 
 Every scenario also gets two standing checks: the ledger conserved money across every movement, and no redacted field leaked into the exported records.
+
+`payments: hashlock.v1` makes paying for digital goods and receiving them one step, so neither side can end up with both the money and the goods.
+
+- The seller's card lists a digest of the data. The seller sends the data sealed with AES-GCM under a fresh key.
+- The buyer pays only while holding a box that matches its digest and the listing. The escrow is locked to the payee, the key's digest and the listed content.
+- The seller is paid only by handing the key to the ledger. The ledger pays only if all of these hold:
+  - the claim is before the deadline,
+  - the key matches its digest,
+  - the box decrypts,
+  - the plaintext matches the listing.
+- The same step reveals the key to the buyer. Otherwise the deadline refunds the buyer, who keeps a box it cannot open.
+
+`deadline.v1` is the same ledger without the hashlock. It exists to show what the hashlock is for, as `plain.v1` does for auth. A deadline refund alone keeps money from being stranded, the gap open PR #291 addresses with `leased.v1`. It cannot stop a key that arrives after the refund from opening the goods: in `sealed_delivery_no_hashlock` the buyer ends with the data and its money.
+
+The `sealed_delivery` validator checks that each seller was paid if and only if its buyer opened the listed data, and re-hashes every revealed key from the record. It counts ledger facts only when the town observed them. A fault stage is tested only when the scenario declares that fault, as privacy is only tested with `redact_fields`.
+
+This binds payment to the listed bytes, not to their usefulness. It covers digital goods only, and the ledger sees the plaintext while checking it.
+
+It verifies integrity, not confidentiality. The evidence bundle records the sealed box in the `sealed_box` message body (`box_hex`) and the key in `key_revealed` (`key_hex`), so anyone holding `events.jsonl` can decrypt every paid order. Keeping the ciphertext out of exported records is a separate redesign.
 
 A scenario is a short YAML file: agents and roles, the plugin per layer, the faults, the seed. Point `nandatown run path/to/your.yaml` at your own; `plugin_files:` in the YAML loads your own plugin and validator modules first.
 
