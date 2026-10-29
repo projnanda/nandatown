@@ -24,7 +24,8 @@ STAGE_MEANING = {
     "accepted": "the town committed the request before reporting success",
     "claimed": "a seller claimed the work under a lease",
     "received": "the seller acknowledged receipt through a valid fence",
-    "processed": "the seller applied the task exactly once",
+    "processed": "the seller's own acknowledgement recorded the task as"
+                 " applied exactly once",
     "response": "the response was accepted and reached the buyer",
     "correct": "the buyer checked the total itself",
     "recovered_after_restart": "accepted work survived the crash and was"
