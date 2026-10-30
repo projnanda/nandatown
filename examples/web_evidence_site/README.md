@@ -4,21 +4,28 @@ Northstar AI Labs is a fictional, fixed-content company website for the
 NandaTown two-agent web-evidence baseline. It is a clean, static fixture with
 no backend or external API.
 
-## Start the site
+## Fastest run
 
-From the NandaTown repository root:
+After setup and setting `DEEPSEEK_API_KEY`, this single command starts the
+site, runs both agents with the first ground-truth question, and stops the site:
 
-```bash
-python -m http.server 8765 --bind 127.0.0.1 --directory examples/web_evidence_site
+```
+nandatown web-evidence
 ```
 
-Open <http://127.0.0.1:8765> or point the baseline at it:
+Add `--headed` to see the browser. The longer custom form remains available:
 
-```bash
+```
 nandatown web-evidence \
   --url http://127.0.0.1:8765/index.html \
   --question "When did the Aurora Reasoning Engine project start?" \
   --out runs/northstar-aurora
+```
+
+For that custom form, serve this directory separately on port 8765:
+
+```
+python -m http.server 8765 --bind 127.0.0.1 --directory examples/web_evidence_site
 ```
 
 The three pages are `index.html`, `projects.html` and `careers.html`. Navigation

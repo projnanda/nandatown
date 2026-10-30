@@ -37,6 +37,44 @@ def _print_join_credentials(role: str, env: dict[str, str]) -> None:
           flush=True)
 
 
+def _print_web_evidence_summary(result, directory) -> None:
+    """Render a compact human-readable result while artifacts keep full detail."""
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.table import Table
+
+    completed = result.status == "completed"
+    status_icon = "OK" if completed else "!"
+    border = ("green" if completed else
+              "yellow" if result.status != "error" else "red")
+    title = f"{status_icon} | Web evidence | {result.status.replace('_', ' ')}"
+
+    table = Table.grid(padding=(0, 2), expand=True)
+    table.add_column(style="bold cyan", no_wrap=True)
+    table.add_column(ratio=1)
+    table.add_row("Question", result.question)
+    if result.answer:
+        table.add_row("Answer", result.answer.text)
+        citations = "\n".join(
+            f"[{citation.evidence_id}] {citation.url}"
+            for citation in result.answer.citations
+        ) or "None"
+        table.add_row("Citations", citations)
+    else:
+        table.add_row("Result", result.stop_reason)
+    table.add_row(
+        "Run",
+        f"{result.pages_visited} pages | {result.steps_used} steps | "
+        f"{result.evidence_count} evidence items",
+    )
+    total_tokens = result.token_usage.get("total_tokens")
+    if total_tokens is not None:
+        table.add_row("Tokens", f"{total_tokens:,}")
+    table.add_row("Artifacts", str(directory))
+    Console(highlight=False, markup=False).print(
+        Panel(table, title=title, border_style=border, padding=(1, 2)))
+
+
 def cmd_run(args: argparse.Namespace) -> int:
     from .bundle import load_bundle
     from .profiles import PROFILES
@@ -110,39 +148,58 @@ def cmd_web_evidence(args: argparse.Namespace) -> int:
     import json
     import os
     import time
+    from contextlib import nullcontext
 
     from pydantic import ValidationError
 
-    from .web_evidence import RunConfig, run_web_evidence
+    from .web_evidence import RunConfig, TerminalRenderer, run_web_evidence
+    from .web_evidence_demo import (
+        DEMO_QUESTION,
+        DemoSiteUnavailable,
+        serve_northstar_site,
+    )
 
+    if (args.url is None) != (args.question is None):
+        print("give both --url and --question, or omit both to run the "
+              "Northstar demo")
+        return 2
+    demo = args.url is None
     output = args.out or os.path.join(
-        "runs", time.strftime("web-evidence-%Y%m%d-%H%M%S"))
+        "runs", time.strftime(
+            "northstar-%Y%m%d-%H%M%S" if demo
+            else "web-evidence-%Y%m%d-%H%M%S"))
     try:
-        config = RunConfig(
-            url=args.url,
-            question=args.question,
-            model=args.model,
-            headed=args.headed,
-            max_pages=args.max_pages,
-            max_steps=args.max_steps,
-            input_token_budget=args.input_budget,
-            page_timeout_seconds=args.page_timeout,
-            run_timeout_seconds=args.run_timeout,
-        )
-        directory, result = run_web_evidence(config, output)
-    except (ValidationError, ValueError) as exc:
+        site = serve_northstar_site() if demo else nullcontext(args.url)
+        with site as url:
+            config = RunConfig(
+                url=url,
+                question=DEMO_QUESTION if demo else args.question,
+                model=args.model,
+                headed=args.headed,
+                max_pages=args.max_pages,
+                max_steps=args.max_steps,
+                input_token_budget=args.input_budget,
+                page_timeout_seconds=args.page_timeout,
+                run_timeout_seconds=args.run_timeout,
+            )
+            directory, result = run_web_evidence(
+                config, output, renderer=TerminalRenderer(enabled=not args.json))
+    except (DemoSiteUnavailable, ValidationError, ValueError) as exc:
         print(f"web-evidence configuration error: {exc}")
         return 2
     except Exception as exc:
         print(f"web-evidence failed before artifacts were written:"
               f" {type(exc).__name__}: {exc}")
         return 1
-    print(json.dumps({
-        "status": result.status,
-        "stop_reason": result.stop_reason,
-        "answer": result.answer.model_dump() if result.answer else None,
-        "artifacts": str(directory),
-    }, indent=2, ensure_ascii=False))
+    if args.json:
+        print(json.dumps({
+            "status": result.status,
+            "stop_reason": result.stop_reason,
+            "answer": result.answer.model_dump() if result.answer else None,
+            "artifacts": str(directory),
+        }, indent=2, ensure_ascii=False))
+    else:
+        _print_web_evidence_summary(result, directory)
     return 0 if result.status == "completed" else 1
 
 
@@ -952,11 +1009,11 @@ def main(argv: list[str] | None = None) -> int:
 
     p_web = sub.add_parser(
         "web-evidence",
-        help="run a bounded two-agent web evidence workflow with cited output")
-    p_web.add_argument("--url", required=True,
-                       help="starting public or loopback http(s) page")
-    p_web.add_argument("--question", required=True,
-                       help="question Agent 2 must answer from Agent 1's evidence")
+        help="run the Northstar demo, or a custom two-agent web workflow")
+    p_web.add_argument("--url", default=None,
+                       help="custom starting http(s) page; omit for demo")
+    p_web.add_argument("--question", default=None,
+                       help="custom question; omit for the Northstar demo")
     p_web.add_argument("--headed", action="store_true",
                        help="show Chromium for local debugging")
     p_web.add_argument("--max-pages", type=int, default=3,
@@ -973,6 +1030,8 @@ def main(argv: list[str] | None = None) -> int:
                        help="DeepSeek model name (default deepseek-flash)")
     p_web.add_argument("--out", default=None,
                        help="new or empty artifact directory")
+    p_web.add_argument("--json", action="store_true",
+                       help="print machine-readable JSON instead of the panel")
     p_web.set_defaults(func=cmd_web_evidence)
 
     p_identity = sub.add_parser(

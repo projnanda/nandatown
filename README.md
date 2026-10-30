@@ -316,12 +316,21 @@ and both agents' model requests are recorded for inspection. This is an
 unprotected baseline: it does not filter instruction-like page text and does
 not claim that a structurally valid citation supports the answer.
 
-Install the optional browser dependency, then see the setup and artifact guide:
+Quick setup from the repository root:
 
 ```
-python -m pip install -e ".[dev,web-evidence]"
-playwright install chromium
+python scripts/setup_web_evidence.py
 ```
+
+Set `DEEPSEEK_API_KEY`, then run the complete Northstar example with one
+command. The CLI starts and stops the local site automatically:
+
+```
+nandatown web-evidence
+```
+
+Pass both `--url` and `--question` for a custom site. Add `--headed` to watch
+Chromium or `--json` for machine-readable terminal output.
 
 See [the web evidence guide](docs/web-evidence.md) for a local fixture command,
 configuration limits, manual DeepSeek smoke test, and current limitations.

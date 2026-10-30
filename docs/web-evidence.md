@@ -15,31 +15,44 @@ integrity checks, not evidence that a citation semantically supports a claim.
 Python 3.11 or newer is required. From the repository root:
 
 ```
-python -m venv .venv
-python -m pip install -e ".[dev,web-evidence]"
-playwright install chromium
+python scripts/setup_web_evidence.py
 ```
 
-Use the virtual environment's Python and `nandatown` executable where your
-shell does not activate it automatically. Set the key only in the environment;
-do not put a real key in `.env.example` or commit it:
+The setup script creates `.venv`, installs the project and installs Chromium.
+Set the key only in the environment; do not put a real key in a file or commit
+it:
 
 ```
 export DEEPSEEK_API_KEY="..."
 ```
 
+On PowerShell, use `$env:DEEPSEEK_API_KEY = "..."`. Use the virtual
+environment's `nandatown` executable if the environment is not activated.
+
 DeepSeek model `deepseek-flash` is the default. Every request explicitly sends
 thinking mode `disabled` and reasoning effort `none`.
 
-## Run the clean local fixture
+## Run the Northstar demo
 
-Start a local server in one terminal:
+The normal demo needs one command. It serves the three-page Northstar site on
+loopback, runs both agents, prints a compact result panel, and stops the server:
+
+```
+nandatown web-evidence
+```
+
+Add `--headed` to watch Chromium. Add `--json` when another program needs to
+parse stdout.
+
+## Run a custom page
+
+For example, start the small test fixture in one terminal:
 
 ```
 python -m http.server 8765 --directory tests/fixtures/web_evidence
 ```
 
-Run both agents in another terminal:
+Run both agents in another terminal by providing both custom inputs:
 
 ```
 nandatown web-evidence \

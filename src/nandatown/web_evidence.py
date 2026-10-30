@@ -216,8 +216,11 @@ class BrowserService(Protocol):
 class TerminalRenderer:
     """Small live view that does not add another UI dependency."""
 
+    def __init__(self, enabled: bool = True):
+        self.enabled = enabled
+
     def emit(self, event: RunEvent, message: str | None = None) -> None:
-        if message:
+        if self.enabled and message:
             stamp = time.strftime("%H:%M:%S", time.localtime(event.at))
             print(f"[{stamp}] {event.agent}: {message}", flush=True)
 

@@ -5,4 +5,5 @@ recursive-include schemas *.json
 recursive-include tests/fixtures *.jsonl
 recursive-include examples *.py *.html *.css *.md
 include scripts/check_distributions.py
+include scripts/setup_web_evidence.py
 include tests/fixtures/invalid_json_seller.py
