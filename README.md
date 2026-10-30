@@ -329,8 +329,9 @@ command. The CLI starts and stops the local site automatically:
 nandatown web-evidence
 ```
 
-Pass both `--url` and `--question` for a custom site. Add `--headed` to watch
-Chromium or `--json` for machine-readable terminal output.
+Pass both `--url` and `--question` for a custom site on a literal loopback IP.
+Public URLs are temporarily disabled to prevent DNS rebinding. Add `--headed`
+to watch Chromium or `--json` for machine-readable terminal output.
 
 See [the web evidence guide](docs/web-evidence.md) for a local fixture command,
 configuration limits, manual DeepSeek smoke test, and current limitations.

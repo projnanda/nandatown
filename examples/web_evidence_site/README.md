@@ -22,7 +22,8 @@ nandatown web-evidence \
   --out runs/northstar-aurora
 ```
 
-For that custom form, serve this directory separately on port 8765:
+For that custom form, serve this directory separately on port 8765. Use the
+literal `127.0.0.1` address; hostnames and public URLs are rejected:
 
 ```
 python -m http.server 8765 --bind 127.0.0.1 --directory examples/web_evidence_site

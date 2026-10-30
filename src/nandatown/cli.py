@@ -43,6 +43,8 @@ def _print_web_evidence_summary(result, directory) -> None:
     from rich.panel import Panel
     from rich.table import Table
 
+    from .web_evidence import terminal_safe
+
     completed = result.status == "completed"
     status_icon = "OK" if completed else "!"
     border = ("green" if completed else
@@ -52,16 +54,17 @@ def _print_web_evidence_summary(result, directory) -> None:
     table = Table.grid(padding=(0, 2), expand=True)
     table.add_column(style="bold cyan", no_wrap=True)
     table.add_column(ratio=1)
-    table.add_row("Question", result.question)
+    table.add_row("Question", terminal_safe(result.question))
     if result.answer:
-        table.add_row("Answer", result.answer.text)
+        table.add_row("Answer", terminal_safe(result.answer.text))
         citations = "\n".join(
-            f"[{citation.evidence_id}] {citation.url}"
+            f"[{terminal_safe(citation.evidence_id)}] "
+            f"{terminal_safe(citation.url)}"
             for citation in result.answer.citations
         ) or "None"
         table.add_row("Citations", citations)
     else:
-        table.add_row("Result", result.stop_reason)
+        table.add_row("Result", terminal_safe(result.stop_reason))
     table.add_row(
         "Run",
         f"{result.pages_visited} pages | {result.steps_used} steps | "
@@ -70,7 +73,7 @@ def _print_web_evidence_summary(result, directory) -> None:
     total_tokens = result.token_usage.get("total_tokens")
     if total_tokens is not None:
         table.add_row("Tokens", f"{total_tokens:,}")
-    table.add_row("Artifacts", str(directory))
+    table.add_row("Artifacts", terminal_safe(directory))
     Console(highlight=False, markup=False).print(
         Panel(table, title=title, border_style=border, padding=(1, 2)))
 
@@ -1011,7 +1014,7 @@ def main(argv: list[str] | None = None) -> int:
         "web-evidence",
         help="run the Northstar demo, or a custom two-agent web workflow")
     p_web.add_argument("--url", default=None,
-                       help="custom starting http(s) page; omit for demo")
+                       help="custom literal-loopback page; omit for demo")
     p_web.add_argument("--question", default=None,
                        help="custom question; omit for the Northstar demo")
     p_web.add_argument("--headed", action="store_true",

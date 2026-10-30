@@ -1,8 +1,8 @@
 import json
 import os
-import socket
 import threading
 from contextlib import contextmanager
+from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -18,10 +18,12 @@ from nandatown.web_evidence import (
     RunConfig,
     SourceBlock,
     SourcePage,
+    TerminalRenderer,
     ToolCall,
     URLPolicy,
     URLPolicyError,
     run_web_evidence,
+    terminal_safe,
 )
 
 
@@ -247,37 +249,43 @@ def test_deepseek_request_explicitly_disables_thinking():
     assert reply.usage["total_tokens"] == 7
 
 
-def resolver_for(address):
-    def resolve(_host, _port, **_kwargs):
-        family = socket.AF_INET6 if ":" in address else socket.AF_INET
-        return [(family, socket.SOCK_STREAM, 6, "", (address, 0))]
-    return resolve
-
-
-def test_url_policy_allows_public_assets_but_same_origin_navigation():
-    policy = URLPolicy("https://example.test/start",
-                       resolver=resolver_for("93.184.216.34"))
-
-    policy.validate_navigation("https://example.test/next")
-    policy.validate_subresource("https://cdn.example.test/app.js")
-    with pytest.raises(URLPolicyError, match="same-origin"):
-        policy.validate_navigation("https://other.example.test/next")
+def test_url_policy_rejects_public_and_hostname_urls():
+    with pytest.raises(URLPolicyError, match="public and non-loopback"):
+        URLPolicy("https://93.184.216.34/start")
+    with pytest.raises(URLPolicyError, match="literal loopback"):
+        URLPolicy("http://localhost:8765/start")
+    with pytest.raises(URLPolicyError, match="literal loopback"):
+        URLPolicy("https://example.test/start")
 
 
 def test_loopback_fixture_cannot_load_another_loopback_origin():
     policy = URLPolicy("http://127.0.0.1:8765/clean.html")
 
     policy.validate_subresource("http://127.0.0.1:8765/style.css")
-    with pytest.raises(URLPolicyError, match="loopback"):
+    with pytest.raises(URLPolicyError, match="starting origin"):
         policy.validate_subresource("http://127.0.0.1:9999/private")
+    with pytest.raises(URLPolicyError, match="public and non-loopback"):
+        policy.validate_subresource("https://93.184.216.34/app.js")
 
 
 def test_url_policy_blocks_private_network_and_credentials():
-    with pytest.raises(URLPolicyError, match="private"):
-        URLPolicy("http://private.test/", resolver=resolver_for("10.1.2.3"))
+    with pytest.raises(URLPolicyError, match="non-loopback"):
+        URLPolicy("http://10.1.2.3/")
     with pytest.raises(URLPolicyError, match="credentials"):
-        URLPolicy("https://user:secret@example.test/",
-                  resolver=resolver_for("93.184.216.34"))
+        URLPolicy("http://user:secret@127.0.0.1:8765/")
+
+
+def test_terminal_renderer_neutralizes_controls_without_changing_data(capsys):
+    raw = "before\x1b[2J\rBELL\x07after"
+
+    TerminalRenderer().emit(
+        type("Event", (), {"at": 0.0, "agent": "agent-2"})(), raw)
+
+    output = capsys.readouterr().out
+    assert "\x1b" not in output
+    assert "\\x1b[2J\\x0dBELL\\x07" in output
+    assert terminal_safe(raw) == "before\\x1b[2J\\x0dBELL\\x07after"
+    assert raw == "before\x1b[2J\rBELL\x07after"
 
 
 @contextmanager
@@ -286,8 +294,7 @@ def fixture_server():
         def log_message(self, _format, *_args):
             pass
 
-    handler = lambda *args, **kwargs: QuietHandler(
-        *args, directory=str(FIXTURE_DIR), **kwargs)
+    handler = partial(QuietHandler, directory=str(FIXTURE_DIR))
     server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()

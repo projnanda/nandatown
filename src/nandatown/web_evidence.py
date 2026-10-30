@@ -13,7 +13,6 @@ import ipaddress
 import json
 import math
 import os
-import socket
 import time
 import uuid
 from collections import deque
@@ -54,6 +53,21 @@ Every evidence_id must name an item in the packet. Do not invent evidence IDs.
 
 def _digest(text: str) -> str:
     return "sha256:" + hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def terminal_safe(value: object) -> str:
+    """Make control bytes visible without changing stored or model data."""
+    text = str(value)
+    safe = []
+    for character in text:
+        codepoint = ord(character)
+        if character in {"\n", "\t"}:
+            safe.append(character)
+        elif codepoint < 32 or 127 <= codepoint <= 159:
+            safe.append(f"\\x{codepoint:02x}")
+        else:
+            safe.append(character)
+    return "".join(safe)
 
 
 def estimate_tokens(value: str) -> int:
@@ -222,7 +236,8 @@ class TerminalRenderer:
     def emit(self, event: RunEvent, message: str | None = None) -> None:
         if self.enabled and message:
             stamp = time.strftime("%H:%M:%S", time.localtime(event.at))
-            print(f"[{stamp}] {event.agent}: {message}", flush=True)
+            print(f"[{stamp}] {terminal_safe(event.agent)}: "
+                  f"{terminal_safe(message)}", flush=True)
 
 
 class EventLog:
@@ -335,15 +350,10 @@ class URLPolicyError(ValueError):
 
 
 class URLPolicy:
-    """Network boundary for a new, unauthenticated browser context."""
+    """Literal-loopback-only boundary for an unauthenticated browser."""
 
-    def __init__(self, start_url: str,
-                 resolver: Callable[..., Any] = socket.getaddrinfo):
-        self.resolver = resolver
+    def __init__(self, start_url: str):
         self.start = self._parts(start_url)
-        self.allow_loopback = self._addresses(self.start.hostname or "") and all(
-            address.is_loopback for address in self._addresses(
-                self.start.hostname or ""))
         self._validate_host(self.start.hostname or "", initial=True)
         self.origin = self._origin(self.start)
 
@@ -361,33 +371,15 @@ class URLPolicy:
         port = parts.port or (443 if parts.scheme == "https" else 80)
         return parts.scheme, (parts.hostname or "").lower(), port
 
-    def _addresses(self, host: str) -> list[ipaddress.IPv4Address |
-                                             ipaddress.IPv6Address]:
-        try:
-            return [ipaddress.ip_address(host)]
-        except ValueError:
-            try:
-                rows = self.resolver(host, None, type=socket.SOCK_STREAM)
-            except (OSError, socket.gaierror) as exc:
-                raise URLPolicyError(f"cannot resolve host: {host}") from exc
-            addresses = []
-            for row in rows:
-                address = ipaddress.ip_address(row[4][0].split("%")[0])
-                if address not in addresses:
-                    addresses.append(address)
-            if not addresses:
-                raise URLPolicyError(f"host resolved to no addresses: {host}")
-            return addresses
-
     def _validate_host(self, host: str, *, initial: bool = False) -> None:
-        addresses = self._addresses(host)
-        if all(address.is_global for address in addresses):
-            return
-        if all(address.is_loopback for address in addresses):
-            if initial or self.allow_loopback:
-                return
-        raise URLPolicyError("private, link-local, reserved, and metadata"
-                             " network destinations are not allowed")
+        try:
+            address = ipaddress.ip_address(host)
+        except ValueError:
+            raise URLPolicyError(
+                "only literal loopback IP URLs are currently allowed") from None
+        if not address.is_loopback:
+            raise URLPolicyError(
+                "public and non-loopback URLs are currently disabled")
 
     def validate_navigation(self, url: str) -> None:
         parts = self._parts(url)
@@ -397,11 +389,9 @@ class URLPolicy:
 
     def validate_subresource(self, url: str) -> None:
         parts = self._parts(url)
-        addresses = self._addresses(parts.hostname or "")
-        if (all(address.is_loopback for address in addresses)
-                and self._origin(parts) != self.origin):
-            raise URLPolicyError("loopback subresources must stay same-origin")
         self._validate_host(parts.hostname or "")
+        if self._origin(parts) != self.origin:
+            raise URLPolicyError("subresources must stay on the starting origin")
 
 
 class BrowserUnavailable(RuntimeError):

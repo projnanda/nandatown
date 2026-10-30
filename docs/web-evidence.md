@@ -46,7 +46,9 @@ parse stdout.
 
 ## Run a custom page
 
-For example, start the small test fixture in one terminal:
+Custom pages must currently use a literal loopback IP such as `127.0.0.1`.
+Public URLs and hostnames are temporarily rejected to avoid DNS-rebinding
+ambiguity. For example, start the small test fixture in one terminal:
 
 ```
 python -m http.server 8765 --directory tests/fixtures/web_evidence
@@ -102,11 +104,15 @@ claimed by this baseline contribution.
 
 ## Browser boundary
 
-Top-level navigation and redirects stay on the starting origin. Public
-cross-origin assets may load, but private, link-local, reserved and metadata
-destinations are blocked. Loopback is accepted only when the starting page is
-loopback. The browser uses a fresh context, blocks service workers, permissions,
-downloads, popups and non-GET/HEAD requests, and exposes no shell or form tool.
+Only a literal loopback IP is accepted. Top-level navigation, redirects and
+subresources must stay on the exact starting origin. Public URLs and hostnames
+are temporarily disabled, eliminating the separate DNS resolution that could
+otherwise permit rebinding. The browser uses a fresh context, blocks service
+workers, permissions, downloads, popups and non-GET/HEAD requests, and exposes
+no shell or form tool.
+
+Terminal rendering makes control bytes visible instead of executing them. This
+does not change prompts, evidence, model responses or JSON artifacts.
 
 These network controls bound a read-only test harness. They are not a general
 browser security sandbox and custom pages still run inside Chromium.
