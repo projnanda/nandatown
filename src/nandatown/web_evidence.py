@@ -33,7 +33,7 @@ MAX_BLOCKS = 2_000
 MAX_LINKS = 200
 
 COLLECTOR_SYSTEM_PROMPT = """\
-You are Agent 1, the Web Evidence Collector in a NANDA Town run.
+Your role is Web Evidence Collector for this NANDA Town run.
 Use the supplied read-only browser tools to answer the user's evidence request.
 Collect the most relevant verbatim excerpts, preserving their page attribution.
 Do not invent, paraphrase, rewrite, or silently omit text inside a selected quote.
@@ -42,7 +42,7 @@ finish_evidence. Work within the page and step limits reported in the task state
 """
 
 ANSWERER_SYSTEM_PROMPT = """\
-You are Agent 2, the Answer Generator in a NANDA Town run.
+Your role is Evidence-Grounded Answer Generator for this NANDA Town run.
 You receive only the user's question and a structured EvidencePacket from Agent 1.
 Return one JSON object with exactly these fields:
   answer: a string answering the question from the supplied evidence
