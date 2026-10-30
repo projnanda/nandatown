@@ -105,6 +105,47 @@ def cmd_run(args: argparse.Namespace) -> int:
     return 0 if result.verdict == "passed" else 1
 
 
+def cmd_web_evidence(args: argparse.Namespace) -> int:
+    """Run the bounded two-agent web evidence baseline."""
+    import json
+    import os
+    import time
+
+    from pydantic import ValidationError
+
+    from .web_evidence import RunConfig, run_web_evidence
+
+    output = args.out or os.path.join(
+        "runs", time.strftime("web-evidence-%Y%m%d-%H%M%S"))
+    try:
+        config = RunConfig(
+            url=args.url,
+            question=args.question,
+            model=args.model,
+            headed=args.headed,
+            max_pages=args.max_pages,
+            max_steps=args.max_steps,
+            input_token_budget=args.input_budget,
+            page_timeout_seconds=args.page_timeout,
+            run_timeout_seconds=args.run_timeout,
+        )
+        directory, result = run_web_evidence(config, output)
+    except (ValidationError, ValueError) as exc:
+        print(f"web-evidence configuration error: {exc}")
+        return 2
+    except Exception as exc:
+        print(f"web-evidence failed before artifacts were written:"
+              f" {type(exc).__name__}: {exc}")
+        return 1
+    print(json.dumps({
+        "status": result.status,
+        "stop_reason": result.stop_reason,
+        "answer": result.answer.model_dump() if result.answer else None,
+        "artifacts": str(directory),
+    }, indent=2, ensure_ascii=False))
+    return 0 if result.status == "completed" else 1
+
+
 def cmd_test_agent(args: argparse.Namespace) -> int:
     import shlex
 
@@ -908,6 +949,31 @@ def main(argv: list[str] | None = None) -> int:
                             " run grants instead of join tokens")
     p_run.add_argument("--identity-dir", default=None)
     p_run.set_defaults(func=cmd_run)
+
+    p_web = sub.add_parser(
+        "web-evidence",
+        help="run a bounded two-agent web evidence workflow with cited output")
+    p_web.add_argument("--url", required=True,
+                       help="starting public or loopback http(s) page")
+    p_web.add_argument("--question", required=True,
+                       help="question Agent 2 must answer from Agent 1's evidence")
+    p_web.add_argument("--headed", action="store_true",
+                       help="show Chromium for local debugging")
+    p_web.add_argument("--max-pages", type=int, default=3,
+                       help="maximum pages Agent 1 may visit (default 3)")
+    p_web.add_argument("--max-steps", type=int, default=6,
+                       help="maximum Agent 1 model/tool decisions (default 6)")
+    p_web.add_argument("--input-budget", type=int, default=6000,
+                       help="estimated input-token budget per model call")
+    p_web.add_argument("--page-timeout", type=float, default=15.0,
+                       help="page load timeout in seconds (default 15)")
+    p_web.add_argument("--run-timeout", type=float, default=120.0,
+                       help="overall workflow timeout in seconds (default 120)")
+    p_web.add_argument("--model", default="deepseek-flash",
+                       help="DeepSeek model name (default deepseek-flash)")
+    p_web.add_argument("--out", default=None,
+                       help="new or empty artifact directory")
+    p_web.set_defaults(func=cmd_web_evidence)
 
     p_identity = sub.add_parser(
         "identity", help="portable identities: controller keys, the"

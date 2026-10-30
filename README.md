@@ -307,6 +307,25 @@ connector URLs are omitted from rerun metadata; supply those inputs again and
 record the agent/adapter versions separately. The printed recipe names missing
 inputs rather than silently substituting reference agents.
 
+## Two-agent web evidence baseline
+
+`nandatown web-evidence` runs a bounded DeepSeek-backed workflow: Agent 1 reads
+pages through Playwright and hands verbatim, source-linked evidence to Agent 2;
+Agent 2 answers the original question with evidence-ID citations. The handoff
+and both agents' model requests are recorded for inspection. This is an
+unprotected baseline: it does not filter instruction-like page text and does
+not claim that a structurally valid citation supports the answer.
+
+Install the optional browser dependency, then see the setup and artifact guide:
+
+```
+python -m pip install -e ".[dev,web-evidence]"
+playwright install chromium
+```
+
+See [the web evidence guide](docs/web-evidence.md) for a local fixture command,
+configuration limits, manual DeepSeek smoke test, and current limitations.
+
 ## The MCP and A2A edges
 
 HTTP is Track's canonical participant boundary. MCP adapts that surface;

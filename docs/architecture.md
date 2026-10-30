@@ -49,6 +49,7 @@ src/nandatown/
                    evidence records, pinned services catalog
   pulse.py         Town Pulse: scheduled probes, SQLite history,
                    availability report, operational-history records
+  web_evidence.py  bounded Playwright reader -> evidence packet -> cited answer
   new.py           scaffolding templates (scenario, plugin, skill, agent)
   board.py         the local leaderboard over evidence bundles
   protocols.py     PR import from the upstream repo: snapshot at the

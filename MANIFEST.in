@@ -1,4 +1,5 @@
 recursive-include tests/fixtures *.json *.jsonl *.py *.yaml
+recursive-include tests/fixtures *.html
 recursive-include schemas *.json
 # The historical bundle fixture's records are JSON Lines.
 recursive-include tests/fixtures *.jsonl

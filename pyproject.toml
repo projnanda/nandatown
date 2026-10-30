@@ -21,6 +21,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+web-evidence = ["playwright>=1.48"]
 
 [project.scripts]
 nandatown = "nandatown.cli:main"
