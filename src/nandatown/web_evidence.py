@@ -401,14 +401,28 @@ class BrowserUnavailable(RuntimeError):
 class PlaywrightBrowser:
     """Read-only Chromium adapter. Playwright is imported only when used."""
 
-    def __init__(self, config: RunConfig, policy: URLPolicy | None = None):
+    def __init__(self, config: RunConfig, policy: URLPolicy | None = None,
+                 deadline: float | None = None):
         self.config = config
         self.policy = policy or URLPolicy(config.url)
+        self.deadline = deadline
         self._manager = None
         self._browser = None
         self._context = None
         self._page = None
         self._page_sequence = 0
+
+    def _remaining_timeout_ms(self, cap_seconds: float | None = None) -> int:
+        remaining = cap_seconds
+        if self.deadline is not None:
+            overall = self.deadline - time.monotonic()
+            if overall <= 0:
+                raise RuntimeError(
+                    "overall run timeout reached during browser operation")
+            remaining = overall if remaining is None else min(remaining, overall)
+        if remaining is None:
+            remaining = self.config.run_timeout_seconds
+        return max(1, int(remaining * 1000))
 
     def start(self) -> None:
         try:
@@ -417,16 +431,22 @@ class PlaywrightBrowser:
             raise BrowserUnavailable(
                 "Playwright is not installed; install .[web-evidence] and run"
                 " 'playwright install chromium'") from exc
+        self._remaining_timeout_ms()
         try:
             self._manager = sync_playwright().start()
+            launch_timeout = self._remaining_timeout_ms()
             self._browser = self._manager.chromium.launch(
-                headless=not self.config.headed)
+                headless=not self.config.headed, timeout=launch_timeout)
+            self._remaining_timeout_ms()
             self._context = self._browser.new_context(
                 accept_downloads=False, service_workers="block")
+            self._remaining_timeout_ms()
             self._context.clear_permissions()
             self._context.route("**/*", self._route)
             self._context.on("page", self._close_extra_page)
             self._page = self._context.new_page()
+            self._page.set_default_timeout(
+                self._remaining_timeout_ms(self.config.page_timeout_seconds))
         except Exception as exc:
             self.close()
             raise BrowserUnavailable(
@@ -455,11 +475,16 @@ class PlaywrightBrowser:
             raise BrowserUnavailable("browser is not started")
         self.policy.validate_navigation(url)
         try:
+            timeout_ms = self._remaining_timeout_ms(
+                self.config.page_timeout_seconds)
+            self._page.set_default_timeout(timeout_ms)
             self._page.goto(url, wait_until="domcontentloaded",
-                            timeout=int(self.config.page_timeout_seconds * 1000))
+                            timeout=timeout_ms)
+            self._remaining_timeout_ms()
             self.policy.validate_navigation(self._page.url)
             title = self._page.title()
             extracted = self._page.evaluate(_PAGE_EXTRACTION_SCRIPT)
+            self._remaining_timeout_ms()
         except Exception as exc:
             raise RuntimeError(f"page load failed: {type(exc).__name__}: {exc}") from exc
         self._page_sequence += 1
@@ -567,18 +592,31 @@ class AgentMemory:
         self.recent.extend([assistant, tool])
 
     def build(self, system_prompt: str, state: dict[str, Any],
-              token_budget: int) -> list[dict[str, Any]]:
+              token_budget: int,
+              tools: list[dict[str, Any]] | None = None
+              ) -> list[dict[str, Any]]:
         base = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": json.dumps(
                 {"question": self.question, "task_state": state},
                 ensure_ascii=False)},
         ]
+
+        def estimated(candidate: list[dict[str, Any]]) -> int:
+            payload: dict[str, Any] = {"messages": candidate}
+            if tools is not None:
+                payload["tools"] = tools
+            return estimate_tokens(json.dumps(payload, ensure_ascii=False))
+
+        if estimated(base) > token_budget:
+            raise RuntimeError("Agent 1 base context exceeds its token budget")
         tail = list(self.recent)
-        while tail and estimate_tokens(json.dumps(base + tail,
-                                                  ensure_ascii=False)) > token_budget:
+        while tail and estimated(base + tail) > token_budget:
             tail = tail[2:]
-        return base + tail
+        messages = base + tail
+        if estimated(messages) > token_budget:
+            raise RuntimeError("Agent 1 input exceeds its token budget")
+        return messages
 
 
 _TOOLS = [
@@ -807,13 +845,18 @@ class EvidenceCollector:
                 self.note = "overall run timeout reached"
                 break
             self.steps += 1
-            messages = self.memory.build(prompt, self._state(),
-                                         self.config.input_token_budget)
+            messages = self.memory.build(
+                prompt, self._state(), self.config.input_token_budget,
+                tools=_TOOLS)
+            estimated_input = estimate_tokens(json.dumps(
+                {"messages": messages, "tools": _TOOLS},
+                ensure_ascii=False))
+            if estimated_input > self.config.input_token_budget:
+                raise RuntimeError("Agent 1 input exceeds its token budget")
             self.log.emit("agent-1", "model_request",
                           {"step": self.steps, "model": self.config.model,
                            "thinking": "disabled", "messages": messages,
-                           "estimated_input_tokens": estimate_tokens(
-                               json.dumps(messages, ensure_ascii=False))},
+                           "estimated_input_tokens": estimated_input},
                           f"decision {self.steps}/{self.config.max_steps}")
             reply = self.model.complete(
                 messages, tools=_TOOLS,
@@ -998,7 +1041,7 @@ def run_web_evidence(config: RunConfig, out_dir: str,
              f"run {run_id} started")
     try:
         service = service or DeepSeekClient(config.model, config.base_url)
-        web = web or PlaywrightBrowser(config)
+        web = web or PlaywrightBrowser(config, deadline=deadline)
         web.start()
         collector = EvidenceCollector(config, service, web, log, save_page,
                                       deadline)

@@ -1,6 +1,7 @@
 import json
 import os
 import threading
+import time
 from contextlib import contextmanager
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -224,6 +225,28 @@ def test_memory_trimming_never_discards_question_or_task_state():
     assert len(messages) <= 4
 
 
+def test_agent1_hard_context_limit_stops_before_model_request(tmp_path):
+    model = FakeModel()
+    browser = FakeBrowser()
+    oversized_question = "Q" * 20_000
+
+    _, result = run_web_evidence(
+        RunConfig(
+            url=browser.page.url,
+            question=oversized_question,
+            input_token_budget=1_000,
+        ),
+        str(tmp_path / "run"),
+        model=model,
+        browser=browser,
+    )
+
+    assert result.status == "error"
+    assert "Agent 1 base context exceeds its token budget" in result.stop_reason
+    assert model.requests == []
+    assert browser.closed
+
+
 def test_deepseek_request_explicitly_disables_thinking():
     observed = {}
 
@@ -322,6 +345,137 @@ def test_playwright_reads_clean_local_fixture():
     assert page.title == "Project Alpha archive"
     assert FACT in page.visible_text
     assert any(block.text == FACT for block in page.blocks)
+
+
+def test_runner_passes_overall_deadline_to_playwright(
+        tmp_path, monkeypatch):
+    observed = {}
+
+    class DeadlineBrowser(FakeBrowser):
+        def __init__(self, config, policy=None, deadline=None):
+            super().__init__(source_page(config.url))
+            observed["deadline"] = deadline
+
+    monkeypatch.setattr(
+        "nandatown.web_evidence.PlaywrightBrowser", DeadlineBrowser)
+    before = time.monotonic()
+
+    _, result = run_web_evidence(
+        RunConfig(url=source_page().url, question=QUESTION),
+        str(tmp_path / "run"),
+        model=FakeModel(),
+    )
+
+    assert result.status == "completed"
+    assert before < observed["deadline"] <= before + 120.5
+
+
+def test_playwright_clamps_startup_and_navigation_to_overall_deadline(
+        monkeypatch):
+    observed = {"defaults": []}
+
+    class Page:
+        url = source_page().url
+
+        def set_default_timeout(self, value):
+            observed["defaults"].append(value)
+
+        def goto(self, url, *, wait_until, timeout):
+            self.url = url
+            observed["goto_timeout"] = timeout
+
+        def title(self):
+            return "Project Alpha archive"
+
+        def evaluate(self, _script):
+            return {
+                "visible_text": FACT,
+                "snapshot_truncated": False,
+                "blocks": [{
+                    "selector": "body > main > p#launch-date",
+                    "text": FACT,
+                }],
+                "links": [],
+            }
+
+    page = Page()
+
+    class Context:
+        def clear_permissions(self):
+            pass
+
+        def route(self, _pattern, _handler):
+            pass
+
+        def on(self, _event, _handler):
+            pass
+
+        def new_page(self):
+            return page
+
+        def close(self):
+            pass
+
+    class Browser:
+        def new_context(self, **_kwargs):
+            return Context()
+
+        def close(self):
+            pass
+
+    class Chromium:
+        def launch(self, *, headless, timeout):
+            observed["launch_timeout"] = timeout
+            return Browser()
+
+    class Manager:
+        chromium = Chromium()
+
+        def stop(self):
+            pass
+
+    class PlaywrightStarter:
+        def start(self):
+            return Manager()
+
+    monkeypatch.setattr(
+        "playwright.sync_api.sync_playwright",
+        lambda: PlaywrightStarter(),
+    )
+    config = RunConfig(url=source_page().url, question=QUESTION)
+    browser = PlaywrightBrowser(
+        config, deadline=time.monotonic() + 1.5)
+
+    try:
+        browser.start()
+        page_result = browser.open_page(config.url)
+    finally:
+        browser.close()
+
+    assert page_result.visible_text == FACT
+    assert 0 < observed["launch_timeout"] <= 1_500
+    assert 0 < observed["goto_timeout"] <= 1_500
+    assert all(0 < value <= 1_500 for value in observed["defaults"])
+
+
+def test_playwright_does_not_start_after_overall_deadline(monkeypatch):
+    called = False
+
+    def starter():
+        nonlocal called
+        called = True
+        raise AssertionError("Playwright must not start after the deadline")
+
+    monkeypatch.setattr("playwright.sync_api.sync_playwright", starter)
+    browser = PlaywrightBrowser(
+        RunConfig(url=source_page().url, question=QUESTION),
+        deadline=time.monotonic() - 1,
+    )
+
+    with pytest.raises(RuntimeError, match="overall run timeout reached"):
+        browser.start()
+
+    assert called is False
 
 
 @pytest.mark.skipif(

@@ -1,4 +1,5 @@
 import json
+import time
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -160,7 +161,7 @@ def test_datamarking_stops_when_source_contains_marker():
         datamark_text(f"source{SPOTLIGHT_MARKER}text")
 
 
-def test_packet_copy_changes_only_evidence_text():
+def test_packet_copy_changes_only_untrusted_text_fields():
     original = evidence_packet()
 
     marked = datamark_packet(original)
@@ -174,8 +175,23 @@ def test_packet_copy_changes_only_evidence_text():
     marked_data = marked.model_dump()
     original_text = original_data["items"][0].pop("text")
     marked_text = marked_data["items"][0].pop("text")
+    original_note = original_data.pop("completion_note")
+    marked_note = marked_data.pop("completion_note")
     assert original_text != marked_text
+    assert original_note == "relevant source found"
+    assert marked_note == datamark_text(original_note)
     assert original_data == marked_data
+
+
+def test_datamarking_stops_when_completion_note_contains_marker():
+    original = evidence_packet().model_copy(update={
+        "completion_note": f"source{SPOTLIGHT_MARKER}note",
+    })
+
+    with pytest.raises(ValueError, match=r"already contains U\+E000"):
+        datamark_packet(original)
+
+    assert original.completion_note == f"source{SPOTLIGHT_MARKER}note"
 
 
 def test_protected_prompt_is_exact_appendix_to_original_prompt():
@@ -237,11 +253,16 @@ def test_protected_workflow_preserves_agent1_and_logs_actual_handoff(tmp_path):
 
     assert original_handoff["items"][0]["text"] == FACT
     assert actual_handoff["items"][0]["text"] == datamark_text(FACT)
+    assert original_handoff["completion_note"] == "relevant source found"
+    assert actual_handoff["completion_note"] == datamark_text(
+        "relevant source found"
+    )
     assert answer_payload["evidence_packet"] == actual_handoff
     assert answer_request["messages"][0]["content"] == (
         ANSWERER_SYSTEM_PROMPT + SPOTLIGHTING_PROMPT_APPENDIX
     )
     assert result.status == "completed"
+    assert result.stop_reason == "relevant source found"
     assert result.answer.citations == [Citation(evidence_id="E1", url=URL)]
     assert result.artifacts["agent2_handoff"] == "agent2_handoff.json"
 
@@ -289,6 +310,52 @@ def test_marker_collision_preserves_original_and_stops_before_agent2(tmp_path):
         (directory / "guardrail.json").read_text(encoding="utf-8")
     )
     assert guardrail["applied"] is False
+
+
+def test_protected_agent1_hard_context_limit_stops_before_model(tmp_path):
+    model = FakeModel()
+    browser = FakeBrowser()
+
+    _, result = run_protected_web_evidence(
+        RunConfig(
+            url=URL,
+            question="Q" * 20_000,
+            input_token_budget=1_000,
+        ),
+        str(tmp_path / "context-limit"),
+        model=model,
+        browser=browser,
+    )
+
+    assert result.status == "error"
+    assert "Agent 1 base context exceeds its token budget" in result.stop_reason
+    assert model.requests == []
+    assert browser.closed
+
+
+def test_protected_runner_passes_overall_deadline_to_playwright(
+        tmp_path, monkeypatch):
+    observed = {}
+
+    class DeadlineBrowser(FakeBrowser):
+        def __init__(self, config, policy=None, deadline=None):
+            super().__init__(source_page())
+            observed["deadline"] = deadline
+
+    monkeypatch.setattr(
+        "nandatown.web_evidence_spotlight.PlaywrightBrowser",
+        DeadlineBrowser,
+    )
+    before = time.monotonic()
+
+    _, result = run_protected_web_evidence(
+        RunConfig(url=URL, question=QUESTION),
+        str(tmp_path / "deadline"),
+        model=FakeModel(),
+    )
+
+    assert result.status == "completed"
+    assert before < observed["deadline"] <= before + 120.5
 
 
 def completed_result():
