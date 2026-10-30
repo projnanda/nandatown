@@ -206,6 +206,69 @@ def cmd_web_evidence(args: argparse.Namespace) -> int:
     return 0 if result.status == "completed" else 1
 
 
+def cmd_web_evidence_protected(args: argparse.Namespace) -> int:
+    """Run the existing web evidence agents with spotlighting enabled."""
+    import json
+    import os
+    import time
+    from contextlib import nullcontext
+
+    from pydantic import ValidationError
+
+    from .web_evidence import RunConfig, TerminalRenderer
+    from .web_evidence_demo import (
+        DEMO_QUESTION,
+        DemoSiteUnavailable,
+        serve_northstar_site,
+    )
+    from .web_evidence_spotlight import run_protected_web_evidence
+
+    if (args.url is None) != (args.question is None):
+        print("give both --url and --question, or omit both to run the "
+              "Northstar demo")
+        return 2
+    demo = args.url is None
+    output = args.out or os.path.join(
+        "runs", time.strftime(
+            "northstar-protected-%Y%m%d-%H%M%S" if demo
+            else "web-evidence-protected-%Y%m%d-%H%M%S"))
+    try:
+        site = serve_northstar_site() if demo else nullcontext(args.url)
+        with site as url:
+            config = RunConfig(
+                url=url,
+                question=DEMO_QUESTION if demo else args.question,
+                model=args.model,
+                headed=args.headed,
+                max_pages=args.max_pages,
+                max_steps=args.max_steps,
+                input_token_budget=args.input_budget,
+                page_timeout_seconds=args.page_timeout,
+                run_timeout_seconds=args.run_timeout,
+            )
+            directory, result = run_protected_web_evidence(
+                config, output,
+                renderer=TerminalRenderer(enabled=not args.json))
+    except (DemoSiteUnavailable, ValidationError, ValueError) as exc:
+        print(f"web-evidence-protected configuration error: {exc}")
+        return 2
+    except Exception as exc:
+        print("web-evidence-protected failed before artifacts were written:"
+              f" {type(exc).__name__}: {exc}")
+        return 1
+    if args.json:
+        print(json.dumps({
+            "status": result.status,
+            "stop_reason": result.stop_reason,
+            "answer": result.answer.model_dump() if result.answer else None,
+            "guardrail": "spotlighting/datamarking",
+            "artifacts": str(directory),
+        }, indent=2, ensure_ascii=False))
+    else:
+        _print_web_evidence_summary(result, directory)
+    return 0 if result.status == "completed" else 1
+
+
 def cmd_test_agent(args: argparse.Namespace) -> int:
     import shlex
 
@@ -1036,6 +1099,44 @@ def main(argv: list[str] | None = None) -> int:
     p_web.add_argument("--json", action="store_true",
                        help="print machine-readable JSON instead of the panel")
     p_web.set_defaults(func=cmd_web_evidence)
+
+    p_web_protected = sub.add_parser(
+        "web-evidence-protected",
+        help="run the two-agent web workflow with spotlighting enabled")
+    p_web_protected.add_argument(
+        "--url", default=None,
+        help="custom literal-loopback page; omit for demo")
+    p_web_protected.add_argument(
+        "--question", default=None,
+        help="custom question; omit for the Northstar demo")
+    p_web_protected.add_argument(
+        "--headed", action="store_true",
+        help="show Chromium for local debugging")
+    p_web_protected.add_argument(
+        "--max-pages", type=int, default=3,
+        help="maximum pages Agent 1 may visit (default 3)")
+    p_web_protected.add_argument(
+        "--max-steps", type=int, default=6,
+        help="maximum Agent 1 model/tool decisions (default 6)")
+    p_web_protected.add_argument(
+        "--input-budget", type=int, default=6000,
+        help="estimated input-token budget per model call")
+    p_web_protected.add_argument(
+        "--page-timeout", type=float, default=15.0,
+        help="page load timeout in seconds (default 15)")
+    p_web_protected.add_argument(
+        "--run-timeout", type=float, default=120.0,
+        help="overall workflow timeout in seconds (default 120)")
+    p_web_protected.add_argument(
+        "--model", default="deepseek-flash",
+        help="DeepSeek model name (default deepseek-flash)")
+    p_web_protected.add_argument(
+        "--out", default=None,
+        help="new or empty artifact directory")
+    p_web_protected.add_argument(
+        "--json", action="store_true",
+        help="print machine-readable JSON instead of the panel")
+    p_web_protected.set_defaults(func=cmd_web_evidence_protected)
 
     p_identity = sub.add_parser(
         "identity", help="portable identities: controller keys, the"
