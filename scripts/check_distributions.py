@@ -16,14 +16,15 @@ def check(directory: Path) -> None:
         raise SystemExit("expected exactly one wheel and one sdist")
     root = Path(__file__).resolve().parents[1]
     runtime = {
-        str(path.relative_to(root / "src"))
+        path.relative_to(root / "src").as_posix()
         for pattern in ("src/nandatown/sim/scenarios/*.yaml",
                         "src/nandatown/skills/builtin/*.md")
         for path in root.glob(pattern)
     }
     test_data = {
-        str(path.relative_to(root))
-        for pattern in ("tests/fixtures/**/*", "schemas/*.json", "examples/*.py")
+        path.relative_to(root).as_posix()
+        for pattern in ("tests/fixtures/**/*", "schemas/*.json", "examples/*.py",
+                        "examples/web_evidence_site/*")
         for path in root.glob(pattern) if path.is_file()
     }
     with zipfile.ZipFile(wheels[0]) as wheel:

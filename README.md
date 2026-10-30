@@ -325,6 +325,8 @@ playwright install chromium
 
 See [the web evidence guide](docs/web-evidence.md) for a local fixture command,
 configuration limits, manual DeepSeek smoke test, and current limitations.
+For a realistic three-page target, run the fictional
+[Northstar AI Labs prototype](examples/web_evidence_site/README.md).
 
 ## The MCP and A2A edges
 
