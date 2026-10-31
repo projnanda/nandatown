@@ -309,12 +309,18 @@ inputs rather than silently substituting reference agents.
 
 ## Two-agent web evidence baseline
 
-`nandatown web-evidence` runs a bounded DeepSeek-backed workflow: Agent 1 reads
-pages through Playwright and hands verbatim, source-linked evidence to Agent 2;
-Agent 2 answers the original question with evidence-ID citations. The handoff
-and both agents' model requests are recorded for inspection. This is an
-unprotected baseline: it does not filter instruction-like page text and does
-not claim that a structurally valid citation supports the answer.
+`nandatown web-evidence` runs a bounded two-agent workflow: Agent 1 reads pages
+through Playwright and hands the complete visible text of every selected page,
+unchanged and source-linked, to Agent 2. Agent 2 answers the original question
+with evidence-ID citations. Nothing is silently shortened: a packet that does
+not fit Agent 2's context fails clearly. The handoff and both agents' actual
+model requests are recorded for inspection.
+
+`nandatown web-evidence-protected` runs the same agents and handoff with one
+difference: Spotlighting/Datamarking is applied between Agent 1 and Agent 2.
+The unprotected command does not filter instruction-like page text. The
+protected command preserves the original packet separately and marks the copy
+sent to Agent 2.
 
 Quick setup from the repository root:
 
@@ -322,21 +328,19 @@ Quick setup from the repository root:
 python scripts/setup_web_evidence.py
 ```
 
-Set `DEEPSEEK_API_KEY`, then run the complete Northstar example with one
-command. The CLI starts and stops the local site automatically:
+Set `DEEPSEEK_API_KEY`, serve a controlled page on a literal loopback IP, then
+provide its URL and the question explicitly:
 
 ```
-nandatown web-evidence
+nandatown web-evidence --url http://127.0.0.1:8765/page.html --question "Your question"
 ```
 
-Pass both `--url` and `--question` for a custom site on a literal loopback IP.
-Public URLs are temporarily disabled to prevent DNS rebinding. Add `--headed`
-to watch Chromium or `--json` for machine-readable terminal output.
+The protected form is `nandatown web-evidence-protected` with the same required
+arguments. Public URLs are temporarily disabled to prevent DNS rebinding. Add
+`--headed` to watch Chromium or `--json` for machine-readable terminal output.
 
 See [the web evidence guide](docs/web-evidence.md) for a local fixture command,
 configuration limits, manual DeepSeek smoke test, and current limitations.
-For a realistic three-page target, run the fictional
-[Northstar AI Labs prototype](examples/web_evidence_site/README.md).
 
 ## The MCP and A2A edges
 

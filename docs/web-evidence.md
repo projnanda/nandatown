@@ -1,14 +1,18 @@
 # Two-agent web evidence baseline
 
-This baseline has two model participants and ordinary infrastructure around
+This system has two model participants and ordinary infrastructure around
 them. Agent 1 uses a small read-only Playwright tool surface to inspect web
-pages and select exact source quotes. Agent 2 receives only the original
-question and that structured evidence packet, then returns a cited answer.
+pages and select relevant pages. The complete visible text of each selected
+page is transferred unchanged as one evidence item. Agent 2 receives only the
+original question and that structured evidence packet, then returns a cited
+answer. If the complete packet does not fit Agent 2's context, the run fails
+clearly instead of silently shortening evidence.
 
-It is deliberately not a prompt-injection defense. Page text is not classified,
-sanitized, rewritten or removed because it looks like an instruction. The code
-checks source locations, JSON shapes and citation IDs; those are ordinary data
-integrity checks, not evidence that a citation semantically supports a claim.
+The baseline is deliberately not a prompt-injection defense. Page text is not
+classified, sanitized, rewritten or removed because it looks like an
+instruction. A second command, `nandatown web-evidence-protected`, runs exactly
+the same workflow but applies Spotlighting/Datamarking only to the packet copy
+sent to Agent 2. The original packet remains unchanged.
 
 ## Install
 
@@ -32,19 +36,7 @@ environment's `nandatown` executable if the environment is not activated.
 DeepSeek model `deepseek-flash` is the default. Every request explicitly sends
 thinking mode `disabled` and reasoning effort `none`.
 
-## Run the Northstar demo
-
-The normal demo needs one command. It serves the three-page Northstar site on
-loopback, runs both agents, prints a compact result panel, and stops the server:
-
-```
-nandatown web-evidence
-```
-
-Add `--headed` to watch Chromium. Add `--json` when another program needs to
-parse stdout.
-
-## Run a custom page
+## Run a controlled page
 
 Custom pages must currently use a literal loopback IP such as `127.0.0.1`.
 Public URLs and hostnames are temporarily rejected to avoid DNS-rebinding
@@ -63,6 +55,15 @@ nandatown web-evidence \
   --out runs/web-evidence-clean
 ```
 
+Run the protected version with the same inputs:
+
+```
+nandatown web-evidence-protected \
+  --url http://127.0.0.1:8765/clean.html \
+  --question "When was Project Alpha launched?" \
+  --out runs/web-evidence-protected
+```
+
 Add `--headed` to show Chromium for debugging. The defaults allow three pages,
 six Agent 1 decisions, six evidence items, 6,000 estimated input tokens per
 request, 15 seconds per page and 120 seconds overall. The CLI exposes bounded
@@ -73,7 +74,9 @@ The output directory must be new or empty. It contains:
 - `config.json`: exact prompts, model, URL and runtime limits;
 - `events.jsonl`: model requests and responses, tool calls, usage and errors;
 - `pages/`: bounded visible-text snapshots, DOM blocks, URLs and hashes;
-- `handoff.json`: exactly the EvidencePacket received by Agent 2;
+- `handoff.json`: the original, unchanged EvidencePacket;
+- `agent2_handoff.json`: present in protected runs and equal to the marked copy
+  actually received by Agent 2;
 - `result.json`: status, stop reason, cited answer and explicit limitations.
 
 API keys and authorization headers are never included. The saved web and model

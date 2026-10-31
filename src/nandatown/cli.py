@@ -147,123 +147,79 @@ def cmd_run(args: argparse.Namespace) -> int:
 
 
 def cmd_web_evidence(args: argparse.Namespace) -> int:
-    """Run the bounded two-agent web evidence baseline."""
-    import json
-    import os
-    import time
-    from contextlib import nullcontext
-
-    from pydantic import ValidationError
-
-    from .web_evidence import RunConfig, TerminalRenderer, run_web_evidence
-    from .web_evidence_demo import (
-        DEMO_QUESTION,
-        DemoSiteUnavailable,
-        serve_northstar_site,
-    )
-
-    if (args.url is None) != (args.question is None):
-        print("give both --url and --question, or omit both to run the "
-              "Northstar demo")
-        return 2
-    demo = args.url is None
-    output = args.out or os.path.join(
-        "runs", time.strftime(
-            "northstar-%Y%m%d-%H%M%S" if demo
-            else "web-evidence-%Y%m%d-%H%M%S"))
-    try:
-        site = serve_northstar_site() if demo else nullcontext(args.url)
-        with site as url:
-            config = RunConfig(
-                url=url,
-                question=DEMO_QUESTION if demo else args.question,
-                model=args.model,
-                headed=args.headed,
-                max_pages=args.max_pages,
-                max_steps=args.max_steps,
-                input_token_budget=args.input_budget,
-                page_timeout_seconds=args.page_timeout,
-                run_timeout_seconds=args.run_timeout,
-            )
-            directory, result = run_web_evidence(
-                config, output, renderer=TerminalRenderer(enabled=not args.json))
-    except (DemoSiteUnavailable, ValidationError, ValueError) as exc:
-        print(f"web-evidence configuration error: {exc}")
-        return 2
-    except Exception as exc:
-        print(f"web-evidence failed before artifacts were written:"
-              f" {type(exc).__name__}: {exc}")
-        return 1
-    if args.json:
-        print(json.dumps({
-            "status": result.status,
-            "stop_reason": result.stop_reason,
-            "answer": result.answer.model_dump() if result.answer else None,
-            "artifacts": str(directory),
-        }, indent=2, ensure_ascii=False))
-    else:
-        _print_web_evidence_summary(result, directory)
-    return 0 if result.status == "completed" else 1
+    """Run the two-agent complete-page evidence baseline."""
+    return _cmd_web_evidence(args, protected=False)
 
 
 def cmd_web_evidence_protected(args: argparse.Namespace) -> int:
-    """Run the existing web evidence agents with spotlighting enabled."""
+    """Run the same workflow with spotlighting enabled for Agent 2."""
+    return _cmd_web_evidence(args, protected=True)
+
+
+def _cmd_web_evidence(
+        args: argparse.Namespace, *, protected: bool) -> int:
+    """Run the final complete-page evidence handoff."""
     import json
     import os
     import time
-    from contextlib import nullcontext
 
     from pydantic import ValidationError
 
-    from .web_evidence import RunConfig, TerminalRenderer
-    from .web_evidence_demo import (
-        DEMO_QUESTION,
-        DemoSiteUnavailable,
-        serve_northstar_site,
+    from .web_evidence import (
+        DEFAULT_BASE_URL,
+        OPENAI_BASE_URL,
+        RunConfig,
+        TerminalRenderer,
+        run_web_evidence,
     )
     from .web_evidence_spotlight import run_protected_web_evidence
 
-    if (args.url is None) != (args.question is None):
-        print("give both --url and --question, or omit both to run the "
-              "Northstar demo")
-        return 2
-    demo = args.url is None
+    command = "web-evidence-protected" if protected else "web-evidence"
     output = args.out or os.path.join(
         "runs", time.strftime(
-            "northstar-protected-%Y%m%d-%H%M%S" if demo
-            else "web-evidence-protected-%Y%m%d-%H%M%S"))
+            ("web-evidence-protected-%Y%m%d-%H%M%S"
+             if protected else
+             "web-evidence-%Y%m%d-%H%M%S")))
     try:
-        site = serve_northstar_site() if demo else nullcontext(args.url)
-        with site as url:
-            config = RunConfig(
-                url=url,
-                question=DEMO_QUESTION if demo else args.question,
-                model=args.model,
-                headed=args.headed,
-                max_pages=args.max_pages,
-                max_steps=args.max_steps,
-                input_token_budget=args.input_budget,
-                page_timeout_seconds=args.page_timeout,
-                run_timeout_seconds=args.run_timeout,
-            )
-            directory, result = run_protected_web_evidence(
-                config, output,
-                renderer=TerminalRenderer(enabled=not args.json))
-    except (DemoSiteUnavailable, ValidationError, ValueError) as exc:
-        print(f"web-evidence-protected configuration error: {exc}")
+        config = RunConfig(
+            url=args.url,
+            question=args.question,
+            model=args.model,
+            provider=args.provider,
+            base_url=(OPENAI_BASE_URL if args.provider == "openai"
+                      else DEFAULT_BASE_URL),
+            headed=args.headed,
+            max_pages=args.max_pages,
+            max_steps=args.max_steps,
+            input_token_budget=args.input_budget,
+            page_timeout_seconds=args.page_timeout,
+            run_timeout_seconds=args.run_timeout,
+        )
+        runner = (
+            run_protected_web_evidence
+            if protected else run_web_evidence
+        )
+        directory, result = runner(
+            config, output,
+            renderer=TerminalRenderer(enabled=not args.json))
+    except (ValidationError, ValueError) as exc:
+        print(f"{command} configuration error: {exc}")
         return 2
     except Exception as exc:
-        print("web-evidence-protected failed before artifacts were written:"
+        print(f"{command} failed before artifacts were written:"
               f" {type(exc).__name__}: {exc}")
         return 1
     if args.json:
-        print(json.dumps({
+        payload = {
             "status": result.status,
             "stop_reason": result.stop_reason,
             "answer": result.answer.model_dump() if result.answer else None,
-            "guardrail": "spotlighting/datamarking",
+            "handoff_mode": "complete_page",
             "artifacts": str(directory),
-        }, indent=2, ensure_ascii=False))
+        }
+        if protected:
+            payload["guardrail"] = "spotlighting/datamarking"
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
     else:
         _print_web_evidence_summary(result, directory)
     return 0 if result.status == "completed" else 1
@@ -1075,11 +1031,11 @@ def main(argv: list[str] | None = None) -> int:
 
     p_web = sub.add_parser(
         "web-evidence",
-        help="run the Northstar demo, or a custom two-agent web workflow")
-    p_web.add_argument("--url", default=None,
-                       help="custom literal-loopback page; omit for demo")
-    p_web.add_argument("--question", default=None,
-                       help="custom question; omit for the Northstar demo")
+        help="run the two-agent complete-page web workflow")
+    p_web.add_argument("--url", required=True,
+                       help="literal-loopback webpage URL")
+    p_web.add_argument("--question", required=True,
+                       help="question Agent 2 must answer from evidence")
     p_web.add_argument("--headed", action="store_true",
                        help="show Chromium for local debugging")
     p_web.add_argument("--max-pages", type=int, default=3,
@@ -1093,7 +1049,10 @@ def main(argv: list[str] | None = None) -> int:
     p_web.add_argument("--run-timeout", type=float, default=120.0,
                        help="overall workflow timeout in seconds (default 120)")
     p_web.add_argument("--model", default="deepseek-flash",
-                       help="DeepSeek model name (default deepseek-flash)")
+                       help="model name (default deepseek-flash)")
+    p_web.add_argument("--provider", choices=["deepseek", "openai"],
+                       default="deepseek",
+                       help="model API provider (default deepseek)")
     p_web.add_argument("--out", default=None,
                        help="new or empty artifact directory")
     p_web.add_argument("--json", action="store_true",
@@ -1104,11 +1063,11 @@ def main(argv: list[str] | None = None) -> int:
         "web-evidence-protected",
         help="run the two-agent web workflow with spotlighting enabled")
     p_web_protected.add_argument(
-        "--url", default=None,
-        help="custom literal-loopback page; omit for demo")
+        "--url", required=True,
+        help="literal-loopback webpage URL")
     p_web_protected.add_argument(
-        "--question", default=None,
-        help="custom question; omit for the Northstar demo")
+        "--question", required=True,
+        help="question Agent 2 must answer from evidence")
     p_web_protected.add_argument(
         "--headed", action="store_true",
         help="show Chromium for local debugging")
@@ -1129,7 +1088,10 @@ def main(argv: list[str] | None = None) -> int:
         help="overall workflow timeout in seconds (default 120)")
     p_web_protected.add_argument(
         "--model", default="deepseek-flash",
-        help="DeepSeek model name (default deepseek-flash)")
+        help="model name (default deepseek-flash)")
+    p_web_protected.add_argument(
+        "--provider", choices=["deepseek", "openai"], default="deepseek",
+        help="model API provider (default deepseek)")
     p_web_protected.add_argument(
         "--out", default=None,
         help="new or empty artifact directory")

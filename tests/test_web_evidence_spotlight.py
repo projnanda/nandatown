@@ -1,6 +1,5 @@
 import json
 import time
-from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -20,7 +19,6 @@ from nandatown.web_evidence import (
     ToolCall,
     run_web_evidence,
 )
-from nandatown.web_evidence_demo import DEMO_QUESTION
 from nandatown.web_evidence_spotlight import (
     SPOTLIGHT_MARKER,
     SPOTLIGHTING_PROMPT_APPENDIX,
@@ -101,11 +99,7 @@ class FakeModel:
                 call_id="c2",
                 name="select_evidence",
                 arguments={
-                    "items": [{
-                        "page_id": "P1",
-                        "block_id": "B2",
-                        "quote": self.fact,
-                    }],
+                    "items": [{"page_id": "P1"}],
                 },
             ),
             3: ToolCall(
@@ -206,6 +200,8 @@ def test_protected_prompt_is_exact_appendix_to_original_prompt():
     assert protected.collector_prompt == baseline.collector_prompt
     baseline_data = baseline.model_dump()
     protected_data = protected.model_dump()
+    assert baseline.temperature == 0
+    assert protected.temperature == 0
     baseline_data.pop("answerer_prompt")
     protected_data.pop("answerer_prompt")
     assert protected_data == baseline_data
@@ -251,8 +247,11 @@ def test_protected_workflow_preserves_agent1_and_logs_actual_handoff(tmp_path):
     )
     answer_payload = json.loads(answer_request["messages"][1]["content"])
 
-    assert original_handoff["items"][0]["text"] == FACT
-    assert actual_handoff["items"][0]["text"] == datamark_text(FACT)
+    expected_page_text = source_page().visible_text
+    assert original_handoff["items"][0]["text"] == expected_page_text
+    assert actual_handoff["items"][0]["text"] == datamark_text(
+        expected_page_text
+    )
     assert original_handoff["completion_note"] == "relevant source found"
     assert actual_handoff["completion_note"] == datamark_text(
         "relevant source found"
@@ -302,7 +301,7 @@ def test_marker_collision_preserves_original_and_stops_before_agent2(tmp_path):
     assert "already contains U+E000" in result.stop_reason
     assert json.loads(
         (directory / "handoff.json").read_text(encoding="utf-8")
-    )["items"][0]["text"] == fact
+    )["items"][0]["text"] == source_page(fact).visible_text
     assert not (directory / "agent2_handoff.json").exists()
     assert not any(request["json_mode"] for request in model.requests)
     assert browser.closed is True
@@ -363,7 +362,7 @@ def completed_result():
         run_id="web-protected-test",
         status="completed",
         stop_reason="relevant source found",
-        question=DEMO_QUESTION,
+        question=QUESTION,
         answer=Answer(
             text="The project started on March 14, 2024.",
             citations=[Citation(
@@ -377,11 +376,6 @@ def completed_result():
     )
 
 
-@contextmanager
-def fake_demo_site():
-    yield "http://127.0.0.1:8765/index.html"
-
-
 def test_protected_cli_is_separate_and_uses_protected_runner(
         tmp_path, monkeypatch, capsys):
     observed = {}
@@ -391,16 +385,14 @@ def test_protected_cli_is_separate_and_uses_protected_runner(
         return Path(output), completed_result()
 
     monkeypatch.setattr(
-        "nandatown.web_evidence_demo.serve_northstar_site",
-        fake_demo_site,
-    )
-    monkeypatch.setattr(
         "nandatown.web_evidence_spotlight.run_protected_web_evidence",
         fake_run,
     )
 
     code = main([
         "web-evidence-protected",
+        "--url", URL,
+        "--question", QUESTION,
         "--json",
         "--out",
         str(tmp_path / "run"),
@@ -409,5 +401,5 @@ def test_protected_cli_is_separate_and_uses_protected_runner(
     assert code == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["guardrail"] == "spotlighting/datamarking"
-    assert observed["config"].question == DEMO_QUESTION
+    assert observed["config"].question == QUESTION
     assert observed["renderer"].enabled is False

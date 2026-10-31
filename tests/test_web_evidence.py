@@ -15,6 +15,7 @@ from nandatown.web_evidence import (
     BrowserUnavailable,
     DeepSeekClient,
     ModelReply,
+    OpenAIClient,
     PlaywrightBrowser,
     RunConfig,
     SourceBlock,
@@ -90,8 +91,7 @@ class FakeModel:
         calls = {
             1: ToolCall(call_id="c1", name="read_page", arguments={}),
             2: ToolCall(call_id="c2", name="select_evidence", arguments={
-                "items": [{"page_id": "P1", "block_id": "B2",
-                           "quote": FACT}]}),
+                "items": [{"page_id": "P1"}]}),
             3: ToolCall(call_id="c3", name="finish_evidence", arguments={
                 "complete": True, "note": "relevant source found"}),
         }
@@ -126,16 +126,38 @@ def test_two_agent_workflow_writes_exact_handoff_and_cited_answer(tmp_path):
     assert result.answer.citation_support_assessed is False
     handoff = json.loads((directory / "handoff.json").read_text())
     item = handoff["items"][0]
-    assert item["text"] == FACT
+    assert item["text"] == browser.page.visible_text
     assert item["validation"] == "verbatim_match"
-    assert item["selector"] == "body > main > p#launch-date"
+    assert item["selector"] == "body"
+    assert item["block_id"] == "PAGE_VISIBLE_TEXT"
     assert item["start_offset"] == 0
+    assert item["end_offset"] == len(browser.page.visible_text)
+    assert item["truncated"] is False
     assert browser.closed
     agent_2_request = next(request for request in model.requests
                            if request["json_mode"])
     request_text = json.dumps(agent_2_request["messages"])
     assert QUESTION in request_text
     assert FACT in request_text
+
+
+def test_complete_page_handoff_has_no_1000_character_truncation(tmp_path):
+    page = source_page().model_copy(update={
+        "visible_text": "Relevant start. " + ("x" * 1_500) + " Complete end.",
+    })
+    model = FakeModel()
+
+    directory, result = run_web_evidence(
+        RunConfig(url=page.url, question=QUESTION),
+        str(tmp_path / "complete-page"),
+        model=model,
+        browser=FakeBrowser(page),
+    )
+
+    handoff = json.loads((directory / "handoff.json").read_text())
+    assert result.status == "completed"
+    assert handoff["items"][0]["text"] == page.visible_text
+    assert handoff["items"][0]["truncated"] is False
 
 
 def test_answerer_retries_unknown_citation_once(tmp_path):
@@ -268,6 +290,36 @@ def test_deepseek_request_explicitly_disables_thinking():
 
     assert observed["thinking"] == {"type": "disabled"}
     assert observed["reasoning_effort"] == "none"
+    assert observed["temperature"] == 0
+    assert observed["response_format"] == {"type": "json_object"}
+    assert reply.usage["total_tokens"] == 7
+
+
+def test_openai_request_uses_none_reasoning_and_omits_thinking():
+    observed = {}
+
+    def handle(request):
+        observed.update(json.loads(request.content))
+        return httpx.Response(200, json={
+            "choices": [{"finish_reason": "stop", "message": {
+                "content": '{"answer":"ok","citations":[]}',
+                "tool_calls": []}}],
+            "usage": {"prompt_tokens": 3, "completion_tokens": 4,
+                      "total_tokens": 7},
+        })
+
+    client = OpenAIClient(
+        http=httpx.Client(base_url="https://api.openai.invalid/v1",
+                          transport=httpx.MockTransport(handle)),
+        reasoning_effort="none",
+        temperature=0,
+    )
+    reply = client.complete([{"role": "user", "content": "json"}],
+                            json_mode=True)
+
+    assert "thinking" not in observed
+    assert observed["reasoning_effort"] == "none"
+    assert observed["temperature"] == 0
     assert observed["response_format"] == {"type": "json_object"}
     assert reply.usage["total_tokens"] == 7
 

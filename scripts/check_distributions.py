@@ -24,7 +24,6 @@ def check(directory: Path) -> None:
     test_data = {
         path.relative_to(root).as_posix()
         for pattern in ("tests/fixtures/**/*", "schemas/*.json", "examples/*.py",
-                        "examples/web_evidence_site/*",
                         "scripts/setup_web_evidence.py")
         for path in root.glob(pattern) if path.is_file()
     }

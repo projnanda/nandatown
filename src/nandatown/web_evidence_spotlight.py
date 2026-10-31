@@ -29,6 +29,7 @@ from .web_evidence import (
     SourcePage,
     TerminalRenderer,
     _write_json,
+    create_model_service,
 )
 
 
@@ -153,7 +154,7 @@ def run_protected_web_evidence(
         f"protected run {run_id} started",
     )
     try:
-        service = service or DeepSeekClient(config.model, config.base_url)
+        service = service or create_model_service(config)
         web = web or PlaywrightBrowser(config, deadline=deadline)
         web.start()
 
