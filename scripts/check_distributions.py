@@ -18,13 +18,16 @@ def check(directory: Path) -> None:
     runtime = {
         path.relative_to(root / "src").as_posix()
         for pattern in ("src/nandatown/sim/scenarios/*.yaml",
-                        "src/nandatown/skills/builtin/*.md")
+                        "src/nandatown/skills/builtin/*.md",
+                        "src/nandatown/_vendor/promptarmor/*.py",
+                        "src/nandatown/_vendor/promptarmor/LICENSE",
+                        "src/nandatown/_vendor/promptarmor/SOURCE.json")
         for path in root.glob(pattern)
     }
     test_data = {
         path.relative_to(root).as_posix()
         for pattern in ("tests/fixtures/**/*", "schemas/*.json", "examples/*.py",
-                        "scripts/setup_web_evidence.py")
+                        "scripts/setup_web_evidence.py", "scripts/run_offline_checks.py")
         for path in root.glob(pattern) if path.is_file()
     }
     with zipfile.ZipFile(wheels[0]) as wheel:

@@ -6,3 +6,5 @@ runs/
 .pytest_cache/
 .ruff_cache/
 .env
+build/
+dist/

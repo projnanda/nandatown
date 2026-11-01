@@ -36,7 +36,7 @@ jobs:
       - name: Install
         run: pip install -e ".[dev]"
       - name: Test
-        run: pytest -q
+        run: python scripts/run_offline_checks.py
       - name: Smoke run (Lab)
         run: nandatown run marketplace --out /tmp/runs
       - name: Smoke run (Track)
@@ -66,3 +66,5 @@ jobs:
           "$RUNNER_TEMP/town-wheel-env/bin/nandatown" run marketplace --out "$RUNNER_TEMP/town-wheel-runs"
           "$RUNNER_TEMP/town-wheel-env/bin/nandatown" run quote-crash-restart --out "$RUNNER_TEMP/town-wheel-runs"
           "$RUNNER_TEMP/town-wheel-env/bin/nandatown" skills
+          "$RUNNER_TEMP/town-wheel-env/bin/nandatown" web-evidence-protected --help
+          "$RUNNER_TEMP/town-wheel-env/bin/python" -c "from nandatown.promptarmor_guard import upstream; upstream()"

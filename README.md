@@ -316,11 +316,14 @@ with evidence-ID citations. Nothing is silently shortened: a packet that does
 not fit Agent 2's context fails clearly. The handoff and both agents' actual
 model requests are recorded for inspection.
 
-`nandatown web-evidence-protected` runs the same agents and handoff with one
-difference: Spotlighting/Datamarking is applied between Agent 1 and Agent 2.
-The unprotected command does not filter instruction-like page text. The
-protected command preserves the original packet separately and marks the copy
-sent to Agent 2.
+`nandatown web-evidence-protected` inserts PromptArmor between the unchanged
+agents. It detects and removes reported injected spans from a separate packet
+copy, preserving the original evidence and exact deletion audit. The previous
+Spotlighting implementation is replaced, not combined with this defense.
+Protected defaults are GPT-4.1 for both agents and GPT-6 Luna with medium
+reasoning for the guard. It needs `OPENAI_API_KEY`; baseline defaults are unchanged.
+Only four pinned upstream runtime modules and their MIT license are bundled;
+no separate clone, model weights, SDK or dataset is needed at runtime.
 
 Quick setup from the repository root:
 
@@ -336,7 +339,9 @@ nandatown web-evidence --url http://127.0.0.1:8765/page.html --question "Your qu
 ```
 
 The protected form is `nandatown web-evidence-protected` with the same required
-arguments. Public URLs are temporarily disabled to prevent DNS rebinding. Add
+arguments. `nandatown web-evidence-protected-replay --packet handoff.json` skips
+collection and reuses a saved packet. See the guide for independent guard settings
+and the meaning of sanitized provenance. Public URLs are temporarily disabled to prevent DNS rebinding. Add
 `--headed` to watch Chromium or `--json` for machine-readable terminal output.
 
 See [the web evidence guide](docs/web-evidence.md) for a local fixture command,

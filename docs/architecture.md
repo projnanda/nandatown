@@ -50,6 +50,9 @@ src/nandatown/
   pulse.py         Town Pulse: scheduled probes, SQLite history,
                    availability report, operational-history records
   web_evidence.py  bounded Playwright reader -> evidence packet -> cited answer
+  promptarmor_guard.py  pinned upstream detection/removal and deletion provenance
+  promptarmor_workflow.py  protected E2E/replay orchestration, separate guard transport
+  _vendor/promptarmor/  four original runtime modules with MIT license and hashes
   new.py           scaffolding templates (scenario, plugin, skill, agent)
   board.py         the local leaderboard over evidence bundles
   protocols.py     PR import from the upstream repo: snapshot at the

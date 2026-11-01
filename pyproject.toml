@@ -31,7 +31,8 @@ nandatown = "nandatown.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-nandatown = ["sim/scenarios/*.yaml", "skills/builtin/*.md"]
+nandatown = ["sim/scenarios/*.yaml", "skills/builtin/*.md",
+             "_vendor/promptarmor/LICENSE", "_vendor/promptarmor/SOURCE.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
