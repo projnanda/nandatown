@@ -315,6 +315,8 @@ inputs rather than silently substituting reference agents.
 - **PromptArmor:** LLM-based detection and removal.
 - **PIGuard:** ML detection with adaptive model routing.
 
+See the [web-evidence guide](docs/web-evidence.md).
+
 ## The MCP and A2A edges
 
 HTTP is Track's canonical participant boundary. MCP adapts that surface;
