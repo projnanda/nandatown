@@ -307,65 +307,13 @@ connector URLs are omitted from rerun metadata; supply those inputs again and
 record the agent/adapter versions separately. The printed recipe names missing
 inputs rather than silently substituting reference agents.
 
-## Two-agent web evidence experiments
+## Two-agent web-evidence experiments
 
-`nandatown web-evidence` runs a bounded two-agent workflow: Agent 1 reads pages
-through Playwright and hands the complete visible text of every selected page,
-unchanged and source-linked, to Agent 2. Agent 2 answers the original question
-with evidence-ID citations. Nothing is silently shortened: a packet that does
-not fit Agent 2's context fails clearly. The handoff and both agents' actual
-model requests are recorded for inspection.
+`nandatown web-evidence` adds a local two-agent workflow for testing webpage-based prompt injection, with three configurations:
 
-`nandatown web-evidence-protected` inserts PromptArmor between the unchanged
-agents. It detects and removes reported injected spans from a separate packet
-copy, preserving the original evidence and exact deletion audit. The previous
-Spotlighting implementation is replaced, not combined with this defense.
-Protected defaults are GPT-4.1 for both agents and GPT-6 Luna with medium
-reasoning for the guard. It needs `OPENAI_API_KEY`; baseline now also defaults to GPT-4.1 at temperature zero.
-Only four pinned upstream runtime modules and their MIT license are bundled;
-no separate clone, model weights, SDK or dataset is needed at runtime.
-
-`web-evidence --defense baseline|llm|piguard` selects a shared workflow.
-`web-evidence-piguard` adds the official local PIGuard classifier, warnings and
-retained adaptive routing: GPT-4.1 after complete benign checking, otherwise
-GPT-6 Luna/medium for Agent 2. It does not delete source text. ML dependencies
-and pinned weights are optional and explicitly installed/downloaded.
-
-All three Collectors default to GPT-4.1; comparisons still measure complete systems
-because the LLM Judge and PIGuard Answerer routing differ. The versioned
-experimental artifact contract is separate from Town verifiable bundles, and
-the reported result is limited to one synthetic pair; it does not establish
-general robustness or isolate the classifier's causal effect.
-
-Quick setup from the repository root:
-
-```
-python scripts/setup_web_evidence.py
-```
-
-Set `OPENAI_API_KEY`, serve a controlled page on a literal loopback IP, then
-provide its URL and the question explicitly:
-
-```
-nandatown web-evidence --url http://127.0.0.1:8765/page.html --question "Your question"
-```
-
-The protected form is `nandatown web-evidence-protected` with the same required
-arguments. `nandatown web-evidence-protected-replay --packet handoff.json` skips
-collection and reuses a saved packet. See the guide for independent guard settings
-and the meaning of sanitized provenance. Public URLs are temporarily disabled to prevent DNS rebinding. Add
-`--headed` to watch Chromium or `--json` for machine-readable terminal output.
-
-See [the web evidence guide](docs/web-evidence.md) for a local fixture command,
-configuration limits, research sources, artifact compatibility and current limitations.
-
-On the single synthetic Atlas Relay pair (10 runs per method and variant),
-Baseline answered all three facts correctly in 10/10 Clean and 0/10 Malicious
-runs; the LLM defense and the corrected PIGuard + adaptive routing campaign
-answered correctly in 10/10 for both. PIGuard's earlier missing-dependency runs
-are excluded. These are separate local campaigns, not a general robustness
-benchmark or isolated classifier ablation. See the guide for the full findings,
-real classifier validation, routing and architecture diagrams.
+- **Baseline:** No dedicated defense.
+- **PromptArmor:** LLM-based detection and removal.
+- **PIGuard:** ML detection with adaptive model routing.
 
 ## The MCP and A2A edges
 
