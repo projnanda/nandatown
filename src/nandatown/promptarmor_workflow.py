@@ -1,17 +1,14 @@
-"""Independent E2E/replay orchestration; baseline Agent implementations stay intact."""
+"""Pinned PromptArmor adapter and compatible E2E/replay entry points."""
 from __future__ import annotations
 import json
 import os
 from pathlib import Path
-import time
-import uuid
 from urllib.parse import urlsplit
 
 import httpx
-from .web_evidence import (RunConfig, EvidencePacket, EvidenceCollector, AnswerGenerator,
-    PlaywrightBrowser, EventLog, TerminalRenderer, ModelReply, ToolCall, _write_json,
+from .web_evidence import (RunConfig, EventLog, ModelReply, ToolCall, _write_json,
     COLLECTOR_SYSTEM_PROMPT, ANSWERER_SYSTEM_PROMPT)
-from .promptarmor_guard import Guard, DefenseError, PROVENANCE
+from .promptarmor_guard import Guard, PROVENANCE
 
 
 
@@ -105,113 +102,88 @@ def validate_endpoint(url):
         raise ValueError('Model endpoint must be HTTP(S) without credentials, query or fragment')
 
 
+class PromptArmorAdapter:
+    """Pinned LLM sanitization with fail-closed handoff and original-source audit."""
+
+    name = 'llm'
+    log_type = EventLog
+
+    def __init__(self, config, *, guard_model, guard_base_url, guard_key_env,
+                 agent_key_env, guard_reasoning_effort, agent=None, guard_client=None,
+                 replay=False):
+        self.config = config
+        self.guard_model, self.guard_base_url = guard_model, guard_base_url
+        self.guard_key_env, self.agent_key_env = guard_key_env, agent_key_env
+        self.effort, self.client = guard_reasoning_effort, guard_client
+        self.owned_guard = guard_client is None
+        self.replay = replay
+
+    @property
+    def usage(self):
+        return getattr(self.client, 'usage', {})
+
+    def configuration(self, config):
+        return {'guard': {
+            'model': self.guard_model, 'base_url': self.guard_base_url,
+            'temperature': None if self.effort not in (None, 'none') else 0,
+            'reasoning_parameter': self.effort or 'omitted',
+            'on_detect': 'remove', 'removal_length_guard': 3.0, 'include_definition': False,
+            'per_text_timeout_seconds': 120, 'total_timeout_seconds': 600,
+            'automatic_retries': 0}, 'provenance': PROVENANCE,
+            'effective_agent_parameters': {'model': config.model, 'temperature': 0,
+                'reasoning_effort': 'none' if config.model.startswith('gpt-6') else None},
+            'agent_transport_retries': 0, 'guard_time_excluded': True}
+
+    def open_collector(self, config, log):
+        service = AgentClient(config.model, config.base_url, self.agent_key_env, log)
+        return service, service
+
+    def defend(self, packet, output, log):
+        from .evidence_workflow import DefenseOutcome
+        self.client = self.client or GuardClient(self.guard_model, self.guard_base_url,
+            self.guard_key_env, log, reasoning_effort=self.effort)
+        guard = Guard(self.client, log, output / 'promptarmor.json')
+        _write_json(output / 'manifest.json', {'upstream': guard.identity, 'replay': self.replay,
+                    'guard_usage_source': 'API usage, when available', 'provenance': PROVENANCE})
+        cleaned = guard.packet(packet)
+        log.emit('runner', 'sanitized_handoff', {'packet': cleaned.model_dump(), 'provenance': PROVENANCE})
+        return DefenseOutcome(cleaned, 'complete', {
+            'provenance': PROVENANCE, 'guardrail': 'promptarmor',
+            'guardrail_version': 'promptarmor-handoff@1'},
+            {'model': self.config.model, 'reason': 'fixed_agent2',
+             'reasoning_effort': 'none' if self.config.model.startswith('gpt-6') else None,
+             'temperature': 0})
+
+    def open_answerer(self, config, service, outcome, output, log):
+        if service is not None:
+            return service, None, config
+        client, handle = self.open_collector(config, log)
+        return client, handle, config
+
+    def close(self):
+        if self.owned_guard and self.client is not None:
+            self.client.close()
+
+
 def run(config, out, *, packet_path=None, guard_model='gpt-6-luna',
         guard_base_url='https://api.openai.com/v1', guard_key_env='OPENAI_API_KEY',
-        agent_key_env='OPENAI_API_KEY', agent=None, guard_client=None, browser=None, guard_reasoning_effort=None):
+        agent_key_env='OPENAI_API_KEY', agent=None, guard_client=None, browser=None,
+        guard_reasoning_effort=None):
+    """Compatibility entry point backed by the shared experiment runner."""
+    from .evidence_workflow import run_workflow
     validate_endpoint(config.base_url)
     validate_endpoint(guard_base_url)
     if config.provider != 'openai':
         raise ValueError('Protected workflow requires the OpenAI-compatible transport')
+    if config.collector_prompt != COLLECTOR_SYSTEM_PROMPT or config.answerer_prompt != ANSWERER_SYSTEM_PROMPT:
+        raise ValueError('This workflow requires the unchanged baseline prompts')
     if guard_model in ('gpt-4.1', 'gpt-4.1-mini'):
         if guard_reasoning_effort is not None:
             raise ValueError('GPT-4.1 guard models do not support reasoning_effort')
     elif guard_reasoning_effort is None:
         guard_reasoning_effort = 'medium'
-    output = Path(out)
-    if output.is_symlink() or (output.exists() and (not output.is_dir() or any(output.iterdir()))):
-        raise ValueError('Output must be new or empty')
-    output.mkdir(parents=True, exist_ok=True)
-    log = EventLog(output / 'events.jsonl', TerminalRenderer(enabled=False))
-    _write_json(output / 'config.json', {'agents': config.model_dump(), 'guard': {
-        'model': guard_model, 'base_url': guard_base_url,
-        'temperature': None if guard_reasoning_effort not in (None, 'none') else 0,
-        'temperature_policy': 'omitted for active reasoning' if guard_reasoning_effort not in (None, 'none') else 'explicit zero',
-        'reasoning_parameter': guard_reasoning_effort or 'omitted',
-        'on_detect': 'remove', 'removal_length_guard': 3.0, 'include_definition': False,
-        'per_text_timeout_seconds': 120, 'total_timeout_seconds': 600, 'automatic_retries': 0},
-        'provenance': PROVENANCE})
-    result = {'run_id': 'pa-' + uuid.uuid4().hex, 'status': 'error', 'answer': None,
-              'question': config.question, 'provenance': PROVENANCE, 'factual_support_assessed': False,
-              'guardrail': 'promptarmor', 'guardrail_version': 'promptarmor-handoff@1',
-              'pages_visited': 0, 'steps_used': 0, 'evidence_count': 0,
-              'token_usage': {'agent1': {}, 'guard': {}, 'agent2': {}}, 'timing_seconds': {},
-              'limitations': ['Metadata is not screened.', 'Only detected spans are removed.',
-                              'Sanitized text is not verbatim source evidence.']}
-    owned_agent, owned_guard = agent is None, guard_client is None
-    collector = generator = None
-    phase = 'setup'
-    started = time.monotonic()
-    try:
-        # Enforce exact baseline prompts; no security appendix enters either Agent.
-        if config.collector_prompt != COLLECTOR_SYSTEM_PROMPT or config.answerer_prompt != ANSWERER_SYSTEM_PROMPT:
-            raise ValueError('This workflow requires the unchanged baseline prompts')
-        remaining = config.run_timeout_seconds
-        if packet_path is not None:
-            raw = Path(packet_path).read_bytes()
-            packet = EvidencePacket.model_validate_json(raw)
-            if packet.question != config.question:
-                raise ValueError('Replay question differs from packet')
-            (output / 'handoff.json').write_bytes(raw)
-        else:
-            phase = 'agent1'
-            agent = agent or AgentClient(config.model, config.base_url, agent_key_env, log)
-            browser = browser or PlaywrightBrowser(config, deadline=started + remaining)
-            (output / 'pages').mkdir()
-            browser.start()
-            collector = EvidenceCollector(config, agent, browser, log,
-                lambda page: _write_json(output / 'pages' / f'{page.page_id}.json', page), started + remaining)
-            packet = collector.run()
-            result['token_usage']['agent1'] = dict(collector.usage)
-            _write_json(output / 'handoff.json', packet)
-            remaining -= time.monotonic() - started
-        result['evidence_count'] = len(packet.items)
-        result['timing_seconds']['agent1'] = time.monotonic() - started if collector else 0
-        log.emit('runner', 'original_handoff', {'packet': packet.model_dump(), 'provenance': PROVENANCE})
-        if not packet.items:
-            result.update(status='partial', stop_reason='No evidence; no Guard or Agent 2 call')
-            return result
-        if remaining <= 0:
-            result.update(status='limit_reached', stop_reason='Original Agent time budget exhausted')
-            return result
-        phase = 'guard'
-        guard_tick = time.monotonic()
-        guard_client = guard_client or GuardClient(guard_model, guard_base_url, guard_key_env, log, reasoning_effort=guard_reasoning_effort)
-        guard = Guard(guard_client, log, output / 'promptarmor.json')
-        _write_json(output / 'manifest.json', {'upstream': guard.identity, 'replay': packet_path is not None,
-                    'guard_usage_source': 'API usage, when available', 'provenance': PROVENANCE})
-        cleaned = guard.packet(packet)
-        result['timing_seconds']['guard'] = time.monotonic() - guard_tick
-        result['token_usage']['guard'] = dict(getattr(guard_client, 'usage', {}))
-        # Only an all-fields-successful guard may create the deliverable packet.
-        _write_json(output / 'agent2_handoff.json', cleaned)
-        log.emit('runner', 'sanitized_handoff', {'packet': cleaned.model_dump(), 'provenance': PROVENANCE})
-        phase = 'agent2'
-        agent = agent or AgentClient(config.model, config.base_url, agent_key_env, log)
-        tick = time.monotonic()
-        generator = AnswerGenerator(config, agent, log, tick + remaining)
-        answer = generator.run(cleaned)
-        result['timing_seconds']['agent2'] = time.monotonic() - tick
-        result.update(status='completed' if packet.complete else 'partial', answer=answer.model_dump(),
-                      stop_reason='Guard completed and Agent 2 returned structured output; factual accuracy not graded')
-    except Exception as exc:
-        result.update(status='defense_error' if phase == 'guard' else 'error',
-                      stop_reason=f'{phase} failed ({type(exc).__name__}); no fallback used')
-        log.emit('runner', 'run_error', {'phase': phase, 'type': type(exc).__name__})
-    finally:
-        if collector:
-            result['pages_visited'] = len(collector.pages)
-            result['steps_used'] = collector.steps
-            result['token_usage']['agent1'] = dict(collector.usage)
-        if guard_client:
-            result['token_usage']['guard'] = dict(getattr(guard_client, 'usage', {}))
-        if generator:
-            result['token_usage']['agent2'] = dict(generator.usage)
-        if browser:
-            browser.close()
-        if owned_agent and agent:
-            agent.close()
-        if owned_guard and guard_client:
-            guard_client.close()
-        result['timing_seconds']['total'] = time.monotonic() - started
-        _write_json(output / 'result.json', result)
-    return result
+    adapter = PromptArmorAdapter(config, guard_model=guard_model, guard_base_url=guard_base_url,
+        guard_key_env=guard_key_env, agent_key_env=agent_key_env,
+        guard_reasoning_effort=guard_reasoning_effort, agent=agent, guard_client=guard_client,
+        replay=packet_path is not None)
+    return run_workflow(config, out, adapter, model=agent, browser=browser, packet_path=packet_path)

@@ -27,6 +27,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 WORKFLOW_VERSION = "web-evidence-complete-page@0.1"
 DEFAULT_MODEL = "deepseek-flash"
+BASELINE_MODEL = "gpt-4.1"
 DEFAULT_BASE_URL = "https://api.deepseek.com"
 OPENAI_BASE_URL = "https://api.openai.com/v1"
 MAX_SNAPSHOT_CHARS = 1_048_576
@@ -94,9 +95,9 @@ class RunConfig(BaseModel):
     workflow_version: str = WORKFLOW_VERSION
     url: str
     question: str
-    model: str = DEFAULT_MODEL
-    provider: Literal["deepseek", "openai"] = "deepseek"
-    base_url: str = DEFAULT_BASE_URL
+    model: str = BASELINE_MODEL
+    provider: Literal["deepseek", "openai"] = "openai"
+    base_url: str = OPENAI_BASE_URL
     headed: bool = False
     max_pages: int = Field(default=3, ge=1, le=10)
     max_steps: int = Field(default=6, ge=1, le=30)
@@ -314,6 +315,8 @@ class DeepSeekClient:
             "temperature": self.temperature,
             "stream": False,
         }
+        if self.reasoning_effort is None:
+            payload.pop("reasoning_effort", None)
         if self.include_thinking:
             payload["thinking"] = {"type": "disabled"}
         if tools:
@@ -367,7 +370,7 @@ class DeepSeekClient:
             except (KeyError, IndexError, TypeError, ValueError) as exc:
                 last_error = exc
                 break
-        raise RuntimeError(f"{self.service_name} request failed: {last_error}")
+        raise RuntimeError(f"{self.service_name} request failed ({type(last_error).__name__})") from None
 
 
 class OpenAIClient(DeepSeekClient):
@@ -391,6 +394,8 @@ class OpenAIClient(DeepSeekClient):
             api_key_env="OPENAI_API_KEY",
             include_thinking=False,
         )
+        if model.startswith("gpt-4.1"):
+            self.reasoning_effort = None  # GPT-4.1 receives temperature, not reasoning controls.
 
 
 def create_model_service(config: RunConfig) -> ModelService:
@@ -1091,100 +1096,13 @@ def run_web_evidence(config: RunConfig, out_dir: str,
                      browser: BrowserService | None = None,
                      renderer: TerminalRenderer | None = None
                      ) -> tuple[Path, RunResult]:
-    """Run the two-agent baseline and write inspectable artifacts."""
-    output = Path(out_dir)
-    if output.is_symlink() or (output.exists() and not output.is_dir()):
-        raise ValueError(f"output must be a real directory: {output}")
-    if output.exists() and any(output.iterdir()):
-        raise ValueError(f"output directory is not empty: {output}")
-    output.mkdir(parents=True, exist_ok=True)
-    pages_dir = output / "pages"
-    pages_dir.mkdir(exist_ok=True)
-    events_path = output / "events.jsonl"
-    events_path.write_text("", encoding="utf-8")
-    _write_json(output / "config.json", config)
-    log = EventLog(events_path, renderer)
-    run_id = "web-" + uuid.uuid4().hex
-    service = model
-    web = browser
-    owned_model = model is None
-    deadline = time.monotonic() + config.run_timeout_seconds
-    collector: EvidenceCollector | None = None
-    packet: EvidencePacket | None = None
-    answer: Answer | None = None
-    status: Literal["completed", "partial", "limit_reached", "error"] = "error"
-    stop_reason = "run did not start"
+    """Run the shared lifecycle with an identity defense; retain the Python API."""
+    from .evidence_workflow import BaselineAdapter, run_workflow
 
-    def save_page(page: SourcePage) -> None:
-        _write_json(pages_dir / f"{page.page_id}.json", page)
-
-    log.emit("runner", "run_started",
-             {"run_id": run_id, "workflow_version": WORKFLOW_VERSION,
-              "config": config.model_dump(exclude={"collector_prompt",
-                                                    "answerer_prompt"})},
-             f"run {run_id} started")
-    try:
-        service = service or create_model_service(config)
-        web = web or PlaywrightBrowser(config, deadline=deadline)
-        web.start()
-        collector = EvidenceCollector(config, service, web, log, save_page,
-                                      deadline)
-        packet = collector.run()
-        _write_json(output / "handoff.json", packet)
-        log.emit("runner", "evidence_handoff",
-                 {"packet": packet.model_dump()},
-                 f"handed {len(packet.items)} evidence items to Agent 2")
-        if not packet.items:
-            status = "limit_reached" if "limit" in packet.completion_note else "partial"
-            stop_reason = packet.completion_note or "no evidence was collected"
-        elif time.monotonic() >= deadline:
-            status = "limit_reached"
-            stop_reason = "overall run timeout reached before Agent 2"
-        else:
-            generator = AnswerGenerator(config, service, log, deadline)
-            answer = generator.run(packet)
-            usage = dict(collector.usage)
-            for key, value in generator.usage.items():
-                usage[key] = usage.get(key, 0) + value
-            status = "completed" if packet.complete else "partial"
-            stop_reason = packet.completion_note or (
-                "Agent 2 returned a structurally valid cited answer")
-            result = RunResult(
-                run_id=run_id, status=status, stop_reason=stop_reason,
-                question=config.question, answer=answer,
-                evidence_count=len(packet.items), pages_visited=len(collector.pages),
-                steps_used=collector.steps, token_usage=usage,
-                artifacts={"config": "config.json", "events": "events.jsonl",
-                           "handoff": "handoff.json", "pages": "pages/",
-                           "result": "result.json"},
-            )
-            _write_json(output / "result.json", result)
-            log.emit("runner", "run_finished", result.model_dump(),
-                     f"{status}: {stop_reason}")
-            return output, result
-    except Exception as exc:
-        status = "error"
-        stop_reason = f"{type(exc).__name__}: {exc}"
-        log.emit("runner", "run_error",
-                 {"type": type(exc).__name__, "message": str(exc)},
-                 stop_reason)
-    finally:
-        if web is not None:
-            web.close()
-        if owned_model and isinstance(service, DeepSeekClient):
-            service.close()
-
-    usage = dict(collector.usage) if collector else {}
-    result = RunResult(
-        run_id=run_id, status=status, stop_reason=stop_reason,
-        question=config.question, answer=answer,
-        evidence_count=len(packet.items) if packet else 0,
-        pages_visited=len(collector.pages) if collector else 0,
-        steps_used=collector.steps if collector else 0,
-        token_usage=usage,
-        artifacts={"config": "config.json", "events": "events.jsonl",
-                   "handoff": "handoff.json" if packet else "not_written",
-                   "pages": "pages/", "result": "result.json"},
-    )
-    _write_json(output / "result.json", result)
-    return output, result
+    result = run_workflow(config, out_dir, BaselineAdapter(), model=model,
+                          browser=browser, renderer=renderer, browser_factory=PlaywrightBrowser)
+    aggregate = {}
+    for usage in result["token_usage"].values():
+        for key, value in usage.items():
+            aggregate[key] = aggregate.get(key, 0) + value
+    return Path(out_dir), RunResult.model_validate({**result, "token_usage": aggregate})

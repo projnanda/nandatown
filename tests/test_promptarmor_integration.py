@@ -9,7 +9,7 @@ import pytest
 from nandatown.web_evidence import EvidenceItem, EvidencePacket, EventLog, TerminalRenderer, ANSWERER_SYSTEM_PROMPT
 from nandatown.promptarmor_guard import Guard, DefenseError, PIN, sha, strict_decision
 from nandatown.promptarmor_workflow import (GuardClient, AgentClient, run, default_config)
-from test_web_evidence import FakeBrowser, FakeModel, source_page, QUESTION
+from web_evidence_helpers import FakeBrowser, FakeModel, source_page, QUESTION
 
 
 VENDOR_ROOT = Path(__file__).resolve().parents[1]/'src/nandatown/_vendor/promptarmor'
@@ -194,10 +194,11 @@ def test_agent_http_adapter_preserves_tools_and_json_no_reasoning(tmp_path,monke
     client.close()
 
 
-def test_original_agent_source_is_unchanged():
-    import hashlib
-    import nandatown.web_evidence as baseline
-    assert hashlib.sha256(Path(baseline.__file__).read_bytes().replace(b'\r\n',b'\n')).hexdigest() == '4ff42b7691305a5e7947bc591fa65b620ccbc7f624d5a077502c2a8dcc274203'
+def test_shared_prompt_contract():
+    from nandatown.web_evidence import COLLECTOR_SYSTEM_PROMPT
+    cfg = default_config('http://127.0.0.1/', QUESTION)
+    assert cfg.collector_prompt == COLLECTOR_SYSTEM_PROMPT
+    assert cfg.answerer_prompt == ANSWERER_SYSTEM_PROMPT
 
 
 def test_guard_budget_and_empty_fields(tmp_path,monkeypatch):

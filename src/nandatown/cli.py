@@ -148,7 +148,34 @@ def cmd_run(args: argparse.Namespace) -> int:
 
 def cmd_web_evidence(args: argparse.Namespace) -> int:
     """Run the two-agent complete-page evidence baseline."""
+    method = getattr(args, 'defense', 'baseline')
+    if args.provider is None:
+        args.provider = 'openai'
+    if args.model is None:
+        args.model = 'deepseek-flash' if args.provider == 'deepseek' else 'gpt-4.1'
+    if method != 'baseline' and args.base_url is None:
+        args.base_url = 'https://api.openai.com/v1'
+    if method == 'llm':
+        if args.provider != 'openai':
+            print('LLM defense requires provider openai')
+            return 2
+        return cmd_web_evidence_protected(args)
+    if method == 'piguard':
+        if args.provider != 'openai':
+            print('PIGuard requires provider openai')
+            return 2
+        return cmd_web_evidence_piguard(args)
     return _cmd_web_evidence(args)
+
+
+def cmd_web_evidence_piguard(args: argparse.Namespace) -> int:
+    """Run retained adaptive routing with a pinned local PIGuard snapshot."""
+    from .piguard_workflow import cli
+    try:
+        return cli(args)
+    except (ValueError, OSError) as exc:
+        print(f'PIGuard configuration error: {type(exc).__name__}')
+        return 2
 
 
 def cmd_web_evidence_protected(args: argparse.Namespace) -> int:
@@ -218,8 +245,8 @@ def _cmd_web_evidence(args: argparse.Namespace) -> int:
             question=args.question,
             model=args.model,
             provider=args.provider,
-            base_url=(OPENAI_BASE_URL if args.provider == "openai"
-                      else DEFAULT_BASE_URL),
+            base_url=(getattr(args, "base_url", None) or
+                      (OPENAI_BASE_URL if args.provider == "openai" else DEFAULT_BASE_URL)),
             headed=args.headed,
             max_pages=args.max_pages,
             max_steps=args.max_steps,
@@ -231,20 +258,15 @@ def _cmd_web_evidence(args: argparse.Namespace) -> int:
             config, output,
             renderer=TerminalRenderer(enabled=not args.json))
     except (ValidationError, ValueError) as exc:
-        print(f"{command} configuration error: {exc}")
+        print(f"{command} configuration error: {type(exc).__name__}")
         return 2
     except Exception as exc:
         print(f"{command} failed before artifacts were written:"
-              f" {type(exc).__name__}: {exc}")
+              f" {type(exc).__name__}")
         return 1
     if args.json:
-        payload = {
-            "status": result.status,
-            "stop_reason": result.stop_reason,
-            "answer": result.answer.model_dump() if result.answer else None,
-            "handoff_mode": "complete_page",
-            "artifacts": str(directory),
-        }
+        # The common on-disk contract retains split usage and defense status.
+        payload = json.loads((directory / "result.json").read_text(encoding="utf-8"))
         print(json.dumps(payload, indent=2, ensure_ascii=False))
     else:
         _print_web_evidence_summary(result, directory)
@@ -1073,17 +1095,42 @@ def main(argv: list[str] | None = None) -> int:
     p_web.add_argument("--page-timeout", type=float, default=15.0,
                        help="page load timeout in seconds (default 15)")
     p_web.add_argument("--run-timeout", type=float, default=120.0,
-                       help="overall workflow timeout in seconds (default 120)")
-    p_web.add_argument("--model", default="deepseek-flash",
-                       help="model name (default deepseek-flash)")
+                       help="Agent time budget in seconds; guard time excluded for defenses (default 120)")
+    p_web.add_argument("--model", default=None,
+                       help="Agent model (default gpt-4.1; deepseek provider: deepseek-flash)")
     p_web.add_argument("--provider", choices=["deepseek", "openai"],
-                       default="deepseek",
-                       help="model API provider (default deepseek)")
+                       default=None,
+                       help="API provider (default openai)")
     p_web.add_argument("--out", default=None,
                        help="new or empty artifact directory")
     p_web.add_argument("--json", action="store_true",
                        help="print machine-readable JSON instead of the panel")
+    p_web.add_argument("--defense", choices=["baseline", "llm", "piguard"], default="baseline")
+    p_web.add_argument("--model-dir", default="models/piguard-dd78b24e3301")
+    p_web.add_argument("--base-url", default=None, help="API endpoint; defaults to selected provider")
+    p_web.add_argument("--agent-key-env", default="OPENAI_API_KEY")
+    p_web.add_argument("--guard-model", default="gpt-6-luna")
+    p_web.add_argument("--guard-base-url", default="https://api.openai.com/v1")
+    p_web.add_argument("--guard-key-env", default="OPENAI_API_KEY")
+    p_web.add_argument("--guard-reasoning-effort", default=None,
+                       choices=["none", "low", "medium", "high", "xhigh", "max"])
     p_web.set_defaults(func=cmd_web_evidence)
+
+    p_pg = sub.add_parser("web-evidence-piguard", help="PIGuard warning and adaptive Agent 2 routing")
+    p_pg.add_argument("--url", required=True)
+    p_pg.add_argument("--question", required=True)
+    p_pg.add_argument("--model", choices=["gpt-4.1"], default="gpt-4.1")
+    p_pg.add_argument("--model-dir", default="models/piguard-dd78b24e3301")
+    p_pg.add_argument("--headed", action="store_true")
+    p_pg.add_argument("--max-pages", type=int, default=3)
+    p_pg.add_argument("--max-steps", type=int, default=6)
+    p_pg.add_argument("--input-budget", type=int, default=6000)
+    p_pg.add_argument("--page-timeout", type=float, default=15.0)
+    p_pg.add_argument("--run-timeout", type=float, default=120.0)
+    p_pg.add_argument("--base-url", default="https://api.openai.com/v1")
+    p_pg.add_argument("--out", default=None)
+    p_pg.add_argument("--json", action="store_true")
+    p_pg.set_defaults(func=cmd_web_evidence_piguard)
 
     for command, replay in (("web-evidence-protected", False),
                             ("web-evidence-protected-replay", True)):

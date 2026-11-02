@@ -8,3 +8,8 @@ runs/
 .env
 build/
 dist/
+
+# Explicitly downloaded ML snapshots and private experiment artifacts.
+models/
+*.safetensors
+*.ckpt

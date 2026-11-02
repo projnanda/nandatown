@@ -29,86 +29,8 @@ from nandatown.web_evidence import (
 )
 
 
-FACT = "Project Alpha launched on April 12, 2024."
-QUESTION = "When was Project Alpha launched?"
-FIXTURE_DIR = Path(__file__).parent / "fixtures" / "web_evidence"
-
-
-def source_page(url="http://127.0.0.1:8765/clean.html"):
-    return SourcePage(
-        page_id="P1",
-        url=url,
-        title="Project Alpha archive",
-        visible_text=f"Project Alpha\n{FACT}",
-        visible_text_sha256="sha256:" + "a" * 64,
-        blocks=[
-            SourceBlock(block_id="B1", selector="body > main > h1",
-                        text="Project Alpha"),
-            SourceBlock(block_id="B2", selector="body > main > p#launch-date",
-                        text=FACT),
-        ],
-        links=[],
-    )
-
-
-class FakeBrowser:
-    def __init__(self, page=None):
-        self.page = page or source_page()
-        self.started = False
-        self.closed = False
-
-    def start(self):
-        self.started = True
-
-    def open_page(self, url):
-        assert self.started
-        return self.page.model_copy(update={"url": url})
-
-    def close(self):
-        self.closed = True
-
-
-class FakeModel:
-    """Deterministic model boundary; the workflow still runs both agents."""
-
-    def __init__(self, answer_replies=None):
-        self.collector_turn = 0
-        self.answer_replies = list(answer_replies or [json.dumps({
-            "answer": "Project Alpha launched on April 12, 2024.",
-            "citations": [{"evidence_id": "E1"}],
-        })])
-        self.requests = []
-
-    def complete(self, messages, *, tools=None, json_mode=False,
-                 timeout_seconds=None):
-        self.requests.append({"messages": messages, "tools": tools,
-                              "json_mode": json_mode})
-        if json_mode:
-            return ModelReply(content=self.answer_replies.pop(0),
-                              usage={"prompt_tokens": 90,
-                                     "completion_tokens": 20})
-        self.collector_turn += 1
-        calls = {
-            1: ToolCall(call_id="c1", name="read_page", arguments={}),
-            2: ToolCall(call_id="c2", name="select_evidence", arguments={
-                "items": [{"page_id": "P1"}]}),
-            3: ToolCall(call_id="c3", name="finish_evidence", arguments={
-                "complete": True, "note": "relevant source found"}),
-        }
-        return ModelReply(tool_calls=[calls[self.collector_turn]],
-                          usage={"prompt_tokens": 50,
-                                 "completion_tokens": 10})
-
-
-class RepeatingModel(FakeModel):
-    def complete(self, messages, *, tools=None, json_mode=False,
-                 timeout_seconds=None):
-        assert not json_mode
-        self.requests.append({"messages": messages, "tools": tools,
-                              "json_mode": json_mode})
-        return ModelReply(tool_calls=[ToolCall(
-            call_id=f"repeat-{len(self.requests)}", name="read_page",
-            arguments={})])
+from web_evidence_helpers import (FACT, QUESTION, FIXTURE_DIR, source_page,
+                                  FakeBrowser, FakeModel, RepeatingModel)
 
 
 def test_two_agent_workflow_writes_exact_handoff_and_cited_answer(tmp_path):
@@ -205,16 +127,18 @@ def test_repeated_identical_tool_calls_stop_the_collector(tmp_path):
     assert "repeated identical tool call detected" in events
 
 
-def test_missing_deepseek_key_is_recorded_without_starting_browser(
+def test_missing_openai_key_is_recorded_without_starting_browser(
         tmp_path, monkeypatch):
-    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
+    browser = FakeBrowser()
     directory, result = run_web_evidence(
         RunConfig(url=source_page().url, question=QUESTION),
-        str(tmp_path / "run"), browser=FakeBrowser())
+        str(tmp_path / "run"), browser=browser)
 
     assert result.status == "error"
-    assert "DEEPSEEK_API_KEY is required" in result.stop_reason
+    assert "ValueError" in result.stop_reason
+    assert not browser.started
     assert json.loads((directory / "result.json").read_text())["status"] == "error"
 
 
@@ -538,9 +462,23 @@ def test_manual_live_deepseek_end_to_end(tmp_path):
         pytest.skip("DEEPSEEK_API_KEY is not set")
     with fixture_server() as url:
         directory, result = run_web_evidence(
-            RunConfig(url=url, question=QUESTION),
+            RunConfig(url=url, question=QUESTION, provider="deepseek",
+                      model="deepseek-flash", base_url="https://api.deepseek.com"),
             str(tmp_path / "live"))
 
     assert result.status == "completed", (directory, result.stop_reason)
     assert result.answer
     assert result.answer.citations
+
+
+def test_gpt41_transport_omits_reasoning_and_keeps_temperature_zero():
+    observed = {}
+    def handle(request):
+        observed.update(json.loads(request.content))
+        return httpx.Response(200, json={"choices": [{"message": {"content": "ok"}}]})
+    with httpx.Client(base_url="https://mock.invalid/v1", transport=httpx.MockTransport(handle)) as http:
+        client = OpenAIClient(model="gpt-4.1", http=http)
+        client.complete([{"role": "user", "content": "q"}])
+    assert observed["model"] == "gpt-4.1"
+    assert observed["temperature"] == 0
+    assert "reasoning_effort" not in observed and "thinking" not in observed

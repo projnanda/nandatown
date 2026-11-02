@@ -9,6 +9,23 @@ import tarfile
 import zipfile
 
 
+def shippable(name: str) -> bool:
+    """Exclude local state, secrets and model weights from archive contracts."""
+    path = Path(name)
+    forbidden = {"__pycache__", ".pytest_cache", ".ruff_cache", ".venv",
+                 "node_modules", ".next", "models", "runs"}
+    return (not forbidden.intersection(path.parts)
+            and path.suffix not in {".pyc", ".pyo", ".safetensors", ".ckpt"}
+            and not (path.name == ".env" or
+                     (path.name.startswith(".env.") and path.name != ".env.example")))
+
+
+def reject_private(names) -> None:
+    forbidden = sorted(name for name in names if not shippable(name))
+    if forbidden:
+        raise SystemExit(f"distribution contains forbidden members: {forbidden}")
+
+
 def check(directory: Path) -> None:
     wheels = list(directory.glob("*.whl"))
     sources = list(directory.glob("*.tar.gz"))
@@ -27,15 +44,20 @@ def check(directory: Path) -> None:
     test_data = {
         path.relative_to(root).as_posix()
         for pattern in ("tests/fixtures/**/*", "schemas/*.json", "examples/*.py",
-                        "scripts/setup_web_evidence.py", "scripts/run_offline_checks.py")
-        for path in root.glob(pattern) if path.is_file()
+                        "scripts/setup_web_evidence.py", "scripts/run_offline_checks.py",
+                        "scripts/download_piguard.py", "scripts/check_piguard.py",
+                        "scripts/validate_piguard_experiment.py", "docs/contracts/*.json",
+                        "docs/web-evidence.md")
+        for path in root.glob(pattern) if path.is_file() and shippable(path.relative_to(root).as_posix())
     }
     with zipfile.ZipFile(wheels[0]) as wheel:
+        reject_private(wheel.namelist())
         missing = runtime - set(wheel.namelist())
         if missing:
             raise SystemExit(f"wheel missing runtime data: {sorted(missing)}")
     with tarfile.open(sources[0]) as source:
         names = {name.partition("/")[2] for name in source.getnames()}
+        reject_private(names)
         expected = test_data | {f"src/{name}" for name in runtime}
         missing = expected - names
         if missing:

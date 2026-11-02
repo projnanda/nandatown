@@ -42,6 +42,22 @@ jobs:
       - name: Smoke run (Track)
         run: nandatown run quote-crash-restart --out /tmp/runs
 
+  web-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install optional browser integration dependencies
+        run: pip install -e ".[dev,web-evidence]"
+      - name: Install local Chromium
+        run: python -m playwright install --with-deps chromium
+      - name: Paired fixture browser checks (no model API)
+        env:
+          NANDATOWN_RUN_BROWSER_TESTS: "1"
+        run: python scripts/run_offline_checks.py tests/test_atlas_browser.py
+
   distribution:
     runs-on: ubuntu-latest
     steps:
@@ -67,4 +83,6 @@ jobs:
           "$RUNNER_TEMP/town-wheel-env/bin/nandatown" run quote-crash-restart --out "$RUNNER_TEMP/town-wheel-runs"
           "$RUNNER_TEMP/town-wheel-env/bin/nandatown" skills
           "$RUNNER_TEMP/town-wheel-env/bin/nandatown" web-evidence-protected --help
+          "$RUNNER_TEMP/town-wheel-env/bin/nandatown" web-evidence-piguard --help
+          "$RUNNER_TEMP/town-wheel-env/bin/nandatown" web-evidence --help
           "$RUNNER_TEMP/town-wheel-env/bin/python" -c "from nandatown.promptarmor_guard import upstream; upstream()"

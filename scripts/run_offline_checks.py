@@ -55,6 +55,7 @@ if __name__ == '__main__':
     for name in ('OPENAI_API_KEY', 'DEEPSEEK_API_KEY'):
         os.environ.pop(name, None)
     os.environ['NANDATOWN_RUN_LIVE_DEEPSEEK'] = '0'
+    os.environ.pop('NANDATOWN_PIGUARD_SNAPSHOT', None)
     socket.socket.connect = connect
     socket.socket.connect_ex = connect_ex
     socket.getaddrinfo = getaddrinfo

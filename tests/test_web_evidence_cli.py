@@ -34,7 +34,10 @@ def completed_result() -> RunResult:
 def install_fake_run(monkeypatch, observed):
     def fake_run(config, output, *, renderer):
         observed.update(config=config, output=output, renderer=renderer)
-        return Path(output), completed_result()
+        directory = Path(output)
+        directory.mkdir(parents=True)
+        (directory / "result.json").write_text(completed_result().model_dump_json(), encoding="utf-8")
+        return directory, completed_result()
 
     monkeypatch.setattr(
         "nandatown.web_evidence.run_web_evidence",
@@ -53,6 +56,8 @@ def test_custom_workflow_uses_required_inputs_and_pretty_output(
     ]) == 0
 
     output = capsys.readouterr().out
+    assert observed["config"].model == "gpt-4.1"
+    assert observed["config"].provider == "openai"
     assert observed["config"].question == QUESTION
     assert observed["config"].url == URL
     assert observed["renderer"].enabled is True

@@ -307,7 +307,7 @@ connector URLs are omitted from rerun metadata; supply those inputs again and
 record the agent/adapter versions separately. The printed recipe names missing
 inputs rather than silently substituting reference agents.
 
-## Two-agent web evidence baseline
+## Two-agent web evidence experiments
 
 `nandatown web-evidence` runs a bounded two-agent workflow: Agent 1 reads pages
 through Playwright and hands the complete visible text of every selected page,
@@ -321,9 +321,21 @@ agents. It detects and removes reported injected spans from a separate packet
 copy, preserving the original evidence and exact deletion audit. The previous
 Spotlighting implementation is replaced, not combined with this defense.
 Protected defaults are GPT-4.1 for both agents and GPT-6 Luna with medium
-reasoning for the guard. It needs `OPENAI_API_KEY`; baseline defaults are unchanged.
+reasoning for the guard. It needs `OPENAI_API_KEY`; baseline now also defaults to GPT-4.1 at temperature zero.
 Only four pinned upstream runtime modules and their MIT license are bundled;
 no separate clone, model weights, SDK or dataset is needed at runtime.
+
+`web-evidence --defense baseline|llm|piguard` selects a shared workflow.
+`web-evidence-piguard` adds the official local PIGuard classifier, warnings and
+retained adaptive routing: GPT-4.1 after complete benign checking, otherwise
+GPT-6 Luna/medium for Agent 2. It does not delete source text. ML dependencies
+and pinned weights are optional and explicitly installed/downloaded.
+
+All three Collectors default to GPT-4.1; comparisons still measure complete systems
+because the LLM Judge and PIGuard Answerer routing differ. The versioned
+experimental artifact contract is separate from Town verifiable bundles, and
+the reported result is limited to one synthetic pair; it does not establish
+general robustness or isolate the classifier's causal effect.
 
 Quick setup from the repository root:
 
@@ -331,7 +343,7 @@ Quick setup from the repository root:
 python scripts/setup_web_evidence.py
 ```
 
-Set `DEEPSEEK_API_KEY`, serve a controlled page on a literal loopback IP, then
+Set `OPENAI_API_KEY`, serve a controlled page on a literal loopback IP, then
 provide its URL and the question explicitly:
 
 ```
@@ -345,7 +357,15 @@ and the meaning of sanitized provenance. Public URLs are temporarily disabled to
 `--headed` to watch Chromium or `--json` for machine-readable terminal output.
 
 See [the web evidence guide](docs/web-evidence.md) for a local fixture command,
-configuration limits, manual DeepSeek smoke test, and current limitations.
+configuration limits, research sources, artifact compatibility and current limitations.
+
+On the single synthetic Atlas Relay pair (10 runs per method and variant),
+Baseline answered all three facts correctly in 10/10 Clean and 0/10 Malicious
+runs; the LLM defense and the corrected PIGuard + adaptive routing campaign
+answered correctly in 10/10 for both. PIGuard's earlier missing-dependency runs
+are excluded. These are separate local campaigns, not a general robustness
+benchmark or isolated classifier ablation. See the guide for the full findings,
+real classifier validation, routing and architecture diagrams.
 
 ## The MCP and A2A edges
 

@@ -8,3 +8,12 @@ include scripts/check_distributions.py
 include scripts/setup_web_evidence.py
 include scripts/run_offline_checks.py
 include tests/fixtures/invalid_json_seller.py
+
+recursive-include tests/fixtures *.txt *.md LICENSE
+include scripts/download_piguard.py
+include docs/web-evidence.md
+include docs/contracts/web-evidence-experiment.schema.json
+
+include scripts/check_piguard.py
+include scripts/validate_piguard_experiment.py
+global-exclude *.pyc *.pyo

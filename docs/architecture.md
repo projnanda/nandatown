@@ -51,7 +51,10 @@ src/nandatown/
                    availability report, operational-history records
   web_evidence.py  bounded Playwright reader -> evidence packet -> cited answer
   promptarmor_guard.py  pinned upstream detection/removal and deletion provenance
-  promptarmor_workflow.py  protected E2E/replay orchestration, separate guard transport
+  evidence_workflow.py  shared collect/defend/answer lifecycle and artifact contract
+  promptarmor_workflow.py  PromptArmor adapter, guard transport and replay entry point
+  piguard_guard.py  official local classifier, windowing and worker diagnostics
+  piguard_workflow.py  warning adapter and adaptive Answerer routing
   _vendor/promptarmor/  four original runtime modules with MIT license and hashes
   new.py           scaffolding templates (scenario, plugin, skill, agent)
   board.py         the local leaderboard over evidence bundles
@@ -185,3 +188,14 @@ real payments or establish complete A2A protocol conformance. See the
   (`nandatown coordinator`); the examples and exported schemas describe the
   current boundary. The schema exporter covers the listed concepts, not every
   HTTP route or every internal model.
+
+## Local web-evidence experiments
+
+`evidence_workflow.py` owns the shared Collector → defense → Answerer lifecycle.
+`DefenseOutcome` returns the delivery packet, security status, audit metadata
+and Answerer model policy while retaining the original packet. Identity,
+PromptArmor and PIGuard adapters preserve their distinct failure, transport and
+routing policies. These sequential roles do not use the Track mailbox.
+`web-evidence-experiment@1` artifacts have an independent contract; they are not
+canonical Town bundles and cannot acquire a Town receipt through `verify`.
+See [method boundaries and compatibility](web-evidence.md).
