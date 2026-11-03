@@ -34,7 +34,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install
-        run: pip install -e ".[dev]"
+        # Deadline unit tests mock playwright.sync_api; Chromium stays optional here.
+        run: pip install -e ".[dev,web-evidence]"
       - name: Test
         run: pytest -q
       - name: Smoke run (Lab)
