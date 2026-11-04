@@ -1,17 +1,21 @@
 """Run one Lab scenario end to end and leave an evidence bundle.
 
-Redaction happens before evaluation, so the recorded result is exactly
+Records are first reduced to the JSON data the bundle files will hold,
+then redacted, then evaluated, so the recorded result is exactly
 reproducible from the exported records by anyone, with nothing private
-required.
+required. The run record is built from the redacted scenario too.
 """
 
 from __future__ import annotations
 
+import math
 import os
 import sys
+from typing import Any
 
 from .. import __version__
 from ..bundle import write_bundle
+from ..layers.privacy import RedactionCollision
 from ..records import RunRecord, TownEvent, fingerprint
 from .agents import ROLES
 from .api import TownAPI
@@ -22,6 +26,45 @@ from .validators import LAB_EVALUATOR_VERSION, evaluate_scenario
 
 class LabError(Exception):
     pass
+
+
+class UnsupportedValue(ValueError):
+    """A record holds a value that JSON evidence cannot record exactly.
+
+    The run is refused before any file is written. The message names the
+    record and the value's type, never the value.
+    """
+
+
+def _json_data(value: Any, where: str) -> Any:
+    """The value as the JSON data its bundle file will hold.
+
+    A tuple becomes a list, as JSON writes it. A set, bytes, a non-text
+    key, NaN or infinity would be written in a different form from the
+    one redaction and evaluation saw, or not at all, so it is refused.
+    """
+    if value is None or isinstance(value, (str, bool, int)):
+        return value
+    if isinstance(value, float):
+        if math.isfinite(value):
+            return value
+        raise UnsupportedValue(
+            f"{where} holds a non-finite number, which JSON evidence"
+            " cannot record")
+    if isinstance(value, (list, tuple)):
+        return [_json_data(v, where) for v in value]
+    if isinstance(value, dict):
+        out = {}
+        for k, v in value.items():
+            if not isinstance(k, str):
+                raise UnsupportedValue(
+                    f"{where} has a key of type {type(k).__name__};"
+                    " JSON evidence keys must be text")
+            out[k] = _json_data(v, where)
+        return out
+    raise UnsupportedValue(
+        f"{where} holds a value of type {type(value).__name__}, which"
+        " JSON evidence cannot record")
 
 
 def build_engine(spec: ScenarioSpec) -> Engine:
@@ -81,11 +124,19 @@ def run_lab(name_or_path: str, out_dir: str,
     engine.run()
 
     privacy = engine.layers["privacy"]
-    events = [TownEvent.model_validate(privacy.redact(e.model_dump()))
+    events = [TownEvent.model_validate(privacy.redact(
+                  _json_data(e.model_dump(), f"event {e.event_id}")))
               for e in engine.events]
-    intents = [privacy.redact(i) for i in engine.intents]
+    intents = [privacy.redact(_json_data(i, f"intent {i['intent_id']}"))
+               for i in engine.intents]
     public_spec = ScenarioSpec.model_validate(privacy.redact(
-        spec.model_dump()))
+        _json_data(spec.model_dump(), "the scenario")))
+    # Participants are named in every record; two that become one name
+    # would make the evidence misattribute what each did.
+    if len({a.name for a in public_spec.agents}) \
+            < len({a.name for a in spec.agents}):
+        raise RedactionCollision(
+            "two participants would share a name after redaction")
 
     result = evaluate_scenario(public_spec, engine.run_id, events)
     rerun = f"nandatown run {name_or_path} --seed {spec.seed}"
@@ -93,21 +144,25 @@ def run_lab(name_or_path: str, out_dir: str,
         rerun += f" --plugin {path}"
     for layer, plugin_id in (layer_overrides or {}).items():
         rerun += f" --layer {layer}={plugin_id}"
+    # Everything the run record says about the scenario comes from the
+    # redacted copy, the same one written as the profile.
     run_record = RunRecord(
         run_id=engine.run_id,
-        profile_name=spec.name,
+        profile_name=public_spec.name,
         profile_fingerprint=fingerprint(public_spec.model_dump()),
         created_at=0.0,
-        participants=[{"name": a.name, "role": a.role} for a in spec.agents],
+        participants=[{"name": a.name, "role": a.role}
+                      for a in public_spec.agents],
         releases={
             "nandatown": __version__,
             "evaluator": LAB_EVALUATOR_VERSION,
             "python": sys.version.split()[0],
         },
-        config={"mode": "lab", "seed": spec.seed,
-                "layers": spec.layers,
+        config={"mode": "lab", "seed": public_spec.seed,
+                "layers": public_spec.layers,
                 "logical_time": engine.now,
-                "rerun_command": rerun},
+                "rerun_command": privacy.redact(
+                    {"rerun_command": rerun})["rerun_command"]},
     )
     bundle_dir = os.path.join(out_dir, engine.run_id)
     write_bundle(bundle_dir, public_spec, run_record, intents, events,

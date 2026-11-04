@@ -65,6 +65,9 @@ STAGE_MEANING = {
                         " refused",
     "listing_intact": "a quote request reached the honest seller after"
                       " the forged card",
+    "leak_attempted": "an agent pasted its secret into a message",
+    "secret_withheld": "no canary-format secret reached the exported events",
+    "trade_completed": "the trade still completed",
     "ledger_conserved": "money was conserved across every movement",
     "privacy": "declared private fields never left the run",
     "resolution": "the subject was found through the declared path",
