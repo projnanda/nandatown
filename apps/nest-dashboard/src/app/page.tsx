@@ -62,8 +62,34 @@ export default async function Home() {
       {/*  HERO                                                          */}
       {/* ============================================================ */}
       <section className="relative paper-texture">
-        <div className="relative mx-auto max-w-[1240px] px-6 sm:px-10 pt-20 pb-20 md:pt-24 md:pb-24">
-          <h1 className="font-display animate-fade-in max-w-[22ch] text-[clamp(2.2rem,5vw,4.2rem)] leading-[1.06] tracking-[-0.016em] text-ink-900">
+        <div className="relative mx-auto max-w-[1240px] px-6 sm:px-10 pt-8 pb-20 md:pt-12 md:pb-24">
+          <figure>
+            <figcaption id="intro-video-caption" className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <span className="eyebrow">Introducing Nanda Town</span>
+              <span className="text-sm text-ink-400">1 min 27 sec</span>
+            </figcaption>
+            <video
+              controls
+              playsInline
+              preload="none"
+              poster="/videos/nanda-town-introduction.jpg"
+              width={1920}
+              height={1080}
+              aria-labelledby="intro-video-caption"
+              className="block aspect-video w-full rounded-xl border border-cream-400/70 bg-ink-900"
+            >
+              <source src="/videos/nanda-town-introduction.mp4" type="video/mp4" />
+              <track
+                src="/videos/nanda-town-introduction.en.vtt"
+                kind="captions"
+                srcLang="en"
+                label="English"
+              />
+              <a href="/videos/nanda-town-introduction.mp4">Watch the Nanda Town introduction.</a>
+            </video>
+          </figure>
+
+          <h1 className="font-display animate-fade-in mt-14 max-w-[22ch] text-[clamp(2.2rem,5vw,4.2rem)] leading-[1.06] tracking-[-0.016em] text-ink-900">
             An open-source sandbox for{' '}
             <span className="italic text-ink-700">
               building and testing protocols

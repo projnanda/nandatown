@@ -1,0 +1,109 @@
+WEBVTT
+
+00:00.680 --> 00:04.225
+Meet the Town, a test environment for the emerging Internet of AI
+
+00:04.250 --> 00:04.710
+Agents.
+
+00:04.940 --> 00:08.370
+Today, most agents work inside closed systems.
+
+00:08.460 --> 00:11.805
+The vision is an open, decentralized web where different agents can
+
+00:11.830 --> 00:13.630
+interact across organizations.
+
+00:13.860 --> 00:17.205
+Imagine agents discovering one another, building trust,
+
+00:17.230 --> 00:18.990
+communicating, and collaborating.
+
+00:19.220 --> 00:22.245
+The town has twelve building blocks, or protocol layers.
+
+00:22.270 --> 00:23.440
+One, Transport.
+
+00:23.510 --> 00:24.705
+Two, Communication.
+
+00:24.730 --> 00:25.875
+Three, Identity.
+
+00:25.900 --> 00:27.095
+Four, Registry.
+
+00:27.120 --> 00:28.150
+Five, Auth.
+
+00:28.180 --> 00:29.265
+Six, Trust.
+
+00:29.290 --> 00:30.535
+Seven, Payments.
+
+00:30.560 --> 00:31.755
+Eight, Coordination.
+
+00:31.780 --> 00:32.865
+Nine, Negotiation.
+
+00:32.890 --> 00:33.775
+Ten, Memory.
+
+00:33.800 --> 00:34.790
+Eleven, Privacy.
+
+00:34.850 --> 00:36.360
+Twelve, Data Facts.
+
+00:37.640 --> 00:39.650
+Communication must go both ways.
+
+00:39.760 --> 00:42.530
+An agent can reach out, and another agent can call it back.
+
+00:42.760 --> 00:46.055
+In this vision, people build agents that represent them and transact
+
+00:46.080 --> 00:46.770
+directly.
+
+00:46.800 --> 00:48.935
+Agents could exchange intelligence.
+
+00:48.960 --> 00:51.690
+Knowledge pricing asks how to price and settle its value.
+
+00:51.920 --> 00:53.775
+The research spans three phases.
+
+00:53.800 --> 00:58.065
+Foundations, an agentic economy, and agentic societies, with services
+
+00:58.090 --> 00:59.210
+built for agents.
+
+00:59.440 --> 01:03.385
+The Town gives developers and researchers a sandbox to experiment
+
+01:03.410 --> 01:07.415
+with different agents, protocols, and governance before production.
+
+01:07.440 --> 01:10.690
+Markets and adversarial behavior are part of that exploration.
+
+01:10.920 --> 01:15.150
+A small experimental town can inform the technical, economic, and
+
+01:15.210 --> 01:18.295
+institutional foundations of a larger Agentic Web.
+
+01:18.320 --> 01:21.410
+Before building at planetary scale, begin with a town.
+
+01:21.640 --> 01:24.080
+To learn more, visit the website on screen.
