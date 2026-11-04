@@ -92,9 +92,9 @@ export default async function Home() {
           <h1 className="font-display animate-fade-in mt-14 max-w-[22ch] text-[clamp(2.2rem,5vw,4.2rem)] leading-[1.06] tracking-[-0.016em] text-ink-900">
             An open-source sandbox for{' '}
             <span className="italic text-ink-700">
-              building and testing protocols
+              building and testing AI agents, protocols, and services
             </span>{' '}
-            for AI agents.
+            at scale.
           </h1>
 
           <div className="mt-10 grid gap-10 lg:grid-cols-[1.5fr_1fr] lg:items-start">

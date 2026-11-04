@@ -20,6 +20,7 @@ const items: NavItem[] = [
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/visualizer", label: "Visualizer" },
   { href: "/agents", label: "Agents (demo)" },
+  { href: "/skills", label: "Skills Registry" },
   {
     href: "",
     label: "NandaHacks",
@@ -28,7 +29,6 @@ const items: NavItem[] = [
         href: "https://nandahack.media.mit.edu",
         label: "NandaHack x HCLTech",
       },
-      { href: "/skills", label: "Skills Registry", sub: true },
       {
         href: "/pravahack",
         label: "NandaHack x Prava: Agentic Commerce Hackathon",

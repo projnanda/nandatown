@@ -48,11 +48,10 @@ export function Footer() {
             <FooterLink href="/leaderboard">Leaderboard</FooterLink>
             <FooterLink href="/visualizer">Visualizer</FooterLink>
             <FooterLink href="/agents">Agents</FooterLink>
+            <FooterLink href="/skills">Skills Registry</FooterLink>
           </FooterColumn>
 
           <FooterColumn title="NandaHack x HCLTech">
-            <FooterLink href="/skills">Skills Registry</FooterLink>
-            <FooterLink href="/skills">SkillMD registry</FooterLink>
             <FooterLink href={hackathonEvent.officialUrl} external>
               Official site
             </FooterLink>
