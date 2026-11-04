@@ -11,6 +11,7 @@ import time
 import pytest
 from fastapi.testclient import TestClient
 
+from nandatown import coordinator
 from nandatown.client import TownClient
 from nandatown.participants import seller
 from nandatown.participants.base import Journal
@@ -20,6 +21,27 @@ from test_participants import ADMIN, make_town, quote_profile
 
 class Killed(Exception):
     """Stand-in for the process dying before its acknowledgement lands."""
+
+
+class LeaseClock:
+    def __init__(self):
+        self.now = time.time()
+
+    def time(self):
+        return self.now
+
+    def advance(self, seconds):
+        self.now += seconds
+
+
+@pytest.fixture
+def lease_clock(monkeypatch):
+    clock = LeaseClock()
+    # Isolate these modules instead of replacing time.time process-wide.
+    # HTTP handling and journal I/O may take any amount of wall-clock time.
+    monkeypatch.setattr(coordinator, "time", clock)
+    monkeypatch.setattr(seller, "time", clock)
+    return clock
 
 
 def send_quote_request(app, run_id, tokens):
@@ -38,15 +60,34 @@ def seller_notes(admin, run_id):
     return events, notes
 
 
-def run_seller(app, run_id, tokens, state_dir, ack=None, deadline=3.0):
+def run_seller(app, run_id, tokens, state_dir, ack=None, deadline=3.0,
+               clock=None):
     client = TownClient("http://testserver", run_id, http=TestClient(app))
     if ack is not None:
         client.ack = ack(client.ack)
+    if clock is not None:
+        notify, acknowledge = client.notify, client.ack
+
+        def poll(wait):
+            # Advance on every pass so a broken retry still reaches the
+            # deadline. Keep the real inbox API, without a wall-clock wait.
+            clock.advance(0.1)
+            return notify(wait=0)
+
+        def finish_after_ack(*args, **kwargs):
+            result = acknowledge(*args, **kwargs)
+            # The real loop still runs on_ack_accepted before checking its
+            # deadline. A stale ack raises, leaving time for redelivery.
+            clock.advance(deadline + 1)
+            return result
+
+        client.notify = poll
+        client.ack = finish_after_ack
     seller.run(client, "seller", tokens["seller"], str(state_dir), "none",
                deadline_seconds=deadline)
 
 
-def test_fenced_application_is_reported_on_redelivery(tmp_path):
+def test_fenced_application_is_reported_on_redelivery(tmp_path, lease_clock):
     """A fenced applied acknowledgement plus a journal-backed
     redelivery still yields exactly one application record.
 
@@ -63,16 +104,16 @@ def test_fenced_application_is_reported_on_redelivery(tmp_path):
         stalled = []
 
         def slow_ack(message_id, fence, status, note=None):
-            # Stall once between the apply and its acknowledgement, so the
-            # lease ends first and the town fences the applied ack.
+            # Expire only the first lease, independently of runner speed.
             if not stalled and (note or {}).get("applied"):
                 stalled.append(True)
-                time.sleep(0.7)
+                lease_clock.advance(0.7)
             return inner(message_id, fence, status, note)
 
         return slow_ack
 
-    run_seller(app, run_id, tokens, seller_dir, ack=stall_once)
+    run_seller(app, run_id, tokens, seller_dir, ack=stall_once,
+               clock=lease_clock)
 
     events, notes = seller_notes(admin, run_id)
     assert [e for e in events if e["kind"] == "stale_fence_rejected"], events
@@ -82,7 +123,7 @@ def test_fenced_application_is_reported_on_redelivery(tmp_path):
     assert applied[0]["total_cents"] == 3990
 
 
-def test_crash_between_apply_and_ack_is_reported(tmp_path):
+def test_crash_between_apply_and_ack_is_reported(tmp_path, lease_clock):
     """A seller killed after applying but before its acknowledgement
     lands still reports the application on redelivery.
 
@@ -101,12 +142,12 @@ def test_crash_between_apply_and_ack_is_reported(tmp_path):
         return dying_ack
 
     with pytest.raises(Killed):
-        run_seller(app, run_id, tokens, seller_dir, ack=die)
+        run_seller(app, run_id, tokens, seller_dir, ack=die, clock=lease_clock)
 
-    # The dead process still holds the lease; wait for it to end so the
+    # The dead process still holds the lease; expire it so the
     # town redelivers the request to the restarted seller.
-    time.sleep(0.6)
-    run_seller(app, run_id, tokens, seller_dir)
+    lease_clock.advance(0.6)
+    run_seller(app, run_id, tokens, seller_dir, clock=lease_clock)
 
     events, notes = seller_notes(admin, run_id)
     applied = [n for n in notes if n.get("applied")]
@@ -115,7 +156,7 @@ def test_crash_between_apply_and_ack_is_reported(tmp_path):
     assert applied[0]["total_cents"] == 3990
 
 
-def test_repeated_fences_still_yield_one_application_record(tmp_path):
+def test_repeated_fences_still_yield_one_application_record(tmp_path, lease_clock):
     """Two acknowledgements refused in a row: the seller keeps carrying
     the application until one is accepted, and the record ends with
     exactly one.
@@ -131,12 +172,13 @@ def test_repeated_fences_still_yield_one_application_record(tmp_path):
         def slow_ack(message_id, fence, status, note=None):
             if len(stalls) < 2 and (note or {}).get("applied"):
                 stalls.append(True)
-                time.sleep(0.7)
+                lease_clock.advance(0.7)
             return inner(message_id, fence, status, note)
 
         return slow_ack
 
-    run_seller(app, run_id, tokens, seller_dir, ack=stall_twice, deadline=4.0)
+    run_seller(app, run_id, tokens, seller_dir, ack=stall_twice, deadline=4.0,
+               clock=lease_clock)
 
     events, notes = seller_notes(admin, run_id)
     fences = [e for e in events if e["kind"] == "stale_fence_rejected"]
