@@ -66,7 +66,7 @@ export function SubmissionCard({ submission }: { submission: Submission }) {
   return (
     <Link
       href={`/prgallery/submissions/${submission.id}`}
-      className="group block rounded-2xl border border-cream-400/70 bg-cream-50 p-6 transition-colors hover:bg-cream-200/60"
+      className="group block min-w-0 [overflow-wrap:anywhere] rounded-2xl border border-cream-400/70 bg-cream-50 p-6 transition-colors hover:bg-cream-200/60"
     >
       <div className="flex items-start gap-4">
         <Image

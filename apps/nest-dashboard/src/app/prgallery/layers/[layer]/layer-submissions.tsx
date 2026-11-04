@@ -77,7 +77,7 @@ export function LayerSubmissions({
         })}
       </div>
 
-      <div className="grid gap-5">
+      <div className="grid grid-cols-1 gap-5">
         {sorted.map((sub) => (
           <SubmissionCard key={sub.id} submission={sub} />
         ))}
