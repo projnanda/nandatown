@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NandaTown local web-evidence experiment result",
+  "description": "Independent experimental output, not a canonical Town evidence bundle.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "defense",
+    "run_id",
+    "status",
+    "execution_status",
+    "security_check_status",
+    "models",
+    "routing",
+    "answer",
+    "token_usage",
+    "timing_seconds",
+    "factual_support_assessed",
+    "artifacts"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "web-evidence-experiment@1"
+    },
+    "defense": {
+      "enum": [
+        "baseline",
+        "llm",
+        "piguard"
+      ]
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "completed",
+        "partial",
+        "limit_reached",
+        "error",
+        "defense_error"
+      ]
+    },
+    "execution_status": {
+      "enum": [
+        "completed",
+        "partial",
+        "limit_reached",
+        "error"
+      ]
+    },
+    "security_check_status": {
+      "enum": [
+        "not_started",
+        "not_applicable",
+        "complete",
+        "incomplete",
+        "error"
+      ]
+    },
+    "models": {
+      "type": "object",
+      "required": [
+        "agent1",
+        "agent2"
+      ],
+      "properties": {
+        "agent1": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "agent2": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "routing": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "answer": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "token_usage": {
+      "type": "object",
+      "required": [
+        "agent1",
+        "guard",
+        "agent2"
+      ],
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "integer"
+        }
+      }
+    },
+    "timing_seconds": {
+      "type": "object",
+      "required": [
+        "agent1",
+        "guard",
+        "agent2",
+        "total"
+      ],
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0
+      }
+    },
+    "factual_support_assessed": {
+      "const": false
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}

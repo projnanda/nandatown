@@ -1,5 +1,15 @@
 .venv/
+venv/
 __pycache__/
 *.egg-info/
 runs/
 .pytest_cache/
+.ruff_cache/
+.env
+build/
+dist/
+
+# Explicitly downloaded ML snapshots and private experiment artifacts.
+models/
+*.safetensors
+*.ckpt

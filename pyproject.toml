@@ -14,6 +14,7 @@ dependencies = [
     "httpx>=0.27",
     "pydantic>=2.6",
     "pyyaml>=6.0",
+    "rich>=13.7",
     "textual>=1.0",
     "textual-serve>=1.1",
     "cryptography>=42.0",
@@ -21,6 +22,9 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+web-evidence = ["playwright>=1.48"]
+piguard = ["torch==2.4.1", "transformers==4.44.0", "tokenizers==0.19.1",
+           "safetensors>=0.4.4", "psutil>=6", "numpy<2"]
 
 [project.scripts]
 nandatown = "nandatown.cli:main"
@@ -29,7 +33,8 @@ nandatown = "nandatown.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-nandatown = ["sim/scenarios/*.yaml", "skills/builtin/*.md"]
+nandatown = ["sim/scenarios/*.yaml", "skills/builtin/*.md",
+             "_vendor/promptarmor/LICENSE", "_vendor/promptarmor/SOURCE.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
