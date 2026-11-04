@@ -4,23 +4,20 @@
  * A live view of every pull request on projnanda/nandatown,
  * synced straight from GitHub: the twelve protocol layers plus Other,
  * followed by the full PR feed with merged submissions pinned first.
- * The GitHub webhook busts the cache the moment a PR merges, so merges
- * show up here right away.
+ * Signed GitHub webhooks mark the shared snapshot for a budgeted refresh.
  */
 
 import Link from "next/link";
-import { loadDataset } from "@/lib/hackathon";
+import { compareSubmissionStatus, loadDataset } from "@/lib/hackathon";
 import { EmptyState, SubmissionCard } from "@/components/hackathon-card";
 
-// Render at request time; the GitHub data layer is cached by
-// unstable_cache, so this never re-fetches per request but also never bakes
-// an empty snapshot at build time when GitHub is unreachable.
+// Render from the shared GitHub snapshot at request time.
 export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Protocols + Plugins (PRs)",
   description:
-    "Every open and merged pull request on projnanda/nandatown, live from GitHub: the twelve protocol layers plus Other, with merged PRs landing in their layer the moment they merge.",
+    "Every pull request on projnanda/nandatown, live from GitHub: lifetime totals and open, merged, and closed contributions across twelve protocol layers plus Other.",
   alternates: { canonical: "/prgallery" },
 };
 
@@ -30,9 +27,8 @@ export default async function PRGalleryPage() {
     .slice()
     .sort((a, b) => {
       // Merged first, then newest activity.
-      if ((a.state === "merged") !== (b.state === "merged")) {
-        return a.state === "merged" ? -1 : 1;
-      }
+      const statusOrder = compareSubmissionStatus(a, b);
+      if (statusOrder) return statusOrder;
       const at = (a.state === "merged" && a.merged_at) || a.created_at;
       const bt = (b.state === "merged" && b.merged_at) || b.created_at;
       return bt.localeCompare(at);
@@ -51,19 +47,19 @@ export default async function PRGalleryPage() {
               <span className="italic text-ink-700">plugins</span>.
             </h1>
             <p className="animate-fade-in stagger-2 text-[1.05rem] leading-[1.6] text-ink-500 max-w-md">
-              Every open and merged pull request on projnanda/nandatown, synced
-              straight from GitHub. Twelve protocol layers plus Other &mdash;
-              merged PRs land in their layer the moment they merge.
+              Every pull request on projnanda/nandatown, synced from GitHub.
+              Explore open, merged, and closed contributions across twelve
+              protocol layers, with work beyond the stack collected under Other.
             </p>
           </div>
 
           <div className="mt-10 flex flex-wrap gap-x-10 gap-y-4 animate-fade-in stagger-3">
             <div>
               <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-300">
-                Pull requests
+                Lifetime PRs
               </span>
               <p className="mt-2 font-display text-[2rem] leading-none text-ink-900 tabular-nums">
-                {data.stats.total_submissions}
+                {data.generated_at ? data.stats.total_submissions : "—"}
               </p>
             </div>
             <div>
@@ -71,7 +67,19 @@ export default async function PRGalleryPage() {
                 Merged
               </span>
               <p className="mt-2 font-display text-[2rem] leading-none text-ink-900 tabular-nums">
-                {data.stats.total_merged}
+                {data.generated_at ? data.stats.total_merged : "—"}
+              </p>
+            </div>
+            <div>
+              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-300">Open</span>
+              <p className="mt-2 font-display text-[2rem] leading-none text-ink-900 tabular-nums">
+                {data.generated_at ? data.stats.total_open : "—"}
+              </p>
+            </div>
+            <div>
+              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-300">Closed, unmerged</span>
+              <p className="mt-2 font-display text-[2rem] leading-none text-ink-900 tabular-nums">
+                {data.generated_at ? data.stats.total_closed : "—"}
               </p>
             </div>
             <div>
@@ -79,7 +87,7 @@ export default async function PRGalleryPage() {
                 Layers covered
               </span>
               <p className="mt-2 font-display text-[2rem] leading-none text-ink-900 tabular-nums">
-                {data.stats.layers_covered}/{data.stats.layers_total}
+                {data.generated_at ? `${data.stats.layers_covered}/${data.stats.layers_total}` : "—"}
               </p>
             </div>
           </div>
@@ -131,16 +139,16 @@ export default async function PRGalleryPage() {
             <div>
               <p className="eyebrow">All pull requests</p>
               <h2 className="mt-4 font-display text-[2rem] leading-[1.1] text-ink-900">
-                Merged first,<br />
-                <span className="italic text-ink-700">newest</span> next.
+                Merged work,<br />
+                <span className="italic text-ink-700">open reviews</span> and history.
               </h2>
             </div>
           </div>
 
           {submissions.length === 0 ? (
             <EmptyState
-              title="No submissions yet."
-              body="GitHub couldn't be reached when the dataset was last built, or no PRs are open. Try again in five minutes."
+              title={data.generated_at ? "No submissions yet." : "GitHub data is temporarily unavailable."}
+              body={data.generated_at ? "Pull requests will appear here as they are submitted." : "Please try again shortly. Lifetime totals will return when GitHub is reachable."}
             />
           ) : (
             <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">

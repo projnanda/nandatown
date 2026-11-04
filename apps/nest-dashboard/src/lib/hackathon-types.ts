@@ -3,7 +3,7 @@
  *
  * Pure: safe to import from both Server Components and Client
  * Components. The server-only data loader lives in `hackathon.ts`
- * and pulls from `node:fs`.
+ * and pulls from GitHub.
  */
 
 export type Tag = "agent-authored" | "human-authored";
@@ -67,9 +67,9 @@ export interface Submission {
   deletions: number | null;
   changed_files: number | null;
   created_at: string;
-  /** ISO timestamp when the PR was merged, or null while still open. */
+  /** ISO timestamp when the PR was merged, or null if never merged. */
   merged_at: string | null;
-  state: "open" | "merged";
+  state: "open" | "merged" | "closed";
   score: JudgeScore | null;
   tag: Tag;
 }
@@ -86,6 +86,9 @@ export interface LayerStats {
 export interface MarketplaceStats {
   total_submissions: number;
   total_merged: number;
+  total_open: number;
+  /** Closed without merging. */
+  total_closed: number;
   unique_participants: number;
   layers_covered: number;
   layers_total: number;
@@ -103,6 +106,8 @@ export interface Dataset {
 export const EMPTY_STATS: MarketplaceStats = {
   total_submissions: 0,
   total_merged: 0,
+  total_open: 0,
+  total_closed: 0,
   unique_participants: 0,
   layers_covered: 0,
   layers_total: 12,
@@ -120,6 +125,12 @@ export const EMPTY_DATASET: Dataset = {
 /* ------------------------------------------------------------------ */
 /*  Display helpers                                                    */
 /* ------------------------------------------------------------------ */
+
+/** Show accepted work first, active reviews next, then closed history. */
+export function compareSubmissionStatus(a: Submission, b: Submission): number {
+  const order = { merged: 0, open: 1, closed: 2 };
+  return order[a.state] - order[b.state];
+}
 
 export function findSubmissionById(
   dataset: Dataset,

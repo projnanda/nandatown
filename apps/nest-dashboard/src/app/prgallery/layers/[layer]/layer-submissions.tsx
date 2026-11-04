@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { EmptyState, SubmissionCard } from "@/components/hackathon-card";
-import type { Submission } from "@/lib/hackathon-types";
+import { compareSubmissionStatus, type Submission } from "@/lib/hackathon-types";
 
 type SortField = "date" | "author";
 
@@ -24,7 +24,8 @@ export function LayerSubmissions({
     const xs = [...submissions];
     xs.sort((a, b) => {
       // Merged PRs always lead — they're the showcased work.
-      if (a.state !== b.state) return a.state === "merged" ? -1 : 1;
+      const statusOrder = compareSubmissionStatus(a, b);
+      if (statusOrder) return statusOrder;
       if (sort === "date") {
         return b.created_at.localeCompare(a.created_at);
       }

@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { loadDataset } from '@/lib/hackathon';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   alternates: { canonical: '/' },
 };
@@ -50,8 +52,10 @@ export default async function Home() {
   let prMerged: number | null = null;
   try {
     const data = await loadDataset();
-    prTotal = data.stats.total_submissions;
-    prMerged = data.stats.total_merged;
+    if (data.generated_at) {
+      prTotal = data.stats.total_submissions;
+      prMerged = data.stats.total_merged;
+    }
   } catch {
     // GitHub unreachable; hide the counters rather than guess.
   }
@@ -129,7 +133,7 @@ export default async function Home() {
               </div>
               <div className="mt-10 grid grid-cols-2 gap-6 border-t border-cream-400/70 pt-6">
                 {prTotal !== null && (
-                  <Stat label="Pull requests" value={String(prTotal)} href="/prgallery" />
+                  <Stat label="Lifetime PRs" value={String(prTotal)} href="/prgallery" />
                 )}
                 {prMerged !== null && (
                   <Stat label="Merged" value={String(prMerged)} href="/prgallery" />

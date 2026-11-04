@@ -1,5 +1,29 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## GitHub PR gallery
+
+The homepage and `/prgallery` count every repository PR, including closed,
+unmerged PRs. Layer labels such as `layer:negotiation` override automatic
+classification. Explicit layer declarations in a PR title or body take priority
+over keyword guesses.
+
+The existing GitHub webhook sends `pull_request` events to
+`https://nandatown.projectnanda.org/api/github/webhook`. Set the same random
+`GITHUB_WEBHOOK_SECRET` in its GitHub configuration and the Railway service
+variables, then deploy. An unsigned request returns 401; a signed GitHub ping
+returns 200. Keep the secret out of source control.
+
+Railway runs one Node replica. Its shared process cache retains the last complete
+snapshot if GitHub fails and has no Next.js 2 MB entry limit. Webhooks mark that
+snapshot dirty; the next eligible page request refreshes it. Without an API token,
+refreshes are at least five minutes apart and slow further as pagination grows
+to reserve GitHub's anonymous request budget. A ten-minute refresh also catches
+missed events. An optional `GITHUB_TOKEN` with read-only pull-request access allows
+faster webhook updates. If adding replicas, move the snapshot and invalidation
+state to a shared store first.
+
+Run `npm test` for the gallery, cache, and signed-webhook regression tests.
+
 ## Getting Started
 
 First, run the development server:

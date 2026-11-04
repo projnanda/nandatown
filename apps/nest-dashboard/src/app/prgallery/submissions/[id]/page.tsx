@@ -121,7 +121,7 @@ export default async function SubmissionPage({
                 <div>
                   <dt>Status</dt>
                   <dd className="mt-1 font-display text-[1.15rem] leading-none text-ink-900">
-                    {sub.state === "merged" ? "Merged" : "In review"}
+                    {sub.state === "merged" ? "Merged" : sub.state === "closed" ? "Closed without merging" : "In review"}
                   </dd>
                 </div>
                 <div>

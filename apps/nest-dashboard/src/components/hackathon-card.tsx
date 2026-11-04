@@ -35,6 +35,7 @@ export function AuthorBadge({ submission }: { submission: Submission }) {
 
 export function StatusBadge({ submission }: { submission: Submission }) {
   const merged = submission.state === "merged";
+  const closed = submission.state === "closed";
   return (
     <span
       className={
@@ -46,7 +47,7 @@ export function StatusBadge({ submission }: { submission: Submission }) {
       title={
         merged
           ? `Merged ${submission.merged_at ? new Date(submission.merged_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}`
-          : "Open PR — in review"
+          : closed ? "Closed without merging" : "Open PR — in review"
       }
     >
       <span
@@ -55,7 +56,7 @@ export function StatusBadge({ submission }: { submission: Submission }) {
           (merged ? "bg-sage" : "bg-ink-300")
         }
       />
-      {merged ? "merged" : "in review"}
+      {merged ? "merged" : closed ? "closed" : "in review"}
     </span>
   );
 }

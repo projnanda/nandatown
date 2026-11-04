@@ -1,15 +1,15 @@
 /**
- * Server-only data loader for the /hackathon routes.
+ * Server-only data loader for the homepage and /prgallery routes.
  *
  * Since 2026-07-08 this pulls LIVE from the GitHub API (see
  * `./hackathon-github`) instead of the deploy-time
  * `public/hackathon-data.json` snapshot, so merged PRs show up in their
  * layer automatically. Freshness comes from two directions:
  *
- * 1. Next's data cache revalidates the PR fetch every few minutes —
- *    well inside anonymous GitHub rate limits (see hackathon-github.ts).
- * 2. The GitHub webhook at /api/github/webhook busts the cache the
- *    moment a pull request is opened, merged, or edited.
+ * 1. The shared snapshot refreshes on demand every ten minutes, within
+ *    GitHub's API budget (see hackathon-github.ts).
+ * 2. Signed GitHub webhooks mark it dirty; the next eligible request
+ *    refreshes it without losing updates received during a fetch.
  *
  * This module is not safe to import from client components — the public
  * surface is the types and helpers in `./hackathon-types`.
@@ -25,9 +25,8 @@ export * from "./hackathon-types";
 /**
  * Load the live dataset. Never throws: if GitHub is unreachable and
  * nothing is cached, we return an empty dataset and the UI shows its
- * graceful error state — same shape, zero rows. (When a cached copy
- * exists, Next serves it stale on failed revalidation, so transient
- * GitHub hiccups don't blank the page.)
+ * graceful error state — same shape, zero rows. The process cache
+ * retains its last complete snapshot on failed refreshes.
  */
 export async function loadDataset(): Promise<Dataset> {
   try {
@@ -39,4 +38,4 @@ export async function loadDataset(): Promise<Dataset> {
   }
 }
 
-export const DATA_REVALIDATE_SECONDS = 300;
+export const DATA_REVALIDATE_SECONDS = 600;

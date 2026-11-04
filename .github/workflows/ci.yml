@@ -22,6 +22,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Dashboard production build
         run: npm run build
+      - name: Dashboard regression tests
+        run: npm test
 
   test:
     runs-on: ubuntu-latest

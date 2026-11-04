@@ -8,9 +8,7 @@
 import Link from "next/link";
 import { loadDataset } from "@/lib/hackathon";
 
-// Render at request time; the GitHub data layer is cached by
-// unstable_cache, so this never re-fetches per request but also never bakes
-// an empty snapshot at build time when GitHub is unreachable.
+// Render from the shared GitHub snapshot at request time.
 export const dynamic = "force-dynamic";
 
 export const metadata = {
@@ -43,8 +41,8 @@ export default async function GalleryLayersPage() {
             </h1>
             <p className="animate-fade-in stagger-2 text-[1.05rem] leading-[1.6] text-ink-500 max-w-md">
               Every Nanda Town scenario picks one plugin per layer. The grid
-              below syncs live from GitHub — merged and in-review PRs land in
-              their layer automatically, and builds beyond the twelve layers
+              below syncs live from GitHub. Every PR is grouped by layer,
+              including open, merged, and closed contributions. Builds beyond the twelve layers
               collect under Other. Click any layer to see its entries.
             </p>
           </div>

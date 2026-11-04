@@ -1,6 +1,6 @@
-// Server-only module (uses Next's cache APIs): import from Server
+// Server-only module: import from Server
 // Components and route handlers, never from client components.
-import { unstable_cache } from "next/cache";
+import { createDatasetCache, PRFetchError } from "./pr-cache";
 import type {
   Dataset,
   LayerKey,
@@ -14,30 +14,19 @@ import type {
  *
  * Replaces the deploy-time `public/hackathon-data.json` snapshot with a
  * request-time fetch of projnanda/nandatown pull requests, so merged PRs
- * appear in their layer automatically. The classification rules are a
- * faithful port of `packages/nest-marketplace/nest_marketplace/adapter.py`
- * — keep the two in sync.
+ * appear in their layer automatically. Explicit layer labels and declarations
+ * take priority over the original hackathon keyword classification.
  *
  * Rate limits: anonymous GitHub REST allows 60 requests/hour/IP. The PR
- * list costs one request per 100 PRs (currently 2). The RAW responses are
- * ~2.7MB/page — over Next's 2MB per-entry fetch-cache limit — so we cache
- * the compact PROCESSED dataset via unstable_cache (PR bodies truncated)
- * for REVALIDATE_SECONDS, tagged `hackathon-prs` so the GitHub webhook
- * (src/app/api/github/webhook) can bust it the moment a PR merges. Set
- * GITHUB_TOKEN in the environment for 5000/hour headroom; everything
- * works without it.
+ * list costs one request per 100 PRs. Keep the processed snapshot in the
+ * long-running Railway process rather than Next's size-limited data cache.
+ * Signed webhooks mark it for refresh. The cache coalesces readers, budgets
+ * anonymous API requests, and retains the last complete snapshot on errors.
+ * GITHUB_TOKEN is optional and permits faster updates during event bursts.
  */
 
 export const GITHUB_REPO = "projnanda/nandatown";
-export const PR_CACHE_TAG = "hackathon-prs";
-const REVALIDATE_SECONDS = 300;
-// Page ceiling. The repo has ~110 PRs; 10 pages (1000 newest) leaves wide
-// headroom so a modest junk-PR flood can't push real hackathon entries off
-// the end before the deadline. Hackathon filtering happens after the fetch.
-const MAX_PAGES = 10;
-// Hard cap on each PR body kept in the cached dataset. Keeps the whole
-// serialized dataset far below Next's 2MB per-cache-entry ceiling even in a
-// flood; the detail page links to GitHub for the untruncated body.
+// Keep previews compact; detail pages link to GitHub for the full body.
 const BODY_CAP = 4000;
 
 const KNOWN_LAYERS = [
@@ -149,13 +138,29 @@ const LAYER_OVERRIDES: Record<number, ReturnType<typeof classifyLayer>> = {
   95: "other", // core engine metrics fix
 };
 
+const LAYER_NAMES = [...KNOWN_LAYERS, "other"].join("|");
+const TITLE_LAYER = new RegExp(`^(?:\\[[^\\]]+\\]\\s*)?(?:feat|fix|docs|test|refactor)?\\(?(${LAYER_NAMES})\\)?\\s*(?::|[-–—])`, "i");
+const DECLARED_LAYER = new RegExp(`\\blayer\\s*:\\s*(${LAYER_NAMES})\\b|(?:^|\\n)\\s*#{1,6}\\s*layer\\s*\\n+\\s*(${LAYER_NAMES})\\b`, "i");
+
+function labelLayer(labels: GitHubPR["labels"]): LayerKey | undefined {
+  for (const label of labels ?? []) {
+    const key = label.name.toLowerCase().replace(/^layer\s*[:/]\s*/, "").trim();
+    if ([...KNOWN_LAYERS, "other"].includes(key)) return key as LayerKey;
+  }
+}
+
 export function classifyLayer(
   theme: string | null,
   title = "",
   body = "",
 ): LayerKey {
+  const titleLayer = title.trim().match(TITLE_LAYER)?.[1];
+  const bodyLayer = body.replace(/[*`]/g, "").match(DECLARED_LAYER);
+  const declared = titleLayer ?? bodyLayer?.[1] ?? bodyLayer?.[2];
+  if (declared) return declared.toLowerCase() as LayerKey;
+
   const sources: Array<{ text: string; commsPlural: boolean }> = [
-    { text: theme ?? "", commsPlural: false },
+    { text: (theme ?? "").toLowerCase(), commsPlural: false },
     { text: title.toLowerCase(), commsPlural: true },
     { text: body.toLowerCase(), commsPlural: true },
   ];
@@ -225,7 +230,7 @@ export function layerStatsFor(submissions: Submission[]): LayerStats[] {
   });
 }
 
-interface GitHubPR {
+export interface GitHubPR {
   number: number;
   state: "open" | "closed";
   title: string;
@@ -236,10 +241,13 @@ interface GitHubPR {
   merged_at: string | null;
   head: { ref: string };
   user: { login: string; avatar_url: string; html_url: string } | null;
+  labels?: { name: string }[];
 }
 
-async function fetchAllPRs(): Promise<GitHubPR[]> {
+export async function fetchAllPRs(timeoutMs = 25_000): Promise<GitHubPR[]> {
   const out: GitHubPR[] = [];
+  // Bound the whole paginated refresh so a stalled upstream reaches fallback.
+  const signal = AbortSignal.timeout(timeoutMs);
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
@@ -248,17 +256,28 @@ async function fetchAllPRs(): Promise<GitHubPR[]> {
   if (process.env.GITHUB_TOKEN) {
     headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
   }
-  for (let page = 1; page <= MAX_PAGES; page++) {
-    // no-store: the surrounding unstable_cache owns caching — these raw
-    // pages are too large for the per-entry fetch cache anyway.
-    const res = await fetch(
+  // A fixed page ceiling would silently undercount lifetime PRs.
+  for (let page = 1; ; page++) {
+    // The shared snapshot owns caching; raw API pages are not cached by Next.
+    let res: Response;
+    let batch: GitHubPR[];
+    try {
+      res = await fetch(
       `https://api.github.com/repos/${GITHUB_REPO}/pulls?state=all&per_page=100&sort=created&direction=desc&page=${page}`,
-      { headers, cache: "no-store" },
-    );
-    if (!res.ok) {
-      throw new Error(`GitHub PR list failed: ${res.status}`);
+      { headers, cache: "no-store", signal },
+      );
+      if (!res.ok) {
+        const retryAfter = Number(res.headers.get("retry-after") ?? 0) * 1000;
+        const resetDelay = res.headers.get("x-ratelimit-remaining") === "0"
+          ? Number(res.headers.get("x-ratelimit-reset") ?? 0) * 1000 - Date.now() + 1000
+          : 0;
+        throw new PRFetchError(`GitHub PR list failed: ${res.status}`, page, Math.max(0, retryAfter, resetDelay));
+      }
+      batch = (await res.json()) as GitHubPR[];
+    } catch (error) {
+      if (error instanceof PRFetchError) throw error;
+      throw new PRFetchError("GitHub PR list could not be fetched", page);
     }
-    const batch = (await res.json()) as GitHubPR[];
     out.push(...batch);
     if (batch.length < 100) break;
   }
@@ -293,10 +312,9 @@ function toSubmission(pr: GitHubPR): Submission {
     pr_number: pr.number,
     title: pr.title,
     short_description: shortDescription(body),
-    // Capped so the whole cached dataset stays far below the cache entry
-    // ceiling; the detail page links to GitHub for the untruncated body.
+    // The detail page links to GitHub for the untruncated body.
     body_markdown: body.length > BODY_CAP ? body.slice(0, BODY_CAP) + "\n\n…" : body,
-    layer: LAYER_OVERRIDES[pr.number] ?? classifyLayer(theme, pr.title, body),
+    layer: labelLayer(pr.labels) ?? LAYER_OVERRIDES[pr.number] ?? classifyLayer(theme, pr.title, body),
     branch,
     author,
     pr_url: pr.html_url,
@@ -306,21 +324,21 @@ function toSubmission(pr: GitHubPR): Submission {
     changed_files: null,
     created_at: pr.created_at,
     merged_at: pr.merged_at,
-    state: pr.merged_at ? "merged" : "open",
+    state: pr.merged_at ? "merged" : pr.state,
     score: null,
     tag: isAgent ? "agent-authored" : "human-authored",
   };
 }
 
 /**
- * Fetch and assemble the live dataset: every open or merged PR on the repo
- * (hackathon or not), classified into its layer (or "Other"), merged entries
- * flagged. Closed-but-unmerged PRs are dropped.
+ * Fetch and assemble every PR, including closed unmerged history.
  */
 async function buildLiveDataset(): Promise<Dataset> {
-  const prs = await fetchAllPRs();
+  return buildDataset(await fetchAllPRs());
+}
+
+export function buildDataset(prs: GitHubPR[]): Dataset {
   const submissions = prs
-    .filter((pr) => pr.state === "open" || pr.merged_at !== null)
     .map(toSubmission)
     .sort((a, b) =>
       a.created_at === b.created_at
@@ -340,6 +358,8 @@ async function buildLiveDataset(): Promise<Dataset> {
     stats: {
       total_submissions: submissions.length,
       total_merged: submissions.filter((s) => s.state === "merged").length,
+      total_open: submissions.filter((s) => s.state === "open").length,
+      total_closed: submissions.filter((s) => s.state === "closed").length,
       unique_participants: participants.size,
       layers_covered: coveredOfTwelve,
       layers_total: KNOWN_LAYERS.length,
@@ -351,13 +371,13 @@ async function buildLiveDataset(): Promise<Dataset> {
   };
 }
 
-/**
- * The cached entry point: one compact dataset per REVALIDATE_SECONDS
- * window (or until the webhook busts the `hackathon-prs` tag), shared by
- * every /hackathon page render.
- */
-export const fetchLiveDataset = unstable_cache(
-  buildLiveDataset,
-  ["hackathon-live-dataset"],
-  { revalidate: REVALIDATE_SECONDS, tags: [PR_CACHE_TAG] },
-);
+// Next can bundle pages and route handlers separately. Share one cache across
+// those entry points, with a versioned key for the lifetime dataset schema.
+const serverState = globalThis as typeof globalThis & {
+  nandaPRCacheV2?: ReturnType<typeof createDatasetCache>;
+};
+const datasetCache = serverState.nandaPRCacheV2 ??= createDatasetCache(buildLiveDataset, {
+  authenticated: Boolean(process.env.GITHUB_TOKEN),
+});
+export const fetchLiveDataset = datasetCache.get;
+export const invalidatePrDataset = datasetCache.invalidate;
