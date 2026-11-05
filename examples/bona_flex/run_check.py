@@ -86,6 +86,9 @@ def run_case(case: str, out: pathlib.Path, worlds: pathlib.Path, tag: str, prov:
                        "BONA_FLEX_TIMELINE": str(case_dir / "timeline_live.txt"),
                        "BONA_FLEX_PROVENANCE": json.dumps(prov)})
     spec = resolve_spec(str(HERE / "scenarios" / f"{case}.yaml"))
+    import yaml
+    # record plugin_files as the YAML names them (relative), never this machine's absolute paths
+    spec.plugin_files = list(yaml.safe_load((HERE / "scenarios" / f"{case}.yaml").read_text(encoding="utf-8"))["plugin_files"])
     run_id = f"bona-flex-{spec.name}-s{spec.seed}"
     print(f"\n=== {case}{tag}: world {world.name}, Bona did {info['bona_did'][:24]}..., run_id {run_id}")
     engine = Engine(spec, run_id=run_id)
@@ -115,7 +118,8 @@ def run_case(case: str, out: pathlib.Path, worlds: pathlib.Path, tag: str, prov:
     stages = {s.name: s.status for s in result.stages}
     print(f"--- verdict {result.verdict}; stages {stages}")
     render_timeline(bundle / "events.jsonl", case_dir / "timeline_rendered.txt")
-    return {"case": case, "tag": tag, "verdict": result.verdict, "stages": stages, "dir": str(case_dir)}
+    return {"case": case, "tag": tag, "verdict": result.verdict, "stages": stages,
+            "dir": case_dir.relative_to(out).as_posix()}
 
 
 def _line(e: dict) -> str | None:
@@ -217,7 +221,7 @@ def main() -> int:
         for i in range(2, a.repeat + 1):
             r = run_case("flex_race_lost_response", out, worlds, f"_rep{i}", prov)
             summary["runs"].append(r)
-            summary["reruns"][f"rep{i}"] = compare(base, pathlib.Path(r["dir"]) / "bundle" / "events.jsonl")
+            summary["reruns"][f"rep{i}"] = compare(base, out / r["dir"] / "bundle" / "events.jsonl")
     exp = json.loads((HERE / "scenarios" / "expected_control_stages.json").read_text(encoding="utf-8"))
     ctl = next((r for r in summary["runs"] if r["case"] == exp["scenario"] and r["tag"] == ""), None)
     if ctl:
