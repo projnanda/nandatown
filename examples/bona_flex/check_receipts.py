@@ -16,9 +16,26 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from bona_flex_offline import verify_receipt  # noqa: E402
 
 
-def check(case: pathlib.Path) -> tuple[int, list[str]]:
+def pinned_did(case: pathlib.Path) -> str | None:
+    """The run's Bona did:key pinned in the evidence root's committed summary.json (QA 95e5d91 L3)."""
+    for root in (case.parent, case.parent.parent):
+        s = root / "summary.json"
+        if s.is_file():
+            rel = case.relative_to(root).as_posix()
+            for r in json.loads(s.read_text(encoding="utf-8"))["runs"]:
+                if r["dir"] == rel:
+                    return r.get("bona_did")
+    return None
+
+
+def check(case: pathlib.Path, did_pin: str | None = None) -> tuple[int, list[str]]:
     side = case / "bona_sidecar"
     did = json.loads((side / "provenance.json").read_bytes().decode("utf-8")).get("bona_did")
+    pin = did_pin or pinned_did(case)
+    if pin is None:
+        return 0, ["no pinned Bona did:key (pass --did, or run inside an evidence root with summary.json)"]
+    if did != pin:
+        return 0, [f"the sidecar's did:key {did} is not the pinned {pin}"]
     if not did:
         return 0, ["no Bona did:key in provenance.json (a control run has no Bona receipts)"]
     probs, n = [], 0
@@ -44,7 +61,8 @@ def check(case: pathlib.Path) -> tuple[int, list[str]]:
 
 def main() -> int:
     case = pathlib.Path(sys.argv[1]).resolve()
-    n, probs = check(case)
+    pin = sys.argv[sys.argv.index("--did") + 1] if "--did" in sys.argv else None
+    n, probs = check(case, pin)
     print(f"{n} receipt(s) checked; {'all verify, every mutation fails' if not probs else 'PROBLEMS'}")
     for p in probs:
         print(f"    {p}")

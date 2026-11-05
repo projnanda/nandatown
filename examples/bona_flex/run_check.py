@@ -243,6 +243,10 @@ def main() -> int:
     for r in summary["runs"]:
         print(f"{r['case']}{r['tag']}: {r['verdict']}")
     ok = all(r["verdict"] == ("failed" if r["case"] == exp["scenario"] else "passed") for r in summary["runs"])
+    # the race's purpose must actually be exercised, not just "not_tested" (QA 95e5d91 L4)
+    ok = ok and all(r["stages"].get(s) == "passed" for r in summary["runs"] if r["case"] == "flex_race_lost_response"
+                    for s in ("retry_replays_original", "retry_sends_identical_request", "acceptance_order_respected",
+                              "duplicate_no_extra_commitment"))
     ok = ok and summary.get("control", {}).get("exactly_as_frozen", True)
     ok = ok and all(v["only_masked_fields_differ"] and v["masked_identical"] for v in summary["reruns"].values())
     print("RUN CHECK:", "OK" if ok else "NOT OK")

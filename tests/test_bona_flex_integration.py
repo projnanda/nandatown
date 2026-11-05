@@ -61,6 +61,11 @@ def test_offline_recorded_verdicts_and_frozen_control_set():
             assert r["verdict"] == "failed" and failed == sorted(exp["expected_failed_stages"])
         else:
             assert r["verdict"] == "passed", (c, [(s["name"], s["status"]) for s in r["stages"]])
+        if c == "flex_race_lost_response":   # the race's purpose is exercised, not skipped (QA 95e5d91 L4)
+            st = {s["name"]: s["status"] for s in r["stages"]}
+            for s in ("retry_replays_original", "retry_sends_identical_request", "acceptance_order_respected",
+                      "duplicate_no_extra_commitment"):
+                assert st[s] == "passed", (s, st[s])
 
 
 @needs_evidence

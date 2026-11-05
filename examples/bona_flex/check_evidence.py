@@ -68,7 +68,10 @@ def clock_rederived(side: pathlib.Path, evs: list[dict]) -> dict | None:
             h_ok &= rc["issued_at"] < holds[rq["hold_id"]]["expires_at"]
     first_issue = min(r["issued_at"] for r in receipts.values())
     seqs = [c["seq"] for c in commits if c["attempt"] == 1]
-    budget = rec["detail"]["wall_s"] is not None and rec["detail"]["wall_s"] < rec["detail"]["budget_s"]
+    # run_budget: the desk's wall time AND a signed lower bound (span of Bona's own issued_at) must be under the
+    # budget (QA 95e5d91 L2). delivery_due uses the earliest signed issued_at (the assess call time is unsigned).
+    span = max(r["issued_at"] for r in receipts.values()) - first_issue
+    budget = rec["detail"]["wall_s"] is not None and rec["detail"]["wall_s"] < rec["detail"]["budget_s"]         and span < rec["detail"]["budget_s"]
     return {"delivery_due": all(a["interval"][1] <= first_issue for a in assess.values()), "freshness": fresh,
             "assessment_valid": a_ok, "hold_valid": h_ok, "run_budget": budget,
             "monotonic_seq": seqs == sorted(seqs) and len(set(seqs)) == len(seqs)}
@@ -142,6 +145,9 @@ def main() -> int:
         return 1
     summ = root / "summary.json"
     pin_by_dir = {r["dir"]: r for r in json.loads(summ.read_text(encoding="utf-8"))["runs"]} if summ.is_file() else {}
+    if len(cs) > 1 and not pin_by_dir:     # an evidence root without its pins is a problem (QA 95e5d91 L3)
+        print(f"BAD summary.json missing under {root}: the key pins cannot be checked")
+        ok = False
     for c in cs:
         rel = c.relative_to(root).as_posix() if c != root else ""
         probs = check_case(c, pin_by_dir.get(rel) if pin_by_dir else None)

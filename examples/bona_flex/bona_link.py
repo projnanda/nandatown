@@ -28,10 +28,15 @@ class BonaLink:
         self.proc = subprocess.Popen(list(cmd), stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE, env=dict(env) if env is not None else None, cwd=cwd)
         threading.Thread(target=self._drain, daemon=True).start()
-        self.server_info = self._request("initialize", {
-            "protocolVersion": PROTOCOL_VERSION, "capabilities": {},
-            "clientInfo": {"name": "nandatown-bona-flex-desk", "version": "0.1"}})
-        self._send({"jsonrpc": "2.0", "method": "notifications/initialized"})
+        try:
+            self.server_info = self._request("initialize", {
+                "protocolVersion": PROTOCOL_VERSION, "capabilities": {},
+                "clientInfo": {"name": "nandatown-bona-flex-desk", "version": "0.1"}})
+            self._send({"jsonrpc": "2.0", "method": "notifications/initialized"})
+        except BaseException:      # never leave the server running when the handshake fails (QA 95e5d91 L5)
+            self.proc.kill()
+            self.proc.wait(timeout=5)
+            raise
 
     def _drain(self) -> None:
         for line in self.proc.stderr:

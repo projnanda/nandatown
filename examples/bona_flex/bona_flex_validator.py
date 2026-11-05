@@ -101,10 +101,10 @@ def retry_replays_original(trace) -> StageResult:
                 if d.get("outcome") != "refusal" or d.get("w_granted"):
                     bad.append(r)       # a refused hold is not stored: its retry must be refused again, no grant
             elif any(d.get(k) != first.get(k) for k in ("outcome", "hold", "w_granted", "seq", "receipt_sha256")):
-                bad.append(r)       # a fresh grant, another hold, another W or another receipt: not a replay
+                bad.append(f"{r} (fresh grant)")     # another hold, W, seq or receipt: not a replay
             elif not first.get("receipt_sha256"):
-                bad.append(r)       # rev3 4.3: "the retry returns the same seq and a byte-identical SIGNED receipt"
-    return _check("retry_replays_original", not bad, ev, f"retry did not replay the original receipt: {bad}",
+                bad.append(f"{r} (unsigned replay)")  # rev3 4.3: "...the same seq and a byte-identical SIGNED receipt"
+    return _check("retry_replays_original", not bad, ev, f"retry did not replay a signed original receipt: {bad}",
                   "every retry returned the same seq and a byte-identical signed receipt")
 
 
