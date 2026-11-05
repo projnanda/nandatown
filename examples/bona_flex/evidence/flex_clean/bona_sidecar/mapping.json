@@ -1,0 +1,14 @@
+{
+ "assessments": {
+  "a-1": "asm_b45fdefa43729d07276b170e",
+  "a-2": "asm_b44c22090f1d8ade2d18106b"
+ },
+ "holds": {
+  "h-1": "hold_6a20a7a3f03d316545043419",
+  "h-2": "hold_f0dcec8780e38ee2cba6758d"
+ },
+ "offers": {
+  "o-1": "off_5abed666464d46c3",
+  "o-2": "off_440f803af028448a"
+ }
+}

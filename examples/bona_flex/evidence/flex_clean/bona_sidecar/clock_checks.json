@@ -1,0 +1,71 @@
+{
+ "checks": {
+  "assessment_valid": true,
+  "delivery_due": true,
+  "freshness": true,
+  "hold_valid": true,
+  "monotonic_seq": true,
+  "run_budget": true
+ },
+ "detail": {
+  "budget_s": 25,
+  "commits": [
+   {
+    "action": "hold",
+    "attempt": 1,
+    "created_at": 1793861479,
+    "expires_at": 1793861779,
+    "hold_expires_at": null,
+    "issued_at": 1793861479,
+    "request": "r-1",
+    "sent": 1793861479.9456968,
+    "seq": 1,
+    "type": "hold",
+    "valid_until": 1793862379
+   },
+   {
+    "action": "hold",
+    "attempt": 1,
+    "created_at": 1793861479,
+    "expires_at": 1793861779,
+    "hold_expires_at": null,
+    "issued_at": 1793861480,
+    "request": "r-2",
+    "sent": 1793861479.998604,
+    "seq": 2,
+    "type": "hold",
+    "valid_until": 1793862379
+   },
+   {
+    "action": "confirm",
+    "attempt": 1,
+    "created_at": 1793861480,
+    "expires_at": 1793861779,
+    "hold_expires_at": 1793861779,
+    "issued_at": 1793861480,
+    "request": "r-3",
+    "sent": 1793861480.0304327,
+    "seq": 3,
+    "type": "confirm",
+    "valid_until": null
+   },
+   {
+    "action": "confirm",
+    "attempt": 1,
+    "created_at": 1793861480,
+    "expires_at": 1793861779,
+    "hold_expires_at": 1793861779,
+    "issued_at": 1793861480,
+    "request": "r-4",
+    "sent": 1793861480.0618203,
+    "seq": 4,
+    "type": "confirm",
+    "valid_until": null
+   }
+  ],
+  "first_assess_wall": 1793861479.906656,
+  "freshness_s": 30,
+  "max_interval_end_s": 1678817700,
+  "wall_s": 0.44220566749572754
+ }
+}

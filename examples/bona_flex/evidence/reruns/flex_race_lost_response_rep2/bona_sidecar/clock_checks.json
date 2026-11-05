@@ -1,0 +1,97 @@
+{
+ "checks": {
+  "assessment_valid": true,
+  "delivery_due": true,
+  "freshness": true,
+  "hold_valid": true,
+  "monotonic_seq": true,
+  "run_budget": true
+ },
+ "detail": {
+  "budget_s": 25,
+  "commits": [
+   {
+    "action": "hold",
+    "attempt": 1,
+    "created_at": 1793861495,
+    "expires_at": 1793861795,
+    "hold_expires_at": null,
+    "issued_at": 1793861495,
+    "request": "r-1",
+    "sent": 1793861495.195396,
+    "seq": 1,
+    "type": "hold",
+    "valid_until": 1793862395
+   },
+   {
+    "action": "hold",
+    "attempt": 1,
+    "created_at": 1793861495,
+    "expires_at": 1793861795,
+    "hold_expires_at": null,
+    "issued_at": 1793861495,
+    "request": "r-2",
+    "sent": 1793861495.240709,
+    "seq": 2,
+    "type": "hold",
+    "valid_until": 1793862395
+   },
+   {
+    "action": "hold",
+    "attempt": 2,
+    "created_at": 1793861495,
+    "expires_at": 1793861795,
+    "hold_expires_at": null,
+    "issued_at": 1793861495,
+    "request": "r-2",
+    "sent": 1793861495.2715929,
+    "seq": 2,
+    "type": "hold",
+    "valid_until": 1793862395
+   },
+   {
+    "action": "confirm",
+    "attempt": 1,
+    "created_at": 1793861495,
+    "expires_at": 1793861795,
+    "hold_expires_at": 1793861795,
+    "issued_at": 1793861495,
+    "request": "r-3",
+    "sent": 1793861495.2964032,
+    "seq": 3,
+    "type": "confirm",
+    "valid_until": null
+   },
+   {
+    "action": "hold",
+    "attempt": 2,
+    "created_at": 1793861495,
+    "expires_at": 1793861795,
+    "hold_expires_at": null,
+    "issued_at": 1793861495,
+    "request": "r-1",
+    "sent": 1793861495.3268993,
+    "seq": 1,
+    "type": "hold",
+    "valid_until": 1793862395
+   },
+   {
+    "action": "confirm",
+    "attempt": 1,
+    "created_at": 1793861495,
+    "expires_at": 1793861795,
+    "hold_expires_at": 1793861795,
+    "issued_at": 1793861495,
+    "request": "r-4",
+    "sent": 1793861495.3514388,
+    "seq": 4,
+    "type": "confirm",
+    "valid_until": null
+   }
+  ],
+  "first_assess_wall": 1793861495.153273,
+  "freshness_s": 30,
+  "max_interval_end_s": 1678817700,
+  "wall_s": 0.5033338069915771
+ }
+}

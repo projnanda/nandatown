@@ -1,0 +1,16 @@
+{
+ "created_at": 1793861479,
+ "interval": [
+  1678816800,
+  1678817700
+ ],
+ "key_id": "did:key:z6MkiopPYBCvAMFb5kXai4LCTecg2E5hHUZJiPyBSFoBNneT#z6MkiopPYBCvAMFb5kXai4LCTecg2E5hHUZJiPyBSFoBNneT",
+ "meter": "M_SYN_DC_1",
+ "nonce": "b9d9812f5b7948de8659588b8037fbd6",
+ "offer_id": "off_440f803af028448a",
+ "price_musd_per_mwh": 50000,
+ "product_type": "load_reduction",
+ "seller_id": "S_SYN_DC_1",
+ "signature": "IiAxRw06frmFbkYb8Xx_51vPADc_eW6PRk1TOSAjtdB8YCDVeke4e7jqzRd83vDvth_WHgAZqh8ALCMyrMowBw",
+ "w": 500000
+}

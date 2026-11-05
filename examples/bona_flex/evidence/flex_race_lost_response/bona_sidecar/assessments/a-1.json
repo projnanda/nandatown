@@ -1,0 +1,23 @@
+{
+ "assessment_id": "asm_076ae090c9d5b36c1a370284",
+ "buyer": "buyer-1",
+ "capacity_constrained": false,
+ "coverage_target_bp": 9000,
+ "delivery_lower_bound_w": 425000,
+ "expected_surplus_wh": 0,
+ "feasible_w": 500000,
+ "interval": [
+  1678816800,
+  1678817700
+ ],
+ "meter": "M_SYN_DC_1",
+ "offer_id": "off_4591b3cd9c6a441f",
+ "offered_w": 500000,
+ "product_type": "load_reduction",
+ "risk_flags": [
+  "probation"
+ ],
+ "seller": "S_SYN_DC_1",
+ "status": "ok",
+ "valid_until": 1793862386
+}

@@ -1,0 +1,14 @@
+{
+ "bona_did": "did:key:z6MkhEb5gdAFXDFaRSQQLWFqFyi3BVNsz2zCQqBbRLw8mboJ",
+ "bona_dirty": false,
+ "bona_sha": "e932e9c5bbcf8aaf0251c4ce01e6d3d65d8ca036",
+ "cryptography": "50.0.2",
+ "fixture_manifest_sha256": "5369ee0091457330162992836fa0da038d28d1fecbc1e942987a26fccf49e0f4",
+ "lab_evaluator_version": "lab-0.2.6",
+ "nandatown_version": "0.2.0",
+ "os": "Windows-11-10.0.26200-SP0",
+ "python_town": "3.13.15",
+ "source": "bona",
+ "town_dirty": false,
+ "town_sha": "ebfda6789f4fed7f9307182ce94c8efc1f997875"
+}
