@@ -65,6 +65,13 @@ STAGE_MEANING = {
                         " refused",
     "listing_intact": "a quote request reached the honest seller after"
                       " the forged card",
+    "escrow_resolved": "every escrow ended with exactly one party",
+    "paid_only_for_verified_box": "no payment before the sealed box checked"
+                                  " out",
+    "damaged_box_refused": "a box failing its digest was never paid for",
+    "wrong_content_refused": "a key opening the wrong data earned nothing",
+    "late_claim_refused": "a key claim after the deadline earned nothing",
+    "atomic_exchange": "paid if and only if the buyer opened the goods",
     "ledger_conserved": "money was conserved across every movement",
     "privacy": "declared private fields never left the run",
     "resolution": "the subject was found through the declared path",
