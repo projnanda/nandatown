@@ -635,3 +635,12 @@ def test_report_contains_scope_and_stages(tmp_path):
     report_md = (tmp_path / "bundle" / "report.md").read_text()
     assert SCOPE_SENTENCE in report_md
     assert "—" not in text and "–" not in text
+    
+    
+def test_report_processed_stage_names_the_seller_as_source(tmp_path):
+    # Town sees the seller's acknowledgement, not the seller's internals
+    path, _ = make_bundle(tmp_path)
+    text = render_report(load_bundle(path))
+    processed_line = next(line for line in text.splitlines()
+                          if line.strip().startswith("processed"))
+    assert "seller's own acknowledgement" in processed_line
