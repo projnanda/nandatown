@@ -1,12 +1,12 @@
 {
   "payload": {
-    "bundle_fingerprint": "sha256:cfccfe251614bcf7409bcead6a89dcbc8bc03aad64f05a5f23d31cb69842ce10",
-    "run_id": "run-82555887af62",
+    "bundle_fingerprint": "sha256:2b77566a540e9a1201b3b421a92f340b13b9b2ef59892fe1287725f43121fd9a",
+    "run_id": "run-10718153d593",
     "verdict": "failed",
     "evaluator_version": "0.5.0",
-    "signer": "did:town:03ea4c34e7898f2634eb8e57",
-    "signed_at": 1793840130.6188877
+    "signer": "did:town:36dd5cc6016c73deea3cc57c",
+    "signed_at": 1793840479.8750627
   },
-  "signature": "68c46be0221f8d204573b6011122497832f13d4617464178935b90f8dd83cf8ab9279950c0d9cd9d309b619331182f6e2901164e8ed3168729961ca96deca60d",
-  "controller_public": "564de12bd1a58d6dda07b2e5451d76a6130832df182f8eeb0357afd88c13f016"
+  "signature": "2afb5ae455a853d5b96445e79032247071b085730ad257d73ee1e0570927514ddc81ec3d1e3531b8250c6ceb766ad38782ab930adf7432dd2dc4c4ecb091dc04",
+  "controller_public": "0cff131feb8307e07f3db1ebb06f0171ccfc3f93db321a2559af0eeb2fe31999"
 }

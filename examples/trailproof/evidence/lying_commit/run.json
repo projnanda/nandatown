@@ -1,8 +1,8 @@
 {
-  "run_id": "run-7c2dd984ea02",
+  "run_id": "run-208bb8413042",
   "profile_name": "quote-clean",
   "profile_fingerprint": "sha256:87a8ada4df2b3b2dc28fded719700e2db02559d8ed4e1647ffaf221e577eaa39",
-  "created_at": 1793840126.677933,
+  "created_at": 1793840474.9939623,
   "participants": [
     {
       "name": "buyer",
@@ -27,7 +27,7 @@
     "python": "3.12.10"
   },
   "config": {
-    "port": 63145,
+    "port": 63339,
     "restarted_seller": false,
     "runtimes": {
       "buyer": "cmd",

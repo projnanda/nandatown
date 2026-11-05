@@ -1,8 +1,8 @@
 {
-  "run_id": "run-1846b3d8faac",
+  "run_id": "run-1dd24275d1b4",
   "profile_name": "quote-duplicate-delivery",
   "profile_fingerprint": "sha256:649ac81897f7d652b41a86393afa52d301fe3197b8db3a3aaaab6e57c25cfca0",
-  "created_at": 1793840123.713082,
+  "created_at": 1793840471.799178,
   "participants": [
     {
       "name": "buyer",
@@ -27,7 +27,7 @@
     "python": "3.12.10"
   },
   "config": {
-    "port": 63125,
+    "port": 59444,
     "restarted_seller": false,
     "runtimes": {
       "buyer": "cmd",
