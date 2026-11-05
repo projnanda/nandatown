@@ -100,9 +100,10 @@ def retry_replays_original(trace) -> StageResult:
             if first.get("outcome") == "refusal":
                 if d.get("outcome") != "refusal" or d.get("w_granted"):
                     bad.append(r)       # a refused hold is not stored: its retry must be refused again, no grant
-            elif d.get("seq") != first.get("seq") or d.get("receipt_sha256") != first.get("receipt_sha256") \
-                    or not first.get("receipt_sha256"):
-                bad.append(r)
+            elif any(d.get(k) != first.get(k) for k in ("outcome", "hold", "w_granted", "seq", "receipt_sha256")):
+                bad.append(r)       # a fresh grant, another hold, another W or another receipt: not a replay
+            elif not first.get("receipt_sha256"):
+                bad.append(r)       # rev3 4.3: "the retry returns the same seq and a byte-identical SIGNED receipt"
     return _check("retry_replays_original", not bad, ev, f"retry did not replay the original receipt: {bad}",
                   "every retry returned the same seq and a byte-identical signed receipt")
 
@@ -111,11 +112,21 @@ def retry_sends_identical_request(trace) -> StageResult:
     rs = _retries(trace)
     if not rs:
         return StageResult(name="retry_sends_identical_request", status="not_tested", note="no retried request")
-    bad = [r for r, es in rs.items() if len({_d(e).get("request_sha256") for e in es}) != 1
-           or not _d(es[0]).get("request_sha256")]
-    ev = [e.event_id for es in rs.values() for e in es]
-    return _check("retry_sends_identical_request", not bad, ev, f"retried bytes differ: {bad}",
-                  "every retry sent the identical request bytes (created_at included)")
+    # Observed on the wire (QA 5199c77 M2): the sha256 the BUYER put in each flex_hold it sent (Town's message_sent
+    # events), and the sha256 of the bytes the desk then submitted; both must agree across every attempt.
+    sent: dict[str, list] = {}
+    for e in trace.find("message_sent", kind="flex_hold"):
+        b = _d(e).get("body") or {}
+        sent.setdefault(b.get("request"), []).append((e.event_id, b.get("request_sha256")))
+    bad, ev = [], []
+    for r, es in rs.items():
+        wire = sent.get(r, [])
+        ev += [e.event_id for e in es] + [i for i, _ in wire]
+        hashes = {h for _, h in wire} | {_d(e).get("request_sha256") for e in es}
+        if len(hashes) != 1 or None in hashes or not wire:
+            bad.append(r)
+    return _check("retry_sends_identical_request", not bad, ev, f"retried bytes differ or were not observed: {bad}",
+                  "every resend carried the same request sha256 on the wire, and the desk submitted exactly those bytes")
 
 
 def duplicate_no_extra_commitment(trace) -> StageResult:

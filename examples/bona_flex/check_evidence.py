@@ -10,7 +10,13 @@ Per case (a folder holding Town's `bundle/` and the `bona_sidecar/` beside it):
    event, and the events.jsonl hash is the one in Town's manifest (so Town's hashes cover the sidecar);
 4. one-to-one receipts: the receipt hashes named by events equal the hashes of the files in `receipts/`;
 5. sidecar files are UTF-8 with LF line endings only (Town's own records keep the bytes Town wrote; their hashes
-   are what Town's manifest covers).
+   are what Town's manifest covers);
+6. Town's attestation.json is present (verify_bundle skips a missing one), and, when the evidence root holds the
+   committed summary.json, each run's Bona did:key (sidecar provenance) and Town controller key (attestation) equal
+   the pins recorded there; a consistently re-signed case therefore needs the committed summary rewritten too, which
+   git history and review show (the pins are not a third-party trust anchor);
+7. the six clock checks the desk recorded are RE-DERIVED here from the sidecar's own requests, receipts and
+   assessments (freshness, assessment and hold validity, delivery due, seq order); a mismatch is a problem.
 Exit 0 only if every case passes. Prints one line per check.
 """
 from __future__ import annotations
@@ -30,11 +36,51 @@ def _events(bundle: pathlib.Path) -> list[dict]:
     return [json.loads(x) for x in (bundle / "events.jsonl").read_bytes().decode("utf-8").splitlines() if x.strip()]
 
 
-def check_case(case: pathlib.Path) -> list[str]:
+FRESHNESS_S = 30
+
+
+def _json(p: pathlib.Path):
+    return json.loads(p.read_bytes().decode("utf-8"))
+
+
+def clock_rederived(side: pathlib.Path, evs: list[dict]) -> dict | None:
+    """The six checks from the sidecar files alone (None for a run without Bona receipts)."""
+    if not (side / "clock_checks.json").is_file():
+        return None
+    rec = _json(side / "clock_checks.json")
+    receipts = {int(p.stem): _json(p) for p in (side / "receipts").glob("*.json")}
+    requests = {p.stem: _json(p) for p in (side / "requests").glob("*.json")}
+    # requests/r-N.json are the buyer's bytes (aliases: a-N, h-N); mapping.json translates aliases to Bona's ids
+    assess = {p.stem: _json(p) for p in (side / "assessments").glob("*.json")}
+    real_hold = _json(side / "mapping.json")["holds"]          # {h-N: Bona hold id}
+    by_real = {r["hold_id"]: r for r in receipts.values() if r.get("type") == "hold"}
+    holds = {alias: by_real[real] for alias, real in real_hold.items() if real in by_real}
+    commits = [e["detail"] | {"request": e["subject"]} for e in evs if e["kind"] == "flex_commit"]
+    fresh, a_ok, h_ok = True, True, True
+    for c in commits:
+        rc, rq = receipts.get(c["seq"]), requests.get(c["request"])
+        if rc is None or rq is None:
+            return {"error": f"missing receipt or request for {c['request']}"}
+        fresh &= abs(rq["created_at"] - rc["issued_at"]) <= FRESHNESS_S
+        if c["action"] == "hold" and rc["type"] == "hold":
+            a_ok &= rc["issued_at"] < assess[rq["assessment_id"]]["valid_until"]
+        if c["action"] == "confirm" and rc["type"] == "confirm":
+            h_ok &= rc["issued_at"] < holds[rq["hold_id"]]["expires_at"]
+    first_issue = min(r["issued_at"] for r in receipts.values())
+    seqs = [c["seq"] for c in commits if c["attempt"] == 1]
+    budget = rec["detail"]["wall_s"] is not None and rec["detail"]["wall_s"] < rec["detail"]["budget_s"]
+    return {"delivery_due": all(a["interval"][1] <= first_issue for a in assess.values()), "freshness": fresh,
+            "assessment_valid": a_ok, "hold_valid": h_ok, "run_budget": budget,
+            "monotonic_seq": seqs == sorted(seqs) and len(set(seqs)) == len(seqs)}
+
+
+def check_case(case: pathlib.Path, pins: dict | None = None) -> list[str]:
     from nandatown.bundle import verify_bundle
     problems: list[str] = []
     bundle, side = case / "bundle", case / "bona_sidecar"
     problems += [f"town: {p}" for p in verify_bundle(str(bundle))]
+    if not (bundle / "attestation.json").is_file():
+        problems.append("town: attestation.json missing (verify_bundle does not require it; this pack does)")
     man_p = side / "sidecar_manifest.json"
     if not man_p.is_file():
         return problems + ["sidecar: no sidecar_manifest.json"]
@@ -62,6 +108,21 @@ def check_case(case: pathlib.Path) -> list[str]:
     if named != files:
         problems.append(f"receipts: events name {len(named)} receipt hash(es), sidecar holds {len(files)}; "
                         f"{len(named ^ files)} unmatched")
+    clock_ev = [e for e in evs if e["kind"] == "flex_clock"]
+    try:
+        again = clock_rederived(side, evs)
+    except (KeyError, ValueError, TypeError) as exc:
+        again = {"error": f"{type(exc).__name__}: {exc}"}
+    if again is not None:
+        if not clock_ev or clock_ev[-1]["detail"].get("checks") != again:
+            problems.append(f"clock: recorded checks differ from the ones re-derived from the sidecar: {again}")
+    if pins is not None:
+        prov = _json(side / "provenance.json") if (side / "provenance.json").is_file() else {}
+        att = json.loads((bundle / "attestation.json").read_text(encoding="utf-8"))             if (bundle / "attestation.json").is_file() else {}
+        if prov.get("bona_did") != pins.get("bona_did"):
+            problems.append("pins: the sidecar's Bona did:key is not the one pinned in summary.json")
+        if att.get("controller_public") != pins.get("town_controller_public"):
+            problems.append("pins: the attestation's Town key is not the one pinned in summary.json")
     return problems
 
 
@@ -79,8 +140,13 @@ def main() -> int:
     if not cs:
         print(f"no case folders under {root}")
         return 1
+    summ = root / "summary.json"
+    pin_by_dir = {r["dir"]: r for r in json.loads(summ.read_text(encoding="utf-8"))["runs"]} if summ.is_file() else {}
     for c in cs:
-        probs = check_case(c)
+        rel = c.relative_to(root).as_posix() if c != root else ""
+        probs = check_case(c, pin_by_dir.get(rel) if pin_by_dir else None)
+        if pin_by_dir and rel not in pin_by_dir:
+            probs.append("pins: this case is not listed in summary.json")
         ok = ok and not probs
         print(f"{'OK ' if not probs else 'BAD'} {c.relative_to(root) if c != root else c.name}")
         for p in probs:

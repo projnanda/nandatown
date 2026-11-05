@@ -13,7 +13,7 @@ Process layout (no Town src/ change; Town runs in its own venv):
 - `flex_desk_naive` (the control) grants every hold in full without Bona and keeps its own model ("control_model").
 
 Town events carry aliases and integers only (o-N offer, a-N assessment, r-N request, h-N hold). Full Bona objects
-go to the sidecar; hashes in events are the declared binding fields (see check_evidence.MASKED_FIELDS).
+go to the sidecar; hashes in events are the declared binding fields (see run_check.MASKED_FIELDS).
 """
 from __future__ import annotations
 
@@ -97,6 +97,7 @@ class Ctx:
         self.offers: dict[str, dict] = {}
         self.requests: dict[str, dict] = {}
         self.n = {"o": 0, "a": 0, "r": 0, "h": 0}
+        self.link = None                                  # the desk's BonaLink, closed by close()
         self.tl = open(self.timeline_path, "a", encoding="utf-8", newline="\n")  # noqa: SIM115
 
     def alias(self, k: str) -> str:
@@ -129,6 +130,8 @@ class Ctx:
 
     def close(self):
         try:
+            if self.link is not None:
+                self.link.close()
             self.op.close()
         finally:
             self.tl.close()
@@ -223,7 +226,7 @@ class FlexBuyer(SimAgent):
         r = self._request("hold", w, assessment=a["assessment"])
         self.pending[r] = {"kind": "hold", "tries": 1}
         self.ctx.live(self.api.now, self.name, f"holds {w // 1000} kW on {a['assessment']} (request {r})")
-        self.api.send(self.config["desk"], "flex_hold", {"request": r})
+        self.api.send(self.config["desk"], "flex_hold", self._body(r))
         self.api.later(float(self.config.get("retry_after", 2.0)), lambda r=r: self._retry(r))
 
     def _retry(self, r):
@@ -231,7 +234,11 @@ class FlexBuyer(SimAgent):
             return
         self.pending[r]["tries"] += 1
         self.ctx.live(self.api.now, self.name, f"no answer for {r}: retries the IDENTICAL request")
-        self.api.send(self.config["desk"], "flex_hold", {"request": r})
+        self.api.send(self.config["desk"], "flex_hold", self._body(r))
+
+    def _body(self, r) -> dict:
+        """What the buyer sends: the request alias and the sha256 of the exact bytes it is (re)sending."""
+        return {"request": r, "request_sha256": sha256_bytes(dump_bytes(self.ctx.requests[r]))}
 
     def handle_flex_hold_result(self, msg):
         b = msg["body"]
@@ -247,10 +254,14 @@ class FlexBuyer(SimAgent):
         self.api.escrow_hold(b["w_granted"] // 1000, h)
         r = self._request("confirm", b["w_granted"], hold=h)
         self.ctx.live(self.api.now, self.name, f"escrows {b['w_granted'] // 1000} cents and confirms {h}")
-        self.api.send(self.config["desk"], "flex_confirm", {"request": r, "hold": h})
+        self.api.send(self.config["desk"], "flex_confirm", {**self._body(r), "hold": h})
 
     def handle_flex_confirm_result(self, msg):
-        self.ctx.live(self.api.now, self.name, f"{msg['body']['hold']} {msg['body']['outcome']}")
+        b = msg["body"]
+        self.ctx.live(self.api.now, self.name, f"{b['hold']} {b['outcome']}")
+        if b["outcome"] != "confirm":              # QA 5199c77 L5: a refused confirm returns the escrow
+            self.api.escrow_refund(b["hold"])
+            self.ctx.live(self.api.now, self.name, f"confirm refused: escrow for {b['hold']} refunded")
 
     def handle_flex_settled(self, msg):
         b = msg["body"]
@@ -306,6 +317,7 @@ class FlexDesk(_DeskBase):
         env.update(self.ctx.info["env"])
         env["PYTHONPATH"] = os.environ["BONA_HOME"]
         self.link = BonaLink([os.environ["BONA_PYTHON"], "-m", "bona.server"], env=env, cwd=os.environ["BONA_HOME"])
+        self.ctx.link = self.link
         self.did = self.ctx.info["bona_did"]
         tools = sorted(self.link.list_tools())
         self.ctx.live(self.api.now, self.name, f"spawned the real Bona MCP server; tools {tools}")
@@ -366,7 +378,9 @@ class FlexDesk(_DeskBase):
             meter_step, seller = h["meter_step"], h["seller"]
         self.attempts[r] = self.attempts.get(r, 0) + 1
         attempt = self.attempts[r]
-        self.ctx.put(f"requests/{r}.json", req)
+        if sha256_bytes(dump_bytes(self.ctx.requests[r])) != msg["body"].get("request_sha256"):
+            raise RuntimeError(f"{r}: the stored request is not the one the buyer sent")
+        self.ctx.put(f"requests/{r}.json", self.ctx.requests[r])
         sent = self._wall()
         rc = self.link.call("commit", {"request": req})
         ok = verify_receipt(rc, self.did)
@@ -394,7 +408,7 @@ class FlexDesk(_DeskBase):
             "assessment": self.ctx.requests[r].get("assessment_id"), "hold": hold, "meter_step": meter_step,
             "w_requested": req["w"], "outcome": rc["type"], "w_granted": granted, "flags": flags,
             "reason_code": rc.get("reason_code"), "seq": rc.get("seq"), "receipt_sha256": receipt_sha256(rc),
-            "request_sha256": sha256_bytes(dump_bytes(req)), "verified": ok, "attempt": attempt})
+            "request_sha256": sha256_bytes(dump_bytes(self.ctx.requests[r])), "verified": ok, "attempt": attempt})
         self.ctx.live(self.api.now, self.name, f"commit {action} {r} (attempt {attempt}) -> {rc['type']} "
                       f"{granted // 1000} kW seq {rc.get('seq')} {flags or ''}"
                       + (" [replayed the stored receipt]" if attempt > 1 else ""))
@@ -514,6 +528,8 @@ class FlexDeskNaive(_DeskBase):
         r = msg["body"]["request"]
         req = self.ctx.requests[r]
         self.attempts[r] = self.attempts.get(r, 0) + 1
+        if sha256_bytes(dump_bytes(req)) != msg["body"].get("request_sha256"):
+            raise RuntimeError(f"{r}: the stored request is not the one the buyer sent")
         if r not in self.by_req:
             self.seq += 1
             if action == "hold":

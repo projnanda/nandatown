@@ -11,8 +11,8 @@ Timeline: lines marked LIVE are printed by the agents while the run executes; li
 afterwards from the recorded events.jsonl only. The two are kept apart on purpose.
 
 Determinism: Town's run_id is fixed per (scenario, seed) here (Town's runner draws a random one), so reruns can be
-compared. Raw events.jsonl bytes differ between reruns only in the declared binding fields (receipt, request,
-offer and sidecar-manifest hashes, which cover wall-clock-signed Bona objects); the check reports raw identity and
+compared. Raw events.jsonl bytes differ between reruns only in the declared binding fields (receipt, request and
+sidecar-manifest hashes, which cover wall-clock-signed Bona objects); the check reports raw identity and
 identity with exactly those fields masked, and lists every differing field.
 """
 from __future__ import annotations
@@ -58,7 +58,9 @@ def provenance() -> dict:
         return subprocess.run(["git", "-C", str(d), *a], capture_output=True, text=True, env=_clean_env(),
                               check=False).stdout.strip()
     town = HERE.parents[1]
-    return {"town_sha": git(town, "rev-parse", "HEAD"), "nandatown_version": nandatown.__version__,
+    return {"town_sha": git(town, "rev-parse", "HEAD"),
+            "town_dirty": bool(git(town, "status", "--porcelain", "--", "examples/bona_flex", "src", "tests")
+                               .replace("?? examples/bona_flex/evidence/", "")), "nandatown_version": nandatown.__version__,
             "lab_evaluator_version": LAB_EVALUATOR_VERSION,
             "bona_sha": git(os.environ["BONA_HOME"], "rev-parse", "HEAD"),
             "bona_dirty": bool(git(os.environ["BONA_HOME"], "status", "--porcelain", "--", "bona", "bench")),
@@ -98,7 +100,7 @@ def run_case(case: str, out: pathlib.Path, worlds: pathlib.Path, tag: str, prov:
         payments.open_account(a.name, a.config.get("balance_cents", 0))
     try:
         engine.run()
-    finally:
+    finally:   # closes the opserver AND the desk's Bona MCP server, also when the run raised (QA 5199c77 L10)
         ROLES["flex_seller"].on_start.__globals__["Ctx"].reset()   # Town's plugin loader keeps no sys.modules entry
     privacy = engine.layers["privacy"]
     events = [TownEvent.model_validate(privacy.redact(e.model_dump())) for e in engine.events]
@@ -111,14 +113,16 @@ def run_case(case: str, out: pathlib.Path, worlds: pathlib.Path, tag: str, prov:
                    releases={"nandatown": __version__, "evaluator": LAB_EVALUATOR_VERSION,
                              "python": sys.version.split()[0]},
                    config={"mode": "lab", "seed": spec.seed, "layers": spec.layers, "logical_time": engine.now,
-                           "rerun_command": f"python examples/bona_flex/run_check.py --cases {case}"})
+                           "rerun_command": f"python examples/bona_flex/run_check.py --out <new dir> --cases {case}"})
     bundle = case_dir / "bundle"
     write_bundle(str(bundle), public_spec, rr, intents, events, result, mode="lab")
-    attest_bundle(str(bundle), keystore=Keystore(str(world / "town_keystore")))
+    att = attest_bundle(str(bundle), keystore=Keystore(str(world / "town_keystore")))
     stages = {s.name: s.status for s in result.stages}
     print(f"--- verdict {result.verdict}; stages {stages}")
     render_timeline(bundle / "events.jsonl", case_dir / "timeline_rendered.txt")
     return {"case": case, "tag": tag, "verdict": result.verdict, "stages": stages,
+            "bona_did": info["bona_did"] if spec.agents[0].role == "flex_desk" else None,
+            "town_controller_public": att["controller_public"],
             "dir": case_dir.relative_to(out).as_posix()}
 
 
@@ -200,7 +204,8 @@ def compare(a: pathlib.Path, b: pathlib.Path) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=pathlib.Path, required=True)
-    ap.add_argument("--worlds", type=pathlib.Path, default=None, help="default: <out>/../<out name>_worlds")
+    ap.add_argument("--worlds", type=pathlib.Path, default=None,
+                    help="default: a new folder in the system temp dir (worlds hold raw test keys)")
     ap.add_argument("--repeat", type=int, default=3, help="race runs in total (>= 2 for the rerun check)")
     ap.add_argument("--cases", default=",".join(CASES))
     a = ap.parse_args()
@@ -210,7 +215,11 @@ def main() -> int:
     out = a.out.resolve()
     if out.exists():
         raise SystemExit(f"{out} exists; use a new folder")
-    worlds = (a.worlds or out.parent / f"{out.name}_worlds").resolve()
+    import tempfile
+    worlds = (a.worlds or pathlib.Path(tempfile.mkdtemp(prefix="bona_flex_worlds_"))).resolve()
+    town = HERE.parents[1].resolve()
+    if worlds == town or town in worlds.parents:      # QA 5199c77 L6: raw test keys never inside the Town repo
+        raise SystemExit(f"--worlds {worlds} is inside the Town repository; use a folder outside it")
     out.mkdir(parents=True)
     prov = provenance()
     summary = {"provenance": prov, "runs": [], "reruns": {}}
