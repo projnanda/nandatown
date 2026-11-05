@@ -1,0 +1,2 @@
+# Recorded evidence bundles are hashed byte-for-byte; keep their line endings as recorded on every platform.
+examples/trailproof/evidence/** -text

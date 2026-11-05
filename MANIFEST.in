@@ -3,5 +3,7 @@ recursive-include schemas *.json
 # The historical bundle fixture's records are JSON Lines.
 recursive-include tests/fixtures *.jsonl
 recursive-include examples *.py
+# The TrailProof integration ships its guide and recorded evidence next to its code.
+recursive-include examples/trailproof *.md *.json *.jsonl
 include scripts/check_distributions.py
 include tests/fixtures/invalid_json_seller.py

@@ -1,0 +1,498 @@
+{
+  "all_ok": true,
+  "cases": [
+    {
+      "about": "baseline: mandate, committed offer, in-scope order, Town passes",
+      "case": "clean",
+      "checks": {
+        "MANDATE receipt verifies offline": true,
+        "OFFER receipt verifies offline": true,
+        "ORDER receipt verifies offline": true,
+        "buyer in_scope as expected": true,
+        "ledger chain is MANDATE,OFFER,ORDER": true,
+        "ledger chain prev links hold": true,
+        "one ledger key seen by both agents": true,
+        "seller committed the offer the buyer checked": true,
+        "stage correct passed": true,
+        "town bundle verifies": true,
+        "town verdict as expected": true,
+        "town-recorded receipts are the chain's events": true
+      },
+      "env": {},
+      "expected": {
+        "buyer": {
+          "in_scope": true
+        },
+        "chain": [
+          "MANDATE",
+          "OFFER",
+          "ORDER"
+        ],
+        "stages": {
+          "correct": "passed"
+        },
+        "verdict": "passed"
+      },
+      "observed": {
+        "bundle_verify": [],
+        "buyer_note": {
+          "agent_party_id": "pty_b52a68b7af92",
+          "in_scope": true,
+          "ledger_public_key": "ce64737dfd0d992dc0455f6125ab50cc811cbf6f53e73c1be877111db59309bf",
+          "mandate_commit": "856d821ab74e34cc24e777c7ee51b61bb9039b96682362dce3f7aa439b80f6d1",
+          "mandate_receipt": {
+            "event_id": "evt_5a2f702a628746559df87287ee11da24",
+            "ledger_sig": "c6ce178924f9bff9386fd9423786538a8b64b2081a94d124494764c877ddce1aaa9d781ef2d2e12ee0f6e21849083ec9716d9a952607a462f03836074199b109",
+            "ledger_ts": "2026-11-05T01:01:09.967Z"
+          },
+          "offer_commit": "9d0d67087f03fad6af981d459555fef140f59b9d2099799899937c0e1b082911",
+          "offer_commit_matches_plaintext": true,
+          "order_commit": "82fa5ec7887aa657899a43c65176160f05afbb5e9a6661e14557f8df63dff235",
+          "order_id": "town:run-764e4045a792:q-1",
+          "order_receipt": {
+            "event_id": "evt_1c25562ed92b4102a02d273b825294d8",
+            "ledger_sig": "99969c50d72b7b355e7089e0085956ad033e8fc59b172d9e55257022a29e94cadc2ad4683afcdcfd28cde36fa688dbd11829f9e9269b5de6b7c8e1d6ea8c430a",
+            "ledger_ts": "2026-11-05T01:01:10.200Z"
+          },
+          "reasons": [],
+          "user_party_id": "pty_2d2f354dbdae"
+        },
+        "run_id": "run-764e4045a792",
+        "seller_note": {
+          "committed": true,
+          "ledger_public_key": "ce64737dfd0d992dc0455f6125ab50cc811cbf6f53e73c1be877111db59309bf",
+          "merchant_party_id": "pty_86568436e1cf",
+          "mode": "honest",
+          "offer_commit": "9d0d67087f03fad6af981d459555fef140f59b9d2099799899937c0e1b082911",
+          "order_id": "town:run-764e4045a792:q-1",
+          "receipt": {
+            "event_id": "evt_5549ab742dbb428e865729ec1f760b2c",
+            "ledger_sig": "a71f14144669e0682be4647a3cc8c2abd1a5fa40c7f8919b439b4db9ccb561f4d1c6deab34963bf2c81b8d14f1168febfea831ade6b0af02f0eaff50cc0c0d07",
+            "ledger_ts": "2026-11-05T01:01:10.073Z"
+          }
+        },
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "correct": "passed",
+          "portable_identity": "not_tested",
+          "processed": "passed",
+          "received": "passed",
+          "response": "passed"
+        },
+        "trail": [
+          {
+            "commit": "856d821ab74e34cc24e777c7ee51b61bb9039b96682362dce3f7aa439b80f6d1",
+            "event_id": "evt_5a2f702a628746559df87287ee11da24",
+            "ledger_ts": "2026-11-05T01:01:09.967Z",
+            "party_id": "pty_2d2f354dbdae",
+            "prev": null,
+            "type": "MANDATE"
+          },
+          {
+            "commit": "9d0d67087f03fad6af981d459555fef140f59b9d2099799899937c0e1b082911",
+            "event_id": "evt_5549ab742dbb428e865729ec1f760b2c",
+            "ledger_ts": "2026-11-05T01:01:10.073Z",
+            "party_id": "pty_86568436e1cf",
+            "prev": "856d821ab74e34cc24e777c7ee51b61bb9039b96682362dce3f7aa439b80f6d1",
+            "type": "OFFER"
+          },
+          {
+            "commit": "82fa5ec7887aa657899a43c65176160f05afbb5e9a6661e14557f8df63dff235",
+            "event_id": "evt_1c25562ed92b4102a02d273b825294d8",
+            "ledger_ts": "2026-11-05T01:01:10.200Z",
+            "party_id": "pty_b52a68b7af92",
+            "prev": "9d0d67087f03fad6af981d459555fef140f59b9d2099799899937c0e1b082911",
+            "type": "ORDER"
+          }
+        ],
+        "verdict": "passed"
+      },
+      "ok": true,
+      "profile": "quote-clean",
+      "seconds": 2.9
+    },
+    {
+      "about": "Town redelivers the request; the seller commits one OFFER, not two",
+      "case": "duplicate",
+      "checks": {
+        "MANDATE receipt verifies offline": true,
+        "OFFER receipt verifies offline": true,
+        "ORDER receipt verifies offline": true,
+        "buyer in_scope as expected": true,
+        "ledger chain is MANDATE,OFFER,ORDER": true,
+        "ledger chain prev links hold": true,
+        "one ledger key seen by both agents": true,
+        "seller committed the offer the buyer checked": true,
+        "stage correct passed": true,
+        "stage duplicate_recognized passed": true,
+        "town bundle verifies": true,
+        "town verdict as expected": true,
+        "town-recorded receipts are the chain's events": true
+      },
+      "env": {},
+      "expected": {
+        "buyer": {
+          "in_scope": true
+        },
+        "chain": [
+          "MANDATE",
+          "OFFER",
+          "ORDER"
+        ],
+        "stages": {
+          "correct": "passed",
+          "duplicate_recognized": "passed"
+        },
+        "verdict": "passed"
+      },
+      "observed": {
+        "bundle_verify": [],
+        "buyer_note": {
+          "agent_party_id": "pty_2008fb257c4d",
+          "in_scope": true,
+          "ledger_public_key": "ce64737dfd0d992dc0455f6125ab50cc811cbf6f53e73c1be877111db59309bf",
+          "mandate_commit": "6f756316253bf9b86c1dfa34bf47f1fc4a541ed945de008bbe6ff6965391b5bf",
+          "mandate_receipt": {
+            "event_id": "evt_8ad0358e2a5446efaaba7dd292847f91",
+            "ledger_sig": "49511af8575b87aaa91c25ec93965f02c1afcbe9f695331657edade2099db6dd97f51b456da4006ef3feb18ab6e47976deead0728ac0d0464fe6a574aa8c7006",
+            "ledger_ts": "2026-11-05T01:01:12.862Z"
+          },
+          "offer_commit": "e42f836ece2b7c201833e5c07709128fac9899224dd5d53aa024088c0f1d87b6",
+          "offer_commit_matches_plaintext": true,
+          "order_commit": "89433cf6b70d194ae9d10f9c9d3446d0eff980d20a3e49a6430ff7eb25d81f5d",
+          "order_id": "town:run-1dd24275d1b4:q-1",
+          "order_receipt": {
+            "event_id": "evt_55c13c03847446efb11c23167e24c69f",
+            "ledger_sig": "47c4644d8b947752d519fd6db0175b5dce074093a2a4b5bf351f9c45622a1d3345d9b44ba925389844d0ca39b65084fd165090c93b9ee56926d2c45a2001c905",
+            "ledger_ts": "2026-11-05T01:01:13.044Z"
+          },
+          "reasons": [],
+          "user_party_id": "pty_9e762ee296ff"
+        },
+        "run_id": "run-1dd24275d1b4",
+        "seller_note": {
+          "committed": true,
+          "ledger_public_key": "ce64737dfd0d992dc0455f6125ab50cc811cbf6f53e73c1be877111db59309bf",
+          "merchant_party_id": "pty_5e4fdcf38d58",
+          "mode": "honest",
+          "offer_commit": "e42f836ece2b7c201833e5c07709128fac9899224dd5d53aa024088c0f1d87b6",
+          "order_id": "town:run-1dd24275d1b4:q-1",
+          "receipt": {
+            "event_id": "evt_2753dda33b934a45b81a849df0863e62",
+            "ledger_sig": "672566f4ec485b73c753a44b220fe9c1e4285660922b4119b2979586657f5bcfc283f744f9cf1b928d1cbe8cc1c00620e52f3821498b85fe394260e177b5a408",
+            "ledger_ts": "2026-11-05T01:01:12.931Z"
+          }
+        },
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "correct": "passed",
+          "duplicate_recognized": "passed",
+          "portable_identity": "not_tested",
+          "processed": "passed",
+          "received": "passed",
+          "response": "passed"
+        },
+        "trail": [
+          {
+            "commit": "6f756316253bf9b86c1dfa34bf47f1fc4a541ed945de008bbe6ff6965391b5bf",
+            "event_id": "evt_8ad0358e2a5446efaaba7dd292847f91",
+            "ledger_ts": "2026-11-05T01:01:12.862Z",
+            "party_id": "pty_9e762ee296ff",
+            "prev": null,
+            "type": "MANDATE"
+          },
+          {
+            "commit": "e42f836ece2b7c201833e5c07709128fac9899224dd5d53aa024088c0f1d87b6",
+            "event_id": "evt_2753dda33b934a45b81a849df0863e62",
+            "ledger_ts": "2026-11-05T01:01:12.931Z",
+            "party_id": "pty_5e4fdcf38d58",
+            "prev": "6f756316253bf9b86c1dfa34bf47f1fc4a541ed945de008bbe6ff6965391b5bf",
+            "type": "OFFER"
+          },
+          {
+            "commit": "89433cf6b70d194ae9d10f9c9d3446d0eff980d20a3e49a6430ff7eb25d81f5d",
+            "event_id": "evt_55c13c03847446efb11c23167e24c69f",
+            "ledger_ts": "2026-11-05T01:01:13.044Z",
+            "party_id": "pty_2008fb257c4d",
+            "prev": "e42f836ece2b7c201833e5c07709128fac9899224dd5d53aa024088c0f1d87b6",
+            "type": "ORDER"
+          }
+        ],
+        "verdict": "passed"
+      },
+      "ok": true,
+      "profile": "quote-duplicate-delivery",
+      "seconds": 3.2
+    },
+    {
+      "about": "the seller's committed OFFER differs from the plaintext it sent; check_order refuses",
+      "case": "lying_commit",
+      "checks": {
+        "MANDATE receipt verifies offline": true,
+        "OFFER receipt verifies offline": true,
+        "buyer in_scope as expected": true,
+        "buyer refused with COMMIT_MISMATCH": true,
+        "ledger chain is MANDATE,OFFER": true,
+        "ledger chain prev links hold": true,
+        "one ledger key seen by both agents": true,
+        "seller committed the offer the buyer checked": true,
+        "stage correct failed": true,
+        "stage response passed": true,
+        "town bundle verifies": true,
+        "town verdict as expected": true,
+        "town-recorded receipts are the chain's events": true
+      },
+      "env": {
+        "TRAILPROOF_SELLER_MODE": "lying_commit"
+      },
+      "expected": {
+        "buyer": {
+          "in_scope": false,
+          "reason": "COMMIT_MISMATCH"
+        },
+        "chain": [
+          "MANDATE",
+          "OFFER"
+        ],
+        "stages": {
+          "correct": "failed",
+          "response": "passed"
+        },
+        "verdict": "failed"
+      },
+      "observed": {
+        "bundle_verify": [],
+        "buyer_note": {
+          "agent_party_id": "pty_c39af52702d0",
+          "in_scope": false,
+          "ledger_public_key": "ce64737dfd0d992dc0455f6125ab50cc811cbf6f53e73c1be877111db59309bf",
+          "mandate_commit": "5b7206d1b574b4e7d675f3746b9173894c6e514c2559d8101978d22e01e4387f",
+          "mandate_receipt": {
+            "event_id": "evt_d22637883b0c47f3ad4db30ef751dd4c",
+            "ledger_sig": "547d2540c886441089ee96a85c382195124382bbb7202360916b2ce5636e50d4f022553d42550eba826645eafe5ba2f868f1e04c58356ba6537462610cd9d307",
+            "ledger_ts": "2026-11-05T01:01:16.008Z"
+          },
+          "offer_commit": "86fe365d5638a5ee9627688140575889386397546a2e3ceba8294dd2f79bd32c",
+          "offer_commit_matches_plaintext": false,
+          "order_id": "town:run-208bb8413042:q-1",
+          "reasons": [
+            {
+              "code": "COMMIT_MISMATCH",
+              "detail": "sha256(offer_payload) != offer_commit"
+            }
+          ],
+          "user_party_id": "pty_375635a10434"
+        },
+        "run_id": "run-208bb8413042",
+        "seller_note": {
+          "committed": true,
+          "ledger_public_key": "ce64737dfd0d992dc0455f6125ab50cc811cbf6f53e73c1be877111db59309bf",
+          "merchant_party_id": "pty_085fa778a076",
+          "mode": "lying_commit",
+          "offer_commit": "86fe365d5638a5ee9627688140575889386397546a2e3ceba8294dd2f79bd32c",
+          "order_id": "town:run-208bb8413042:q-1",
+          "receipt": {
+            "event_id": "evt_bee1868242df459facf38b057863fcff",
+            "ledger_sig": "64bfd05d2c9b1a8b83c997150c6efa5c2513fff71d3bbe22a68258fbda798709fb9640fda2c15410890658006cd66b9a183be11b4b3e03af7b18365f4f25400d",
+            "ledger_ts": "2026-11-05T01:01:16.136Z"
+          }
+        },
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "correct": "failed",
+          "portable_identity": "not_tested",
+          "processed": "passed",
+          "received": "passed",
+          "response": "passed"
+        },
+        "trail": [
+          {
+            "commit": "5b7206d1b574b4e7d675f3746b9173894c6e514c2559d8101978d22e01e4387f",
+            "event_id": "evt_d22637883b0c47f3ad4db30ef751dd4c",
+            "ledger_ts": "2026-11-05T01:01:16.008Z",
+            "party_id": "pty_375635a10434",
+            "prev": null,
+            "type": "MANDATE"
+          },
+          {
+            "commit": "86fe365d5638a5ee9627688140575889386397546a2e3ceba8294dd2f79bd32c",
+            "event_id": "evt_bee1868242df459facf38b057863fcff",
+            "ledger_ts": "2026-11-05T01:01:16.136Z",
+            "party_id": "pty_085fa778a076",
+            "prev": "5b7206d1b574b4e7d675f3746b9173894c6e514c2559d8101978d22e01e4387f",
+            "type": "OFFER"
+          }
+        ],
+        "verdict": "failed"
+      },
+      "ok": true,
+      "profile": "quote-clean",
+      "seconds": 2.9
+    },
+    {
+      "about": "the user's mandate is 30.00, the quote is 39.90; the agent does not order",
+      "case": "over_budget",
+      "checks": {
+        "MANDATE receipt verifies offline": true,
+        "OFFER receipt verifies offline": true,
+        "buyer in_scope as expected": true,
+        "buyer refused with OVER_BUDGET": true,
+        "ledger chain is MANDATE,OFFER": true,
+        "ledger chain prev links hold": true,
+        "one ledger key seen by both agents": true,
+        "seller committed the offer the buyer checked": true,
+        "stage correct failed": true,
+        "stage response passed": true,
+        "town bundle verifies": true,
+        "town verdict as expected": true,
+        "town-recorded receipts are the chain's events": true
+      },
+      "env": {
+        "TRAILPROOF_MANDATE_MAX": "30.00"
+      },
+      "expected": {
+        "buyer": {
+          "in_scope": false,
+          "reason": "OVER_BUDGET"
+        },
+        "chain": [
+          "MANDATE",
+          "OFFER"
+        ],
+        "stages": {
+          "correct": "failed",
+          "response": "passed"
+        },
+        "verdict": "failed"
+      },
+      "observed": {
+        "bundle_verify": [],
+        "buyer_note": {
+          "agent_party_id": "pty_06a8ac683dbd",
+          "in_scope": false,
+          "ledger_public_key": "ce64737dfd0d992dc0455f6125ab50cc811cbf6f53e73c1be877111db59309bf",
+          "mandate_commit": "1a4c0914e44f97e2cc69022494cc23fb27b8808bcda4a08136d2cbf86a9f9ed3",
+          "mandate_receipt": {
+            "event_id": "evt_6490c3a441034bdd9dc3086f24a8dcdf",
+            "ledger_sig": "e21071b1e41f865ad1f372c60784725fc87a0f471e37ab96447755dd994ec489e428277a517e816c9c6d2514818d98fd9006aa6fa01cd5ee42f6c3d1ba36380c",
+            "ledger_ts": "2026-11-05T01:01:19.411Z"
+          },
+          "offer_commit": "80e4fe274393f9d8df1b2c0e8c8a2dbcc6ef062d04e7fbc7ccf4c1111b40372f",
+          "offer_commit_matches_plaintext": true,
+          "order_commit": null,
+          "order_id": "town:run-10718153d593:q-1",
+          "order_receipt": null,
+          "reasons": [
+            {
+              "code": "OVER_BUDGET",
+              "detail": "total 39.90 exceeds remaining budget 30.00 (max 30.00, already spent 0.00)"
+            }
+          ],
+          "user_party_id": "pty_c32c33d76a37"
+        },
+        "run_id": "run-10718153d593",
+        "seller_note": {
+          "committed": true,
+          "ledger_public_key": "ce64737dfd0d992dc0455f6125ab50cc811cbf6f53e73c1be877111db59309bf",
+          "merchant_party_id": "pty_f08b0503aae9",
+          "mode": "honest",
+          "offer_commit": "80e4fe274393f9d8df1b2c0e8c8a2dbcc6ef062d04e7fbc7ccf4c1111b40372f",
+          "order_id": "town:run-10718153d593:q-1",
+          "receipt": {
+            "event_id": "evt_806ba901ea8c4518aa8e98379b4551d6",
+            "ledger_sig": "a20848bd64c323088acbbc2d274382e72ad78fc7d89cdcd0cd99f95508b3f58390d37e84683c2d76959b4318ac6e5c3f981069304cfdadadbce0df3db5659e07",
+            "ledger_ts": "2026-11-05T01:01:19.517Z"
+          }
+        },
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "correct": "failed",
+          "portable_identity": "not_tested",
+          "processed": "passed",
+          "received": "passed",
+          "response": "passed"
+        },
+        "trail": [
+          {
+            "commit": "1a4c0914e44f97e2cc69022494cc23fb27b8808bcda4a08136d2cbf86a9f9ed3",
+            "event_id": "evt_6490c3a441034bdd9dc3086f24a8dcdf",
+            "ledger_ts": "2026-11-05T01:01:19.411Z",
+            "party_id": "pty_c32c33d76a37",
+            "prev": null,
+            "type": "MANDATE"
+          },
+          {
+            "commit": "80e4fe274393f9d8df1b2c0e8c8a2dbcc6ef062d04e7fbc7ccf4c1111b40372f",
+            "event_id": "evt_806ba901ea8c4518aa8e98379b4551d6",
+            "ledger_ts": "2026-11-05T01:01:19.517Z",
+            "party_id": "pty_f08b0503aae9",
+            "prev": "1a4c0914e44f97e2cc69022494cc23fb27b8808bcda4a08136d2cbf86a9f9ed3",
+            "type": "OFFER"
+          }
+        ],
+        "verdict": "failed"
+      },
+      "ok": true,
+      "profile": "quote-clean",
+      "seconds": 3.3
+    },
+    {
+      "about": "the ledger is unreachable; both agents fail open and the note says no_receipt",
+      "case": "ledger_down",
+      "checks": {
+        "buyer failed open (no_receipt)": true,
+        "seller committed nothing": true,
+        "stage correct passed": true,
+        "town bundle verifies": true,
+        "town verdict as expected": true
+      },
+      "env": {
+        "TRAILPROOF_URL": "http://127.0.0.1:1/mcp"
+      },
+      "expected": {
+        "buyer": {
+          "no_receipt": true
+        },
+        "chain": null,
+        "stages": {
+          "correct": "passed"
+        },
+        "verdict": "passed"
+      },
+      "observed": {
+        "bundle_verify": [],
+        "buyer_note": {
+          "detail": "http://127.0.0.1:1/mcp: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>",
+          "no_receipt": true
+        },
+        "run_id": "run-a8ab9c0c0609",
+        "seller_note": {
+          "committed": false
+        },
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "correct": "passed",
+          "portable_identity": "not_tested",
+          "processed": "passed",
+          "received": "passed",
+          "response": "passed"
+        },
+        "verdict": "passed"
+      },
+      "ok": true,
+      "profile": "quote-clean",
+      "seconds": 4.6
+    }
+  ],
+  "nandatown_commit": "269a9b176ed7d9ed241e2aabc7a3ad0cba237646",
+  "nandatown_version": "0.2.0",
+  "platform": "win32",
+  "python": "3.12.10",
+  "recorded_at": "2026-11-05T01:01:24Z",
+  "trailproof_home_commit": "fa69fe0e261e1b4ad62c6f95ad17b6fff06a4218"
+}
