@@ -1,0 +1,12 @@
+{
+  "payload": {
+    "bundle_fingerprint": "sha256:80e852185b785cb43caad79d0ad9bc8188ab4d2058b47311ab6cb04d8aaf58ae",
+    "run_id": "bona-flex-flex_race_naive_desk_control-s7",
+    "verdict": "failed",
+    "evaluator_version": "lab-0.2.6",
+    "signer": "did:town:33056c590757193edc1e17f0",
+    "signed_at": 1793861797.052984
+  },
+  "signature": "404cd803482ae07d42f53bc699b9d5470c2a92e6bf6ebc940d8397e779060c4a5d0c5ab565686070e23df5d6102c40afc47f6ca0e1b8e7c8422e4de04e4b7d00",
+  "controller_public": "109251af72290e380209c7d9d1b545c914f13048e5740f7c7c6ec31916b9056e"
+}
