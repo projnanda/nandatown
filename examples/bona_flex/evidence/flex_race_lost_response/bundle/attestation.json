@@ -1,0 +1,12 @@
+{
+  "payload": {
+    "bundle_fingerprint": "sha256:56350bc24518adadd5a34acc9c5b5eb215a12519747e417bc917a7567ca2504f",
+    "run_id": "bona-flex-flex_race_lost_response-s7",
+    "verdict": "passed",
+    "evaluator_version": "lab-0.2.6",
+    "signer": "did:town:55737530e14c1dc0900b2943",
+    "signed_at": 1793860852.861022
+  },
+  "signature": "e2794a1670795f86b58827132dd965c2c60512a23171fae85cf22a28ad20a191a6790d2ab18bb9d90b4864fa3b81653570b0e60c18af7b6d151fa0e94f730100",
+  "controller_public": "5c2d6cc935a7dd59c9ad782e91f43d7e9678eedfa48c527467291e924961dc16"
+}

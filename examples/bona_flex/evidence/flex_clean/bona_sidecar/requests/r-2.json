@@ -1,0 +1,11 @@
+{
+ "action": "hold",
+ "assessment_id": "asm_a095a43336f2226e7a5522aa",
+ "capability": null,
+ "created_at": 1793860843,
+ "expires_at": 1793861143,
+ "hold_id": null,
+ "idempotency_key": "77cd7207871bdb0162ad13a859d8780e",
+ "on_behalf_of": "LE_SYN_BUYER_2",
+ "w": 200000
+}

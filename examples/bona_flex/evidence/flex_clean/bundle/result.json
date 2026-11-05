@@ -1,0 +1,146 @@
+{
+  "run_id": "bona-flex-flex_clean-s7",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "no_double_sell",
+      "status": "passed",
+      "evidence": [
+        "ev-49",
+        "ev-52",
+        "ev-83"
+      ],
+      "note": "held + confirmed W never exceeded the assessed capacity"
+    },
+    {
+      "name": "acceptance_order_respected",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no contention in this scenario"
+    },
+    {
+      "name": "retry_replays_original",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no retried request"
+    },
+    {
+      "name": "retry_sends_identical_request",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no retried request"
+    },
+    {
+      "name": "duplicate_no_extra_commitment",
+      "status": "passed",
+      "evidence": [
+        "ev-49",
+        "ev-52"
+      ],
+      "note": "exactly one hold per (buyer, idempotency key); 0 duplicated delivery(ies) seen"
+    },
+    {
+      "name": "settled_once",
+      "status": "passed",
+      "evidence": [
+        "ev-73",
+        "ev-74",
+        "ev-76",
+        "ev-77"
+      ],
+      "note": "one delivery receipt per confirmed commitment; repeated settles returned it unchanged"
+    },
+    {
+      "name": "trust_accounted_once",
+      "status": "passed",
+      "evidence": [
+        "ev-11",
+        "ev-79",
+        "ev-80",
+        "ev-12",
+        "ev-81",
+        "ev-82"
+      ],
+      "note": "trust moved by exactly the settled commitments; repeats changed nothing"
+    },
+    {
+      "name": "receipts_verify",
+      "status": "passed",
+      "evidence": [
+        "ev-49",
+        "ev-52",
+        "ev-61",
+        "ev-64",
+        "ev-73",
+        "ev-74",
+        "ev-76",
+        "ev-77"
+      ],
+      "note": "every commitment and delivery carries a Bona receipt the desk verified (re-checked offline)"
+    },
+    {
+      "name": "money_follows_verdict",
+      "status": "passed",
+      "evidence": [
+        "ev-55",
+        "ev-58",
+        "ev-87",
+        "ev-90"
+      ],
+      "note": "escrow released only for credited verdicts, refunded otherwise"
+    },
+    {
+      "name": "capacity_not_disclosed",
+      "status": "passed",
+      "evidence": [
+        "ev-40",
+        "ev-43",
+        "ev-50",
+        "ev-53",
+        "ev-62",
+        "ev-65",
+        "ev-75",
+        "ev-78"
+      ],
+      "note": "no desk reply disclosed capacity"
+    },
+    {
+      "name": "clock_valid",
+      "status": "passed",
+      "evidence": [
+        "ev-84"
+      ],
+      "note": "all six clock-validity checks held"
+    },
+    {
+      "name": "sidecar_bound",
+      "status": "passed",
+      "evidence": [
+        "ev-85",
+        "ev-92"
+      ],
+      "note": "sidecar manifest sha256 bound in the trace (files re-checked offline)"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-55",
+        "ev-58",
+        "ev-87",
+        "ev-90"
+      ],
+      "note": "200000 cents conserved across every movement"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-92"
+      ],
+      "note": "fields ['budget_cents'] never left the run"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1793860844.3488896
+}

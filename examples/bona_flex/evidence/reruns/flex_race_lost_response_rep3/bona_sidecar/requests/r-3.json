@@ -1,0 +1,11 @@
+{
+ "action": "confirm",
+ "assessment_id": null,
+ "capability": null,
+ "created_at": 1793860866,
+ "expires_at": null,
+ "hold_id": "hold_30a6398db401272248c4e466",
+ "idempotency_key": "884b540b10b0b7b050963628c8020b99",
+ "on_behalf_of": "LE_SYN_BUYER_2",
+ "w": 100000
+}
