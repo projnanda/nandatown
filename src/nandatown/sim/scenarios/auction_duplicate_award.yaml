@@ -1,0 +1,24 @@
+name: auction_duplicate_award
+description: The sealed-bid auction with its award message delivered twice; with payments swapped for ledger.idempotent.v1 the winner's second payment replays the first and nothing settles twice.
+seed: 42
+validator: auction_duplicate_award
+layers:
+  payments: ledger.idempotent.v1
+agents:
+  - name: auctioneer
+    role: auctioneer
+    config: {item: print-001, close_after: 3.0, balance_cents: 0}
+  - name: bidder-x
+    role: bidder
+    config: {valuation_cents: 700, bid_delay: 1.0, balance_cents: 2000}
+  - name: bidder-y
+    role: bidder
+    config: {valuation_cents: 900, bid_delay: 1.2, balance_cents: 2000}
+  - name: bidder-late
+    role: bidder
+    config: {valuation_cents: 950, bid_delay: 6.0, balance_cents: 2000}
+faults:
+  - action: duplicate
+    kind: auction_won
+    nth: 1
+max_time: 60

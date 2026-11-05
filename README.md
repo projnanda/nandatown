@@ -116,6 +116,8 @@ nandatown compare capability_spoofing --swap auth=plain.v1
 
 Same agents, same scenario, same seed; only the rules differ. The comparison report shows the stage verdicts side by side and names exactly what the swap changed, each column backed by its own verifiable bundle. A researcher tests a new reputation algorithm without rebuilding the marketplace; a standards group compares competing protocols through repeatable experiments.
 
+The payments layer also ships `ledger.idempotent.v1`, which settles a direct transfer at most once per payer and non-empty memo. Sending the same transfer again records `payment_replay_ignored` and moves nothing; reusing the memo with another payee or amount records `payment_reuse_rejected` and moves nothing. Escrow, and transfers with an empty memo, behave exactly as in `ledger.v1`. Try `nandatown compare auction_duplicate_award --swap payments=ledger.v1`. This covers Lab transfers only, not Track or Path payments.
+
 ## Upstream scenarios run here
 
 Legacy scenario files (agent populations declared as roles with counts, tick durations, rate-based failures) are detected and adapted automatically. `nandatown import-pr N` then `nandatown run <imported scenario>` runs a local reference flow: roles map onto Town's reference agents and upstream layer plugins are replaced by local defaults. The generic checks cover population activity, discovery, message flow, a completion fact, and money conservation.
@@ -146,6 +148,8 @@ nandatown run auction --seed 7
 | capped_influence_uncapped_control | the same scenario with trust left at reputation.v1: the run FAILS on purpose, showing that one voice that never trades can bury an honest seller |
 | registry_eviction | a rival republishes the honest seller's card under its name with the wrong key; with `index.owned.v1` the forged card is refused, the honest listing survives, and the honest seller is paid |
 | registry_eviction_unowned | the same scenario on the default `index.v1`: the forged card replaces the verified one, the buyer only finds the rival, and the run FAILS on purpose |
+| auction_duplicate_award | the award is delivered twice; with payments on ledger.idempotent.v1 the winner's second payment replays the first, so exactly one settles |
+| auction_duplicate_award_no_idempotency | the same duplicated award on ledger.v1: the winner is charged twice and the run FAILS on purpose, showing what idempotent payments are for |
 
 Every scenario also gets two standing checks: the ledger conserved money across every movement, and no redacted field leaked into the exported records.
 
