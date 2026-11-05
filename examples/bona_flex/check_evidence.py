@@ -143,13 +143,15 @@ def main() -> int:
     if not cs:
         print(f"no case folders under {root}")
         return 1
-    summ = root / "summary.json"
-    pin_by_dir = {r["dir"]: r for r in json.loads(summ.read_text(encoding="utf-8"))["runs"]} if summ.is_file() else {}
-    if len(cs) > 1 and not pin_by_dir:     # an evidence root without its pins is a problem (QA 95e5d91 L3)
-        print(f"BAD summary.json missing under {root}: the key pins cannot be checked")
+    # the committed pins: summary.json in the evidence root; for a single case folder, in its parent folders
+    # (QA 95e5d91 L3, QA 0972d93 L1). No pins found is always a problem.
+    base = next((d for d in (root, root.parent, root.parent.parent) if (d / "summary.json").is_file()), None)
+    pin_by_dir = {r["dir"]: r for r in json.loads((base / "summary.json").read_text(encoding="utf-8"))["runs"]}         if base else {}
+    if not pin_by_dir:
+        print(f"BAD no summary.json at or above {root}: the key pins cannot be checked")
         ok = False
     for c in cs:
-        rel = c.relative_to(root).as_posix() if c != root else ""
+        rel = c.relative_to(base).as_posix() if base else c.name
         probs = check_case(c, pin_by_dir.get(rel) if pin_by_dir else None)
         if pin_by_dir and rel not in pin_by_dir:
             probs.append("pins: this case is not listed in summary.json")
