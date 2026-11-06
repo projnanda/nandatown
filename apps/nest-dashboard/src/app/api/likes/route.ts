@@ -85,7 +85,9 @@ export async function POST(req: NextRequest) {
     await unlikeSkill(skillId, user.sub);
   }
 
-  revalidateTag(LIKES_CACHE_TAG, "max");
+  // Expire, don't mark stale: "max" serves the pre-vote snapshot to the next
+  // /skills load, so a voter who reloads sees their like missing.
+  revalidateTag(LIKES_CACHE_TAG, { expire: 0 });
   // Return the authoritative list so the client never has to guess
   // (display names collide; provider subs stay server-side).
   const likers = await listLikers(skillId);
