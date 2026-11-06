@@ -27,6 +27,10 @@ NATIVE_SCENARIO_STAGES = {
     },
     "auction": {"announced", "bidding", "award", "settlement", "delivery"},
     "voting": {"ballots", "one_agent_one_vote", "tally", "result_broadcast"},
+    "cancellable_contractnet": {
+        "fault_exercised", "task_cancelled", "late_bid_rejected",
+        "cancelled_task_not_awarded",
+    },
     "consensus": {"quorum_commit", "agreement", "fault_recovered"},
     "supply_chain": {
         "procurement", "milestones", "assembly_order", "customer_settled",

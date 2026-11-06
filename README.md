@@ -139,6 +139,7 @@ nandatown run auction --seed 7
 | auction | sealed signed bids, highest bid wins, late bid rejected, exactly one payment |
 | voting | one agent one vote, double ballot rejected, tally matches, result broadcast |
 | consensus | quorum commit under dropped acknowledgements, retries recover the missing acceptors |
+| cancellable_contractnet | issuer cancellation remains terminal when an in-flight delayed bid arrives |
 | supply_chain | contract-net bidding, milestone escrow per part, assembly ordering, delayed delivery survived |
 | capability_spoofing | a forged capability card is unverified, contained, and gets no business |
 | capability_spoofing_weak_auth | the same scenario with auth swapped for plain.v1: the run FAILS on purpose, showing what the auth layer is for |
