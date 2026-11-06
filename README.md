@@ -138,6 +138,8 @@ nandatown run auction --seed 7
 | marketplace | discovery, negotiation, escrow settlement, duplicate recognition, reputation, memory reuse |
 | auction | sealed signed bids, highest bid wins, late bid rejected, exactly one payment |
 | voting | one agent one vote, double ballot rejected, tally matches, result broadcast |
+| voting_finality | delayed ballot within a bounded grace period, one stable tally, result broadcast |
+| voting_finality_unguarded | the same fault with the stock ballot box: the run FAILS on premature finalization |
 | consensus | quorum commit under dropped acknowledgements, retries recover the missing acceptors |
 | supply_chain | contract-net bidding, milestone escrow per part, assembly ordering, delayed delivery survived |
 | capability_spoofing | a forged capability card is unverified, contained, and gets no business |
