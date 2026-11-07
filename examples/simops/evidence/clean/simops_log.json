@@ -1,0 +1,415 @@
+{
+ "board_version": 2,
+ "case": "week9",
+ "commits": 1,
+ "events": [
+  {
+   "actor": "engine",
+   "args": {
+    "chains": true,
+    "enforce": true,
+    "plugins": [
+     {
+      "id": "zone_exclusive",
+      "kind": "rule",
+      "module": "simops.rules.zone_exclusive",
+      "unit": "day"
+     },
+     {
+      "id": "crane_exclusive",
+      "kind": "rule",
+      "module": "simops.rules.crane_exclusive",
+      "unit": "day"
+     },
+     {
+      "id": "precedence",
+      "kind": "rule",
+      "module": "simops.rules.precedence",
+      "unit": "day"
+     },
+     {
+      "id": "crew_limit",
+      "kind": "rule",
+      "module": "simops.rules.crew_limit",
+      "unit": "day"
+     },
+     {
+      "id": "invalid_assignment",
+      "kind": "rule",
+      "module": "simops.rules.invalid_assignment",
+      "unit": "day"
+     }
+    ],
+    "seed": 0,
+    "simops": "0.1.0"
+   },
+   "board_version": 1,
+   "ok": true,
+   "seq": 1,
+   "status": "started",
+   "tool": "start"
+  },
+  {
+   "actor": "civil",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 2,
+   "status": "ok",
+   "tool": "get_board"
+  },
+  {
+   "actor": "concrete",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 3,
+   "status": "ok",
+   "tool": "get_board"
+  },
+  {
+   "actor": "steel",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 4,
+   "status": "ok",
+   "tool": "get_board"
+  },
+  {
+   "actor": "mechanical",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 5,
+   "status": "ok",
+   "tool": "get_board"
+  },
+  {
+   "actor": "electrical",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 6,
+   "status": "ok",
+   "tool": "get_board"
+  },
+  {
+   "actor": "civil",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 7,
+   "status": "ok",
+   "tool": "my_brief"
+  },
+  {
+   "actor": "concrete",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 8,
+   "status": "ok",
+   "tool": "my_brief"
+  },
+  {
+   "actor": "steel",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 9,
+   "status": "ok",
+   "tool": "my_brief"
+  },
+  {
+   "actor": "mechanical",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 10,
+   "status": "ok",
+   "tool": "my_brief"
+  },
+  {
+   "actor": "electrical",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 11,
+   "status": "ok",
+   "tool": "my_brief"
+  },
+  {
+   "actor": "civil",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 12,
+   "status": "ok",
+   "tool": "get_board"
+  },
+  {
+   "actor": "concrete",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 13,
+   "status": "ok",
+   "tool": "get_board"
+  },
+  {
+   "actor": "steel",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 14,
+   "status": "ok",
+   "tool": "get_board"
+  },
+  {
+   "actor": "mechanical",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 15,
+   "status": "ok",
+   "tool": "get_board"
+  },
+  {
+   "actor": "electrical",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 16,
+   "status": "ok",
+   "tool": "get_board"
+  },
+  {
+   "actor": "electrical",
+   "args": {
+    "days": [
+     41,
+     43
+    ],
+    "note": "",
+    "task": "ELE-roughin",
+    "zone": "H2"
+   },
+   "board_version": 1,
+   "ok": false,
+   "seq": 17,
+   "status": "conflict",
+   "tool": "propose"
+  },
+  {
+   "actor": "electrical",
+   "args": {
+    "mine": {
+     "crane_days": [],
+     "days": [
+      41,
+      43
+     ],
+     "task": "ELE-roughin",
+     "zone": "H2"
+    },
+    "note": "We need H2 on days 41-43. mechanical moves MEC-crah to H1 days 41-43; together nothing breaks a rule. Offer it with request_swap.",
+    "theirs": {
+     "crane_days": [],
+     "days": [
+      41,
+      43
+     ],
+     "task": "MEC-crah",
+     "zone": "H1"
+    },
+    "with_trade": "mechanical"
+   },
+   "board_version": 1,
+   "ok": true,
+   "seq": 18,
+   "status": "thread_open",
+   "thread": "T1",
+   "tool": "request_swap"
+  },
+  {
+   "actor": "mechanical",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 19,
+   "status": "ok",
+   "tool": "get_board"
+  },
+  {
+   "actor": "mechanical",
+   "args": {
+    "thread": "T1"
+   },
+   "board_version": 1,
+   "ok": true,
+   "seq": 20,
+   "status": "accepted",
+   "thread": "T1",
+   "tool": "accept_swap"
+  },
+  {
+   "actor": "mechanical",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 21,
+   "status": "ok",
+   "tool": "get_board"
+  },
+  {
+   "actor": "electrical",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 22,
+   "status": "ok",
+   "tool": "get_board"
+  },
+  {
+   "actor": "mechanical",
+   "args": {
+    "thread": "T1"
+   },
+   "board_version": 1,
+   "ok": true,
+   "seq": 23,
+   "status": "simulated",
+   "thread": "T1",
+   "tool": "simulate_plan"
+  },
+  {
+   "actor": "electrical",
+   "args": {},
+   "board_version": 1,
+   "ok": true,
+   "seq": 24,
+   "status": "ok",
+   "tool": "get_board"
+  },
+  {
+   "actor": "mechanical",
+   "args": {
+    "thread": "T1",
+    "week": 9
+   },
+   "board_version": 1,
+   "ok": true,
+   "seq": 25,
+   "signatures": [
+    "mechanical"
+   ],
+   "status": "signed",
+   "thread": "T1",
+   "tool": "commit_week",
+   "waiting_for": [
+    "electrical"
+   ]
+  },
+  {
+   "actor": "electrical",
+   "args": {
+    "thread": "T1"
+   },
+   "board_version": 1,
+   "ok": true,
+   "seq": 26,
+   "status": "simulated",
+   "thread": "T1",
+   "tool": "simulate_plan"
+  },
+  {
+   "actor": "electrical",
+   "args": {
+    "thread": "T1",
+    "week": 9
+   },
+   "board_version": 2,
+   "ok": true,
+   "seq": 27,
+   "signatures": [
+    "mechanical",
+    "electrical"
+   ],
+   "status": "committed",
+   "thread": "T1",
+   "tool": "commit_week"
+  },
+  {
+   "actor": "electrical",
+   "args": {},
+   "board_version": 2,
+   "ok": true,
+   "seq": 28,
+   "status": "ok",
+   "tool": "get_board"
+  },
+  {
+   "actor": "electrical",
+   "args": {},
+   "board_version": 2,
+   "ok": true,
+   "seq": 29,
+   "status": "ok",
+   "tool": "get_board"
+  },
+  {
+   "actor": "engine",
+   "args": {
+    "week": 9
+   },
+   "board_version": 2,
+   "ok": true,
+   "seq": 30,
+   "status": "frozen",
+   "tool": "freeze"
+  }
+ ],
+ "frozen": 9,
+ "log_digest": "sha256:d54f73994b739a40c359c914cd0f31e3dfd9c7e019280cb7411f2432e70bf18f",
+ "run": "pg-week9-57572054",
+ "simops": {
+  "build": "hw8-town@26aa2b8",
+  "version": "0.1.0"
+ },
+ "state_hash": "7d220806231edf4301afe9bcf77476478943b11fd36e8e825ac693bfca289e9c",
+ "unscheduled": [],
+ "verify": {
+  "audit": {
+   "ok": true,
+   "violations": []
+  },
+  "authz": {
+   "commits": 1,
+   "ok": true,
+   "unsigned": []
+  },
+  "invariants": {
+   "I1": true,
+   "I2": true,
+   "I3": true,
+   "I4": true,
+   "I5": true
+  },
+  "misuse": {
+   "by_reason": {
+    "conflict": 1
+   },
+   "moved_board": [],
+   "ok": true,
+   "refused": 1
+  },
+  "ok": true,
+  "replay": {
+   "calls": 30,
+   "mismatches": [],
+   "ok": true
+  }
+ },
+ "week": 10
+}

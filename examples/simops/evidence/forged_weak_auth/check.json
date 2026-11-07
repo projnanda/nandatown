@@ -1,0 +1,193 @@
+{
+ "as_expected": true,
+ "case": "forged_weak_auth",
+ "cross_check": {
+  "calls_matched": 28,
+  "log_digest": "sha256:d54f73994b739a40c359c914cd0f31e3dfd9c7e019280cb7411f2432e70bf18f",
+  "ok": true,
+  "problems": [],
+  "refused_at_the_door": 3,
+  "simops_engine_events": [
+   "freeze",
+   "start"
+  ]
+ },
+ "expected": {
+  "forged_stopped_by": "simops",
+  "stages": {
+   "forged_seat_refused": "passed",
+   "week_committed": "passed"
+  },
+  "verdict": "passed"
+ },
+ "kind": "boundary",
+ "observed": {
+  "board": {
+   "CIV-ducts": {
+    "days": [
+     41,
+     42
+    ],
+    "zone": "YARD"
+   },
+   "CON-H1-pads": {
+    "days": [
+     33,
+     35
+    ],
+    "zone": "H1"
+   },
+   "CON-H2-pads": {
+    "days": [
+     30,
+     32
+    ],
+    "zone": "H2"
+   },
+   "CON-genpads": {
+    "days": [
+     43,
+     45
+    ],
+    "zone": "YARD"
+   },
+   "ELE-energize": {
+    "days": [
+     54,
+     58
+    ],
+    "zone": "H2"
+   },
+   "ELE-roughin": {
+    "days": [
+     41,
+     43
+    ],
+    "zone": "H2"
+   },
+   "MEC-crah": {
+    "days": [
+     41,
+     43
+    ],
+    "zone": "H1"
+   },
+   "STL-H1": {
+    "days": [
+     36,
+     38
+    ],
+    "zone": "H1"
+   },
+   "STL-H2": {
+    "days": [
+     37,
+     40
+    ],
+    "zone": "H2"
+   },
+   "STL-H3": {
+    "days": [
+     41,
+     43
+    ],
+    "zone": "H3"
+   },
+   "STL-H4": {
+    "days": [
+     44,
+     45
+    ],
+    "zone": "H4"
+   }
+  },
+  "forged": {
+   "reached_simops": 3,
+   "refused_by_simops": 3,
+   "sent": 3,
+   "stopped_by_town": 0
+  },
+  "model": null,
+  "refused": [
+   "conflict",
+   "unauthorized"
+  ],
+  "repeated_calls": 0,
+  "simops_audit": {
+   "calls": 30,
+   "invariants": {
+    "I1": true,
+    "I2": true,
+    "I3": true,
+    "I4": true,
+    "I5": true
+   },
+   "log_digest": "sha256:d54f73994b739a40c359c914cd0f31e3dfd9c7e019280cb7411f2432e70bf18f",
+   "ok": true,
+   "simops": {
+    "build": "hw8-town@26aa2b8",
+    "version": "0.1.0"
+   },
+   "state_hash": "7d220806231edf4301afe9bcf77476478943b11fd36e8e825ac693bfca289e9c"
+  },
+  "simops_calls": 31,
+  "stages": {
+   "applied_once": "passed",
+   "briefs_private": "passed",
+   "forged_seat_refused": "passed",
+   "ledger_conserved": "passed",
+   "privacy": "passed",
+   "referee_discovered": "passed",
+   "rules_enforced": "passed",
+   "simops_verified": "passed",
+   "stale_calls_refused": "not_tested",
+   "swap_signed_by_all": "passed",
+   "week_committed": "passed"
+  },
+  "unscheduled": [],
+  "verdict": "passed"
+ },
+ "rows": [
+  {
+   "expected": "passed",
+   "observed": "passed",
+   "ok": true,
+   "what": "verdict"
+  },
+  {
+   "expected": "passed",
+   "observed": "passed",
+   "ok": true,
+   "what": "stage forged_seat_refused"
+  },
+  {
+   "expected": "passed",
+   "observed": "passed",
+   "ok": true,
+   "what": "stage week_committed"
+  },
+  {
+   "expected": "simops",
+   "observed": "simops",
+   "ok": true,
+   "what": "forged calls stopped by"
+  }
+ ],
+ "scenario": "simops_week9_forged_weak_auth.yaml",
+ "simops_run": "pg-week9-e48a304d",
+ "tests": "The same rogue with Town's auth swapped for plain.v1: the forged calls reach SimOps.",
+ "town_run": "sim-f09ae0933297",
+ "versions": {
+  "evaluator": "lab-0.2.6",
+  "nandatown": "0.2.0",
+  "python": "3.12.11",
+  "simops": {
+   "build": "hw8-town@26aa2b8",
+   "version": "0.1.0"
+  },
+  "town_commit": {
+   "base": "6f9a7c064486c4a0ae9242f1ff341b8a4aad0244",
+   "head": "2b104070b7a2669d80588f6bb14f21e9831cf40d"
+  }
+ }
+}

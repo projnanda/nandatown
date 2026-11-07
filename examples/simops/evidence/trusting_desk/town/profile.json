@@ -1,0 +1,93 @@
+{
+  "name": "simops_week9_trusting_desk",
+  "description": "Negative control that fails on purpose: weak auth plus a desk that picks the seat token from the Town sender name instead of the token sent with the call. The rogue moves Electrical's task, which is why the token has to travel with each request.",
+  "seed": 42,
+  "layers": {
+    "transport": "memory.v1",
+    "communication": "envelope.v1",
+    "identity": "keys.v1",
+    "registry": "index.v1",
+    "auth": "plain.v1",
+    "trust": "reputation.v1",
+    "payments": "ledger.v1",
+    "coordination": "contractnet.v1",
+    "negotiation": "haggle.v1",
+    "memory": "kv.v1",
+    "privacy": "redact.v1",
+    "data_facts": "evidence.v1"
+  },
+  "agents": [
+    {
+      "name": "simops-desk",
+      "role": "simops-desk",
+      "config": {
+        "case": "week9",
+        "close_at": 8.0,
+        "audit_at": 20.0,
+        "trust_sender": true
+      }
+    },
+    {
+      "name": "civil",
+      "role": "simops-trade",
+      "config": {
+        "trade": "civil"
+      }
+    },
+    {
+      "name": "concrete",
+      "role": "simops-trade",
+      "config": {
+        "trade": "concrete"
+      }
+    },
+    {
+      "name": "steel",
+      "role": "simops-trade",
+      "config": {
+        "trade": "steel"
+      }
+    },
+    {
+      "name": "mechanical",
+      "role": "simops-trade",
+      "config": {
+        "trade": "mechanical"
+      }
+    },
+    {
+      "name": "electrical",
+      "role": "simops-trade",
+      "config": {
+        "trade": "electrical"
+      }
+    },
+    {
+      "name": "rogue",
+      "role": "simops-rogue",
+      "config": {
+        "impersonate": "electrical",
+        "at": 4.0,
+        "move": {
+          "task": "ELE-roughin",
+          "zone": "H2",
+          "days": [
+            43,
+            45
+          ]
+        }
+      }
+    }
+  ],
+  "faults": [],
+  "redact_fields": [
+    "seat_token",
+    "brief"
+  ],
+  "max_time": 30.0,
+  "validator": "simops_week9",
+  "plugin_files": [
+    "examples/simops/simops_plugin.py"
+  ],
+  "adaptations": []
+}

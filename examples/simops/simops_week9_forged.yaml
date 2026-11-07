@@ -1,0 +1,16 @@
+# Fault: a rogue sends calls as Electrical and publishes a forged card for it; hmac auth.
+name: simops_week9_forged
+description: "Week 9 with a rogue that sends calls as Electrical, signed with its own key, and publishes a forged Electrical card. Town's hmac auth must stop the forged sender before the desk sees it."
+seed: 42
+validator: simops_week9
+plugin_files: [simops_plugin.py]
+redact_fields: [seat_token, brief]
+agents:
+  - {name: simops-desk, role: simops-desk, config: {case: week9, close_at: 8.0, audit_at: 20.0}}
+  - {name: civil, role: simops-trade, config: {trade: civil}}
+  - {name: concrete, role: simops-trade, config: {trade: concrete}}
+  - {name: steel, role: simops-trade, config: {trade: steel}}
+  - {name: mechanical, role: simops-trade, config: {trade: mechanical}}
+  - {name: electrical, role: simops-trade, config: {trade: electrical}}
+  - {name: rogue, role: simops-rogue, config: {impersonate: electrical, at: 4.0, move: {task: ELE-roughin, zone: H2, days: [43, 45]}}}
+max_time: 30
