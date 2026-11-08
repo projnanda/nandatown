@@ -772,6 +772,9 @@ class Stack:
     # -- the day ---------------------------------------------------------
     def post(self, base: str, path: str, body: dict[str, Any]) -> httpx.Response:
         r = self.http.post(self.url[base] + path, json=body)
+        if r.status_code >= 400:
+            say(f"[{self.case.name}] {base} refused {path}: {r.status_code}"
+                f" {r.text[:300]}")
         r.raise_for_status()
         return r
 
@@ -803,10 +806,18 @@ class Stack:
         # door runs the quiet hours faster, holds the full step while the market
         # talks, and follow() asks for it from WATCH_FROM on.
         slow = self.case.model and not self.case.waits
-        st = self.post("coordinator", "/demo/start", {
-            "event": self.day.date, "step_seconds": self.step, "force": True,
-            "lead_s": 6, "buyer_agent": False,
-            **({"pace": {"x": QUIET_X}} if slow else {})}).json()
+        start = {"event": self.day.date, "step_seconds": self.step, "force": True,
+                 "lead_s": 6, "buyer_agent": False,
+                 **({"pace": {"x": QUIET_X}} if slow else {})}
+        # A play's clock goes on stepping after the play has ended. A step that
+        # falls while /demo/start is moving the clocks puts the ones it has
+        # moved back on the old line, and the buyer then refuses the order as
+        # too late. /demo/start itself stops that clock for its lead, so a
+        # second call moves every clock with nothing else moving them.
+        if self.case.waits and getattr(self, "clock", None):
+            self.post("coordinator", "/demo/start", start)
+            time.sleep(0.5)
+        st = self.post("coordinator", "/demo/start", start).json()
         lost = {k: v for k, v in st["agents"].items()
                 if str(v).startswith("not reached")
                 and not k.startswith("home-")}

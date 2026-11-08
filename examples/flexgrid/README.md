@@ -101,7 +101,10 @@ Control traffic does not go through Town and is not market traffic:
 `run_check.py` starts the clock (`/demo/start`), sets the steps it posts at
 (`/demo/conductor`), enters each buyer's order (`/needs`), posts the day's events
 through the what-if doors, and reads status APIs. The model is called by each
-node process directly, not through Town.
+node process directly, not through Town. On a later play `run_check.py` sends
+`/demo/start` twice, because the waiting clock keeps stepping after a play ends and
+a step landing during the start would put clocks back. That second call came after
+the recording, whose second plays used one; it changes no FlexGrid code.
 
 ## Who judged what
 
