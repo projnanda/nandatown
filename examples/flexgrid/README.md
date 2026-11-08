@@ -230,7 +230,7 @@ python -m pip install -e '.[dev]' numpy scipy
 nandatown run quote-clean                     # Town's own control
 
 git clone FLEXGRID_REPO_URL ../flexgrid       # FlexGrid, with its data pack
-git -C ../flexgrid checkout 8273a76           # the code this recording ran
+git -C ../flexgrid checkout 899bc9f           # the recorded code, two comment lines reworded
 git -C ../flexgrid worktree add ../flexgrid-6nov hw8-baseline-6nov
 export FLEXGRID_HOME=$(dirname $PWD)/flexgrid FLEXGRID_BASELINE_HOME=$(dirname $PWD)/flexgrid-6nov
 
@@ -286,6 +286,9 @@ Recorded with `nandatown` 0.2.0 at main `6f9a7c0`, evaluator 0.5.0, Python 3.12,
 macOS. FlexGrid `flexgrid-core` 0.2.0: every current case ran commit `8273a76` of
 FlexGrid's public repo (code digest `c3c1bfc3d52c`), and `network_failure_before`
 ran the code of 6 Nov, tag `hw8-baseline-6nov` (`3ac5644`, digest `a965a1848f27`).
+FlexGrid's public repo holds those two commits as `899bc9f` (digest `b2c788fdee48`) and
+tag `hw8-baseline-6nov` at `a491753` (digest `8ee1d2f6ad69`): the same code, with two comment
+lines reworded to drop a partner project's name. The evidence keeps the recorded digests.
 The model is `qwen3.8-27b-q3:latest` (digest `da1cab12ae5c`) through a local
 Ollama, at temperature 0 with seed 7. 8 homes, 3 buildings, 2 buyers, the clock
 waiting for the agents with at least 2 s a step. `evidence/summary.json` holds
