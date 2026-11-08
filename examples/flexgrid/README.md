@@ -41,17 +41,16 @@ A model decides for every home and every building at every point of the day:
 | An owner's or manager's note | what the person needs kept | nothing: a rule can't read a note |
 | The report | two plain sentences on what happened | none |
 
-Code's rules are one input the agent sees and may take, change or drop. Code
-then sizes every kilowatt, and a guard checks every device call against the
-person's limits; the guard is a check, not the decider. A rule decides a point
-only when the model fails to answer, and each such fallback is recorded and
-counted. The agent can only lower code's safe offer, never raise it. The agent picks
-the devices, code sizes each one's kW, and code also opens the plant cap a chosen zone
-unlocks. The guard holds the safety and money
-limits: every device limit, the person's wishes, the owner's minimum price, and no
-commitment above the node's own offer. The coordinator and the two buyers are not
-agents in these runs: they run the market. The coordinator's own agent exists in
-FlexGrid's code but is off here.
+Code's rules are one input the agent sees and may take, change or drop. Code then
+sizes every kilowatt, and a guard checks every device call against the person's
+limits; the guard is a check, not the decider. A rule decides a point only when the
+model fails to answer, and each such fallback is recorded and counted. The agent can
+only lower code's safe offer, never raise it. The agent picks the devices, code
+sizes each one's kW, and code also opens the plant cap a chosen zone unlocks. The
+guard holds the safety and money limits: every device limit, the person's wishes,
+the owner's minimum price, and no commitment above the node's own offer. The
+coordinator and the two buyers are not agents in these runs: they run the market.
+The coordinator's own agent exists in FlexGrid's code but is off here.
 
 An answer that gives less than the rule's amount needs a reason. With none, the
 model is asked once more, and if there is still none, the rule's amount goes out
@@ -77,9 +76,9 @@ This recording meets them in part:
   the person's words stay in the receipt. It still gets code's offer detail (each
   device's kW, battery and car figures, forecasts), one of 12 fixed cause labels
   with each shortfall (on the unusual people day 9 of the 27 name an owner's need),
-  and after the sale a report with the model's summary and
-  what the person was told. One offer, the office's on the unusual people day, also
-  says why it left cooling out.
+  and after the sale a report with the model's summary and what the person was told.
+  One offer, the office's on the unusual people day, also says why it left cooling
+  out.
 - **The person.** A message goes to the owner, or a building's manager, only when an
   agent's own answer is below the rule's amount: an offer cut or a commitment
   declined, a running call ended, a plan leaving more uncovered than code's by over
@@ -165,16 +164,17 @@ an ordinary Track bundle: `nandatown verify`, `report`, `receipt`,
 
 The closing statement is how a market day gets a verdict from Town at all. Before
 anything starts, `run_check.py` runs FlexGrid's offline simulator on the same
-community, orders and events, every node on rules: one process, an in-memory bus,
-a virtual clock, no Town. On a rules day, what that day pays its sellers is frozen
-in the Town profile's task, and after the money on the Town run is final, Town's
-stock buyer, unchanged, asks the coordinator what it paid, and compares the answer
-with the frozen total to the cent. An agent's day can't be held to that money:
-what its agents offer is theirs. It is held to the count of nodes whose day closed
-on their own word: each one answered the call, and each one under contract had
-every half hour's reading reach the coordinator and was settled on them, paid or
-told why not. That count doesn't hang on what an agent chose, and a reading Town refused still shows.
-The badge from `proof` covers that exchange and nothing else about the market.
+community, orders and events, every node on rules: one process, an in-memory bus, a
+virtual clock, no Town. On a rules day, what that day pays its sellers is frozen in
+the Town profile's task, and after the money on the Town run is final, Town's stock
+buyer, unchanged, asks the coordinator what it paid, and compares the answer with
+the frozen total to the cent. An agent's day can't be held to that money: what its
+agents offer is theirs. It is held to the count of nodes whose day closed on their
+own word: each one answered the call, and each one under contract had every half
+hour's reading reach the coordinator and was settled on them, paid or told why not.
+That count doesn't hang on what an agent chose, and a reading Town refused still
+shows. The badge from `proof` covers that exchange and nothing else about the
+market.
 
 ## The days
 
@@ -246,10 +246,11 @@ python examples/flexgrid/run_check.py --jobs 4 \
 python -m pytest -q tests/test_flexgrid_integration.py
 ```
 
-The failure case on its own also needs the model:
-`python examples/flexgrid/run_check.py --cases network_failure_before,network_failure --model URL --model-name NAME`.
-The profile on every run is `flexgrid-market-day`. The agent days take turns on the
-model, one after the other, and the rules days run beside them. `--record` replaces `evidence/`, and needs every case,
+The failure case on its own also needs the model: `python
+examples/flexgrid/run_check.py --cases network_failure_before,network_failure
+--model URL --model-name NAME`. The profile on every run is `flexgrid-market-day`.
+The agent days take turns on the model, one after the other, and the rules days run
+beside them. `--record` replaces `evidence/`, and needs every case,
 `FLEXGRID_BASELINE_HOME` and `--model`. Each run stages a copy of the code in a temp
 folder, with its own config folder and `NANDATOWN_HOME`, so nothing is written to
 the checkout.
@@ -327,22 +328,24 @@ Every case came out as expected, stage by stage. In every case each offer, answe
 reading, settlement and payment of the day-ahead order on Town's record equals the
 ledgers, and every signature verifies, the call's included. `run_check.py` doesn't
 compare the grid call's own settlement, payments or readings with a ledger. On every
-agent day each node's
-offer on Town's record is the amount on its agent's receipt, `offer.agent` carries
-no reason or person's words, every answer below the rule's amount has a reason its
-owner or manager was told, and the clock never went on without an answer it waited
-for. The recorded check "the coordinator heard only the amount" tests only the keys
-of `offer.agent`, so it passes with the office's `kept_out` beside it on the unusual
-people day; the check and `summary.json` stay as recorded. On the special schedules day the university closed at noon after its contract
-was made: its readings came in and didn't count, so 10 of 11 were paid, on rules as
-offline. Town's count stays 11, because that node was told why not. The gap between what the buyers pay and what the sellers get is the coordinator's
-keep. On the current code each measured kWh is billed at its class's own rate: the
-order's $2.04 for a home battery or two-way car, $1.479 for a building and $0.5355 for
-any other home device. That came to $1.48 to $1.51 a kWh on these days, and the
-coordinator keeps 20% of the bill; sellers are paid the rest, at lower rates by class.
-Only the 6 Nov code bills one price, $2.04 per kWh, and the coordinator keeps what its
-class rates leave: 41.7% in `network_failure_before`. These columns count the two
-orders; a grid emergency call is billed apart, the same way, at its own $4.08.
+agent day each node's offer on Town's record is the amount on its agent's receipt,
+`offer.agent` carries no reason or person's words, every answer below the rule's
+amount has a reason its owner or manager was told, and the clock never went on
+without an answer it waited for. The recorded check "the coordinator heard only the
+amount" tests only the keys of `offer.agent`, so it passes with the office's
+`kept_out` beside it on the unusual people day; the check and `summary.json` stay as
+recorded. On the special schedules day the university closed at noon after its
+contract was made: its readings came in and didn't count, so 10 of 11 were paid, on
+rules as offline. Town's count stays 11, because that node was told why not. The gap
+between what the buyers pay and what the sellers get is the coordinator's keep. On
+the current code each measured kWh is billed at its class's own rate: the order's
+$2.04 for a home battery or two-way car, $1.479 for a building and $0.5355 for any
+other home device. That came to $1.48 to $1.51 a kWh on these days, and the
+coordinator keeps 20% of the bill; sellers are paid the rest, at lower rates by
+class. Only the 6 Nov code bills one price, $2.04 per kWh, and the coordinator keeps
+what its class rates leave: 41.7% in `network_failure_before`. These columns count
+the two orders; a grid emergency call is billed apart, the same way, at its own
+$4.08.
 
 ### What the agents changed
 
@@ -392,56 +395,57 @@ over the days) and its answer is one of the 138.
   people day the three owners' "Going away tonight, need a full battery" became
   `keep_battery_full`. Each heard, for example, "Got it: keeping the battery full,
   as you asked, so I'm giving 5.1 kW tonight instead of 14.8.", and those homes
-  delivered 62.8 kWh less than on rules, where nothing can read a note. A note is read
-  as the single wish the model picks, and `keep_battery_full` holds only the home
-  battery. The batteries did stay at 100%, but `hh-002`'s and `hh-084`'s cars still
-  gave power that evening, 6.93 kW from 19:30 and 7.7 kW from 20:00, though those
-  owners wrote they were going away. The wish `keep_car_ready` exists and wasn't
-  picked. The office
-  manager's note on file ("no cooling to give up tonight") became `keep_house_as_is`,
-  and they heard "Got it: leaving the heating and cooling as they are, as you asked,
-  so I'm giving 102 kW tomorrow night instead of 320."; the guard held the office's
-  cooling, pre-cool included, and the office delivered 48.6 kWh against 1,073.6 on
-  rules: more than the whole day's 925 kWh drop. The note is not modelled physically:
-  on rules the office delivers the same 1,073.6 kWh on this day as on the normal day,
-  so this day doesn't show what a real chiller fault would do. Each such receipt measures against the amount
-  without the note, is flagged "less, for the person's note", and cites the note as
-  its fact. The figure in the message is an estimate at the moment of the note, from
-  the parts of the offer left: `hh-139` was told 5.5 kW and averaged 1.1 kW on the
-  meter.
+  delivered 62.8 kWh less than on rules, where nothing can read a note. A note is
+  read as the single wish the model picks, and `keep_battery_full` holds only the
+  home battery. The batteries did stay at 100%, but `hh-002`'s and `hh-084`'s cars
+  still gave power that evening, 6.93 kW from 19:30 and 7.7 kW from 20:00, though
+  those owners wrote they were going away. The wish `keep_car_ready` exists and
+  wasn't picked. The office manager's note on file ("no cooling to give up tonight")
+  became `keep_house_as_is`, and they heard "Got it: leaving the heating and cooling
+  as they are, as you asked, so I'm giving 102 kW tomorrow night instead of 320.";
+  the guard held the office's cooling, pre-cool included, and the office delivered
+  48.6 kWh against 1,073.6 on rules: more than the whole day's 925 kWh drop. The
+  note is not modelled physically: on rules the office delivers the same 1,073.6 kWh
+  on this day as on the normal day, so this day doesn't show what a real chiller
+  fault would do. Each such receipt measures against the amount without the note, is
+  flagged "less, for the person's note", and cites the note as its fact. The figure
+  in the message is an estimate at the moment of the note, from the parts of the
+  offer left: `hh-139` was told 5.5 kW and averaged 1.1 kW on the meter.
 - **One owner's request is code's alone.** On the unusual people day the owner of
-  `hh-001` asks for the car now at 19:00. Code carries that out at once on both arms:
-  the car stops giving and charges at full power. The agent isn't told: its question
-  at 19:00 says only "the car plugged in", a side effect of the request, and its
-  questions to the end of the sale still count the car's 7.39 kW. No receipt names the
-  request, and the owner gets no message about what it cost. The day's report says
-  26.1 kWh were missed but not why, and the only account of the cause is the shortfall
-  message to the coordinator, "the owner needs the car now". `hh-001` delivered 7.1 of
-  the 20.2 kWh it sold and was paid $11.55, against $36.98 on the normal day and $13.57
-  on rules that day. A note's cost is told to its writer; this request's isn't, and
-  that is a gap.
+  `hh-001` asks for the car now at 19:00. Code carries that out at once on both
+  arms: the car stops giving and charges at full power. The agent isn't told: its
+  question at 19:00 says only "the car plugged in", a side effect of the request,
+  and its questions to the end of the sale still count the car's 7.39 kW. No receipt
+  names the request, and the owner gets no message about what it cost. The day's
+  report says 26.1 kWh were missed but not why, and the only account of the cause is
+  the shortfall message to the coordinator, "the owner needs the car now". `hh-001`
+  delivered 7.1 of the 20.2 kWh it sold and was paid $11.55, against $36.98 on the
+  normal day and $13.57 on rules that day. A note's cost is told to its writer; this
+  request's isn't, and that is a gap.
 - **One opening came up short by itself.** On the hot day the mall's agent opened
-  the same letters as the rule, and 7 kW stayed uncovered: code sizes the plant's cap
-  to the 124.6 kW still owed and rounds the percent up to a whole number, 84.1 to 85,
-  which gives 117.69 kW, and the test the agent relied on had counted the plant's full
-  142.54 kW. The guard passed the calls as asked. The mall's manager was told, and
-  this is the one message in the recording that isn't in plain words: "I left 7 kW of
-  the 335 kW owed uncovered. Sale just opened; the test shows A+B (store-lights 135.79
-  + mall-zones 74.21 + plant 142.54) covers the full 334.60 kW owed with 0 left
-  uncovered, so no call needs ending and nothing stays uncovered." The first sentence
-  is code's, counted after the calls. The rest is the reason the model wrote before
-  them, with the prompt's letters and the test's figure, so the two disagree and the
-  message doesn't say why 7 kW stayed uncovered. The other 4 messages are code's own.
+  the same letters as the rule, and 7 kW stayed uncovered: code sizes the plant's
+  cap to the 124.6 kW still owed and rounds the percent up to a whole number, 84.1
+  to 85, which gives 117.69 kW, and the test the agent relied on had counted the
+  plant's full 142.54 kW. The guard passed the calls as asked. The mall's manager
+  was told, and this is the one message in the recording that isn't in plain words:
+  "I left 7 kW of the 335 kW owed uncovered. Sale just opened; the test shows A+B
+  (store-lights 135.79 + mall-zones 74.21 + plant 142.54) covers the full 334.60 kW
+  owed with 0 left uncovered, so no call needs ending and nothing stays uncovered."
+  The first sentence is code's, counted after the calls. The rest is the reason the
+  model wrote before them, with the prompt's letters and the test's figure, so the
+  two disagree and the message doesn't say why 7 kW stayed uncovered. The other 4
+  messages are code's own.
 - **The same day made the same choices.** The two plays of the network failure day
   and the normal day are three plays of 29 Jun with every node an agent, and in this
-  recording they made the same choices and paid the same, cent for cent: at temperature 0 with
-  a fixed seed, the same questions got the same choices. A reason's wording can
-  change when an id in the question changes, with nothing else different.
+  recording they made the same choices and paid the same, cent for cent: at
+  temperature 0 with a fixed seed, the same questions got the same choices. A
+  reason's wording can change when an id in the question changes, with nothing else
+  different.
 
-On the three days measured, most of the gap isn't the model's. A node with an agent runs its devices through
-the agent's own path, its plans, the guard and the device calls, and that path
-doesn't give the rules controller's day even when every answer is the rule's. A
-stand-in model that takes the rule's plan at every point
+On the three days measured, most of the gap isn't the model's. A node with an agent
+runs its devices through the agent's own path, its plans, the guard and the device
+calls, and that path doesn't give the rules controller's day even when every answer
+is the rule's. A stand-in model that takes the rule's plan at every point
 (`examples/flexgrid/stand_in_model.py`, not recorded here) measured 137.0 kWh more
 than the rules day on the normal day (+0.97%), 122.7 kWh more on the emergency day
 (+0.90%) and 135.4 kWh less on the snow day (-3.38%), on the recorded code, against
@@ -491,11 +495,11 @@ half hour of the sale, and at the reports. A rules day takes 5.5 minutes. The on
 flags are the 4 "less, for the person's note"; no receipt is "reason cites no fact"
 or "no reason given". These flags apply to cuts only, and only the agent's own
 choice is tested for a fact: the mall's hot-day cut, short only after its calls ran,
-cites none and has no flag. 22 of the 690 receipts have an empty reason (21 pre-cools
-at the playbook's depth, one reading of a note). The guard passed 34 to 66 device calls a day as asked, and
-changed two in all: it trimmed the mall's zone cooling to +1.125 C after the event on
-the special schedules day, and it held the office's pre-cool on the unusual people
-day, which the manager's note had ruled out.
+cites none and has no flag. 22 of the 690 receipts have an empty reason (21
+pre-cools at the playbook's depth, one reading of a note). The guard passed 34 to 66
+device calls a day as asked, and changed two in all: it trimmed the mall's zone
+cooling to +1.125 C after the event on the special schedules day, and it held the
+office's pre-cool on the unusual people day, which the manager's note had ruled out.
 
 A speed-up, measured separately, not in this recording and on the code just before
 its last fixes: FlexGrid's `llm_short_answers` ends every question asking for each
@@ -550,15 +554,15 @@ less of the same orders.
 ### A boundary this recording found: agents slower than Town's lease
 
 Every run's lease is 30 s, set in `run_check.py` (Town's stock quote profiles use 5
-s or, for a crash, 1.5 s). A node acknowledges a message only when its agent has finished with it, and the
-11 agents wait for one model, so on the 8 agent days 158 of the 1,743 messages outran
-the lease, all addressed to an agent node: 85 of 99 `beckn.discover`, 64 of 99
-`beckn.confirm`, 8 of 155 `beckn.rt_ask`, 1 of 46 `beckn.rt_dispatch`. Only 30 of the
-1,091 answers themselves passed 30 s; the rest of the wait was the line. Town logged
-`claim_expired` 242 times and handed a message out up to 5 times, up to 180.4 s from
-first claim to the acknowledgement that counted. Town refused 49 late acknowledgements
-(`stale_fence_rejected`, a 409) and handed those messages out again; FlexGrid then
-acknowledged each copy as a repeat.
+s or, for a crash, 1.5 s). A node acknowledges a message only when its agent has
+finished with it, and the 11 agents wait for one model, so on the 8 agent days 158
+of the 1,743 messages outran the lease, all addressed to an agent node: 85 of 99
+`beckn.discover`, 64 of 99 `beckn.confirm`, 8 of 155 `beckn.rt_ask`, 1 of 46
+`beckn.rt_dispatch`. Only 30 of the 1,091 answers themselves passed 30 s; the rest
+of the wait was the line. Town logged `claim_expired` 242 times and handed a message
+out up to 5 times, up to 180.4 s from first claim to the acknowledgement that
+counted. Town refused 49 late acknowledgements (`stale_fence_rejected`, a 409) and
+handed those messages out again; FlexGrid then acknowledged each copy as a repeat.
 
 | Day | Leases expired | Late acks refused | Messages claimed more than once |
 |---|---|---|---|
@@ -574,11 +578,11 @@ acknowledged each copy as a repeat.
 Every rules day is 0, 0 and 0, each claim acknowledged within 0.2 s. It changed no
 result: every message ended `processed` with one acknowledgement, each node left one
 offer and one commitment receipt per play, each re-delivered offer request, contract
-and `rt_ask` drew one reply, and no accepted reading went unsettled. FlexGrid expects
-this: a copy of a message still being worked on is left alone, and a copy of one
-already finished is only acknowledged (`Fleet._repeat`). Untested: a node killed while
-a message is out, and Town's fault profiles with real agents; every run here is `fault:
-none`. To see it in the evidence:
+and `rt_ask` drew one reply, and no accepted reading went unsettled. FlexGrid
+expects this: a copy of a message still being worked on is left alone, and a copy of
+one already finished is only acknowledged (`Fleet._repeat`). Untested: a node killed
+while a message is out, and Town's fault profiles with real agents; every run here
+is `fault: none`. To see it in the evidence:
 
 ```bash
 grep -c '"kind":"claim_expired"' examples/flexgrid/evidence/normal/events.jsonl             # 24
@@ -645,17 +649,17 @@ again:
 
 ## What this shows, and what stays untested
 
-Shown: FlexGrid's coordinator, two buyers and eleven nodes, every node an agent,
-as separate Town participants with Run Grants, complete whole market days over
-Town's mailbox on current `main`, on 8 kinds of day. Each node's offer on Town's
-record is the amount its agent chose, of its decision the coordinator heard only
-that amount (what else it got is listed at the top), each decision left a receipt,
-and every answer below the rule's amount carried a reason logged for its owner or
-manager. With the clock waiting, no decision
-was skipped and no answer fell back to a rule. With every node on rules, in this
-recording a day on Town is the offline day to the cent, and Town's stock buyer can judge that money,
-except on the emergency day, explained above. The replayed id that cost every
-seller its pay on 6 Nov is refused by Town on that code and not on this one.
+Shown: FlexGrid's coordinator, two buyers and eleven nodes, every node an agent, as
+separate Town participants with Run Grants, complete whole market days over Town's
+mailbox on current `main`, on 8 kinds of day. Each node's offer on Town's record is
+the amount its agent chose, of its decision the coordinator heard only that amount
+(what else it got is listed at the top), each decision left a receipt, and every
+answer below the rule's amount carried a reason logged for its owner or manager.
+With the clock waiting, no decision was skipped and no answer fell back to a rule.
+With every node on rules, in this recording a day on Town is the offline day to the
+cent, and Town's stock buyer can judge that money, except on the emergency day,
+explained above. The replayed id that cost every seller its pay on 6 Nov is refused
+by Town on that code and not on this one.
 
 Not shown, and worth saying plainly:
 
@@ -666,7 +670,7 @@ Not shown, and worth saying plainly:
   report; the office manager's, written the morning before, is in the log only.
 - Points and limits that never came up. No agent day used the second round (0
   answers, though 6 of 7 summer days were short), every node accepted its commitment
-  (no decline), every offer's owner's minimum price was 0.0, and no commitment came
+  (no decline), every offer's minimum price was 0.0, and no commitment came
   above an offer.
 - Every load is simulated. Homes and buildings replay a dataset, and no real device
   or meter is involved. Homes are synthetic. The wholesale prices in the data pack
@@ -682,13 +686,13 @@ Not shown, and worth saying plainly:
 - Part of each gap isn't the model's, as above: the agent's own device path doesn't
   give the rules controller's day even when every answer is the rule's.
 - A reason is the model's own sentence, except on a note: where a note lowers a
-  sale, the reason opens with code's fixed words for the need the model recorded (for
-  the three owners, that is the whole reason). Code checks that a cut names a fact and
-  flags one that doesn't, not that the sentence reads true, is in plain words or
-  agrees with what happened next (the mall's message above doesn't). The check looks at
-  the plan as estimated, so the mall's receipt, short only after its calls ran, cites
-  no fact and carries no flag. The kW in a note's message
-  is an estimate at the moment of the note, not what the meter will read.
+  sale, the reason opens with code's fixed words for the need the model recorded
+  (for the three owners, that is the whole reason). Code checks that a cut names a
+  fact and flags one that doesn't, not that the sentence reads true, is in plain
+  words or agrees with what happened next (the mall's message above doesn't). The
+  check looks at the plan as estimated, so the mall's receipt, short only after its
+  calls ran, cites no fact and carries no flag. The kW in a note's message is an
+  estimate at the moment of the note, not what the meter will read.
 - The data pack is two stretches, 1 to 28 Jan and 1 Jun to 3 Jul 2026, with simple
   temperature forecasts, so the trained forecasts aren't exercised, and the three
   buildings earn most of the pay.
