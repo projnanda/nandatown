@@ -381,8 +381,10 @@ device, with its reason where it gave one.
   on rules that day. A note's cost is told to its writer; this request's isn't, and
   that is a gap.
 - **One opening came up short by itself.** On the hot day the mall's agent opened
-  the same letters as the rule, the guard lowered the calls, and 7 kW stayed
-  uncovered; its manager was told.
+  the same letters as the rule, and 7 kW stayed uncovered: code sizes the plant's cap
+  to the 124.6 kW still owed and rounds the percent up to a whole number, 84.1 to 85,
+  which gives 117.69 kW, and the test the agent relied on had counted the plant's full
+  142.54 kW. The guard passed the calls as asked. The mall's manager was told.
 - **The same day gave the same answers.** The two plays of the network failure day
   and the normal day are three plays of 29 Jun with every node an agent, and they
   came out the same, decision for decision and cent for cent: at temperature 0 with
