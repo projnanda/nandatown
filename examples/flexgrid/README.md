@@ -485,10 +485,10 @@ day, which the manager's note had ruled out.
 
 A speed-up, measured separately, not in this recording and on the code just before
 its last fixes: FlexGrid's `llm_short_answers` ends every question asking for each
-reason in at most 20 words. On the normal day it cut the model's time from 1,108 to
-879 s (Ollama's own count),
-the median answer's from 8.5 to 6.3 s, and the day from 23.2 to 19.9 minutes, with
-96 kWh (0.7%) less measured. One run each, so read it as a size.
+reason in at most 20 words. On the normal day it cut the model's logged time from
+1,153 to 966 s, the median answer's as each node saw it from 10.4 to 7.5 s, and the
+day from 23.2 to 19.9 minutes, with 96 kWh (0.7%) less measured. One run each, so read
+it as a size.
 
 ### Rules days against the offline day
 
