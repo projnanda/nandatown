@@ -178,7 +178,9 @@ The badge from `proof` covers that exchange and nothing else about the market.
 Every day is played with every node an agent (the case's name) and with every node
 on rules (`NAME_rules`), on the same Town run setup. The window is 18:00 to 21:00 in
 summer, at $2.04 a kWh, with the live days' orders of 2,726.52 and 1,635.91 kW,
-more than 11 nodes can fill.
+more than the 11 nodes offered, except on the hot day (`extreme_heat`), when they
+offered 4,633 to 4,637 kW against the 4,362.43 ordered and the order was sold in
+full (13,087.3 kWh).
 
 | Case | Date | What's different | How it reaches the nodes on Town |
 |---|---|---|---|
