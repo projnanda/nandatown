@@ -394,8 +394,8 @@ device, with its reason where it gave one.
   them, with the prompt's letters and the test's figure, so the two disagree and the
   message doesn't say why 7 kW stayed uncovered. The other 4 messages are code's own.
 - **The same day gave the same answers.** The two plays of the network failure day
-  and the normal day are three plays of 29 Jun with every node an agent, and they
-  came out the same, decision for decision and cent for cent: at temperature 0 with
+  and the normal day are three plays of 29 Jun with every node an agent, and in this
+  recording they came out the same, decision for decision and cent for cent: at temperature 0 with
   a fixed seed, the same questions got the same answers.
 
 On the three days measured, most of the gap isn't the model's. A node with an agent runs its devices through
@@ -462,7 +462,7 @@ With every node on rules, 7 of the 8 days on Town are the offline day number for
 number: the same kWh sold, measured and true, and each node paid the same. On the 6
 played once, Town's stock buyer checked the sellers' total to the cent, and on the
 3 with no event Town also carried the offline day's messages, kind by kind.
-`network_failure_rules` is the offline day on both plays.
+In this recording `network_failure_rules` is the offline day on both plays.
 
 `grid_emergency_rules` is held to its network only. Offline, each node answers the
 grid operator's call before its own step; on Town, a moment after it, from a state
@@ -489,8 +489,8 @@ This is a failure from a live day, 6 Nov 2026, reproduced on a real Town run.
   logged (`town.TownSession.send`).
 - **Rerun.** The same two plays on the current code with every node an agent:
   no message id refused, all 66 readings in at every receiver, all 11 settled on both
-  plays, and Town passes. With the clock waiting, the second play is the first one
-  again, to the cent.
+  plays, and Town passes. With the clock waiting, in this recording the second play
+  is the first one again, to the cent.
 
 The 6 Nov code has no waiting clock, so its model day runs at 25 s a step, the
 quiet hours 8 times faster, as its live model days did: 191 answers and 53 minutes
@@ -534,6 +534,25 @@ none`. To see it in the evidence:
 grep -c '"kind":"claim_expired"' examples/flexgrid/evidence/normal/events.jsonl             # 24
 grep -c '"kind":"stale_fence_rejected"' examples/flexgrid/evidence/network_failure/events.jsonl  # 11
 ```
+
+### A rerun can land a few kWh and dollars off
+
+The plays in this recording matched to the cent, but repeat runs aren't guaranteed
+to. The coordinator's desk reads shortfall reports at its own one-second passes, and
+the waiting clock has no condition for a report or dispatch still on its way, so one
+that lands just after a pass waits for the next step. The figures in this section
+are from separate reruns of the recorded code, not from the recording. In a rerun of
+`network_failure_rules`, one second play's first gap used 6 homes' reports (33.88 kW)
+where the first play used 7 (34.78 kW). It measured 14,056.671 kWh against 14,059.374
+(`bld-university` -2.703), buyers paid $20,870.27 against $20,874.27, and sellers got
+$16,696.22 against $16,699.42. Town passed and `run_check.py` reported NOT AS EXPECTED
+with delivered, settled and paid off, as it should for a rules day held to the cent.
+In repeat runs of the recorded code on this machine, 1 of 96 rules-day plays held to
+the cent differed (1 of 26 second plays), so a rerun can occasionally report this. On
+the agent path with fixed answers, 1 of 3 second plays came in 21.22 kWh and $25.11
+lower when a dispatch reached a building just after the clock moved on; `run_check.py`
+does not compare the plays there. Curing either needs a FlexGrid change and a new
+recording, so it is left as a limitation.
 
 ### What this phase found and changed in FlexGrid
 
@@ -583,8 +602,8 @@ record is the amount its agent chose, of its decision the coordinator heard only
 that amount (what else it got is listed at the top), each decision left a receipt,
 and every answer below the rule's amount carried a reason logged for its owner or
 manager. With the clock waiting, no decision
-was skipped and no answer fell back to a rule. With every node on rules, a day on
-Town is the offline day to the cent, and Town's stock buyer can judge that money,
+was skipped and no answer fell back to a rule. With every node on rules, in this
+recording a day on Town is the offline day to the cent, and Town's stock buyer can judge that money,
 except on the emergency day, explained above. The replayed id that cost every
 seller its pay on 6 Nov is refused by Town on that code and not on this one.
 
