@@ -488,7 +488,7 @@ This is a failure from a live day, 6 Nov 2026, reproduced on a real Town run.
   body, which is Town's rule (`ids.py`, `town.Sent`). A refused send is counted and
   logged (`town.TownSession.send`).
 - **Rerun.** The same two plays on the current code with every node an agent:
-  nothing refused, all 66 readings in at every receiver, all 11 settled on both
+  no message id refused, all 66 readings in at every receiver, all 11 settled on both
   plays, and Town passes. With the clock waiting, the second play is the first one
   again, to the cent.
 
@@ -496,6 +496,44 @@ The 6 Nov code has no waiting clock, so its model day runs at 25 s a step, the
 quiet hours 8 times faster, as its live model days did: 191 answers and 53 minutes
 for the two plays. Its first play isn't comparable with today's: that code sold
 less of the same orders.
+
+### A boundary this recording found: agents slower than Town's lease
+
+Every run's lease is 30 s, set in `run_check.py` (Town's stock quote profiles use 5
+s). A node acknowledges a message only when its agent has finished with it, and the
+11 agents wait for one model, so on the 8 agent days 158 of the 1,743 messages outran
+the lease, all addressed to an agent node: 85 of 99 `beckn.discover`, 64 of 99
+`beckn.confirm`, 8 of 155 `beckn.rt_ask`, 1 of 46 `beckn.rt_dispatch`. Only 30 of the
+1,091 answers themselves passed 30 s; the rest of the wait was the line. Town logged
+`claim_expired` 242 times and handed a message out up to 5 times, up to 180.4 s from
+first claim to the acknowledgement that counted. Town refused 49 late acknowledgements
+(`stale_fence_rejected`, a 409) and handed those messages out again; FlexGrid then
+acknowledged each copy as a repeat.
+
+| Day | Leases expired | Late acks refused | Messages claimed more than once |
+|---|---|---|---|
+| normal | 24 | 7 | 17 |
+| extreme heat | 28 | 4 | 19 |
+| snow day | 22 | 6 | 16 |
+| no sunlight | 25 | 5 | 16 |
+| special schedules | 29 | 4 | 19 |
+| unusual people | 30 | 5 | 18 |
+| grid emergency | 34 | 7 | 21 |
+| network failure | 50 | 11 | 32 |
+
+Every rules day is 0, 0 and 0, each claim acknowledged within 0.2 s. It changed no
+result: every message ended `processed` with one acknowledgement, each node left one
+offer and one commitment receipt per play, each re-delivered offer request, contract
+and `rt_ask` drew one reply, and no accepted reading went unsettled. FlexGrid expects
+this: a copy of a message still being worked on is left alone, and a copy of one
+already finished is only acknowledged (`Fleet._repeat`). Untested: a node killed while
+a message is out, and Town's fault profiles with real agents; every run here is `fault:
+none`. To see it in the evidence:
+
+```bash
+grep -c '"kind":"claim_expired"' examples/flexgrid/evidence/normal/events.jsonl             # 24
+grep -c '"kind":"stale_fence_rejected"' examples/flexgrid/evidence/network_failure/events.jsonl  # 11
+```
 
 ### What this phase found and changed in FlexGrid
 
