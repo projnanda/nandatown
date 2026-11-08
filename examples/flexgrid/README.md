@@ -282,7 +282,9 @@ The model is `qwen3.8-27b-q3:latest` (digest `da1cab12ae5c`) through a local
 Ollama, at temperature 0 with seed 7. 8 homes, 3 buildings, 2 buyers, the clock
 waiting for the agents with at least 2 s a step. `evidence/summary.json` holds
 every stage's expected and observed values, every check, each node's receipts and
-what its person was told, each model answer, and each bundle's fingerprint.
+what its person was told, each model answer, and each bundle's fingerprint. In it,
+`seller_usd` (under `failure_case` and each case's `settled` stage) is what the buyers
+paid, under an old name; what the sellers got is `pool_usd` in the `paid` stage.
 
 ### Every case
 
