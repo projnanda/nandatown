@@ -306,10 +306,19 @@ what its person was told, each model answer, and each bundle's fingerprint.
 | `network_failure_before`, play 1 | thinking, 6 Nov code | 66 and 66 | 11 of 11 | 11 of 11 | 7,177.4 | $14,641.88 | $8,534.50 | (asked at the end) |
 | `network_failure_before`, play 2 | thinking, 6 Nov code | 0 and 0 | 11 of 11 | 0 of 11 | 0.0 | $0.00 | $0.00 | failed |
 
-Every case came out as expected, stage by stage. In every case each offer, each
-node's answer and each reading a buyer counted is on Town's record with the same
-value, each buyer's settlement and each payment notice on Town's record equals the
-ledgers, and every signature on the record verifies. On every agent day each node's
+On the grid emergency day the kWh, readings and money in these tables are the
+day-ahead order's. The operator's 2,000 kW call settles apart from it, at $4.08 a kWh
+before the same class shares as the order. Agents: 1,171.06 kWh beyond the booking,
+$3,465.20 from the grid operator, $2,772.16 to the sellers, on 10 more readings from
+the 5 dispatched nodes. On rules: 1,161.68 kWh, $3,437.58 and $2,750.07. With the call
+the buyers pay $23,823.84 and the sellers get $19,059.07, on rules $23,671.13 and
+$18,936.91. These are the call's settlement on Town's record in each bundle.
+
+Every case came out as expected, stage by stage. In every case each offer, answer,
+reading, settlement and payment of the day-ahead order on Town's record equals the
+ledgers, and every signature verifies, the call's included. `run_check.py` doesn't
+compare the grid call's own settlement, payments or readings with a ledger. On every
+agent day each node's
 offer on Town's record is the amount on its agent's receipt, `offer.agent` carries
 no reason or person's words, every answer below the rule's amount has a reason its
 owner or manager was told, and the clock never went on without an answer it waited
@@ -336,6 +345,9 @@ both on Town:
 | unusual people | 13,116.3 | 14,041.7 | -6.6% | $19,440.51 | $20,845.80 | $15,552.41 | $16,676.64 |
 | grid emergency | 13,714.3 | 13,628.8 | +0.6% | $20,358.63 | $20,233.55 | $16,286.91 | $16,186.84 |
 | network failure | 14,172.7 | 14,059.4 | +0.8% | $21,041.22 | $20,874.27 | $16,832.98 | $16,699.42 |
+
+The grid emergency row is the day-ahead order's; the call settles apart from it, as
+under "Every case".
 
 The agents mostly took the rule's plan, and every decision left a receipt:
 
