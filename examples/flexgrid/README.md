@@ -218,14 +218,15 @@ needs that model: they ask at temperature 0 with a fixed seed, so most answers
 repeat, but not all.
 
 ```bash
+# from a checkout of this branch; FlexGrid goes beside it, not inside it
 python3 -m venv .venv && source .venv/bin/activate
 python -m pip install -e '.[dev]' numpy scipy
 nandatown run quote-clean                     # Town's own control
 
-git clone FLEXGRID_REPO_URL flexgrid          # FlexGrid, with its data pack
-git -C flexgrid checkout 8273a76              # the code this recording ran
-git -C flexgrid worktree add ../flexgrid-6nov hw8-baseline-6nov
-export FLEXGRID_HOME=$PWD/flexgrid FLEXGRID_BASELINE_HOME=$PWD/flexgrid-6nov
+git clone FLEXGRID_REPO_URL ../flexgrid       # FlexGrid, with its data pack
+git -C ../flexgrid checkout 8273a76           # the code this recording ran
+git -C ../flexgrid worktree add ../flexgrid-6nov hw8-baseline-6nov
+export FLEXGRID_HOME=$(dirname $PWD)/flexgrid FLEXGRID_BASELINE_HOME=$(dirname $PWD)/flexgrid-6nov
 
 python examples/flexgrid/run_check.py --cases normal_rules        # one rules day, about 7 minutes
 python examples/flexgrid/run_check.py --jobs 4                     # every rules day, without --model
@@ -239,7 +240,7 @@ ollama pull hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q3_K_XL
 python examples/flexgrid/run_check.py --jobs 4 \
   --model http://127.0.0.1:11434 \
   --model-name hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q3_K_XL
-FLEXGRID_HOME=$PWD/flexgrid python -m pytest -q tests/test_flexgrid_integration.py
+python -m pytest -q tests/test_flexgrid_integration.py
 ```
 
 The agent days take turns on the model, one after the other, and the rules days
