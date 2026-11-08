@@ -388,7 +388,12 @@ over the days) and its answer is one of the 138.
   people day the three owners' "Going away tonight, need a full battery" became
   `keep_battery_full`. Each heard, for example, "Got it: keeping the battery full,
   as you asked, so I'm giving 5.1 kW tonight instead of 14.8.", and those homes
-  delivered 62.8 kWh less than on rules, where nothing can read a note. The office
+  delivered 62.8 kWh less than on rules, where nothing can read a note. A note is read
+  as the single wish the model picks, and `keep_battery_full` holds only the home
+  battery. The batteries did stay at 100%, but `hh-002`'s and `hh-084`'s cars still
+  gave power that evening, 6.93 kW from 19:30 and 7.7 kW from 20:00, though those
+  owners wrote they were going away. The wish `keep_car_ready` exists and wasn't
+  picked. The office
   manager's note on file ("no cooling to give up tonight") became `keep_house_as_is`,
   and they heard "Got it: leaving the heating and cooling as they are, as you asked,
   so I'm giving 102 kW tomorrow night instead of 320."; the guard held the office's
