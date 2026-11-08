@@ -78,9 +78,18 @@ This recording meets them in part:
   with each shortfall, and after the sale a report with the model's summary and
   what the person was told. One offer, the office's on the unusual people day, also
   says why it left cooling out.
-- **The person.** The owner, or a building's manager, hears in plain words why the
-  node gave less, on their own channel and in the day's report. That report goes to
-  the coordinator's store, and nothing yet shows it to the person.
+- **The person.** A message goes to the owner, or a building's manager, only when an
+  agent's own answer is below the rule's amount: an offer cut or a commitment
+  declined, a running call ended, a plan leaving more uncovered than code's by over
+  2% of what the sale owes (at least 0.05 kW), a note's cost, or a shallower pre-cool.
+  It says in plain words why its agent gave less than the rule's amount, on their own
+  channel and in the day's report. That report goes to the coordinator's store, and
+  nothing yet shows it to the person.
+- **Less than asked.** A node that simply can't cover what it sold, where code's plan
+  leaves the same gap, keeps its reason on the receipt and tells no one. On 53 of 88
+  node-days (network failure once) a node measured more than 2% under what it sold,
+  and on 49 of them nobody was told. The day's report gives the kWh missed in most
+  cases and almost never why.
 
 ## The clock waits for the agents
 
