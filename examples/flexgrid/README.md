@@ -700,6 +700,9 @@ Not shown, and worth saying plainly:
   part, and nobody else has reproduced this yet. Town's Lab, A2A and MCP are not
   used.
 
+The stand-in buyer's label in the evidence (`utility-or-engie-mock`, "ENGIE (mock)")
+is a mock. ENGIE has no part in this project.
+
 The recorded `TOWN-TESTED` lines age out after 30 days by design. Bundles hold
 FlexGrid's signed messages and each agent day's decision logs, with each question
 in full, and no keys or tokens; `state/` is left out.
