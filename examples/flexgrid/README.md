@@ -624,8 +624,8 @@ again:
 - A car that gives power didn't hold its charger on the agent path. One charger
   can't draw and give at once, and the rules controller holds it through the sale;
   with every node an agent `hh-090`'s car charged every other quarter hour while it
-  gave, and the home lost $28.66 every day against rules. Giving now holds the
-  charger.
+  gave, and in an earlier recording the home lost about $28 a day ($27 to $30) against
+  rules on the 6 of 8 days its car gave power. Giving now holds the charger.
 
 ## What this shows, and what stays untested
 
