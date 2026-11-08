@@ -1,0 +1,66 @@
+name: redeco_portal_down
+description: 'Boundary case: the regulator portal cannot be read. The agent must escalate with reason, owner and
+  next action instead of reporting that nothing is open.'
+seed: 42
+plugin_files:
+- redeco_plugin.py
+validator: redeco_portal_down
+agents:
+- name: agent
+  role: redeco_agent
+  config:
+    agent_url: http://127.0.0.1:8950
+    client: client
+    officer: officer
+    start_date: '2026-10-28'
+    days: 6
+- name: portal
+  role: redeco_portal
+  config:
+    agent: agent
+    start_date: '2026-10-28'
+    complaints:
+    - folio: 2026/REDECO/90824
+      received: 27/10/2026
+      deadline: 10/11/2026
+      claimant: Persona Sintetica Uno
+      says_is_client: 'No'
+      phone_called: '5500000001'
+      phone_caller: '5500000009'
+      reason: Amenazar, ofender o intimidar a personas sin relacion con la deuda
+    - folio: 2026/REDECO/91058
+      received: 28/10/2026
+      deadline: 11/11/2026
+      claimant: Persona Sintetica Dos
+      says_is_client: 'No'
+      phone_called: '8100000002'
+      reason: Gestiones de cobro a personas que no son el deudor
+    expected_links:
+      2026/REDECO/90424: 2026/REDECO/90824
+    expected_portal_counter:
+      2026/REDECO/90824:
+        '2026-11-05': 6 de 10
+      2026/REDECO/91058:
+        '2026-11-05': 5 de 10
+    down: true
+- name: client
+  role: redeco_client
+  config:
+    agent: agent
+    chat:
+    - at: 0.05
+      text: Nueva queja REDECO No. 2026/REDECO/90424, ya la estamos revisando.
+    answers:
+      2026/REDECO/90824: 'Sobre la queja REDECO No. 2026/REDECO/90424: el número telefónico y la dirección de correo
+        electrónico indicados en la queja no corresponden a ningún cliente registrado en nuestro sistema. El número
+        5500000009 no pertenece a la entidad.'
+      2026/REDECO/91058: 'Sobre la queja 2026/REDECO/91058: Persona Sintetica Dos es cliente de la entidad (contrato
+        No. 00001). El número 8100000002 señalado en la queja pertenece al propio cliente.'
+- name: officer
+  role: redeco_officer
+  config:
+    agent: agent
+    portal: portal
+    file_on_day: 5
+faults: []
+max_time: 10
