@@ -79,18 +79,18 @@ This recording meets them in part:
   and after the sale a report with the model's summary and what the person was told.
   One offer, the office's on the unusual people day, also says why it left cooling
   out.
-- **The person.** A message goes to the owner, or a building's manager, only when an
-  agent's own answer is below the rule's amount: an offer cut or a commitment
-  declined, a running call ended, a plan leaving more uncovered than code's by over
-  2% of what the sale owes (at least 0.05 kW), a note's cost, or a shallower pre-cool.
-  It says why its agent gave less than the rule's amount, in plain words in 4 of the 5
-  messages recorded (the mall's on the hot day isn't, see below). The message
-  is a `told` row in the node's own log: no channel to a person exists in these runs,
-  so in this README "told" and "heard" mean that row. From one day before the sale's
-  start the message is also in the day's report; one told earlier, at the offer, stays
-  in the log only, and the report still says what they asked for and what the meter
-  showed. That report goes to the coordinator's store, and nothing yet shows it to the
-  person.
+- **The person.** A message for the owner, or a building's manager, is written only
+  when an agent's own answer is below the rule's amount: an offer cut or a
+  commitment declined, a running call ended, a plan leaving more uncovered than
+  code's by over 2% of what the sale owes (at least 0.05 kW), a note's cost, or a
+  shallower pre-cool. It says why its agent gave less than the rule's amount, in
+  plain words in 4 of the 5 messages recorded (the mall's on the hot day isn't, see
+  below). The message is a `told` row in the node's own log: no channel to a person
+  exists in these runs, so in this README "told" and "heard" mean that row. From one
+  day before the sale's start the message is also in the day's report; one told
+  earlier, at the offer, stays in the log only, and the report still says what they
+  asked for and what the meter showed. That report goes to the coordinator's store,
+  and nothing yet shows it to the person.
 - **Less than asked.** A node that simply can't cover what it sold, where code's plan
   leaves the same gap, keeps its reason on the receipt and tells no one. On 53 of 88
   node-days (network failure once) a node measured more than 2% under what it sold,
