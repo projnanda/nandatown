@@ -511,9 +511,10 @@ This is a failure from a live day, 6 Nov 2026, reproduced on a real Town run.
 
 - **Baseline.** On the 6 Nov code, every node thinking, the first play of the day
   pays every seller: 66 readings at each buyer, 11 settled.
-- **Failure.** The same day played again on the same Town run. That code built a
-  batch's id from the dataset time, so the second play repeats it with a different
-  body, and Town refuses it: `identity_reuse_rejected` 43 times in Town's log. The
+- **Failure.** The same day played again on the same Town run. That code built its
+  batch ids and capacity notices' ids from the dataset time, so the second play
+  repeats them with different bodies, and Town refuses them: `identity_reuse_rejected`
+  43 times in Town's log (33 reading batches, 10 capacity notices). The
   code took the refusal as "already sent". The buyers hold 0 readings and pay $0.00,
   and all 11 sellers go unpaid. Town's stock buyer asks how many nodes' days closed
   and Town reports: `correct` failed, "buyer observed total 0 against expected 11".
