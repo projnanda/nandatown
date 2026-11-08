@@ -76,9 +76,9 @@ This recording meets them in part:
   the person's words stay in the receipt. It still gets code's offer detail (each
   device's kW, battery and car figures, forecasts), one of 12 fixed cause labels
   with each shortfall (on the unusual people day 9 of the 27 name an owner's need),
-  and after the sale a report with the model's summary and what the person was told.
-  One offer, the office's on the unusual people day, also says why it left cooling
-  out.
+  and after the sale a report with the model's summary, what the person was told
+  and, in 4 of the 99 reports, what the person asked for in code's words. One offer,
+  the office's on the unusual people day, also says why it left cooling out.
 - **The person.** A message for the owner, or a building's manager, is written only
   when an agent's own answer is below the rule's amount: an offer cut or a
   commitment declined, a running call ended, a plan leaving more uncovered than
