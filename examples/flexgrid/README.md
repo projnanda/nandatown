@@ -75,7 +75,8 @@ This recording meets them in part:
   `offer.agent` carries who decided and which decision, and the agent's reason and
   the person's words stay in the receipt. It still gets code's offer detail (each
   device's kW, battery and car figures, forecasts), one of 12 fixed cause labels
-  with each shortfall, and after the sale a report with the model's summary and
+  with each shortfall (on the unusual people day 9 of the 27 name an owner's need),
+  and after the sale a report with the model's summary and
   what the person was told. One offer, the office's on the unusual people day, also
   says why it left cooling out.
 - **The person.** A message goes to the owner, or a building's manager, only when an
@@ -91,7 +92,8 @@ This recording meets them in part:
   leaves the same gap, keeps its reason on the receipt and tells no one. On 53 of 88
   node-days (network failure once) a node measured more than 2% under what it sold,
   and on 49 of them nobody was told. The day's report gives the kWh missed in most
-  cases and almost never why.
+  cases and almost never why. The car-now request on the unusual people day is the
+  stated exception: it is code's alone (see "What the agents changed").
 
 ## The clock waits for the agents
 
@@ -365,6 +367,17 @@ device, with its reason where it gave one.
   its fact. The figure in the message is an estimate at the moment of the note, from
   the parts of the offer left: `hh-139` was told 5.5 kW and averaged 1.1 kW on the
   meter.
+- **One owner's request is code's alone.** On the unusual people day the owner of
+  `hh-001` asks for the car now at 19:00. Code carries that out at once on both arms:
+  the car stops giving and charges at full power. The agent isn't told: its question
+  at 19:00 says only "the car plugged in", a side effect of the request, and its
+  questions to the end of the sale still count the car's 7.39 kW. No receipt names the
+  request, and the owner gets no message about what it cost. The day's report says
+  26.1 kWh were missed but not why, and the only account of the cause is the shortfall
+  message to the coordinator, "the owner needs the car now". `hh-001` delivered 7.1 of
+  the 20.2 kWh it sold and was paid $11.55, against $36.98 on the normal day and $13.57
+  on rules that day. A note's cost is told to its writer; this request's isn't, and
+  that is a gap.
 - **One opening came up short by itself.** On the hot day the mall's agent opened
   the same letters as the rule, the guard lowered the calls, and 7 kW stayed
   uncovered; its manager was told.
