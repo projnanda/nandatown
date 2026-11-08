@@ -326,9 +326,14 @@ for. The recorded check "the coordinator heard only the amount" tests only the k
 of `offer.agent`, so it passes with the office's `kept_out` beside it on the unusual
 people day; the check and `summary.json` stay as recorded. On the special schedules day the university closed at noon after its contract
 was made: its readings came in and didn't count, so 10 of 11 were paid, on rules as
-offline. The gap between what the buyers pay and what the sellers get is the
-coordinator's keep: buyers pay $2.04 per kWh, and sellers are paid at lower rates
-by class.
+offline. The gap between what the buyers pay and what the sellers get is the coordinator's
+keep. On the current code each measured kWh is billed at its class's own rate: the
+order's $2.04 for a home battery or two-way car, $1.479 for a building and $0.5355 for
+any other home device. That came to $1.48 to $1.51 a kWh on these days, and the
+coordinator keeps 20% of the bill; sellers are paid the rest, at lower rates by class.
+Only the 6 Nov code bills one price, $2.04 per kWh, and the coordinator keeps what its
+class rates leave: 41.7% in `network_failure_before`. These columns count the two
+orders; a grid emergency call is billed apart, the same way, at its own $4.08.
 
 ### What the agents changed
 
