@@ -367,8 +367,13 @@ The agents mostly took the rule's plan, and every decision left a receipt:
 | grid emergency | 93 | 2 | 0 | 0 | none | 0 |
 | network failure, each play | 88 | 2 | 0 | 0 | none | 0 |
 
-`summary.json` has each receipt: the rule's plan and what the agent chose, each by
-device, with its reason where it gave one.
+`summary.json` has each play's receipts: the rule's plan and what the agent chose,
+each by device, with its reason where it gave one. These count each play's decisions,
+as `summary.json` holds them. The office manager's note on file was also read once as
+the node started, before the clock: the reset that starts the play replaced that
+agent, so its wish never held, no offer rests on it and nobody was told, but its
+receipt stays in `bld-office`'s log (99 receipts that day, 8 that left the rule, 25
+over the days) and its answer is one of the 138.
 
 - **Most of what left the rule opened more.** Of the 24 decisions that left it, 18
   opened more than the rule did: a small device, such as a water heater or a
