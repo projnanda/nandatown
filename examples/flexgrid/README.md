@@ -46,7 +46,8 @@ then sizes every kilowatt, and a guard checks every device call against the
 person's limits; the guard is a check, not the decider. A rule decides a point
 only when the model fails to answer, and each such fallback is recorded and
 counted. The agent can only lower code's safe offer, never raise it. The agent picks
-the devices, and code sizes each one's kW. The guard holds the safety and money
+the devices, code sizes each one's kW, and code also opens the plant cap a chosen zone
+unlocks. The guard holds the safety and money
 limits: every device limit, the person's wishes, the owner's minimum price, and no
 commitment above the node's own offer. The coordinator and the two buyers are not
 agents in these runs: they run the market. The coordinator's own agent exists in
