@@ -421,10 +421,11 @@ over the days) and its answer is one of the 138.
   is code's, counted after the calls. The rest is the reason the model wrote before
   them, with the prompt's letters and the test's figure, so the two disagree and the
   message doesn't say why 7 kW stayed uncovered. The other 4 messages are code's own.
-- **The same day gave the same answers.** The two plays of the network failure day
+- **The same day made the same choices.** The two plays of the network failure day
   and the normal day are three plays of 29 Jun with every node an agent, and in this
-  recording they came out the same, decision for decision and cent for cent: at temperature 0 with
-  a fixed seed, the same questions got the same answers.
+  recording they made the same choices and paid the same, cent for cent: at temperature 0 with
+  a fixed seed, the same questions got the same choices. A reason's wording can
+  change when an id in the question changes, with nothing else different.
 
 On the three days measured, most of the gap isn't the model's. A node with an agent runs its devices through
 the agent's own path, its plans, the guard and the device calls, and that path
@@ -662,8 +663,8 @@ Not shown, and worth saying plainly:
   agents, so these days show what the agents decide with all the time they need, not
   what they decide against a deadline. At this size a day takes 18 to 28 minutes
   with the clock held, against 5.5 on rules.
-- One model and one run per day. At temperature 0 with a fixed seed the same day gave
-  the same answers three times, but another model, or another day, would answer
+- One model and one run per day. At temperature 0 with a fixed seed the same day made
+  the same choices three times, but another model, or another day, would answer
   differently, so each gap between an agent's day and its rules day is one sample,
   not an estimate. Nothing here says how often agents do better.
 - Part of each gap isn't the model's, as above: the agent's own device path doesn't
