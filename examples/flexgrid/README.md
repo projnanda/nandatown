@@ -187,7 +187,7 @@ full (13,087.3 kWh).
 |---|---|---|---|
 | `normal` | Mon 29 Jun 2026 | The 22nd of the 45 sale evenings by grid demand. Weather as measured, steady supply, usual behaviour | nothing |
 | `extreme_heat` | Thu 2 Jul 2026 | The summer's hottest evening (35.4 C), full sun, the highest grid demand of the 45 | the data |
-| `snow_day` | Tue 27 Jan 2026 | A real Boston school closure: families and 60% of the others stay home, cars stay home, heat pumps work hard. Winter test evening 17:00 to 19:00 at $2.04. Orders sized from its rules day by the benchmark's rule: 95% of its lowest half hour of true relief, split 62.5 / 37.5 | the data; the sizing runs offline first |
+| `snow_day` | Tue 27 Jan 2026 | A real Boston school closure: families and 60% of the others stay home, cars stay home, heat pumps work hard. Winter test evening 17:00 to 19:00 at $2.04. Orders sized by the benchmark's rule from an offline run of its rules day with larger orders: 95% of that run's lowest half hour of true relief, split 62.5 / 37.5 | the data; the sizing runs offline first |
 | `no_sunlight` | 29 Jun | Heavy overcast and rain all day: sunlight 20% of normal, not forecast, on homes and buildings | the what-if weather, from 00:00 for 24 hours |
 | `special_schedules` | 29 Jun | The university closes unexpectedly at noon, and the shopping center holds an evening event from 17:30 in a quarter of the space it already offered for sale | a building's closure and zone event, at 12:00 and 17:30 |
 | `unusual_people` | 29 Jun | Three owners write "Going away tonight, need a full battery" at 17:00, one asks for the car charged now at 19:00, and the office manager's note about chiller 2 is on file | notes and "car now" from the owners' phones; the manager's note in the office's policy file before the day |
@@ -505,8 +505,9 @@ In this recording `network_failure_rules` is the offline day on both plays.
 grid operator's call before its own step; on Town, a moment after it, from a state
 one step on. So the call's answers differ a little: the sellers get $16,186.84
 against $16,186.81 offline, and the true kWh differ by 11. The snow day's orders,
-1,330.82 and 798.49 kW, are 95% of its rules day's lowest half hour of true relief,
-2,241.4 kW, split 62.5 / 37.5.
+1,330.82 and 798.49 kW, are 95% of the lowest half hour of true relief, 2,241.4 kW, on
+an offline sizing run with larger orders, split 62.5 / 37.5. On the recorded rules day
+the lowest half hour is 2,222.5 kW, so the orders are 95.8% of it.
 
 ### The failure case: a repeated message id
 
