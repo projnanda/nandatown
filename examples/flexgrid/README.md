@@ -94,9 +94,12 @@ This recording meets them in part:
 - **Less than asked.** A node that simply can't cover what it sold, where code's plan
   leaves the same gap, keeps its reason on the receipt and tells no one. On 53 of 88
   node-days (network failure once) a node measured more than 2% under what it sold,
-  and on 49 of them nobody was told. The day's report gives the kWh missed in most
-  cases and almost never why. The car-now request on the unusual people day is the
-  stated exception: it is code's alone (see "What the agents changed").
+  and on 49 of them nobody was told. Two node-days have no such reason: the
+  university's closure on the special schedules day (10,285.7 kWh sold, 0 delivered)
+  left no plan or receipt about it, and on the snow day its one plan shows nothing
+  uncovered. The day's report gives the kWh missed in most cases and almost never
+  why. The car-now request on the unusual people day is the stated exception: it is
+  code's alone (see "What the agents changed").
 
 ## The clock waits for the agents
 
