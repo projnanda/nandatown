@@ -85,8 +85,10 @@ This recording meets them in part:
   2% of what the sale owes (at least 0.05 kW), a note's cost, or a shallower pre-cool.
   It says in plain words why its agent gave less than the rule's amount. The message
   is a `told` row in the node's own log: no channel to a person exists in these runs,
-  so in this README "told" and "heard" mean that row. It also goes in the day's
-  report. That report goes to the coordinator's store, and nothing yet shows it to the
+  so in this README "told" and "heard" mean that row. From one day before the sale's
+  start the message is also in the day's report; one told earlier, at the offer, stays
+  in the log only, and the report still says what they asked for and what the meter
+  showed. That report goes to the coordinator's store, and nothing yet shows it to the
   person.
 - **Less than asked.** A node that simply can't cover what it sold, where code's plan
   leaves the same gap, keeps its reason on the receipt and tells no one. On 53 of 88
