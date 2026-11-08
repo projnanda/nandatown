@@ -223,6 +223,7 @@ python -m pip install -e '.[dev]' numpy scipy
 nandatown run quote-clean                     # Town's own control
 
 git clone FLEXGRID_REPO_URL flexgrid          # FlexGrid, with its data pack
+git -C flexgrid checkout 8273a76              # the code this recording ran
 git -C flexgrid worktree add ../flexgrid-6nov hw8-baseline-6nov
 export FLEXGRID_HOME=$PWD/flexgrid FLEXGRID_BASELINE_HOME=$PWD/flexgrid-6nov
 
