@@ -1,0 +1,36 @@
+{
+  "name": "flexgrid-market-day",
+  "task": {
+    "kind": "quote",
+    "sku": "flexgrid-sellers-paid",
+    "quantity": 1,
+    "unit_price_cents": 1669942,
+    "expected_total_cents": 1669942
+  },
+  "roles": {
+    "statement-reader": "buyer",
+    "coordinator": "seller",
+    "utility": "flex-buyer",
+    "grid-operator": "flex-buyer",
+    "hh-001": "home",
+    "hh-002": "home",
+    "hh-039": "home",
+    "hh-071": "home",
+    "hh-084": "home",
+    "hh-090": "home",
+    "hh-139": "home",
+    "hh-197": "home",
+    "bld-university": "building",
+    "bld-mall": "building",
+    "bld-office": "building"
+  },
+  "capabilities": {
+    "coordinator": [
+      "quote.read"
+    ]
+  },
+  "fault": "none",
+  "lease_seconds": 30.0,
+  "evaluator": "stage-evaluator",
+  "runtimes": {}
+}
