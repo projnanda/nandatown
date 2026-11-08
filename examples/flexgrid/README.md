@@ -649,6 +649,10 @@ Not shown, and worth saying plainly:
   row exists. These runs have no phone or other channel to an owner or manager. 4 of
   the 5 messages also went to the coordinator on Town, inside the node's after-sale
   report; the office manager's, written the morning before, is in the log only.
+- Points and limits that never came up. No agent day used the second round (0
+  answers, though 6 of 7 summer days were short), every node accepted its commitment
+  (no decline), every offer's owner's minimum price was 0.0, and no commitment came
+  above an offer.
 - Every load is simulated. Homes and buildings replay a dataset, and no real device
   or meter is involved. Homes are synthetic. The wholesale prices in the data pack
   are a flat placeholder.
