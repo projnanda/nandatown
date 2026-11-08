@@ -435,16 +435,24 @@ mall (-82.7 kWh) and the office (-51.6 kWh) are the ones short. On the special
 schedules day the mall's agent took the rule's whole plan and the mall still
 delivered 91.6 kWh less than on rules.
 
-**Both arms, the same limits, with one difference.** Every device limit is code
-both arms run, but one rule is checked only on the agent path: the guard lets an
-air handler slow only once its zones are eased, so its boxes don't starve. The
-rules controller doesn't check it: it eases the zones and slows the fans in the
+**The two arms aren't held to the same checks.** Both arms run the controller's
+limits: how far a node may warm, the pre-cool depth, the share of lights dimmed, the
+battery's reserve and power, the car's departure. The guard runs only on the agent
+path: a rules day builds no guard and makes no device calls to check. Many of the
+guard's rules have no counterpart there, among them a chiller's floor under a plant
+cap, that a plant's zones coast before it is capped, and that a plant stop needs a
+pre-cool and isn't allowed on a hot evening. For example, on the special schedules
+rules day the office's cooling ran at 0 kW through all 12 sale steps with no pre-cool;
+the guard refuses a plant stop with no pre-cool. Several other guard checks read
+sensors the simulation doesn't have, so they read as fine here. We did not compare the
+two arms limit by limit. The rules path was left unchanged, so it also doesn't obey
+this limit: the guard lets an air handler slow only once its zones are eased, so its
+boxes don't starve. The rules controller eases the zones and slows the fans in the
 same step. On the agent path code eases the zones first by itself whenever a plan
-opens an air handler, so the rule only orders the calls: in this recording it
-blocked 0 of the 25 air-handler calls on the 8 agent days. Making the rules
-controller check it too would change every code-only node and the offline day each
-rules day is held to, so it stays as it is, and this is the one place the two arms
-differ.
+opens an air handler, so the rule only orders the calls: in this recording it blocked
+0 of the 25 air-handler calls on the 8 agent days. Making the rules controller check
+it too would change every code-only node and the offline day each rules day is held
+to, so it stays as it is.
 
 ### The agents, the model and the clock
 
