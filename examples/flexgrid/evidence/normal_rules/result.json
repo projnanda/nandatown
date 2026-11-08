@@ -1,0 +1,68 @@
+{
+  "run_id": "run-9ff489069f04",
+  "evaluator_version": "0.5.0",
+  "stages": [
+    {
+      "name": "accepted",
+      "status": "passed",
+      "evidence": [
+        "ev-552"
+      ],
+      "note": ""
+    },
+    {
+      "name": "claimed",
+      "status": "passed",
+      "evidence": [
+        "ev-553"
+      ],
+      "note": ""
+    },
+    {
+      "name": "received",
+      "status": "passed",
+      "evidence": [
+        "ev-555"
+      ],
+      "note": ""
+    },
+    {
+      "name": "processed",
+      "status": "passed",
+      "evidence": [
+        "ev-555"
+      ],
+      "note": ""
+    },
+    {
+      "name": "response",
+      "status": "passed",
+      "evidence": [
+        "ev-554",
+        "ev-556"
+      ],
+      "note": ""
+    },
+    {
+      "name": "correct",
+      "status": "passed",
+      "evidence": [
+        "ev-557"
+      ],
+      "note": ""
+    },
+    {
+      "name": "portable_identity",
+      "status": "passed",
+      "evidence": [
+        "ev-2",
+        "ev-4",
+        "ev-6",
+        "ev-7"
+      ],
+      "note": "run grants verified against pinned controller keys for did:town:0300db2038c90242465984e1, did:town:0ec3f23d656593a0ec29ec72, did:town:19028d76d411d2afa66c7e1f, did:town:2d724496f2b8a281bb852ffc, did:town:343a69e5704944fed4e96407, did:town:37b6093cb5a207bb04dc0a65, did:town:4bec33e0a7b70d1a134d107c, did:town:565dc371aa5d9766ed2ab3b3, did:town:70c74fa91a247c04b0a6db4b, did:town:9ea3a060e4cae42930bcf95c, did:town:b4553f36978034d491a3ef34, did:town:c4ba47fd10a371470bacab4f, did:town:c9cd6385b8e7590c8ef76237, did:town:dea92c5017a0303fcf9480d6, did:town:e12c110d08eca5d346c29f62"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794135656.246751
+}

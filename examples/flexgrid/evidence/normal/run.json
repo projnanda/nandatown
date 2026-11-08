@@ -1,0 +1,173 @@
+{
+  "run_id": "run-8a8341b146d0",
+  "profile_name": "flexgrid-market-day",
+  "profile_fingerprint": "sha256:41a8c05f0fbd43cba2859faad605459bb8cf1f9b078728c66b0104ab04b661f7",
+  "created_at": 1794141338.102005,
+  "participants": [
+    {
+      "name": "statement-reader",
+      "role": "buyer",
+      "capabilities": [],
+      "runtime": "scripted",
+      "release": "nandatown.participants.buyer"
+    },
+    {
+      "name": "coordinator",
+      "role": "seller",
+      "capabilities": [
+        "quote.read"
+      ],
+      "runtime": "cmd",
+      "release": "flexgrid-core 0.2.0 c3c1bfc3d52c"
+    },
+    {
+      "name": "utility",
+      "role": "flex-buyer",
+      "capabilities": [],
+      "runtime": "cmd",
+      "release": "flexgrid-core 0.2.0 c3c1bfc3d52c"
+    },
+    {
+      "name": "grid-operator",
+      "role": "flex-buyer",
+      "capabilities": [],
+      "runtime": "cmd",
+      "release": "flexgrid-core 0.2.0 c3c1bfc3d52c"
+    },
+    {
+      "name": "hh-001",
+      "role": "home",
+      "capabilities": [],
+      "runtime": "cmd",
+      "release": "flexgrid-core 0.2.0 c3c1bfc3d52c"
+    },
+    {
+      "name": "hh-002",
+      "role": "home",
+      "capabilities": [],
+      "runtime": "cmd",
+      "release": "flexgrid-core 0.2.0 c3c1bfc3d52c"
+    },
+    {
+      "name": "hh-039",
+      "role": "home",
+      "capabilities": [],
+      "runtime": "cmd",
+      "release": "flexgrid-core 0.2.0 c3c1bfc3d52c"
+    },
+    {
+      "name": "hh-071",
+      "role": "home",
+      "capabilities": [],
+      "runtime": "cmd",
+      "release": "flexgrid-core 0.2.0 c3c1bfc3d52c"
+    },
+    {
+      "name": "hh-084",
+      "role": "home",
+      "capabilities": [],
+      "runtime": "cmd",
+      "release": "flexgrid-core 0.2.0 c3c1bfc3d52c"
+    },
+    {
+      "name": "hh-090",
+      "role": "home",
+      "capabilities": [],
+      "runtime": "cmd",
+      "release": "flexgrid-core 0.2.0 c3c1bfc3d52c"
+    },
+    {
+      "name": "hh-139",
+      "role": "home",
+      "capabilities": [],
+      "runtime": "cmd",
+      "release": "flexgrid-core 0.2.0 c3c1bfc3d52c"
+    },
+    {
+      "name": "hh-197",
+      "role": "home",
+      "capabilities": [],
+      "runtime": "cmd",
+      "release": "flexgrid-core 0.2.0 c3c1bfc3d52c"
+    },
+    {
+      "name": "bld-university",
+      "role": "building",
+      "capabilities": [],
+      "runtime": "cmd",
+      "release": "flexgrid-core 0.2.0 c3c1bfc3d52c"
+    },
+    {
+      "name": "bld-mall",
+      "role": "building",
+      "capabilities": [],
+      "runtime": "cmd",
+      "release": "flexgrid-core 0.2.0 c3c1bfc3d52c"
+    },
+    {
+      "name": "bld-office",
+      "role": "building",
+      "capabilities": [],
+      "runtime": "cmd",
+      "release": "flexgrid-core 0.2.0 c3c1bfc3d52c"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "0.5.0",
+    "python": "3.12.15",
+    "flexgrid-core": "0.2.0 c3c1bfc3d52c"
+  },
+  "config": {
+    "harness": "examples/flexgrid/run_check.py",
+    "case": "normal",
+    "about": "Normal day, Mon 29 Jun 2026: the 22nd of the 45 sale evenings by grid demand. Weather as measured, steady supply, usual behaviour",
+    "arm": "agents",
+    "town_main_commit": "6f9a7c064486c4a0ae9242f1ff341b8a4aad0244",
+    "flexgrid": {
+      "package": "flexgrid-core",
+      "version": "0.2.0",
+      "commit": "8273a761d99da523772c116a351c378aca17f712",
+      "uncommitted_changes": false,
+      "code_sha256": "c3c1bfc3d52c7553b5c81b7d659fde7312fb35097aef624c98b60f6bac92d5f9"
+    },
+    "day": "2026-06-29",
+    "window": [
+      "18:00",
+      "21:00"
+    ],
+    "orders_kw": {
+      "utility": 2726.52,
+      "grid-operator": 1635.91
+    },
+    "events": [],
+    "clock_waits_for_agents": true,
+    "step_seconds": 2.0,
+    "homes": [
+      "hh-001",
+      "hh-002",
+      "hh-039",
+      "hh-071",
+      "hh-084",
+      "hh-090",
+      "hh-139",
+      "hh-197"
+    ],
+    "buildings": [
+      "bld-university",
+      "bld-mall",
+      "bld-office"
+    ],
+    "model": {
+      "name": "qwen3.8-27b-q3:latest",
+      "digest": "da1cab12ae5c31691fdb8e3fbd349c132c23e147c15a3faef32d160fb42e02e8",
+      "temperature": 0.0,
+      "seed": 7
+    },
+    "subject": "FlexGrid market day: coordinator, 2 buyers, 11 nodes, every node an agent",
+    "rerun_command": "python examples/flexgrid/run_check.py --cases normal --model URL --model-name NAME",
+    "rerun_required_inputs": {
+      "FLEXGRID_HOME": "a FlexGrid checkout with its data"
+    }
+  }
+}
