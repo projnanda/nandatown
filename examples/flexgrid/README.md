@@ -467,7 +467,7 @@ to, so it stays as it is.
 | special schedules | 128 | 1,552 | 1,149 | 24.5 | 92 | 0 | 0 | 0 |
 | unusual people | 138 | 1,783 | 1,271 | 26.5 | 98 | 4 | 0 | 4 |
 | grid emergency | 137 | 1,964 | 1,348 | 27.8 | 93 | 0 | 0 | 0 |
-| network failure, two plays | 244 | 3,039 | 1,082 | 46.7 | 88 per play | 0 | 0 | 0 |
+| network failure, two plays | 244 | 3,039 | 1,082 (last play) | 46.7 | 88 per play | 0 | 0 | 0 |
 
 1,091 answers over the 8 agent days, a median of 11.0 s each and at most 38.6 s, as
 each node saw them; one model served both node processes one request at a time. No
