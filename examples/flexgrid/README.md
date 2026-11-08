@@ -170,8 +170,8 @@ stock buyer, unchanged, asks the coordinator what it paid, and compares the answ
 with the frozen total to the cent. An agent's day can't be held to that money:
 what its agents offer is theirs. It is held to the count of nodes whose day closed
 on their own word: each one answered the call, and each one under contract had
-every half hour's reading reach the coordinator and was settled on them. That
-count doesn't hang on what an agent chose, and a reading Town refused still shows.
+every half hour's reading reach the coordinator and was settled on them, paid or
+told why not. That count doesn't hang on what an agent chose, and a reading Town refused still shows.
 The badge from `proof` covers that exchange and nothing else about the market.
 
 ## The days
@@ -331,7 +331,7 @@ for. The recorded check "the coordinator heard only the amount" tests only the k
 of `offer.agent`, so it passes with the office's `kept_out` beside it on the unusual
 people day; the check and `summary.json` stay as recorded. On the special schedules day the university closed at noon after its contract
 was made: its readings came in and didn't count, so 10 of 11 were paid, on rules as
-offline. The gap between what the buyers pay and what the sellers get is the coordinator's
+offline. Town's count stays 11, because that node was told why not. The gap between what the buyers pay and what the sellers get is the coordinator's
 keep. On the current code each measured kWh is billed at its class's own rate: the
 order's $2.04 for a home battery or two-way car, $1.479 for a building and $0.5355 for
 any other home device. That came to $1.48 to $1.51 a kWh on these days, and the
