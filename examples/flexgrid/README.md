@@ -83,7 +83,8 @@ This recording meets them in part:
   agent's own answer is below the rule's amount: an offer cut or a commitment
   declined, a running call ended, a plan leaving more uncovered than code's by over
   2% of what the sale owes (at least 0.05 kW), a note's cost, or a shallower pre-cool.
-  It says in plain words why its agent gave less than the rule's amount. The message
+  It says why its agent gave less than the rule's amount, in plain words in 4 of the 5
+  messages recorded (the mall's on the hot day isn't, see below). The message
   is a `told` row in the node's own log: no channel to a person exists in these runs,
   so in this README "told" and "heard" mean that row. From one day before the sale's
   start the message is also in the day's report; one told earlier, at the offer, stays
@@ -384,7 +385,14 @@ device, with its reason where it gave one.
   the same letters as the rule, and 7 kW stayed uncovered: code sizes the plant's cap
   to the 124.6 kW still owed and rounds the percent up to a whole number, 84.1 to 85,
   which gives 117.69 kW, and the test the agent relied on had counted the plant's full
-  142.54 kW. The guard passed the calls as asked. The mall's manager was told.
+  142.54 kW. The guard passed the calls as asked. The mall's manager was told, and
+  this is the one message in the recording that isn't in plain words: "I left 7 kW of
+  the 335 kW owed uncovered. Sale just opened; the test shows A+B (store-lights 135.79
+  + mall-zones 74.21 + plant 142.54) covers the full 334.60 kW owed with 0 left
+  uncovered, so no call needs ending and nothing stays uncovered." The first sentence
+  is code's, counted after the calls. The rest is the reason the model wrote before
+  them, with the prompt's letters and the test's figure, so the two disagree and the
+  message doesn't say why 7 kW stayed uncovered. The other 4 messages are code's own.
 - **The same day gave the same answers.** The two plays of the network failure day
   and the normal day are three plays of 29 Jun with every node an agent, and they
   came out the same, decision for decision and cent for cent: at temperature 0 with
@@ -565,7 +573,10 @@ Not shown, and worth saying plainly:
 - A reason is the model's own sentence, except on a note: where a note lowers a
   sale, the reason opens with code's fixed words for the need the model recorded (for
   the three owners, that is the whole reason). Code checks that a cut names a fact and
-  flags one that doesn't, not that the sentence reads true. The kW in a note's message
+  flags one that doesn't, not that the sentence reads true, is in plain words or
+  agrees with what happened next (the mall's message above doesn't). The check looks at
+  the plan as estimated, so the mall's receipt, short only after its calls ran, cites
+  no fact and carries no flag. The kW in a note's message
   is an estimate at the moment of the note, not what the meter will read.
 - The data pack is two stretches, 1 to 28 Jan and 1 Jun to 3 Jul 2026, with simple
   temperature forecasts, so the trained forecasts aren't exercised, and the three
