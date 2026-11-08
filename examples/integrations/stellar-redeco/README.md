@@ -25,7 +25,7 @@ this adapter, not about the fixtures.
 ```bash
 # 1. the agent (separate repository)
 git clone https://github.com/isaisrz/stellar-redeco-agent && cd stellar-redeco-agent
-git checkout v0.1.1
+git checkout 25ca893   # v0.1.1
 python3 -m venv .venv && . .venv/bin/activate && pip install -e '.[dev]' && pytest -q
 stellar-redeco-agent serve --port 8950          # leave running
 
@@ -38,8 +38,8 @@ python -m pytest -q tests/test_example_stellar_redeco.py   # no agent needed
 ```
 
 `REDECO_AGENT_URL` overrides the agent URL in the scenario.
-To reproduce the failing baseline, run `v0.1.0` of the agent on another port
-and set `REDECO_AGENT_URL` to it.
+To reproduce the failing baseline, run the agent at commit `f84f4cd` (v0.1.0) on
+another port and set `REDECO_AGENT_URL` to it.
 
 ## What is judged
 
@@ -64,8 +64,8 @@ an owner and a next action, and must not report "nothing open" or produce a draf
 
 | Run | Agent | Verdict | Bundle fingerprint |
 | --- | --- | --- | --- |
-| baseline | v0.1.0 | FAILED at `grounded_drafts`: no draft for `91058` | `sha256:8cfca0ba4a91b8e3be0d6f9a14d1b73830aef664677de60888e9e22538032b5d` |
-| after fix | v0.1.1 | PASSED, 8/8 stages | `sha256:d69ceeb8a282138f1f2a4ccb422ccef55095f330c17fcb2f93365de1f91b5a51` |
+| baseline | v0.1.0 (`f84f4cd`) | FAILED at `grounded_drafts`: no draft for `91058` | `sha256:8cfca0ba4a91b8e3be0d6f9a14d1b73830aef664677de60888e9e22538032b5d` |
+| after fix | v0.1.1 (`25ca893`) | PASSED, 8/8 stages | `sha256:d69ceeb8a282138f1f2a4ccb422ccef55095f330c17fcb2f93365de1f91b5a51` |
 | portal down | v0.1.1 | PASSED (`fail_closed`) | `sha256:5f754c355a3cc3d6e3cfef7e6c81a3a3c020a7b0c0375c398b277cc715c9854f` |
 | agent not running | none | INCOMPLETE, every stage inconclusive | `sha256:3349d13cfb2548fcd00295856efa08d775246e48ae7c55cc023d2b80bc2cb23d` |
 
