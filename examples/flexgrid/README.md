@@ -82,9 +82,11 @@ This recording meets them in part:
   agent's own answer is below the rule's amount: an offer cut or a commitment
   declined, a running call ended, a plan leaving more uncovered than code's by over
   2% of what the sale owes (at least 0.05 kW), a note's cost, or a shallower pre-cool.
-  It says in plain words why its agent gave less than the rule's amount, on their own
-  channel and in the day's report. That report goes to the coordinator's store, and
-  nothing yet shows it to the person.
+  It says in plain words why its agent gave less than the rule's amount. The message
+  is a `told` row in the node's own log: no channel to a person exists in these runs,
+  so in this README "told" and "heard" mean that row. It also goes in the day's
+  report. That report goes to the coordinator's store, and nothing yet shows it to the
+  person.
 - **Less than asked.** A node that simply can't cover what it sold, where code's plan
   leaves the same gap, keeps its reason on the receipt and tells no one. On 53 of 88
   node-days (network failure once) a node measured more than 2% under what it sold,
@@ -515,8 +517,9 @@ Shown: FlexGrid's coordinator, two buyers and eleven nodes, every node an agent,
 as separate Town participants with Run Grants, complete whole market days over
 Town's mailbox on current `main`, on 8 kinds of day. Each node's offer on Town's
 record is the amount its agent chose, of its decision the coordinator heard only
-that amount (what else it got is listed at the top), each decision left a receipt, and every answer below the rule's amount
-carried a reason its owner or manager heard. With the clock waiting, no decision
+that amount (what else it got is listed at the top), each decision left a receipt,
+and every answer below the rule's amount carried a reason logged for its owner or
+manager. With the clock waiting, no decision
 was skipped and no answer fell back to a rule. With every node on rules, a day on
 Town is the offline day to the cent, and Town's stock buyer can judge that money,
 except on the emergency day, explained above. The replayed id that cost every
@@ -524,6 +527,11 @@ seller its pay on 6 Nov is refused by Town on that code and not on this one.
 
 Not shown, and worth saying plainly:
 
+- No person takes part and nothing is delivered to one. "Told" and "heard" here mean
+  a `told` row in the node's own decision log, and the check confirms only that the
+  row exists. These runs have no phone or other channel to an owner or manager. 4 of
+  the 5 messages also went to the coordinator on Town, inside the node's after-sale
+  report; the office manager's, written the morning before, is in the log only.
 - Every load is simulated. Homes and buildings replay a dataset, and no real device
   or meter is involved. Homes are synthetic. The wholesale prices in the data pack
   are a flat placeholder.
