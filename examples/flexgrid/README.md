@@ -55,11 +55,26 @@ FlexGrid's code but is off here.
 An answer that gives less than the rule's amount needs a reason. With none, the
 model is asked once more, and if there is still none, the rule's amount goes out
 and the receipt says "no reason given". A reason that cites no fact stands, and is
-flagged. Every decision leaves a receipt in the node's own decision log: what was
-asked, the rule's plan, what the agent chose, its reason and the facts it rests
-on. The coordinator hears only the amount, the kW per half hour. The owner, or a
-building's manager, hears in plain words why the node gave less, on their own
-channel and in the day's report.
+flagged.
+
+FlexGrid's design asks four things of a decision: the coordinator hears only the
+amount, every decision leaves a receipt with its reason, no decision goes without a
+reason, and the person is told in plain words when a node gives less than asked.
+This recording meets them in part:
+
+- **Receipts.** Every decision leaves a receipt in the node's own decision log:
+  what was asked, the rule's plan, what the agent chose, its reason and the facts
+  it rests on.
+- **The coordinator.** Of its decision the coordinator hears only the amount:
+  `offer.agent` carries who decided and which decision, and the agent's reason and
+  the person's words stay in the receipt. It still gets code's offer detail (each
+  device's kW, battery and car figures, forecasts), one of 12 fixed cause labels
+  with each shortfall, and after the sale a report with the model's summary and
+  what the person was told. One offer, the office's on the unusual people day, also
+  says why it left cooling out.
+- **The person.** The owner, or a building's manager, hears in plain words why the
+  node gave less, on their own channel and in the day's report. That report goes to
+  the coordinator's store, and nothing yet shows it to the person.
 
 ## The clock waits for the agents
 
@@ -87,7 +102,7 @@ and `intents`.
 |---|---|---|
 | Order with deposit | each buyer publishes its signed order when asked | `beckn.discover`, `beckn.on_discover` |
 | Call for offers | coordinator to every node | `beckn.discover` |
-| Offers | each node's agent to the coordinator: the amount only | `beckn.on_discover` |
+| Offers | each node's agent to the coordinator: the amount, with code's offer detail (above) | `beckn.on_discover` |
 | Clearing and contract with each buyer | coordinator, buyers | `beckn.select`, `init`, `confirm` and their `on_` answers |
 | Contracts | coordinator to node, its agent answers | `beckn.confirm`, `beckn.on_confirm` |
 | Delivery | nodes run their agents' plans, and say when they fall short | `beckn.rt_capacity` |
@@ -271,10 +286,12 @@ Every case came out as expected, stage by stage. In every case each offer, each
 node's answer and each reading a buyer counted is on Town's record with the same
 value, each buyer's settlement and each payment notice on Town's record equals the
 ledgers, and every signature on the record verifies. On every agent day each node's
-offer on Town's record is the amount on its agent's receipt, no offer carries a
-reason or a person's words, every answer below the rule's amount has a reason its
+offer on Town's record is the amount on its agent's receipt, `offer.agent` carries
+no reason or person's words, every answer below the rule's amount has a reason its
 owner or manager was told, and the clock never went on without an answer it waited
-for. On the special schedules day the university closed at noon after its contract
+for. The recorded check "the coordinator heard only the amount" tests only the keys
+of `offer.agent`, so it passes with the office's `kept_out` beside it on the unusual
+people day; the check and `summary.json` stay as recorded. On the special schedules day the university closed at noon after its contract
 was made: its readings came in and didn't count, so 10 of 11 were paid, on rules as
 offline. The gap between what the buyers pay and what the sellers get is the
 coordinator's keep: buyers pay $2.04 per kWh, and sellers are paid at lower rates
@@ -479,8 +496,8 @@ again:
 Shown: FlexGrid's coordinator, two buyers and eleven nodes, every node an agent,
 as separate Town participants with Run Grants, complete whole market days over
 Town's mailbox on current `main`, on 8 kinds of day. Each node's offer on Town's
-record is the amount its agent chose, the coordinator heard nothing but that
-amount, each decision left a receipt, and every answer below the rule's amount
+record is the amount its agent chose, of its decision the coordinator heard only
+that amount (what else it got is listed at the top), each decision left a receipt, and every answer below the rule's amount
 carried a reason its owner or manager heard. With the clock waiting, no decision
 was skipped and no answer fell back to a rule. With every node on rules, a day on
 Town is the offline day to the cent, and Town's stock buyer can judge that money,

@@ -13,8 +13,10 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import tarfile
+from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -116,6 +118,57 @@ def test_recorded_agent_day_agrees_with_towns_record():
         {"answers": case["model_answers"], "chains": case["model_chains"]},
         case["agents"], list(run_check.NODES))
     assert all(c["ok"] for c in checks), [c for c in checks if not c["ok"]]
+
+
+@needs_evidence
+def test_recorded_free_text_from_the_nodes_is_where_the_readme_says(tmp_path):
+    """What the coordinator hears beyond the amount, from Town's record. A
+    string with a space is free text, unless it's a time. On the current code a
+    node sends it only in these places, a shortfall's reason is one of a fixed
+    list, and one offer says why it left a part out. The recorded check "heard
+    only the amount" reads just the keys of offer.agent."""
+    summary, market = recorded(tmp_path)
+    a_time = re.compile(r"^\d{4}-\d\d-\d\d \d\d:\d\d$")
+    labels = {"the forecast changed", "the owner left the event",
+              "the owner needs the car now", "its battery tripped",
+              "the owner changed the comfort limit",
+              "the building closed for the day",
+              "an event was added in a sold zone", "an alarm is on",
+              "a device is out", "the schedule changed",
+              "an owner's need came first", "another cause"}
+    allowed = {"beckn.on_discover.offer.forecast_method",
+               "beckn.on_discover.offer.kept_out.why[]",
+               "beckn.on_status.node_report.summary",
+               "beckn.on_status.node_report.facts[].text",
+               "beckn.rt_capacity.reason"}
+
+    def strings(value, path):
+        if isinstance(value, dict):
+            for key, inner in value.items():
+                yield from strings(inner, f"{path}.{key}")
+        elif isinstance(value, list):
+            for inner in value:
+                yield from strings(inner, f"{path}[]")
+        elif isinstance(value, str):
+            yield path, value
+
+    seen: Counter = Counter()
+    for name in summary["cases"]:
+        if name == "network_failure_before":        # the code of 6 Nov
+            continue
+        for row in lines(market[name], "intents.jsonl"):
+            sent = row["payload"]
+            if row["action"] != "send" or row["actor"] not in run_check.NODES:
+                continue
+            for path, text in strings(sent["body"].get("message") or {},
+                                      sent["kind"]):
+                if " " not in text or a_time.match(text):
+                    continue
+                seen[path] += 1
+                assert path in allowed, (name, path, text)
+                if path == "beckn.rt_capacity.reason":
+                    assert text in labels, (name, text)
+    assert seen["beckn.on_discover.offer.kept_out.why[]"] == 1
 
 
 def agent_day(town_kw: float, wire: dict | None = None, told: bool = True,
