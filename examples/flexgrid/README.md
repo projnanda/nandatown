@@ -244,8 +244,10 @@ python examples/flexgrid/run_check.py --jobs 4 \
 python -m pytest -q tests/test_flexgrid_integration.py
 ```
 
-The agent days take turns on the model, one after the other, and the rules days
-run beside them. `--record` replaces `evidence/`, and needs every case,
+The failure case on its own also needs the model:
+`python examples/flexgrid/run_check.py --cases network_failure_before,network_failure --model URL --model-name NAME`.
+The profile on every run is `flexgrid-market-day`. The agent days take turns on the
+model, one after the other, and the rules days run beside them. `--record` replaces `evidence/`, and needs every case,
 `FLEXGRID_BASELINE_HOME` and `--model`. Each run stages a copy of the code in a temp
 folder, with its own config folder and `NANDATOWN_HOME`, so nothing is written to
 the checkout.
