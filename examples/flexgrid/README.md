@@ -229,10 +229,11 @@ python3 -m venv .venv && source .venv/bin/activate
 python -m pip install -e '.[dev]' numpy scipy
 nandatown run quote-clean                     # Town's own control
 
-git clone FLEXGRID_REPO_URL ../flexgrid       # FlexGrid, with its data pack
-git -C ../flexgrid checkout 899bc9f           # the recorded code, two comment lines reworded
-git -C ../flexgrid worktree add ../flexgrid-6nov hw8-baseline-6nov
-export FLEXGRID_HOME=$(dirname $PWD)/flexgrid FLEXGRID_BASELINE_HOME=$(dirname $PWD)/flexgrid-6nov
+git clone https://github.com/rbynwang/MAS.665_AI-Studio_ENGIE-Teams.git ../flexgrid  # a shared course repo; FlexGrid, with its data pack, is one team's folder
+git -C ../flexgrid checkout flexgrid-hw8-recorded  # the recorded code, two comment lines reworded
+git -C ../flexgrid worktree add ../flexgrid-6nov flexgrid-hw8-baseline-6nov
+F=teams/robyn-community-coordination/code
+export FLEXGRID_HOME=$(dirname $PWD)/flexgrid/$F FLEXGRID_BASELINE_HOME=$(dirname $PWD)/flexgrid-6nov/$F
 
 python examples/flexgrid/run_check.py --cases normal_rules        # one rules day, about 7 minutes
 python examples/flexgrid/run_check.py --jobs 4                     # every rules day, without --model
@@ -283,11 +284,12 @@ POSIX only: the runner signals process groups.
 ## Results
 
 Recorded with `nandatown` 0.2.0 at main `6f9a7c0`, evaluator 0.5.0, Python 3.12,
-macOS. FlexGrid `flexgrid-core` 0.2.0: every current case ran commit `8273a76` of
-FlexGrid's public repo (code digest `c3c1bfc3d52c`), and `network_failure_before`
-ran the code of 6 Nov, tag `hw8-baseline-6nov` (`3ac5644`, digest `a965a1848f27`).
-FlexGrid's public repo holds those two commits as `899bc9f` (digest `b2c788fdee48`) and
-tag `hw8-baseline-6nov` at `a491753` (digest `8ee1d2f6ad69`): the same code, with two comment
+macOS. FlexGrid `flexgrid-core` 0.2.0: every current case ran FlexGrid commit `8273a76`
+(code digest `c3c1bfc3d52c`), and `network_failure_before` ran the code of 6 Nov,
+commit `3ac5644` (digest `a965a1848f27`). FlexGrid's public copy, the
+`teams/robyn-community-coordination/code` folder of the course repository above, holds
+those two versions as tags `flexgrid-hw8-recorded` (digest `b2c788fdee48`) and
+`flexgrid-hw8-baseline-6nov` (digest `8ee1d2f6ad69`): the same code, with two comment
 lines reworded to drop a partner project's name. The evidence keeps the recorded digests.
 The model is `qwen3.8-27b-q3:latest` (digest `da1cab12ae5c`) through a local
 Ollama, at temperature 0 with seed 7. 8 homes, 3 buildings, 2 buyers, the clock
