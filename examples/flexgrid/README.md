@@ -378,7 +378,7 @@ receipt stays in `bld-office`'s log (99 receipts that day, 8 that left the rule,
 over the days) and its answer is one of the 138.
 
 - **Most of what left the rule opened more.** Of the 24 decisions that left it, 18
-  opened more than the rule did: a small device, such as a water heater or a
+  opened more than the rule did: mostly a small device, such as a water heater or a
   dishwasher beside the car, or the mall's air handlers, which the rule's 2% margin
   would have left out.
 - **The owners' notes were kept, and they heard what it cost.** On the unusual
