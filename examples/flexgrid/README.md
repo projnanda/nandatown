@@ -519,7 +519,7 @@ less of the same orders.
 ### A boundary this recording found: agents slower than Town's lease
 
 Every run's lease is 30 s, set in `run_check.py` (Town's stock quote profiles use 5
-s). A node acknowledges a message only when its agent has finished with it, and the
+s or, for a crash, 1.5 s). A node acknowledges a message only when its agent has finished with it, and the
 11 agents wait for one model, so on the 8 agent days 158 of the 1,743 messages outran
 the lease, all addressed to an agent node: 85 of 99 `beckn.discover`, 64 of 99
 `beckn.confirm`, 8 of 155 `beckn.rt_ask`, 1 of 46 `beckn.rt_dispatch`. Only 30 of the
