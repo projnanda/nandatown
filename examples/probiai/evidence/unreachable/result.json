@@ -1,0 +1,41 @@
+{
+  "run_id": "sim-9a66d9c60c06",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "insurer_received",
+      "status": "failed",
+      "evidence": [
+        "ev-38",
+        "ev-44"
+      ],
+      "note": "2 of 2 copies did not reach ProbiAI"
+    },
+    {
+      "name": "double_payment_verdict",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "ProbiAI did not see every payment, so its verdict is not tested"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-30",
+        "ev-36",
+        "ev-43"
+      ],
+      "note": "10000 cents conserved across every movement"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-45"
+      ],
+      "note": "fields ['budget_cents'] never left the run"
+    }
+  ],
+  "verdict": "failed",
+  "evaluated_at": 1794172169.77177
+}

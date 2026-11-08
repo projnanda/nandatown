@@ -1,0 +1,24 @@
+{"intent_id": "in-1", "run_id": "sim-a455e3eaab54", "at": 0.0, "actor": "seller-a", "action": "register", "payload": {"capabilities": ["sell.widget"]}}
+{"intent_id": "in-2", "run_id": "sim-a455e3eaab54", "at": 0.0, "actor": "seller-b", "action": "register", "payload": {"capabilities": ["sell.widget"]}}
+{"intent_id": "in-3", "run_id": "sim-a455e3eaab54", "at": 0.0, "actor": "buyer-1", "action": "register", "payload": {"capabilities": ["buy"]}}
+{"intent_id": "in-4", "run_id": "sim-a455e3eaab54", "at": 0.5, "actor": "buyer-1", "action": "lookup", "payload": {"capability": "sell.widget"}}
+{"intent_id": "in-5", "run_id": "sim-a455e3eaab54", "at": 0.5, "actor": "buyer-1", "action": "send", "payload": {"to": "seller-a", "kind": "quote_request", "body": {"sku": "widget"}}}
+{"intent_id": "in-6", "run_id": "sim-a455e3eaab54", "at": 0.5, "actor": "buyer-1", "action": "send", "payload": {"to": "seller-b", "kind": "quote_request", "body": {"sku": "widget"}}}
+{"intent_id": "in-7", "run_id": "sim-a455e3eaab54", "at": 0.6, "actor": "seller-a", "action": "send", "payload": {"to": "buyer-1", "kind": "quote_response", "body": {"sku": "widget", "unit_cents": 2100}}}
+{"intent_id": "in-8", "run_id": "sim-a455e3eaab54", "at": 0.6, "actor": "seller-b", "action": "send", "payload": {"to": "buyer-1", "kind": "quote_response", "body": {"sku": "widget", "unit_cents": 1995}}}
+{"intent_id": "in-9", "run_id": "sim-a455e3eaab54", "at": 1.5, "actor": "buyer-1", "action": "send", "payload": {"to": "seller-b", "kind": "nego_offer", "body": {"nid": "n-1", "cents": 1596}}}
+{"intent_id": "in-10", "run_id": "sim-a455e3eaab54", "at": 1.6, "actor": "seller-b", "action": "send", "payload": {"to": "buyer-1", "kind": "nego_counter", "body": {"nid": "n-1", "cents": 1795}}}
+{"intent_id": "in-11", "run_id": "sim-a455e3eaab54", "at": 1.7000000000000002, "actor": "buyer-1", "action": "escrow_hold", "payload": {"cents": 3590, "ref": "order-buyer-1-1"}}
+{"intent_id": "in-12", "run_id": "sim-a455e3eaab54", "at": 1.7000000000000002, "actor": "buyer-1", "action": "send", "payload": {"to": "seller-b", "kind": "purchase_order", "body": {"nid": "n-1", "order_id": "order-buyer-1-1", "sku": "widget", "quantity": 2, "unit_cents": 1795}}}
+{"intent_id": "in-13", "run_id": "sim-a455e3eaab54", "at": 1.8000000000000003, "actor": "seller-b", "action": "send", "payload": {"to": "buyer-1", "kind": "delivery", "body": {"order_id": "order-buyer-1-1", "sku": "widget", "quantity": 2}}}
+{"intent_id": "in-14", "run_id": "sim-a455e3eaab54", "at": 1.9000000000000004, "actor": "buyer-1", "action": "escrow_release", "payload": {"ref": "order-buyer-1-1", "to": "seller-b"}}
+{"intent_id": "in-15", "run_id": "sim-a455e3eaab54", "at": 1.9000000000000004, "actor": "buyer-1", "action": "attest", "payload": {"subject": "seller-b", "claim": "trade.outcome", "value": "good"}}
+{"intent_id": "in-16", "run_id": "sim-a455e3eaab54", "at": 2.9000000000000004, "actor": "buyer-1", "action": "send", "payload": {"to": "seller-b", "kind": "quote_request", "body": {"sku": "widget"}}}
+{"intent_id": "in-17", "run_id": "sim-a455e3eaab54", "at": 3.0000000000000004, "actor": "seller-b", "action": "send", "payload": {"to": "buyer-1", "kind": "quote_response", "body": {"sku": "widget", "unit_cents": 1995}}}
+{"intent_id": "in-18", "run_id": "sim-a455e3eaab54", "at": 3.9000000000000004, "actor": "buyer-1", "action": "send", "payload": {"to": "seller-b", "kind": "nego_offer", "body": {"nid": "n-2", "cents": 1596}}}
+{"intent_id": "in-19", "run_id": "sim-a455e3eaab54", "at": 4.0, "actor": "seller-b", "action": "send", "payload": {"to": "buyer-1", "kind": "nego_counter", "body": {"nid": "n-2", "cents": 1795}}}
+{"intent_id": "in-20", "run_id": "sim-a455e3eaab54", "at": 4.1, "actor": "buyer-1", "action": "escrow_hold", "payload": {"cents": 3590, "ref": "order-buyer-1-2"}}
+{"intent_id": "in-21", "run_id": "sim-a455e3eaab54", "at": 4.1, "actor": "buyer-1", "action": "send", "payload": {"to": "seller-b", "kind": "purchase_order", "body": {"nid": "n-2", "order_id": "order-buyer-1-2", "sku": "widget", "quantity": 2, "unit_cents": 1795}}}
+{"intent_id": "in-22", "run_id": "sim-a455e3eaab54", "at": 4.199999999999999, "actor": "seller-b", "action": "send", "payload": {"to": "buyer-1", "kind": "delivery", "body": {"order_id": "order-buyer-1-2", "sku": "widget", "quantity": 2}}}
+{"intent_id": "in-23", "run_id": "sim-a455e3eaab54", "at": 4.299999999999999, "actor": "buyer-1", "action": "escrow_release", "payload": {"ref": "order-buyer-1-2", "to": "seller-b"}}
+{"intent_id": "in-24", "run_id": "sim-a455e3eaab54", "at": 4.299999999999999, "actor": "buyer-1", "action": "attest", "payload": {"subject": "seller-b", "claim": "trade.outcome", "value": "good"}}
