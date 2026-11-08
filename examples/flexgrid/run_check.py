@@ -84,7 +84,7 @@ EXTRAS = "extras.tar.gz"
 
 # The community: 8 homes picked to cover the 200 (all 5 towns, all 6 household
 # types, gas and heat pump, all 7 battery makes, 1 to 5 people, small to large
-# solar and floor area, a pool), and the 3 buildings.
+# solar and floor area, a hot tub), and the 3 buildings.
 HOMES = ("hh-001", "hh-002", "hh-039", "hh-071", "hh-084", "hh-090", "hh-139",
          "hh-197")
 BUILDINGS = ("bld-university", "bld-mall", "bld-office")

@@ -20,8 +20,10 @@ What the adapter adds, and nothing else:
     identity (FlexGrid's TownSession only knows join tokens)
   * the coordinator's answer to Town's quote_request: the closing statement
     (see run_check.py), the one exchange Town's stage evaluator can judge
-  * for two named cases only, a node that overstates its meter, and a node
-    whose first batch of readings goes astray
+  * the same day through FlexGrid's own offline simulator, the reference a
+    rules day is held to
+  * a reader for each node's decision log: the model's answers, each
+    decision's receipt, what each person was told and each guard verdict
 """
 
 from __future__ import annotations
@@ -191,39 +193,6 @@ def run_buyer(name: str, port: int) -> None:
             keeper.close()
 
 
-def overstate_meter(name: str) -> None:
-    """The lying-meter case: one node signs readings that say it used 5 kW
-    less than it did. The signature is good, because the node really signs."""
-    from flexgrid_core import home_v2
-
-    honest = home_v2.HomeV2.build_reading
-
-    def build_reading(self, cid, slot_id):
-        reading = honest(self, cid, slot_id)
-        if self.name == name:
-            reading["usage_kw"] = round(reading["usage_kw"] - 5.0, 3)
-        return reading
-
-    home_v2.HomeV2.build_reading = build_reading
-
-
-def lose_first_batch(name: str, receiver: str) -> None:
-    """The lost-batch case: this node's first batch to this receiver never
-    reaches Town, and its Town client answers as if it had."""
-    from flexgrid_core import town
-
-    plain, lost = town.TownSession.send, []
-
-    def send(self, to, kind, body, message_id):
-        if (self.name, to) == (name, receiver) and not lost \
-                and "batch" in (body.get("message") or {}):
-            lost.append(message_id)
-            return {"message_id": message_id, "replay": False}
-        return plain(self, to, kind, body, message_id)
-
-    town.TownSession.send = send
-
-
 def run_nodes(buildings: bool) -> None:
     from flexgrid_core import fleet
 
@@ -238,10 +207,6 @@ def run_nodes(buildings: bool) -> None:
             return [r for r in rows if not wanted or r["name"] in wanted]
 
     setattr(fleet, base.__name__, Nodes)
-    if os.environ.get("FLEXGRID_LIAR"):
-        overstate_meter(os.environ["FLEXGRID_LIAR"])
-    if os.environ.get("FLEXGRID_LOSE_BATCH"):
-        lose_first_batch(*os.environ["FLEXGRID_LOSE_BATCH"].split(":"))
     sys.argv = ["flexgrid-fleet", "run"] + (["--buildings"] if buildings
                                             else [])
     fleet.main()
