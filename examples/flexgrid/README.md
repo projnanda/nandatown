@@ -63,8 +63,14 @@ reason, and the person is told in plain words when a node gives less than asked.
 This recording meets them in part:
 
 - **Receipts.** Every decision leaves a receipt in the node's own decision log:
-  what was asked, the rule's plan, what the agent chose, its reason and the facts
-  it rests on.
+  what was asked, the rule's plan, what the agent chose and, where it gave one, its
+  reason. Only an answer below the rule's amount must have a reason. 22 of the 690
+  receipts have none: 21 pre-cools at the playbook's full depth and the office's
+  reading of its manager's note, whose tools have no reason field; the office's
+  offer after that note carries the reason and the note. `facts` holds a fact only
+  where the model cited one or a note lowered a sale: 14 of the 690. The raw logs
+  hold 26 of 779, because they also keep the network failure day's other play and
+  the note read before the reset.
 - **The coordinator.** Of its decision the coordinator hears only the amount:
   `offer.agent` carries who decided and which decision, and the agent's reason and
   the person's words stay in the receipt. It still gets code's offer detail (each
@@ -327,7 +333,7 @@ The agents mostly took the rule's plan, and every decision left a receipt:
 | network failure, each play | 88 | 2 | 0 | 0 | none | 0 |
 
 `summary.json` has each receipt: the rule's plan and what the agent chose, each by
-device, with its reason.
+device, with its reason where it gave one.
 
 - **Most of what left the rule opened more.** Of the 24 decisions that left it, 18
   opened more than the rule did: a small device, such as a water heater or a
@@ -399,7 +405,10 @@ answer failed, so no point fell back to a rule. The clock held each day for 13 t
 minutes in all beyond its 2 s steps, mostly at the offers the day before, at each
 half hour of the sale, and at the reports. A rules day takes 5.5 minutes. The only
 flags are the 4 "less, for the person's note"; no receipt is "reason cites no fact"
-or "no reason given". The guard passed 34 to 66 device calls a day as asked, and
+or "no reason given". These flags apply to cuts only, and only the agent's own
+choice is tested for a fact: the mall's hot-day cut, short only after its calls ran,
+cites none and has no flag. 22 of the 690 receipts have an empty reason (21 pre-cools
+at the playbook's depth, one reading of a note). The guard passed 34 to 66 device calls a day as asked, and
 changed two in all: it trimmed the mall's zone cooling to +1.125 C after the event on
 the special schedules day, and it held the office's pre-cool on the unusual people
 day, which the manager's note had ruled out.
@@ -519,7 +528,9 @@ Not shown, and worth saying plainly:
   not an estimate. Nothing here says how often agents do better.
 - Part of each gap isn't the model's, as above: the agent's own device path doesn't
   give the rules controller's day even when every answer is the rule's.
-- A reason is the model's own sentence. Code checks that a cut names a fact and
+- A reason is the model's own sentence, except on a note: where a note lowers a
+  sale, the reason opens with code's fixed words for the need the model recorded (for
+  the three owners, that is the whole reason). Code checks that a cut names a fact and
   flags one that doesn't, not that the sentence reads true. The kW in a note's message
   is an estimate at the moment of the note, not what the meter will read.
 - The data pack is two stretches, 1 to 28 Jan and 1 Jun to 3 Jul 2026, with simple
