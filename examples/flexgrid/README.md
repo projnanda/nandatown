@@ -391,8 +391,9 @@ over the days) and its answer is one of the 138.
   and they heard "Got it: leaving the heating and cooling as they are, as you asked,
   so I'm giving 102 kW tomorrow night instead of 320."; the guard held the office's
   cooling, pre-cool included, and the office delivered 48.6 kWh against 1,073.6 on
-  rules: more than the whole day's 925 kWh drop. A rule would have sold the cooling
-  the manager said wasn't there. Each such receipt measures against the amount
+  rules: more than the whole day's 925 kWh drop. The note is not modelled physically:
+  on rules the office delivers the same 1,073.6 kWh on this day as on the normal day,
+  so this day doesn't show what a real chiller fault would do. Each such receipt measures against the amount
   without the note, is flagged "less, for the person's note", and cites the note as
   its fact. The figure in the message is an estimate at the moment of the note, from
   the parts of the offer left: `hh-139` was told 5.5 kW and averaged 1.1 kW on the
