@@ -1,0 +1,137 @@
+{
+  "recorded_with": {
+    "server": {
+      "name": "cafe-taste-twin",
+      "version": "0.1.0",
+      "title": "Cafe Taste Twin"
+    },
+    "url": "https://cafe-taste-twin.lovable.app/mcp",
+    "dedupe": false,
+    "recorded_at": "2026-11-09T04:27:00Z",
+    "note": "Reduced responses only: counts, ids, scores and reasons. No profile text, quotes or weights."
+  },
+  "calls": [
+    {
+      "op": "context",
+      "ok": true,
+      "response": {
+        "choice_count": 1,
+        "confidence": "low",
+        "matched_conversations": 1,
+        "stated_matches": {
+          "Tatte": true
+        },
+        "weights": "[not recorded]"
+      }
+    },
+    {
+      "op": "rank",
+      "ok": true,
+      "response": {
+        "request_id": "7bceab6b-3183-4484-abbe-c06f48ee871f",
+        "results": [
+          {
+            "name": "Diesel Cafe",
+            "score": 0.559,
+            "confidence": "low",
+            "reason": "Diesel Cafe fits best on outlets & wifi and close by, which matter most to you for studying."
+          },
+          {
+            "name": "1369 Coffee House",
+            "score": 0.554,
+            "confidence": "low",
+            "reason": "1369 Coffee House fits best on close by and outlets & wifi, which matter most to you for studying."
+          },
+          {
+            "name": "Tatte Bakery & Cafe (Kendall)",
+            "score": 0.518,
+            "confidence": "low",
+            "reason": "Tatte Bakery & Cafe (Kendall) fits best on close by and outlets & wifi, which matter most to you for studying."
+          }
+        ],
+        "dropped": [
+          "Darwin's Ltd",
+          "Flour Bakery + Cafe (Central)"
+        ],
+        "close_call": true,
+        "scored_by": "openai/gpt-6-astra"
+      }
+    },
+    {
+      "op": "feedback",
+      "ok": true,
+      "response": {
+        "saved": false,
+        "duplicate_of": "dfca5d74-229b-4794-868f-772d378735c0"
+      }
+    },
+    {
+      "op": "choice",
+      "ok": true,
+      "response": {
+        "saved": true,
+        "choice_id": "73601a79-33a4-41f6-bfe6-f852d292ad02",
+        "choice_count": 2,
+        "confidence": "low",
+        "weights_updated": true
+      }
+    },
+    {
+      "op": "choice",
+      "ok": true,
+      "response": {
+        "saved": true,
+        "choice_id": "364ed5e5-802e-4f6b-9a86-79e8b2b05554",
+        "choice_count": 3,
+        "confidence": "low",
+        "weights_updated": true
+      }
+    },
+    {
+      "op": "context",
+      "ok": true,
+      "response": {
+        "choice_count": 3,
+        "confidence": "low",
+        "matched_conversations": 3,
+        "stated_matches": {
+          "Tatte": true
+        },
+        "weights": "[not recorded]"
+      }
+    },
+    {
+      "op": "rank",
+      "ok": true,
+      "response": {
+        "request_id": "a53135b2-9a66-4423-be2a-27eac5eba7c1",
+        "results": [
+          {
+            "name": "1369 Coffee House",
+            "score": 0.616,
+            "confidence": "low",
+            "reason": "1369 Coffee House fits best on familiar favorite and outlets & wifi, which matter most to you for studying."
+          },
+          {
+            "name": "Diesel Cafe",
+            "score": 0.475,
+            "confidence": "low",
+            "reason": "Diesel Cafe fits best on outlets & wifi and close by, which matter most to you for studying."
+          },
+          {
+            "name": "Bloc 11 Cafe",
+            "score": 0.464,
+            "confidence": "low",
+            "reason": "Bloc 11 Cafe fits best on outlets & wifi and quiet, which matter most to you for studying."
+          }
+        ],
+        "dropped": [
+          "Darwin's Ltd",
+          "Flour Bakery + Cafe (Central)"
+        ],
+        "close_call": false,
+        "scored_by": "openai/gpt-6-astra"
+      }
+    }
+  ]
+}
