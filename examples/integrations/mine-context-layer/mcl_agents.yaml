@@ -1,0 +1,38 @@
+name: mcl_agents
+description: >-
+  The same LH-07 incident handled by the project's four real agents (headless
+  Claude Code, each connected only to the Mine Context Layer over MCP, with its
+  own layer role). Town carries the turn-taking between them and the
+  supervisor's approval; the layer holds all shared state. Needs Claude Code
+  installed and logged in; results can vary between runs.
+seed: 42
+plugin_files:
+  - mcl_plugin.py
+validator: mcl_agents
+agents:
+  - name: layer
+    role: mcl_layer
+    config:
+      case: normal
+      supervisor: supervisor
+      participants:
+        radio: {agent: radio-agent, role: source, source: radio, mode: agent}
+        cmms: {agent: cmms-agent, role: source, source: cmms, mode: agent}
+        maintenance: {agent: maintenance-agent, role: function, mode: agent}
+        planning: {agent: planning-agent, role: function, mode: agent}
+  - name: radio
+    role: mcl_agent
+    config: {layer: layer, agent: radio-agent, start: true, notify: [cmms]}
+  - name: cmms
+    role: mcl_agent
+    config: {layer: layer, agent: cmms-agent, notify: [maintenance]}
+  - name: maintenance
+    role: mcl_agent
+    config: {layer: layer, agent: maintenance-agent, notify: [planning]}
+  - name: planning
+    role: mcl_agent
+    config: {layer: layer, agent: planning-agent, notify: [supervisor]}
+  - name: supervisor
+    role: mcl_supervisor
+    config: {layer: layer, approve: true}
+max_time: 5000
