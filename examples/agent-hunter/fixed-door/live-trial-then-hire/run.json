@@ -1,0 +1,41 @@
+{
+  "run_id": "path-ee1726c7f810",
+  "profile_name": "a2a-trial-then-hire@0.1",
+  "profile_fingerprint": "sha256:766de600124b68158deb2a5d3a04945534c1582ad6b7e40de64d3e7fb3433734",
+  "created_at": 1794254827.6378088,
+  "participants": [
+    {
+      "name": "town-requester",
+      "role": "requester"
+    },
+    {
+      "name": "http://127.0.0.1:8940",
+      "role": "subject"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "path-trial-hire-0.1",
+    "python": "3.12.14"
+  },
+  "config": {
+    "mode": "path",
+    "subject": "http://127.0.0.1:8940",
+    "profile": "a2a-trial-then-hire@0.1",
+    "pinned_card_digest": "sha256:f4386869a5a275d6826de26b996e50fe10be2dde005ee9d2a3b39bdde4d2b740",
+    "nonce": "3db15ca50e",
+    "a2a_transport_policy": {
+      "policy_id": "a2a-bounded-json@0.1",
+      "max_response_bytes": 1048576,
+      "budget_basis": "profile",
+      "accept_encoding": "identity",
+      "follow_redirects": false,
+      "trust_env": false,
+      "transport_retries": 0,
+      "client_ownership": "owned",
+      "phase_timeout_seconds": 240.0,
+      "total_deadline_seconds": null
+    },
+    "rerun_command": "nandatown test-agent --url http://127.0.0.1:8940 --path-profile a2a-trial-then-hire@0.1 --pin-card-digest sha256:f4386869a5a275d6826de26b996e50fe10be2dde005ee9d2a3b39bdde4d2b740"
+  }
+}
