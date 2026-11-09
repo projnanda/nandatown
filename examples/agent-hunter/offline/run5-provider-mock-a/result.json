@@ -1,0 +1,57 @@
+{
+  "run_id": "path-b02781b22f2b",
+  "evaluator_version": "path-invoice-extraction-0.1",
+  "stages": [
+    {
+      "name": "resolution",
+      "status": "passed",
+      "evidence": [
+        "ev-1"
+      ],
+      "note": ""
+    },
+    {
+      "name": "agent_card_retrieval",
+      "status": "passed",
+      "evidence": [
+        "ev-2"
+      ],
+      "note": "observed card sha256:c254b3d0e6ede0e1"
+    },
+    {
+      "name": "descriptor_consistency",
+      "status": "passed",
+      "evidence": [
+        "ev-3",
+        "ev-2"
+      ],
+      "note": ""
+    },
+    {
+      "name": "protocol_invocation",
+      "status": "passed",
+      "evidence": [
+        "ev-4"
+      ],
+      "note": "task task-f754a1a2ea9e state completed"
+    },
+    {
+      "name": "semantic_result",
+      "status": "passed",
+      "evidence": [
+        "ev-5"
+      ],
+      "note": "task nandatown-invoice-001: the output matches the request's output_schema (types and required keys only; field accuracy is not checked); cost_usd 0.004"
+    },
+    {
+      "name": "duplicate_request",
+      "status": "passed",
+      "evidence": [
+        "ev-7"
+      ],
+      "note": "the same logical order was delivered twice; no second distinct fulfillment appeared"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794238316.913141
+}

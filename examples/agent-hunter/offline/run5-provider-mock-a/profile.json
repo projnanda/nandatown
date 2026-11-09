@@ -1,0 +1,134 @@
+{
+  "profile_id": "a2a-invoice-extraction",
+  "version": "0.1",
+  "protocol": "a2a",
+  "capability": "invoice_extraction",
+  "request": {
+    "task_id": "nandatown-invoice-001",
+    "requester_id": "nandatown",
+    "document_url": "https://raw.githubusercontent.com/chris-a-ackerman/nandatown/agent-hunter-fixture-v1/examples/agent-hunter/fixtures/d/1070b4b25d3c.pdf",
+    "output_schema": {
+      "$defs": {
+        "LineItem": {
+          "additionalProperties": false,
+          "properties": {
+            "description": {
+              "title": "Description",
+              "type": "string"
+            },
+            "quantity": {
+              "title": "Quantity",
+              "type": "number"
+            },
+            "unit_price": {
+              "title": "Unit Price",
+              "type": "number"
+            },
+            "amount": {
+              "title": "Amount",
+              "type": "number"
+            }
+          },
+          "required": [
+            "description",
+            "quantity",
+            "unit_price",
+            "amount"
+          ],
+          "title": "LineItem",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "vendor_name": {
+          "title": "Vendor Name",
+          "type": "string"
+        },
+        "invoice_number": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Invoice Number"
+        },
+        "invoice_date": {
+          "description": "ISO 8601 date, YYYY-MM-DD",
+          "title": "Invoice Date",
+          "type": "string"
+        },
+        "currency": {
+          "description": "ISO 4217 code, e.g. USD",
+          "title": "Currency",
+          "type": "string"
+        },
+        "line_items": {
+          "items": {
+            "$ref": "#/$defs/LineItem"
+          },
+          "title": "Line Items",
+          "type": "array"
+        },
+        "subtotal": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Subtotal"
+        },
+        "tax": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Tax"
+        },
+        "total": {
+          "title": "Total",
+          "type": "number"
+        }
+      },
+      "required": [
+        "vendor_name",
+        "invoice_number",
+        "invoice_date",
+        "currency",
+        "line_items",
+        "subtotal",
+        "tax",
+        "total"
+      ],
+      "title": "Invoice",
+      "type": "object"
+    },
+    "deadline_ms": 60000,
+    "offered_price": 0.01
+  },
+  "expected": {
+    "not_tested": [
+      "field accuracy: only the output's types and required keys are checked",
+      "one synchronous message/send; timeout_seconds is per HTTP phase, not a total deadline",
+      "async tasks/get polling and streaming",
+      "real payment, and whether cost_usd is the provider's true spend",
+      "documents other than the one pinned synthetic invoice"
+    ]
+  },
+  "controlled_condition": "duplicate_request",
+  "limits": {
+    "timeout_seconds": 90.0,
+    "max_response_bytes": 1048576.0
+  },
+  "evaluator": "invoice-extraction-evaluator@0.1"
+}

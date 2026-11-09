@@ -1,0 +1,53 @@
+{
+  "run_id": "path-c5a2bb7c3a89",
+  "evaluator_version": "path-trial-hire-0.1",
+  "stages": [
+    {
+      "name": "resolution",
+      "status": "passed",
+      "evidence": [
+        "ev-1"
+      ],
+      "note": ""
+    },
+    {
+      "name": "agent_card_retrieval",
+      "status": "passed",
+      "evidence": [
+        "ev-2"
+      ],
+      "note": "observed card sha256:8e6bb24ab71b5578"
+    },
+    {
+      "name": "descriptor_consistency",
+      "status": "passed",
+      "evidence": [
+        "ev-3",
+        "ev-2"
+      ],
+      "note": ""
+    },
+    {
+      "name": "protocol_invocation",
+      "status": "failed",
+      "evidence": [
+        "ev-4"
+      ],
+      "note": "a2a_timeout"
+    },
+    {
+      "name": "semantic_result",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "not reached: an earlier boundary broke (no successful terminal task output was observed)"
+    },
+    {
+      "name": "duplicate_request",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "not reached: an earlier boundary broke (the controlled condition was never reached)"
+    }
+  ],
+  "verdict": "failed",
+  "evaluated_at": 1794238344.5936809
+}

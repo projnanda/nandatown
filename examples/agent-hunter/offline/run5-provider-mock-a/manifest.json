@@ -1,0 +1,14 @@
+{
+  "mode": "path",
+  "files": {
+    "profile.json": "sha256:e734ca293fea8747b80789b3c176d777db6e830a29d038a9726ec5f21d2e7436",
+    "run.json": "sha256:aa8c365c27a5a0f73360e58c3ab6ef01fe99ef9308b98d0d699d50aa0f23833b",
+    "intents.jsonl": "sha256:aac10f20eb5edcd404a0f598dc623ee58c250cc57a3dd23bbcafdfde7df0f904",
+    "events.jsonl": "sha256:96dcfd78a6ef263969fbbad35ef585fb1ab978e3dae6bfe83fb86e5e6d04cf64",
+    "result.json": "sha256:19f4d35cb69eb526dd60146eba9deb4b9fb0353f7ff0bee6a88db0b169dbb7c9"
+  },
+  "bundle_fingerprint": "sha256:99188126807336674ceb0c583047dfa576d365e95bdac727afbda52bb789cbb7",
+  "created_at": 1794238316.913824,
+  "nandatown_version": "0.2.0",
+  "evaluator_version": "path-invoice-extraction-0.1"
+}

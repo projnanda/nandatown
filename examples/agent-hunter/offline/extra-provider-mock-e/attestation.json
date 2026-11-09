@@ -1,0 +1,12 @@
+{
+  "payload": {
+    "bundle_fingerprint": "sha256:a81170f136cac706a798bc633eb8a6bf47438b4fc3c700c462a2b7dd1703ebba",
+    "run_id": "path-a90fbbc9663e",
+    "verdict": "failed",
+    "evaluator_version": "path-invoice-extraction-0.1",
+    "signer": "did:town:bd18ac20dae90cd699380188",
+    "signed_at": 1794238317.115675
+  },
+  "signature": "270424dcc30c65365b0e84bd6fcf2c24f577bab5d8341b825220628199b521ac20cf0ceb20843c9f1149a3023bbfee57f92da31ccb59a7694517b17d40b0e707",
+  "controller_public": "f98ddd7f6c6002784fc1c5d106580defad8a57185c7d0a7e343811ed082cd45b"
+}

@@ -1,0 +1,58 @@
+{
+  "run_id": "path-d330259f015d",
+  "evaluator_version": "path-trial-hire-0.1",
+  "stages": [
+    {
+      "name": "resolution",
+      "status": "passed",
+      "evidence": [
+        "ev-1"
+      ],
+      "note": ""
+    },
+    {
+      "name": "agent_card_retrieval",
+      "status": "passed",
+      "evidence": [
+        "ev-2"
+      ],
+      "note": "observed card sha256:8e6bb24ab71b5578"
+    },
+    {
+      "name": "descriptor_consistency",
+      "status": "passed",
+      "evidence": [
+        "ev-3",
+        "ev-2"
+      ],
+      "note": ""
+    },
+    {
+      "name": "protocol_invocation",
+      "status": "passed",
+      "evidence": [
+        "ev-4"
+      ],
+      "note": "task task-4aad39630fb7 state completed"
+    },
+    {
+      "name": "semantic_result",
+      "status": "passed",
+      "evidence": [
+        "ev-5"
+      ],
+      "note": "offline run: job job-6b36136eadd1 ranked 5 candidates, verdict 'tie', recommended 'mock-b@1'; Town checked that the verdict holds together, not that the pick is the best provider"
+    },
+    {
+      "name": "duplicate_request",
+      "status": "failed",
+      "evidence": [
+        "ev-5",
+        "ev-7"
+      ],
+      "note": "idempotency defect: the duplicate produced a second distinct fulfillment; attempt 1 gave job 'job-6b36136eadd1', trial 'trial-668bb392208f', attempt 2 gave job 'job-c1b7f33be14a', trial 'trial-9ddf81106459'"
+    }
+  ],
+  "verdict": "failed",
+  "evaluated_at": 1794238301.985041
+}

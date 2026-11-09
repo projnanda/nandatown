@@ -196,6 +196,23 @@ PATH_PROFILES: dict[str, PathProfile] = {
                 "max_response_bytes": 1_048_576},
         evaluator=TRIAL_HIRE_EVALUATOR,
     ),
+    # The same hire under the stock 15 s Path limit, the boundary case: a
+    # hiring workflow takes longer than one synchronous call allows, so this
+    # profile is expected to fail at protocol_invocation (a2a_timeout). It
+    # shows why the profiles above use a longer limit.
+    "a2a-trial-then-hire-stock-timeout@0.1": PathProfile(
+        profile_id="a2a-trial-then-hire-stock-timeout",
+        version="0.1",
+        protocol="a2a",
+        capability="trial_then_hire",
+        request={"job": _path_request("agent_hunter_invoice_clean.json")},
+        expected={"job_status": "ranked", "min_ranked": 2,
+                  "not_tested": TRIAL_HIRE_NOT_TESTED},
+        controlled_condition="duplicate_request",
+        limits={"timeout_seconds": 15.0,
+                "max_response_bytes": 1_048_576},
+        evaluator=TRIAL_HIRE_EVALUATOR,
+    ),
     # A provider agent being hired: it extracts one pinned synthetic invoice
     # (tag agent-hunter-fixture-v1) into JSON matching the request's own
     # output_schema.
