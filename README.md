@@ -575,6 +575,30 @@ don't test async `tasks/get` polling, streaming, payment, the hire step, or
 whether the recommended candidate is actually the best: Town sees the verdict's
 claims, not the trial's answer key. Evaluator: `path-trial-hire-0.1`.
 
+#### A provider agent: invoice extraction
+
+`--path-profile a2a-invoice-extraction@0.1` tests the other side of the hire:
+one agent that extracts invoices. Town sends one task (shipped in
+`src/nandatown/path_requests/`) for a single pinned synthetic invoice,
+`examples/agent-hunter/fixtures/d/1070b4b25d3c.pdf`, fetched by its raw URL at
+the tag `agent-hunter-fixture-v1`, with an `output_schema` for the result.
+`semantic_result` passes only if the one text part echoes `request_id` and
+`task_id`, has `cost_usd >= 0` and a `provider_version`, and has an `output`
+that matches the request's own schema: required keys present, the right JSON
+types, no extra keys. A task the provider ends `failed` (for example
+`{"error": "budget_exhausted"}`) completes the A2A exchange but fails
+`semantic_result`, and the note names the error. The duplicate passes only if
+the resent task returns the same bytes: a provider that runs its model again
+reports a new `cost_usd` and fails.
+
+It deliberately doesn't check field accuracy. That is the hiring agent's job,
+and a public record of how well each provider read the invoice would rank
+real providers. So the bundle records the output's types (`"vendor_name":
+"string"`), not its values; the content digest still covers the full reply.
+It checks one synthetic document over one synchronous `message/send` (90 s per
+HTTP phase), and doesn't test streaming, `tasks/get`, payment, or whether
+`cost_usd` is true. Evaluator: `path-invoice-extraction-0.1`.
+
 ## Receipts and Town Proof
 
 ```

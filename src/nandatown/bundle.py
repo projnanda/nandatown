@@ -208,7 +208,8 @@ SHIPPED_EVALUATOR_VERSIONS: dict[str, frozenset[str]] = {
                       "lab-0.2.4", "lab-0.2.5", "lab-0.2.6"}),
     "path": frozenset({"path-0.1", "path-0.2", "path-0.3",
                        "path-quote-intent-0.1", "path-quote-intent-0.2",
-                       "path-order-conflict-0.1", "path-trial-hire-0.1"}),
+                       "path-order-conflict-0.1", "path-trial-hire-0.1",
+                       "path-invoice-extraction-0.1"}),
 }
 
 

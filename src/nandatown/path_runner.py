@@ -35,8 +35,8 @@ from .a2a_transport import (
     validate_response_budget,
 )
 from .path_profiles import (
-    DEFAULT_PATH_PROFILE, ORDER_CONFLICT_EVALUATOR, PATH_EVALUATOR,
-    QUOTE_INTENT_EVALUATOR, QUOTE_INTENT_FIELDS, STRICT_PATH_EVALUATOR,
+    DEFAULT_PATH_PROFILE, INVOICE_EXTRACTION_EVALUATOR,
+    ORDER_CONFLICT_EVALUATOR, PATH_EVALUATOR, QUOTE_INTENT_EVALUATOR, QUOTE_INTENT_FIELDS, STRICT_PATH_EVALUATOR,
     STRICT_QUOTE_INTENT_EVALUATOR, TRIAL_HIRE_EVALUATOR, PathProfile,
     get_path_profile,
 )
@@ -55,12 +55,14 @@ STRICT_PATH_EVALUATOR_VERSION = "path-0.3"
 STRICT_QUOTE_INTENT_EVALUATOR_VERSION = "path-quote-intent-0.2"
 ORDER_CONFLICT_EVALUATOR_VERSION = "path-order-conflict-0.1"
 TRIAL_HIRE_EVALUATOR_VERSION = "path-trial-hire-0.1"
+INVOICE_EXTRACTION_EVALUATOR_VERSION = "path-invoice-extraction-0.1"
 
 STRICT_PATH_EVALUATORS = {
     STRICT_PATH_EVALUATOR,
     STRICT_QUOTE_INTENT_EVALUATOR,
     ORDER_CONFLICT_EVALUATOR,
     TRIAL_HIRE_EVALUATOR,
+    INVOICE_EXTRACTION_EVALUATOR,
 }
 LEGACY_PATH_EVALUATORS = {
     PATH_EVALUATOR,
@@ -81,6 +83,8 @@ def path_evaluator_version(profile: PathProfile) -> str:
         return ORDER_CONFLICT_EVALUATOR_VERSION
     if profile.evaluator == TRIAL_HIRE_EVALUATOR:
         return TRIAL_HIRE_EVALUATOR_VERSION
+    if profile.evaluator == INVOICE_EXTRACTION_EVALUATOR:
+        return INVOICE_EXTRACTION_EVALUATOR_VERSION
     if profile.evaluator == QUOTE_INTENT_EVALUATOR:
         return "path-quote-intent-0.1"
     if profile.evaluator == PATH_EVALUATOR:
@@ -231,6 +235,8 @@ def _semantic_fulfillment_stage(
         profile: PathProfile, fulfillment: TownEvent) -> StageResult:
     if profile.evaluator == TRIAL_HIRE_EVALUATOR:
         return _trial_hire_stage(profile, fulfillment)
+    if profile.evaluator == INVOICE_EXTRACTION_EVALUATOR:
+        return _invoice_extraction_stage(profile, fulfillment)
     detail = fulfillment.detail
     observed_total = detail.get("total_cents")
     expected_request_id = fulfillment.subject
@@ -447,6 +453,165 @@ def _hire_duplicate_note(first: TownEvent, second: TownEvent) -> str:
         return f"job {hire.get('job_id')!r}, trial {trial!r}"
 
     return f"; attempt 1 gave {ids(first)}, attempt 2 gave {ids(second)}"
+
+
+def _failure_code(status: Any) -> Any:
+    """The error a provider gave for a failed task: the "error" value of a
+    JSON object in the status message's first text part, or None."""
+    message = status.get("message") if isinstance(status, dict) else None
+    parts = message.get("parts") if isinstance(message, dict) else None
+    if not isinstance(parts, list) or not parts \
+            or not isinstance(parts[0], dict):
+        return None
+    try:
+        body = json.loads(parts[0].get("text"))
+    except (TypeError, ValueError, RecursionError):
+        return None
+    return body.get("error") if isinstance(body, dict) else None
+
+
+def _declined_work(profile: PathProfile, detail: dict[str, Any]) -> bool:
+    """A provider that ends a task 'failed' completed the A2A exchange; the
+    invoice-extraction profile judges that refusal in semantic_result."""
+    return (profile.evaluator == INVOICE_EXTRACTION_EVALUATOR
+            and detail.get("state") == "failed")
+
+
+def _type_skeleton(value: Any) -> Any:
+    """value with every scalar replaced by its JSON type name.
+
+    The provider-level evaluator checks types only, so the bundle records
+    the output's shape and never the extracted values: a public record of
+    how accurately each provider read the invoice would rank real
+    providers. The content digest still covers the full value.
+    """
+    if isinstance(value, dict):
+        return {key: _type_skeleton(child) for key, child in value.items()}
+    if isinstance(value, list):
+        return [_type_skeleton(child) for child in value]
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "boolean"
+    if isinstance(value, str):
+        return "string"
+    if isinstance(value, float) and not math.isfinite(value):
+        return "non-finite number"
+    return "number"
+
+
+def _provider_observation(fulfillment: dict[str, Any]) -> Any:
+    observed = {key: fulfillment[key]
+                for key in ("task_id", "cost_usd", "provider_version")
+                if key in fulfillment}
+    if "output" in fulfillment:
+        output = fulfillment["output"]
+        observed["output"] = (output
+                              if _nesting_exceeds(output, MAX_ECHOED_NESTING)
+                              else _type_skeleton(output))
+    return _echoed(observed)
+
+
+def _skeleton_label(value: Any) -> str:
+    if isinstance(value, dict):
+        return "object"
+    if isinstance(value, list):
+        return "array"
+    return value if isinstance(value, str) else repr(value)
+
+
+def _schema_errors(schema: dict[str, Any], value: Any, where: str,
+                   defs: dict[str, Any]) -> list[str]:
+    """Where a type skeleton breaks the subset of JSON Schema an output
+    schema like Agent-Hunter's Invoice uses: type, required, properties,
+    additionalProperties false, items, anyOf and local $ref. Formats such
+    as dates are hints, not checks."""
+    ref = schema.get("$ref")
+    if isinstance(ref, str):
+        schema = defs.get(ref.rsplit("/", 1)[-1], {})
+    if "anyOf" in schema:
+        options = schema["anyOf"]
+        if any(not _schema_errors(option, value, where, defs)
+               for option in options):
+            return []
+        wanted = " or ".join(str(option.get("type", "a schema"))
+                             for option in options)
+        return [f"{where}: expected {wanted}, observed"
+                f" {_skeleton_label(value)}"]
+    kind = schema.get("type")
+    if kind == "object":
+        if not isinstance(value, dict):
+            return [f"{where}: expected object, observed"
+                    f" {_skeleton_label(value)}"]
+        errors = [f"{where}.{key}: missing"
+                  for key in schema.get("required", []) if key not in value]
+        properties = schema.get("properties", {})
+        for key, child in value.items():
+            if key in properties:
+                errors += _schema_errors(properties[key], child,
+                                         f"{where}.{key}", defs)
+            elif schema.get("additionalProperties") is False:
+                errors.append(f"{where}.{key}: not in the schema")
+        return errors
+    if kind == "array":
+        if not isinstance(value, list):
+            return [f"{where}: expected array, observed"
+                    f" {_skeleton_label(value)}"]
+        return [error for i, item in enumerate(value)
+                for error in _schema_errors(schema.get("items", {}), item,
+                                            f"{where}[{i}]", defs)]
+    if kind in ("string", "number", "boolean", "null") and value != kind:
+        return [f"{where}: expected {kind}, observed"
+                f" {_skeleton_label(value)}"]
+    return []
+
+
+def _invoice_extraction_stage(profile: PathProfile,
+                              fulfillment: TownEvent) -> StageResult:
+    detail = fulfillment.detail
+    result = detail.get("provider_result")
+    if not isinstance(result, dict):
+        result = {}
+    errors = []
+    expected_request_id = fulfillment.subject
+    observed_request_id = detail.get("request_id")
+    if not (isinstance(observed_request_id, str) and observed_request_id
+            and observed_request_id == expected_request_id):
+        errors.append(f"expected request_id {expected_request_id!r},"
+                      f" observed request_id {observed_request_id!r}")
+    task_id = profile.request.get("task_id")
+    if result.get("task_id") != task_id:
+        errors.append(f"task_id: expected {task_id!r}, observed"
+                      f" {result.get('task_id')!r}")
+    cost = result.get("cost_usd")
+    if not _is_number(cost) or cost < 0:
+        errors.append(f"cost_usd: expected a number >= 0, observed {cost!r}")
+    version = result.get("provider_version")
+    if not isinstance(version, str) or not version:
+        errors.append(f"provider_version: expected a non-empty string,"
+                      f" observed {version!r}")
+    if "output" not in result:
+        errors.append("output: missing")
+    else:
+        schema = profile.request.get("output_schema", {})
+        schema_errors = _schema_errors(schema, result["output"], "output",
+                                       schema.get("$defs", {}))
+        errors += schema_errors[:5]
+        if len(schema_errors) > 5:
+            errors.append(f"and {len(schema_errors) - 5} more schema"
+                          " mismatches")
+    if errors:
+        return StageResult(
+            name="semantic_result", status="failed",
+            evidence=[fulfillment.event_id],
+            note="the provider result is not a valid extraction: "
+                 + "; ".join(errors))
+    return StageResult(
+        name="semantic_result", status="passed",
+        evidence=[fulfillment.event_id],
+        note=f"task {task_id}: the output matches the request's"
+             f" output_schema (types and required keys only; field accuracy"
+             f" is not checked); cost_usd {cost!r}")
 
 
 def _conflicting_retry_stage(profile: PathProfile,
@@ -797,6 +962,10 @@ def run_path_test(subject_url: str | None, out_dir: str,
                         "kind": _echoed(task.get("kind")),
                         "state": _echoed(state),
                     }
+                    if profile.evaluator == INVOICE_EXTRACTION_EVALUATOR \
+                            and state == "failed":
+                        exchange_detail["error"] = _echoed(
+                            _failure_code(status))
                     terminal_outputs = None
                     if strict_semantics:
                         terminal_outputs = artifact_texts(task)
@@ -865,6 +1034,9 @@ def run_path_test(subject_url: str | None, out_dir: str,
                         "content_digest": content_digest}
                     if profile.evaluator == TRIAL_HIRE_EVALUATOR:
                         detail["hire"] = _hire_observation(fulfillment)
+                    if profile.evaluator == INVOICE_EXTRACTION_EVALUATOR:
+                        detail["provider_result"] = \
+                            _provider_observation(fulfillment)
                     if _quote_intent_semantics(profile):
                         detail["quote"] = {
                             field: _echoed(fulfillment[field])
@@ -1045,7 +1217,8 @@ def evaluate_path(profile: PathProfile, run_id: str,
                 name="protocol_invocation", status="failed",
                 evidence=[first_exchange[0].event_id],
                 note="the response was not a well-formed task"))
-        elif strict_semantics and detail.get("state") != "completed":
+        elif strict_semantics and detail.get("state") != "completed" \
+                and not _declined_work(profile, detail):
             stages.append(StageResult(
                 name="protocol_invocation", status="failed",
                 evidence=[first_exchange[0].event_id],
@@ -1071,7 +1244,16 @@ def evaluate_path(profile: PathProfile, run_id: str,
     first_bad = find("fulfillment_unparseable", attempt=1)
     first_outcomes = first_fulfillment + first_bad
     expected_outputs = profile.expected.get("terminal_fulfillments", 1)
-    if strict_semantics:
+    if len(first_exchange) == 1 and first_exchange[0].detail.get("ok") \
+            and first_exchange[0].detail.get("kind") == "task" \
+            and _declined_work(profile, first_exchange[0].detail):
+        stages.append(StageResult(
+            name="semantic_result", status="failed",
+            evidence=[first_exchange[0].event_id],
+            note="the provider ended the task 'failed' with error"
+                 f" {first_exchange[0].detail.get('error')!r}; no invoice"
+                 " was extracted"))
+    elif strict_semantics:
         successful_exchange = (
             len(first_exchange) == 1
             and first_exchange[0].detail.get("ok")
