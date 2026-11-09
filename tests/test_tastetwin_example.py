@@ -35,8 +35,9 @@ def test_replay_with_dedupe_passes_and_verifies(replay, tmp_path):
     bundle, result = run_lab(SCENARIO, str(tmp_path))
     stages = _stages(result)
     assert stages["live_service"] == "not_tested"  # replay is never live evidence
+    assert stages["server_auth"] == "not_tested"
     for name in ("discovery", "ranking_contract", "choice_binding",
-                 "choice_applied_once", "shared_memory", "privacy"):
+                 "choice_applied_once", "shared_memory", "access_control", "privacy"):
         assert stages[name] == "passed", name
     assert verify_bundle(bundle) == []
 
@@ -51,12 +52,28 @@ def test_replay_without_dedupe_counts_the_choice_twice(replay, tmp_path):
     assert verify_bundle(bundle) == []
 
 
+def test_an_agent_granted_by_mistake_is_caught(replay, tmp_path):
+    """Granting the snooping agent must make access_control fail."""
+    replay.setenv("TASTETWIN_DEDUPE", "1")
+    with open(SCENARIO) as f:
+        text = f.read()
+    plugin = os.path.join(EXAMPLE, "tastetwin_plugin.py")
+    text = text.replace("grants: [planner-a, planner-b]", "grants: [planner-a, planner-b, snoop]")
+    text = text.replace("plugin_files: [tastetwin_plugin.py]", f"plugin_files: ['{plugin}']")
+    broken = tmp_path / "granted_by_mistake.yaml"
+    broken.write_text(text)
+    _, result = run_lab(str(broken), str(tmp_path / "runs"))
+    assert _stages(result)["access_control"] == "failed"
+
+
 def test_private_words_never_reach_the_bundle(replay, tmp_path):
     replay.setenv("TASTETWIN_DEDUPE", "1")
     bundle, _ = run_lab(SCENARIO, str(tmp_path))
     for name in ("events.jsonl", "intents.jsonl", "profile.json"):
         with open(os.path.join(bundle, name)) as f:
-            assert "too loud" not in f.read(), name
+            text = f.read()
+        assert "too loud" not in text, name
+        assert "loud cafes" not in text, name
 
 
 @pytest.mark.parametrize("name, verdict", [("live-dedupe-on", "passed"),
@@ -68,5 +85,7 @@ def test_committed_live_bundles_verify(name, verdict):
     with open(os.path.join(bundle, "result.json")) as f:
         result = json.load(f)
     assert result["verdict"] == verdict
-    live = next(s for s in result["stages"] if s["name"] == "live_service")
-    assert live["status"] == "passed"
+    stages = {s["name"]: s["status"] for s in result["stages"]}
+    assert stages["live_service"] == "passed"
+    assert stages["server_auth"] == "passed"
+    assert stages["access_control"] == "passed"

@@ -10,27 +10,36 @@ The Lab scenario `tastetwin_shared_taste` puts it among independent agents:
 
 | Agent | Acts for | Does |
 |---|---|---|
-| `tastetwin` (`tt_adapter`) | Taste Twin | Publishes a signed `taste.rank` card; turns town messages into MCP calls |
+| `tastetwin` (`tt_adapter`) | Taste Twin | Publishes a signed `taste.rank` card; turns town messages into MCP calls, only for agents the person granted |
 | `cafe-*` (`tt_cafe`, 6) | each cafe | Publishes its own `cafe.listing` card (hours, distance, noise, outlets) |
 | `planner-a` (`tt_planner`) | the person | Finds cafes and Taste Twin in the registry, ranks, asks the person, reports the pick and one stated preference |
 | `pang` (`tt_user`) | the person | Picks a cafe and says one lasting thing |
 | `planner-b` (`tt_planner`) | the person | A different assistant, later. Gets no message from planner-a and starts with empty private memory; reads and ranks again |
+| `snoop` (`tt_snoop`) | someone else | Finds Taste Twin in the registry like anyone can, claims to act for the person, asks for her taste and tries to plant a preference |
 
 Town layers exercised: registry (`index.owned.v1`), auth (`hmac.v1`, signed
 cards and messages), memory (`kv.v1`, each planner's private working state),
 transport (the choice message is delivered twice), privacy (`redact.v1`:
 what the person said and the profile weights never leave the run).
 
-The validator checks: `live_service`, `discovery`, `ranking_contract`,
-`choice_binding`, `choice_applied_once`, `shared_memory`, plus Town's standing
-`ledger_conserved` and `privacy`.
+**Access.** Taste Twin checks its own callers: an OAuth token for one user,
+then per-agent read and write switches. The adapter holds that one user's
+sign-in, so Taste Twin cannot tell which town agent is behind a call. The
+adapter therefore applies the person's grants itself: it serves only the
+agents listed in `grants:` when they act for the person in `serves:`. Town's
+signatures make the sender's name trustworthy; the grant decides access.
+
+The validator checks: `live_service`, `server_auth`, `discovery`,
+`ranking_contract`, `choice_binding`, `choice_applied_once`, `shared_memory`,
+`access_control`, plus Town's standing `ledger_conserved` and `privacy`.
 
 ## Files
 
-- `tastetwin_plugin.py` - the four roles, a small MCP client, and the validator
+- `tastetwin_plugin.py` - the five roles, a small MCP client, and the validator
 - `tastetwin_shared_taste.yaml` - the scenario (loads the plugin via `plugin_files:`)
 - `tt_auth.py` - one-time browser sign-in for a headless client (OAuth 2.1 + PKCE)
-- `verify.py` - `nandatown verify` with the plugin loaded (see Limitations)
+- `verify.py` - `nandatown verify` with the plugin loaded (`nandatown verify`
+  does not load a scenario's `plugin_files`, so it cannot replay this validator)
 - `fixtures/dedupe_on.json`, `fixtures/dedupe_off.json` - reduced responses
   recorded from the live server, for replay without credentials
 - `evidence/live-dedupe-on/`, `evidence/live-dedupe-off/` - the two live bundles
@@ -65,29 +74,28 @@ commit them.
 
 ## What the live runs showed (2026-11-09, server `cafe-taste-twin` 0.1.0)
 
-- **Duplicate protection on: passed.** Planner-a saw Diesel 0.567, 1369 0.564
-  and Tatte 0.541 (`close_call` true; Darwin's and Flour dropped). The pick
-  (1369) and the statement about Tatte were recorded once. Planner-b saw the
-  choice count go 0 -> 1 and the Tatte statement, with no message from
-  planner-a.
+- **Duplicate protection on: passed, every stage.** 1369 Coffee House
+  ranked first (0.606, then 0.645 for planner-b). The duplicated choice
+  was applied once (count 3 -> 4). Planner-b, with no message from
+  planner-a and empty private memory, saw the new count.
 - **Duplicate protection off: failed on purpose.** `record_choice` accepted
-  the same `request_id` twice (two `choice_id`s, count 1 -> 3, weights nudged
-  twice). `record_feedback` refused its repeat (`saved: false`,
-  `duplicate_of`). Taste Twin needs idempotency on `record_choice`.
-- **No sign-in:** the server answers `401` with OAuth resource metadata;
-  `nandatown mcp test` waits for a sign-in and reports `ok: false`.
+  the same `request_id` twice: two `choice_id`s, count 4 -> 6, confidence
+  moved from low to medium, and 1369's lead grew to 0.701. `record_feedback`
+  refused its repeat (`saved: false`). Taste Twin needs idempotency on
+  `record_choice`.
+- **An agent nobody granted got nothing.** In both runs `snoop` sent three
+  requests (read the profile, rank, plant "I love loud cafes for studying")
+  claiming to act for the person. Each was refused before any Taste Twin
+  call, and it received only `access_denied`.
+- **The server refuses unknown callers.** A made-up token got `401` with an
+  OAuth challenge; so did a request with no token.
 
-## Limitations
+## Not tested
 
-- Planners are scripted stand-ins for assistants such as Claude or ChatGPT.
-- Cafe listing facts are illustrative inputs, and the person's pick and
-  statement are scenario settings, not a recorded past outing.
-- Both planners use one OAuth client, so Taste Twin attributes their calls to
-  one connected agent.
-- One person, cafes only; isolation between people is not exercised.
-- Ranking quality is out of scope. The live score for Tatte fell only from
-  0.541 to 0.518 after the statement, so it stayed third.
-- `nandatown verify` does not load a scenario's `plugin_files`, so a fresh
-  process cannot replay this validator; `verify.py` loads it first. Bundles
-  also record the plugin's absolute path.
-- Replay checks Town-side behaviour against recorded responses only.
+- The planners are scripted stand-ins for real assistants such as Claude or
+  ChatGPT, and the cafe data is illustrative.
+- It runs in the Lab, not against a deployed NANDA Index.
+- One person only. Taste Twin's own revoke switch and isolation between two
+  people aren't exercised.
+- Network failures on the calls to Taste Twin aren't injected, and ranking
+  quality is out of scope.

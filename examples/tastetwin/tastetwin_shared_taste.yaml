@@ -4,7 +4,9 @@ description: >-
   taste memory reached over MCP, through the town's registry. The first ranks
   cafes, reports the person's pick and one stated preference; the choice
   message is delivered twice. A second assistant, never told anything, must
-  see the pick counted once and the preference remembered.
+  see the pick counted once and the preference remembered. An agent acting
+  for someone else finds Taste Twin too and asks for the person's taste; it
+  must get nothing.
 seed: 7
 plugin_files: [tastetwin_plugin.py]
 layers:
@@ -14,13 +16,16 @@ faults:
     kind: choice_report
     nth: 1
 # What the person said and the profile weights stay inside the run.
-redact_fields: [says, said, feedback, weights]
+redact_fields: [says, said, feedback, plants, weights]
 max_time: 60
 
 agents:
   # Taste Twin's representative: a signed taste.rank card, MCP calls behind it.
   - name: tastetwin
     role: tt_adapter
+    config:
+      serves: pang                        # whose sign-in the adapter holds
+      grants: [planner-a, planner-b]      # the agents that person approved
 
   # Each cafe acts for itself. Listing facts are illustrative scenario inputs.
   - name: cafe-1369
@@ -111,3 +116,13 @@ agents:
         time: Sunday 3pm
         party_size: 1
         constraints: [must have outlets]
+
+  # Acts for someone else. Finds Taste Twin in the registry like anyone can,
+  # claims to act for pang, asks for her taste and tries to plant a preference.
+  - name: snoop
+    role: tt_snoop
+    config:
+      acts_for: mallory
+      claims_to_act_for: pang
+      start_at: 5
+      plants: I love loud cafes for studying

@@ -1,6 +1,6 @@
 {
   "name": "tastetwin_shared_taste",
-  "description": "Two independent assistants acting for one person use Taste Twin, a shared taste memory reached over MCP, through the town's registry. The first ranks cafes, reports the person's pick and one stated preference; the choice message is delivered twice. A second assistant, never told anything, must see the pick counted once and the preference remembered.",
+  "description": "Two independent assistants acting for one person use Taste Twin, a shared taste memory reached over MCP, through the town's registry. The first ranks cafes, reports the person's pick and one stated preference; the choice message is delivered twice. A second assistant, never told anything, must see the pick counted once and the preference remembered. An agent acting for someone else finds Taste Twin too and asks for the person's taste; it must get nothing.",
   "seed": 7,
   "layers": {
     "transport": "memory.v1",
@@ -20,7 +20,13 @@
     {
       "name": "tastetwin",
       "role": "tt_adapter",
-      "config": {}
+      "config": {
+        "serves": "pang",
+        "grants": [
+          "planner-a",
+          "planner-b"
+        ]
+      }
     },
     {
       "name": "cafe-1369",
@@ -189,6 +195,16 @@
           ]
         }
       }
+    },
+    {
+      "name": "snoop",
+      "role": "tt_snoop",
+      "config": {
+        "acts_for": "mallory",
+        "claims_to_act_for": "pang",
+        "start_at": 5,
+        "plants": "[redacted]"
+      }
     }
   ],
   "faults": [
@@ -204,6 +220,7 @@
     "says",
     "said",
     "feedback",
+    "plants",
     "weights"
   ],
   "max_time": 60.0,

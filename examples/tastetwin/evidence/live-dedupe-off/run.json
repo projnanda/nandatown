@@ -1,7 +1,7 @@
 {
-  "run_id": "sim-a5e33b0e1354",
+  "run_id": "sim-607695f3f65d",
   "profile_name": "tastetwin_shared_taste",
-  "profile_fingerprint": "sha256:b9bf311ad6742e296baaae52cc3d528f70c8e596f1a3a2b45730f0c7038fc2d5",
+  "profile_fingerprint": "sha256:1ab2a9d15ef6dc416b4537e2a2e07eb489c3f25269b2afeccd6ef1636ad49ff8",
   "created_at": 0.0,
   "participants": [
     {
@@ -43,6 +43,10 @@
     {
       "name": "planner-b",
       "role": "tt_planner"
+    },
+    {
+      "name": "snoop",
+      "role": "tt_snoop"
     }
   ],
   "releases": {

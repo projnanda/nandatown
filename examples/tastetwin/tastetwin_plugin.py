@@ -15,6 +15,12 @@ Roles (loaded through the scenario's ``plugin_files:``):
   calendar app): finds cafes and Taste Twin through the registry, asks for
   a ranking and, if it is the one talking to the person, reports the pick.
 * ``tt_user``     stands in for the person: picks a cafe and says one thing.
+* ``tt_snoop``    acts for someone else, finds Taste Twin in the registry like
+  anyone can, and asks for the person's taste anyway.
+
+The adapter holds one person's sign-in, so it answers only the agents that
+person granted (``grants:``) when they act for that person (``serves:``).
+Town's signatures make the sender name trustworthy; the grant decides access.
 
 Environment (read by the adapter, recorded in the trace):
 
@@ -178,6 +184,23 @@ class TasteTwinService:
         self.save_recording()
         return response
 
+    def _live_forged_probe(self):
+        """Ask the server to initialize with a made-up token; expect a refusal."""
+        body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {
+            "protocolVersion": PROTOCOL_VERSION, "capabilities": {},
+            "clientInfo": {"name": "nandatown-tastetwin-forged", "version": "0.1"}}}).encode()
+        req = urllib.request.Request(self.client.url, body, {
+            "content-type": "application/json",
+            "accept": "application/json, text/event-stream",
+            "authorization": "Bearer forged.not-a-real-token.0",
+            "user-agent": "nandatown-tastetwin-example/0.1"})
+        try:
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                return {"status": resp.status, "challenge": False}
+        except urllib.error.HTTPError as exc:
+            return {"status": exc.code,
+                    "challenge": bool(exc.headers.get("www-authenticate"))}
+
     def _live_context(self, situation, phrases):
         ctx = self.client.tool("get_profile_context", {"situation": situation})
         profile = self.client.tool("get_taste_profile", {})
@@ -256,6 +279,8 @@ class TasteTwinAdapter(SimAgent):
         fixture = os.environ.get("TASTETWIN_FIXTURE", default_fixture)
         record = os.environ.get("TASTETWIN_RECORD") if self.mode == "live" else None
         self.seen_choices: dict[str, dict[str, Any]] = {}
+        self.serves = self.config.get("serves")
+        self.grants = set(self.config.get("grants", []))
         try:
             self.service = TasteTwinService(self.mode, record, fixture, self.dedupe)
         except Exception as exc:  # no token, no fixture, server unreachable
@@ -269,12 +294,31 @@ class TasteTwinAdapter(SimAgent):
             "mode": self.mode, "dedupe": self.dedupe,
             "server": info.get("name"), "server_version": info.get("version"),
             "fixture_recorded_at": self.service.fixture_info.get("recorded_at"),
+            "serves": self.serves, "grants": sorted(self.grants),
         })
+        try:
+            probe = self.service.run("forged_probe", {})
+            self.api.observe("tt_forged_token_probe", self.name, dict(probe, mode=self.mode))
+        except ToolFailed as exc:
+            self.api.observe("tt_forged_token_probe", self.name,
+                             {"mode": self.mode, "error": str(exc)[:200]})
         self.api.register(["taste.rank"], {
             "service": "cafe-taste-twin", "protocol": "mcp", "url": SERVER_URL,
             "tools": ["get_profile_context", "get_taste_profile", "rank_options",
                       "record_feedback", "record_choice"],
         })
+
+    def _allowed(self, msg, op: str) -> bool:
+        """Serve only granted agents acting for the person this sign-in belongs to."""
+        claimed = msg["body"].get("acts_for")
+        if msg["sender"] in self.grants and claimed == self.serves:
+            return True
+        reason = ("not granted by " + str(self.serves) if msg["sender"] not in self.grants
+                  else f"acts for {claimed}, not {self.serves}")
+        self.api.observe("tt_access_denied", msg["message_id"], {
+            "caller": msg["sender"], "op": op, "claimed_for": claimed, "reason": reason})
+        self.api.reply(msg, "access_denied", {"op": op})
+        return False
 
     def _call(self, msg, op: str, args: dict[str, Any], extra: dict[str, Any] | None = None):
         detail = {"op": op, "caller": msg["sender"], "message_id": msg["message_id"],
@@ -294,6 +338,8 @@ class TasteTwinAdapter(SimAgent):
         return out
 
     def handle_context_request(self, msg):
+        if not self._allowed(msg, "context"):
+            return
         body = msg["body"]
         out = self._call(msg, "context", {"situation": body["situation"],
                                           "phrases": body.get("phrases", [])})
@@ -307,6 +353,8 @@ class TasteTwinAdapter(SimAgent):
         self.api.reply(msg, "context", reply)
 
     def handle_rank_request(self, msg):
+        if not self._allowed(msg, "rank"):
+            return
         body = msg["body"]
         out = self._call(msg, "rank", {"situation": body["situation"],
                                        "candidates": body["candidates"]})
@@ -316,6 +364,8 @@ class TasteTwinAdapter(SimAgent):
         self.api.reply(msg, "ranking", out)
 
     def handle_feedback_report(self, msg):
+        if not self._allowed(msg, "feedback"):
+            return
         body = msg["body"]
         out = self._call(msg, "feedback", {"type": body.get("type", "preference"),
                                            "feedback": body["feedback"],
@@ -323,6 +373,8 @@ class TasteTwinAdapter(SimAgent):
         self.api.reply(msg, "feedback_recorded", {"saved": bool(out and out.get("saved"))})
 
     def handle_choice_report(self, msg):
+        if not self._allowed(msg, "choice"):
+            return
         body = msg["body"]
         if self.dedupe and msg["message_id"] in self.seen_choices:
             self.api.observe("duplicate_recognized", msg["message_id"],
@@ -375,7 +427,8 @@ class Planner(SimAgent):
         self.api.remember("taste_service", service)
         self.api.observe("tt_service_found", service, {"acts_for": c["acts_for"]})
         self.api.send(service, "context_request",
-                      {"situation": c["situation"], "phrases": c.get("check_stated", [])})
+                      {"acts_for": c["acts_for"], "situation": c["situation"],
+                       "phrases": c.get("check_stated", [])})
 
     def handle_context(self, msg):
         body = msg["body"]
@@ -388,7 +441,8 @@ class Planner(SimAgent):
         })
         rank_situation = dict(self.config["situation_for_rank"])
         self.api.send(msg["sender"], "rank_request",
-                      {"situation": rank_situation, "candidates": self.candidates})
+                      {"acts_for": self.config["acts_for"], "situation": rank_situation,
+                       "candidates": self.candidates})
 
     def handle_ranking(self, msg):
         body = msg["body"]
@@ -415,9 +469,11 @@ class Planner(SimAgent):
         body = msg["body"]
         if body.get("said"):
             self.api.send(self.service, "feedback_report", {
+                "acts_for": self.config["acts_for"],
                 "type": "preference", "feedback": body["said"],
                 "about_place": body.get("said_about")})
         self.api.send(self.service, "choice_report", {
+            "acts_for": self.config["acts_for"],
             "request_id": self.api.recall("pending_request_id"),
             "picked_place": body["picked"], "outcome": body["outcome"]})
 
@@ -429,6 +485,9 @@ class Planner(SimAgent):
 
     def handle_service_error(self, msg):
         self.api.observe("tt_service_error", self.name, dict(msg["body"]))
+
+    def handle_access_denied(self, msg):
+        self.api.observe("tt_access_denied_received", self.name, dict(msg["body"]))
 
 
 @role("tt_user")
@@ -442,6 +501,41 @@ class SimulatedUser(SimAgent):
         self.api.reply(msg, "user_pick", {
             "picked": c["picks"], "outcome": c.get("outcome", "loved"),
             "said": c.get("says"), "said_about": c.get("says_about")})
+
+
+@role("tt_snoop")
+class Snoop(SimAgent):
+    """Acts for someone else; claims to act for the person and asks anyway."""
+
+    def on_start(self):
+        self.api.later(float(self.config.get("start_at", 5.0)), self.begin)
+
+    def begin(self):
+        services = self.api.lookup("taste.rank")
+        if not services:
+            self.api.observe("tt_gave_up", self.name, {"reason": "no taste service"})
+            return
+        service = services[0]["name"]
+        claim = self.config.get("claims_to_act_for")
+        self.api.observe("tt_snoop_found_service", service,
+                         {"acts_for": self.config.get("acts_for"), "claims": claim})
+        self.api.send(service, "context_request",
+                      {"acts_for": claim, "situation": {"type": "study"}, "phrases": []})
+        self.api.send(service, "rank_request",
+                      {"acts_for": claim, "situation": {"type": "study"},
+                       "candidates": [{"name": "Any cafe"}]})
+        self.api.send(service, "feedback_report",
+                      {"acts_for": claim, "type": "preference",
+                       "feedback": self.config.get("plants", "I love loud cafes")})
+
+    def _got(self, msg):
+        self.api.observe("tt_snoop_reply", self.name, {"kind": msg["kind"]})
+
+    handle_access_denied = _got
+    handle_context = _got
+    handle_ranking = _got
+    handle_feedback_recorded = _got
+    handle_service_error = _got
 
 
 # -- evaluation -------------------------------------------------------------
@@ -480,6 +574,22 @@ def tastetwin_shared_taste(spec, trace: Trace) -> list[StageResult]:
     else:
         stages.append(_stage("live_service", "not_tested", [ready[0].event_id],
                              "replay mode: recorded responses, not a live compatibility observation"))
+
+    # 1b. The server itself refuses a caller it does not know.
+    probes = trace.find("tt_forged_token_probe")
+    if not probes or "status" not in probes[0].detail:
+        stages.append(_stage("server_auth", "not_enough_evidence", [e.event_id for e in probes],
+                             "no forged-token probe result"))
+    elif probes[0].detail.get("mode") != "live":
+        stages.append(_stage("server_auth", "not_tested", [probes[0].event_id],
+                             f"replay mode: the recorded probe answered {probes[0].detail['status']}"))
+    else:
+        status = probes[0].detail["status"]
+        stages.append(_stage(
+            "server_auth", "passed" if status in (401, 403) else "failed", [probes[0].event_id],
+            f"a made-up token was refused with {status}"
+            + (" and an OAuth challenge" if probes[0].detail.get("challenge") else "")
+            if status in (401, 403) else f"a made-up token got {status}"))
 
     # 2. Discovery through the registry, by every planner.
     found, missing = [], []
@@ -595,4 +705,30 @@ def tastetwin_shared_taste(spec, trace: Trace) -> list[StageResult]:
             f" preference {sorted(stated)}" if ok else
             f"{after[0].observer} did not see the earlier writes (count {b.get('choice_count')} ->"
             f" {a.get('choice_count')}, stated {stated}, direct messages {len(direct)})"))
+
+    # 7. An agent nobody granted gets nothing, even claiming to act for the person.
+    snoops = {a.name for a in spec.agents if a.role == "tt_snoop"}
+    asked = [e for e in trace.find("message_sent")
+             if e.observer in snoops and e.detail.get("to") in adapters]
+    if not snoops:
+        stages.append(_stage("access_control", "not_tested", [], "no ungranted agent declared"))
+    elif not asked:
+        stages.append(_stage("access_control", "not_enough_evidence", [],
+                             "the ungranted agent never asked"))
+    else:
+        denied = {e.subject: e for e in trace.find("tt_access_denied")}
+        served = [e for e in trace.find("tt_mcp_call") if e.detail.get("caller") in snoops]
+        leaked = [e for e in trace.find("message_sent")
+                  if e.observer in adapters and e.detail.get("to") in snoops
+                  and e.detail.get("kind") != "access_denied"]
+        missing = [e for e in asked if e.subject not in denied]
+        ok = not served and not leaked and not missing
+        stages.append(_stage(
+            "access_control", "passed" if ok else "failed",
+            [e.event_id for e in asked] + [denied[e.subject].event_id for e in asked if e.subject in denied]
+            + [e.event_id for e in served + leaked],
+            f"{len(asked)} requests from an ungranted agent claiming to act for the person were"
+            " refused before any Taste Twin call; it received only access_denied"
+            if ok else f"ungranted agent: {len(served)} served, {len(leaked)} replies with data,"
+            f" {len(missing)} not refused"))
     return stages
