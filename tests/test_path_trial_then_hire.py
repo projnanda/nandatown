@@ -251,6 +251,34 @@ def test_honest_hiring_agent_passes(tmp_path):
     assert verify_bundle(directory) == []
 
 
+def test_candidates_are_recorded_as_sent_but_not_judged(tmp_path):
+    agent = HiringAgent()
+    directory, result = run(tmp_path, agent)
+    hires = [e.detail["hire"] for e in load_bundle(directory)["events"]
+             if e.kind == "fulfillment_observed"]
+    assert [h["candidates"] for h in hires] == [
+        {"considered": ["alpha@1", "beta@1", "gamma@1"], "excluded": []}] * 2
+    assert result.verdict == "passed"
+    assert verify_bundle(directory) == []
+
+
+def test_a_result_without_candidates_still_passes(tmp_path):
+    agent = HiringAgent()
+    reply_text = agent.reply_text
+
+    def without_candidates(body):
+        artifact = json.loads(reply_text(body))
+        artifact.pop("candidates")
+        return json.dumps(artifact, sort_keys=True, separators=(",", ":"))
+
+    agent.reply_text = without_candidates
+    directory, result = run(tmp_path, agent)
+    assert result.verdict == "passed"
+    hires = [e.detail["hire"] for e in load_bundle(directory)["events"]
+             if e.kind == "fulfillment_observed"]
+    assert all("candidates" not in h for h in hires)
+
+
 def test_pinned_card_passes_every_stage(tmp_path):
     directory, result = run(tmp_path, HiringAgent(),
                             pin_card_digest=fingerprint(CARD))

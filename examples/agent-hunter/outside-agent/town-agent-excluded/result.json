@@ -1,0 +1,57 @@
+{
+  "run_id": "path-39b97ff3a07a",
+  "evaluator_version": "path-trial-hire-0.1",
+  "stages": [
+    {
+      "name": "resolution",
+      "status": "passed",
+      "evidence": [
+        "ev-1"
+      ],
+      "note": ""
+    },
+    {
+      "name": "agent_card_retrieval",
+      "status": "passed",
+      "evidence": [
+        "ev-2"
+      ],
+      "note": "observed card sha256:aaa71d5db1379730"
+    },
+    {
+      "name": "descriptor_consistency",
+      "status": "passed",
+      "evidence": [
+        "ev-3",
+        "ev-2"
+      ],
+      "note": ""
+    },
+    {
+      "name": "protocol_invocation",
+      "status": "passed",
+      "evidence": [
+        "ev-4"
+      ],
+      "note": "task task-788d34b6921d state completed"
+    },
+    {
+      "name": "semantic_result",
+      "status": "passed",
+      "evidence": [
+        "ev-5"
+      ],
+      "note": "offline run: job job-5aaf110c7129 ranked 5 candidates, verdict 'tie', recommended 'mock-b@1'; Town checked that the verdict holds together, not that the pick is the best provider"
+    },
+    {
+      "name": "duplicate_request",
+      "status": "passed",
+      "evidence": [
+        "ev-7"
+      ],
+      "note": "the same logical order was delivered twice; no second distinct fulfillment appeared"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794256444.8274639
+}

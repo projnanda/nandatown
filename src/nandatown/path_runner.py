@@ -278,7 +278,9 @@ def _hire_observation(fulfillment: dict[str, Any]) -> Any:
 
     Only keys the subject sent are copied, so a missing key stays missing
     rather than becoming null; values are recorded as sent, whatever their
-    type, and judged later from this record alone.
+    type, and judged later from this record alone. ``candidates`` (who was
+    considered and who was excluded, and why) is recorded for the reader
+    and never judged.
     """
     observed: dict[str, Any] = {
         key: fulfillment[key]
@@ -303,6 +305,8 @@ def _hire_observation(fulfillment: dict[str, Any]) -> Any:
                 kept["ranking"] = ranking
             verdict = kept
         observed["verdict"] = verdict
+    if "candidates" in fulfillment:
+        observed["candidates"] = fulfillment["candidates"]
     return _echoed(observed)
 
 
