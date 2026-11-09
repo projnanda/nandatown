@@ -66,9 +66,9 @@ change fixes.
 
 **The live bundle's events and result are withheld.** They record each provider agent's name and
 trial accuracy. In Agent-Hunter, those results are meant to be discovered by trialling the
-providers, so they're kept private. The receipt commits to the withheld bundle's exact bytes, so
-it can't be swapped later. A reviewer with access to the private copy can run
-`nandatown verify-receipt receipt.json --bundle <private copy>` to check it.
+providers, so they aren't published. The full bundle wasn't kept after the run, so the receipt
+can't be checked against it (`verify-receipt --bundle`). The receipt's signature still verifies on
+its own, and a live rerun produces a new bundle with its own receipt, not this one.
 
 You can check the receipt's signature without the bundle:
 
