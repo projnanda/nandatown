@@ -577,7 +577,7 @@ def cmd_report(args: argparse.Namespace) -> int:
 def cmd_verify(args: argparse.Namespace) -> int:
     from .bundle import verify_bundle
 
-    problems = verify_bundle(args.bundle_dir)
+    problems = verify_bundle(args.bundle_dir, plugins=args.plugin or None)
     if not problems:
         print("bundle verified: hashes match and the evaluator reproduces"
               " the recorded result")
@@ -1084,6 +1084,12 @@ def main(argv: list[str] | None = None) -> int:
                               help="check a bundle's integrity and replay"
                                    " the evaluator")
     p_verify.add_argument("bundle_dir")
+    p_verify.add_argument("--plugin", action="append", default=[],
+                          metavar="FILE",
+                          help="Lab only: load a plugin/validator file before"
+                               " replaying, for a bundle whose scenario named"
+                               " plugin_files. This runs that file's code, as"
+                               " `run --plugin` does")
     p_verify.set_defaults(func=cmd_verify)
 
     p_replay = sub.add_parser("replay", help="step through a bundle's"

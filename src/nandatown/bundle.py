@@ -246,6 +246,31 @@ class EvaluatorVersionDiffers(str):
             self.mode, frozenset())
 
 
+def _unloaded_validator_note(bundle: dict) -> str:
+    """Name the contributed validator a replay could not reach, if that is why.
+
+    A Lab scenario may put its validator in a ``plugin_files`` module. When
+    that module is not loaded the validator is simply absent, so the replay
+    records "no validator registered" and differs from the recorded result for
+    a reason that has nothing to do with the evidence. Saying which files to
+    pass turns a misleading mismatch into an instruction.
+    """
+    if bundle.get("mode") != "lab":
+        return ""
+    profile = bundle.get("profile")
+    files = getattr(profile, "plugin_files", None)
+    name = getattr(profile, "validator", None)
+    if not files or not isinstance(name, str):
+        return ""
+    from .sim.validators import VALIDATORS
+
+    if name in VALIDATORS:
+        return ""
+    return (f"; the scenario's validator {name!r} comes from"
+            f" {list(files)}, which this verify did not load."
+            " Re-run with --plugin for each of those files to replay it")
+
+
 def verify_bundle_integrity(
         directory: str) -> tuple[list[str], EvaluatorVersionDiffers | None]:
     """verify_bundle, split for callers that accept historical bundles.
@@ -272,9 +297,27 @@ def verify_bundle_integrity(
     return integrity, differs
 
 
-def verify_bundle(directory: str) -> list[str]:
-    """Check integrity and evaluator reproducibility. Returns problems."""
+def verify_bundle(directory: str,
+                  plugins: list[str] | None = None) -> list[str]:
+    """Check integrity and evaluator reproducibility. Returns problems.
+
+    A Lab bundle whose scenario named ``plugin_files`` was evaluated by a
+    validator that lives in those files, so replaying it needs them loaded.
+    ``plugins`` names the files to load, which runs that code by request, in
+    the same way ``nandatown run --plugin`` does. Without them the replay
+    cannot reach the recorded verdict, and the problem says so rather than
+    reporting a bare mismatch that reads like corrupted evidence.
+    """
     problems: list[str] = []
+    if plugins:
+        from .sim.runner import load_plugin_files
+
+        try:
+            load_plugin_files([os.path.abspath(p) for p in plugins])
+        except Exception as exc:  # noqa: BLE001 - reported, never raised
+            problems.append(
+                f"cannot load plugin file: {type(exc).__name__}: {exc}")
+            return problems
     manifest_path = os.path.join(directory, "manifest.json")
     manifest_problem = _regular_file_problem(manifest_path, "manifest.json")
     if manifest_problem:
@@ -434,7 +477,8 @@ def verify_bundle(directory: str) -> list[str]:
             if recorded_result != replay_result:
                 problems.append(
                     "evaluator replay mismatch: result.json does not match a"
-                    " fresh deterministic evaluation")
+                    " fresh deterministic evaluation"
+                    + _unloaded_validator_note(bundle))
 
     attestation_path = os.path.join(directory, "attestation.json")
     if os.path.lexists(attestation_path):
