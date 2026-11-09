@@ -1,0 +1,128 @@
+name: tastetwin_shared_taste
+description: >-
+  Two independent assistants acting for one person use Taste Twin, a shared
+  taste memory reached over MCP, through the town's registry. The first ranks
+  cafes, reports the person's pick and one stated preference; the choice
+  message is delivered twice. A second assistant, never told anything, must
+  see the pick counted once and the preference remembered. An agent acting
+  for someone else finds Taste Twin too and asks for the person's taste; it
+  must get nothing.
+seed: 7
+plugin_files: [tastetwin_plugin.py]
+layers:
+  registry: index.owned.v1
+faults:
+  - action: duplicate
+    kind: choice_report
+    nth: 1
+# What the person said and the profile weights stay inside the run.
+redact_fields: [says, said, feedback, plants, weights]
+max_time: 60
+
+agents:
+  # Taste Twin's representative: a signed taste.rank card, MCP calls behind it.
+  - name: tastetwin
+    role: tt_adapter
+    config:
+      serves: pang                        # whose sign-in the adapter holds
+      grants: [planner-a, planner-b]      # the agents that person approved
+
+  # Each cafe acts for itself. Listing facts are illustrative scenario inputs.
+  - name: cafe-1369
+    role: tt_cafe
+    config:
+      name: 1369 Coffee House
+      distance_km: 1.2
+      hours: "07:00-19:00"
+      rating: 4.5
+      attributes: {noise: moderate, outlets: some, wifi: good, seating: small tables}
+  - name: cafe-tatte
+    role: tt_cafe
+    config:
+      name: Tatte Bakery & Cafe (Kendall)
+      distance_km: 0.4
+      hours: "07:00-20:00"
+      rating: 4.4
+      attributes: {noise: loud, outlets: few, wifi: good, seating: busy communal tables}
+  - name: cafe-diesel
+    role: tt_cafe
+    config:
+      name: Diesel Cafe
+      distance_km: 2.3
+      hours: "07:00-21:00"
+      rating: 4.5
+      attributes: {noise: moderate, outlets: many, wifi: good, seating: booths}
+  - name: cafe-bloc11
+    role: tt_cafe
+    config:
+      name: Bloc 11 Cafe
+      distance_km: 2.8
+      hours: "07:00-20:00"
+      rating: 4.5
+      attributes: {noise: quiet, outlets: some, wifi: ok, seating: many rooms, outdoor: patio}
+  - name: cafe-darwins
+    role: tt_cafe
+    config:
+      name: Darwin's Ltd
+      distance_km: 1.9
+      hours: "07:00-14:00"
+      rating: 4.6
+      attributes: {noise: moderate, outlets: few, wifi: ok, seating: small}
+  - name: cafe-flour
+    role: tt_cafe
+    config:
+      name: Flour Bakery + Cafe (Central)
+      distance_km: 1.0
+      hours: "07:00-18:00"
+      rating: 4.4
+      attributes: {noise: loud, outlets: none, wifi: good, seating: counter and small tables}
+
+  # Stands in for the person. Edit the pick and statement to your own.
+  - name: pang
+    role: tt_user
+    config:
+      picks: 1369 Coffee House
+      outcome: loved
+      says: Tatte in Kendall is too loud for me to study in
+      says_about: Tatte Bakery & Cafe (Kendall)
+
+  # An assistant the person talks to today: ranks, asks the person, reports.
+  - name: planner-a
+    role: tt_planner
+    config:
+      acts_for: pang
+      ask_user: pang
+      start_at: 0.5
+      check_stated: [Tatte]
+      situation: {type: study, with: alone, day: Sunday, time: 3pm, party_size: 1, constraints: [needs outlets]}
+      situation_for_rank:
+        type: study
+        description: quiet solo study for about three hours, needs outlets
+        time: Sunday 3pm
+        party_size: 1
+        constraints: [must have outlets]
+
+  # A different assistant, later: no messages from planner-a, empty memory.
+  - name: planner-b
+    role: tt_planner
+    config:
+      acts_for: pang
+      start_at: 10
+      check_stated: [Tatte]
+      situation: {type: study, with: alone, day: Sunday, time: 3pm, party_size: 1, constraints: [needs outlets]}
+      situation_for_rank:
+        type: study
+        description: quiet solo study for about three hours, needs outlets
+        time: Sunday 3pm
+        party_size: 1
+        constraints: [must have outlets]
+
+  # Acts for someone else. Finds Taste Twin in the registry like anyone can,
+  # claims to act for pang, asks for her taste and tries to plant a preference.
+  - name: snoop
+    role: tt_snoop
+    config:
+      acts_for: mallory
+      claims_to_act_for: pang
+      start_at: 5
+      plants: I love loud cafes for studying

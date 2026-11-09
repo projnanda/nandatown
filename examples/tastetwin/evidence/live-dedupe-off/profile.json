@@ -1,0 +1,232 @@
+{
+  "name": "tastetwin_shared_taste",
+  "description": "Two independent assistants acting for one person use Taste Twin, a shared taste memory reached over MCP, through the town's registry. The first ranks cafes, reports the person's pick and one stated preference; the choice message is delivered twice. A second assistant, never told anything, must see the pick counted once and the preference remembered. An agent acting for someone else finds Taste Twin too and asks for the person's taste; it must get nothing.",
+  "seed": 7,
+  "layers": {
+    "transport": "memory.v1",
+    "communication": "envelope.v1",
+    "identity": "keys.v1",
+    "registry": "index.owned.v1",
+    "auth": "hmac.v1",
+    "trust": "reputation.v1",
+    "payments": "ledger.v1",
+    "coordination": "contractnet.v1",
+    "negotiation": "haggle.v1",
+    "memory": "kv.v1",
+    "privacy": "redact.v1",
+    "data_facts": "evidence.v1"
+  },
+  "agents": [
+    {
+      "name": "tastetwin",
+      "role": "tt_adapter",
+      "config": {
+        "serves": "pang",
+        "grants": [
+          "planner-a",
+          "planner-b"
+        ]
+      }
+    },
+    {
+      "name": "cafe-1369",
+      "role": "tt_cafe",
+      "config": {
+        "name": "1369 Coffee House",
+        "distance_km": 1.2,
+        "hours": "07:00-19:00",
+        "rating": 4.5,
+        "attributes": {
+          "noise": "moderate",
+          "outlets": "some",
+          "wifi": "good",
+          "seating": "small tables"
+        }
+      }
+    },
+    {
+      "name": "cafe-tatte",
+      "role": "tt_cafe",
+      "config": {
+        "name": "Tatte Bakery & Cafe (Kendall)",
+        "distance_km": 0.4,
+        "hours": "07:00-20:00",
+        "rating": 4.4,
+        "attributes": {
+          "noise": "loud",
+          "outlets": "few",
+          "wifi": "good",
+          "seating": "busy communal tables"
+        }
+      }
+    },
+    {
+      "name": "cafe-diesel",
+      "role": "tt_cafe",
+      "config": {
+        "name": "Diesel Cafe",
+        "distance_km": 2.3,
+        "hours": "07:00-21:00",
+        "rating": 4.5,
+        "attributes": {
+          "noise": "moderate",
+          "outlets": "many",
+          "wifi": "good",
+          "seating": "booths"
+        }
+      }
+    },
+    {
+      "name": "cafe-bloc11",
+      "role": "tt_cafe",
+      "config": {
+        "name": "Bloc 11 Cafe",
+        "distance_km": 2.8,
+        "hours": "07:00-20:00",
+        "rating": 4.5,
+        "attributes": {
+          "noise": "quiet",
+          "outlets": "some",
+          "wifi": "ok",
+          "seating": "many rooms",
+          "outdoor": "patio"
+        }
+      }
+    },
+    {
+      "name": "cafe-darwins",
+      "role": "tt_cafe",
+      "config": {
+        "name": "Darwin's Ltd",
+        "distance_km": 1.9,
+        "hours": "07:00-14:00",
+        "rating": 4.6,
+        "attributes": {
+          "noise": "moderate",
+          "outlets": "few",
+          "wifi": "ok",
+          "seating": "small"
+        }
+      }
+    },
+    {
+      "name": "cafe-flour",
+      "role": "tt_cafe",
+      "config": {
+        "name": "Flour Bakery + Cafe (Central)",
+        "distance_km": 1.0,
+        "hours": "07:00-18:00",
+        "rating": 4.4,
+        "attributes": {
+          "noise": "loud",
+          "outlets": "none",
+          "wifi": "good",
+          "seating": "counter and small tables"
+        }
+      }
+    },
+    {
+      "name": "pang",
+      "role": "tt_user",
+      "config": {
+        "picks": "1369 Coffee House",
+        "outcome": "loved",
+        "says": "[redacted]",
+        "says_about": "Tatte Bakery & Cafe (Kendall)"
+      }
+    },
+    {
+      "name": "planner-a",
+      "role": "tt_planner",
+      "config": {
+        "acts_for": "pang",
+        "ask_user": "pang",
+        "start_at": 0.5,
+        "check_stated": [
+          "Tatte"
+        ],
+        "situation": {
+          "type": "study",
+          "with": "alone",
+          "day": "Sunday",
+          "time": "3pm",
+          "party_size": 1,
+          "constraints": [
+            "needs outlets"
+          ]
+        },
+        "situation_for_rank": {
+          "type": "study",
+          "description": "quiet solo study for about three hours, needs outlets",
+          "time": "Sunday 3pm",
+          "party_size": 1,
+          "constraints": [
+            "must have outlets"
+          ]
+        }
+      }
+    },
+    {
+      "name": "planner-b",
+      "role": "tt_planner",
+      "config": {
+        "acts_for": "pang",
+        "start_at": 10,
+        "check_stated": [
+          "Tatte"
+        ],
+        "situation": {
+          "type": "study",
+          "with": "alone",
+          "day": "Sunday",
+          "time": "3pm",
+          "party_size": 1,
+          "constraints": [
+            "needs outlets"
+          ]
+        },
+        "situation_for_rank": {
+          "type": "study",
+          "description": "quiet solo study for about three hours, needs outlets",
+          "time": "Sunday 3pm",
+          "party_size": 1,
+          "constraints": [
+            "must have outlets"
+          ]
+        }
+      }
+    },
+    {
+      "name": "snoop",
+      "role": "tt_snoop",
+      "config": {
+        "acts_for": "mallory",
+        "claims_to_act_for": "pang",
+        "start_at": 5,
+        "plants": "[redacted]"
+      }
+    }
+  ],
+  "faults": [
+    {
+      "action": "duplicate",
+      "kind": "choice_report",
+      "nth": 1,
+      "delay": 0.0,
+      "rate": 0.0
+    }
+  ],
+  "redact_fields": [
+    "says",
+    "said",
+    "feedback",
+    "plants",
+    "weights"
+  ],
+  "max_time": 60.0,
+  "validator": "tastetwin_shared_taste",
+  "plugin_files": [
+    "/tmp/nt/examples/tastetwin/tastetwin_plugin.py"
+  ],
+  "adaptations": []
+}

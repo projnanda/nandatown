@@ -1,0 +1,145 @@
+{
+  "recorded_with": {
+    "server": {
+      "name": "cafe-taste-twin",
+      "version": "0.1.0",
+      "title": "Cafe Taste Twin"
+    },
+    "url": "https://cafe-taste-twin.lovable.app/mcp",
+    "dedupe": false,
+    "recorded_at": "2026-11-09T17:31:32Z",
+    "note": "Reduced responses only: counts, ids, scores and reasons. No profile text, quotes or weights."
+  },
+  "calls": [
+    {
+      "op": "forged_probe",
+      "ok": true,
+      "response": {
+        "status": 401,
+        "challenge": true
+      }
+    },
+    {
+      "op": "context",
+      "ok": true,
+      "response": {
+        "choice_count": 4,
+        "confidence": "low",
+        "matched_conversations": 4,
+        "stated_matches": {
+          "Tatte": true
+        },
+        "weights": "[not recorded]"
+      }
+    },
+    {
+      "op": "rank",
+      "ok": true,
+      "response": {
+        "request_id": "31f9d015-4ea1-4511-adea-3b40851afa61",
+        "results": [
+          {
+            "name": "1369 Coffee House",
+            "score": 0.637,
+            "confidence": "low",
+            "reason": "1369 Coffee House fits best on familiar favorite and close by, which matter most to you for studying."
+          },
+          {
+            "name": "Diesel Cafe",
+            "score": 0.444,
+            "confidence": "low",
+            "reason": "Diesel Cafe fits best on outlets & wifi and close by, which matter most to you for studying."
+          },
+          {
+            "name": "Bloc 11 Cafe",
+            "score": 0.423,
+            "confidence": "low",
+            "reason": "Bloc 11 Cafe fits best on outlets & wifi and quiet, which matter most to you for studying."
+          }
+        ],
+        "dropped": [
+          "Darwin's Ltd",
+          "Flour Bakery + Cafe (Central)"
+        ],
+        "close_call": false,
+        "scored_by": "openai/gpt-6-astra"
+      }
+    },
+    {
+      "op": "feedback",
+      "ok": true,
+      "response": {
+        "saved": false,
+        "duplicate_of": "dfca5d74-229b-4794-868f-772d378735c0"
+      }
+    },
+    {
+      "op": "choice",
+      "ok": true,
+      "response": {
+        "saved": true,
+        "choice_id": "a140b13f-c009-431c-90c0-001621334ba7",
+        "choice_count": 5,
+        "confidence": "medium",
+        "weights_updated": true
+      }
+    },
+    {
+      "op": "choice",
+      "ok": true,
+      "response": {
+        "saved": true,
+        "choice_id": "66ba7eec-c7fe-451d-a4a5-a552bef74a2d",
+        "choice_count": 6,
+        "confidence": "medium",
+        "weights_updated": true
+      }
+    },
+    {
+      "op": "context",
+      "ok": true,
+      "response": {
+        "choice_count": 6,
+        "confidence": "medium",
+        "matched_conversations": 6,
+        "stated_matches": {
+          "Tatte": true
+        },
+        "weights": "[not recorded]"
+      }
+    },
+    {
+      "op": "rank",
+      "ok": true,
+      "response": {
+        "request_id": "5f343b3c-2e1e-4363-acae-94e750cab47a",
+        "results": [
+          {
+            "name": "1369 Coffee House",
+            "score": 0.701,
+            "confidence": "medium",
+            "reason": "1369 Coffee House fits best on familiar favorite and close by, which matter most to you for studying."
+          },
+          {
+            "name": "Diesel Cafe",
+            "score": 0.364,
+            "confidence": "medium",
+            "reason": "Diesel Cafe fits best on outlets & wifi and close by, which matter most to you for studying."
+          },
+          {
+            "name": "Tatte Bakery & Cafe (Kendall)",
+            "score": 0.356,
+            "confidence": "medium",
+            "reason": "Tatte Bakery & Cafe (Kendall) fits best on close by and outlets & wifi, which matter most to you for studying."
+          }
+        ],
+        "dropped": [
+          "Darwin's Ltd",
+          "Flour Bakery + Cafe (Central)"
+        ],
+        "close_call": false,
+        "scored_by": "openai/gpt-6-astra"
+      }
+    }
+  ]
+}

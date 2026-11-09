@@ -1,0 +1,111 @@
+{
+  "run_id": "sim-27dde4a1571a",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "live_service",
+      "status": "passed",
+      "evidence": [
+        "ev-14",
+        "ev-47",
+        "ev-53",
+        "ev-69",
+        "ev-72",
+        "ev-110",
+        "ev-116"
+      ],
+      "note": "every MCP call to cafe-taste-twin 0.1.0 succeeded"
+    },
+    {
+      "name": "server_auth",
+      "status": "passed",
+      "evidence": [
+        "ev-15"
+      ],
+      "note": "a made-up token was refused with 401 and an OAuth challenge"
+    },
+    {
+      "name": "discovery",
+      "status": "passed",
+      "evidence": [
+        "ev-17",
+        "ev-43",
+        "ev-41",
+        "ev-106",
+        "ev-104"
+      ],
+      "note": "2 planners found the verified taste.rank card and all 6 cafe listings"
+    },
+    {
+      "name": "ranking_contract",
+      "status": "passed",
+      "evidence": [
+        "ev-56",
+        "ev-119"
+      ],
+      "note": "2 rankings: 1-3 results from the sent candidates, valid request_id, descending scores, close_call consistent with the top-two gap"
+    },
+    {
+      "name": "choice_binding",
+      "status": "passed",
+      "evidence": [
+        "ev-56",
+        "ev-72"
+      ],
+      "note": "record_choice used the ranking's request_id and a cafe that was offered"
+    },
+    {
+      "name": "choice_applied_once",
+      "status": "passed",
+      "evidence": [
+        "ev-67",
+        "ev-75",
+        "ev-72",
+        "ev-50",
+        "ev-113"
+      ],
+      "note": "the choice message was delivered twice; choice count moved by 1 (1 record_choice call(s) succeeded)"
+    },
+    {
+      "name": "shared_memory",
+      "status": "passed",
+      "evidence": [
+        "ev-50",
+        "ev-113",
+        "ev-103"
+      ],
+      "note": "planner-b got no message from the reporting planner and an empty private memory, yet saw choice count 3 -> 4 and the stated preference ['Tatte']"
+    },
+    {
+      "name": "access_control",
+      "status": "passed",
+      "evidence": [
+        "ev-85",
+        "ev-86",
+        "ev-87",
+        "ev-89",
+        "ev-92",
+        "ev-95"
+      ],
+      "note": "3 requests from an ungranted agent claiming to act for the person were refused before any Taste Twin call; it received only access_denied"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-122"
+      ],
+      "note": "complete run recorded no money moved"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-122"
+      ],
+      "note": "fields ['feedback', 'plants', 'said', 'says', 'weights'] never left the run"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794245447.3807733
+}
