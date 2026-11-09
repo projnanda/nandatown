@@ -23,6 +23,7 @@ QUOTE_INTENT_EVALUATOR = "quote-intent-evaluator@0.1"
 STRICT_QUOTE_INTENT_EVALUATOR = "quote-intent-evaluator@0.2"
 ORDER_CONFLICT_EVALUATOR = "order-conflict-evaluator@0.1"
 TRIAL_HIRE_EVALUATOR = "trial-hire-evaluator@0.1"
+INVOICE_EXTRACTION_EVALUATOR = "invoice-extraction-evaluator@0.1"
 QUOTE_INTENT_FIELDS = ("sku", "color", "quantity", "merchant_id", "currency")
 
 
@@ -41,6 +42,18 @@ TRIAL_HIRE_NOT_TESTED = [
     "real payment",
     "the hire step and the hired agent's real-job outcome",
     "whether the recommended provider is actually the best one",
+]
+
+# What the invoice-extraction profile leaves unchecked. Field accuracy is
+# deliberately out of scope: it is the hiring agent's job, and a public
+# per-provider accuracy record would rank real providers in this repository.
+INVOICE_EXTRACTION_NOT_TESTED = [
+    "field accuracy: only the output's types and required keys are checked",
+    "one synchronous message/send; timeout_seconds is per HTTP phase, not a"
+    " total deadline",
+    "async tasks/get polling and streaming",
+    "real payment, and whether cost_usd is the provider's true spend",
+    "documents other than the one pinned synthetic invoice",
 ]
 
 
@@ -182,6 +195,21 @@ PATH_PROFILES: dict[str, PathProfile] = {
         limits={"timeout_seconds": 240.0,
                 "max_response_bytes": 1_048_576},
         evaluator=TRIAL_HIRE_EVALUATOR,
+    ),
+    # A provider agent being hired: it extracts one pinned synthetic invoice
+    # (tag agent-hunter-fixture-v1) into JSON matching the request's own
+    # output_schema.
+    "a2a-invoice-extraction@0.1": PathProfile(
+        profile_id="a2a-invoice-extraction",
+        version="0.1",
+        protocol="a2a",
+        capability="invoice_extraction",
+        request=_path_request("agent_hunter_provider_task.json"),
+        expected={"not_tested": INVOICE_EXTRACTION_NOT_TESTED},
+        controlled_condition="duplicate_request",
+        limits={"timeout_seconds": 90.0,
+                "max_response_bytes": 1_048_576},
+        evaluator=INVOICE_EXTRACTION_EVALUATOR,
     ),
 }
 
