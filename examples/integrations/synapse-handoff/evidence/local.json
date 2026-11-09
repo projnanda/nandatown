@@ -1,0 +1,145 @@
+{
+  "format": "synapse-handoff-v1",
+  "town_base": "6f9a7c064486c4a0ae9242f1ff341b8a4aad0244",
+  "project_version": "c68c7366cc89e96417bfff00419d00eafb4b29c4",
+  "mode": "local-synthetic",
+  "recorded_at": "2026-11-09T14:46:43+00:00",
+  "cases": [
+    {
+      "case": "faithful",
+      "run_id": "run-a505236f53bd",
+      "original_fingerprint": "sha256:46d631ecf3b568566ccccd145cf50eacef1048a07a725561bfd9c49c3be01877",
+      "receipt": {
+        "request_id": "synthetic-claim",
+        "claim_fingerprint": "sha256:46d631ecf3b568566ccccd145cf50eacef1048a07a725561bfd9c49c3be01877",
+        "result": "matches_record",
+        "problems": []
+      },
+      "mailbox": [
+        {
+          "kind": "message_accepted",
+          "subject": "synthetic-claim",
+          "observer": "town",
+          "detail": {
+            "sender": "brief-sender",
+            "to": "claim-verifier",
+            "kind": "record.claim",
+            "content_fingerprint": "sha256:46d631ecf3b568566ccccd145cf50eacef1048a07a725561bfd9c49c3be01877"
+          }
+        },
+        {
+          "kind": "message_claimed",
+          "subject": "synthetic-claim",
+          "observer": "town",
+          "detail": {
+            "claimant": "claim-verifier"
+          }
+        },
+        {
+          "kind": "ack_recorded",
+          "subject": "synthetic-claim",
+          "observer": "claim-verifier",
+          "detail": {
+            "status": "processed"
+          }
+        },
+        {
+          "kind": "message_accepted",
+          "subject": "verification-receipt",
+          "observer": "town",
+          "detail": {
+            "sender": "claim-verifier",
+            "to": "brief-sender",
+            "kind": "record.verification",
+            "content_fingerprint": "sha256:4df7dfd719baa98cd4396f54b5fb6186d8c710ba553731dfae8187c2b4274590"
+          }
+        },
+        {
+          "kind": "message_claimed",
+          "subject": "verification-receipt",
+          "observer": "town",
+          "detail": {
+            "claimant": "brief-sender"
+          }
+        },
+        {
+          "kind": "ack_recorded",
+          "subject": "verification-receipt",
+          "observer": "brief-sender",
+          "detail": {
+            "status": "processed"
+          }
+        }
+      ]
+    },
+    {
+      "case": "altered",
+      "run_id": "run-e76b28a52201",
+      "original_fingerprint": "sha256:46d631ecf3b568566ccccd145cf50eacef1048a07a725561bfd9c49c3be01877",
+      "receipt": {
+        "request_id": "synthetic-claim",
+        "claim_fingerprint": "sha256:dbe27b23079815d814eb32ff4622858c252a0b224b91fe4ef4123f226229b5e8",
+        "result": "differs_from_record",
+        "problems": [
+          "value_mismatch"
+        ]
+      },
+      "mailbox": [
+        {
+          "kind": "message_accepted",
+          "subject": "synthetic-claim",
+          "observer": "town",
+          "detail": {
+            "sender": "brief-sender",
+            "to": "claim-verifier",
+            "kind": "record.claim",
+            "content_fingerprint": "sha256:dbe27b23079815d814eb32ff4622858c252a0b224b91fe4ef4123f226229b5e8"
+          }
+        },
+        {
+          "kind": "message_claimed",
+          "subject": "synthetic-claim",
+          "observer": "town",
+          "detail": {
+            "claimant": "claim-verifier"
+          }
+        },
+        {
+          "kind": "ack_recorded",
+          "subject": "synthetic-claim",
+          "observer": "claim-verifier",
+          "detail": {
+            "status": "processed"
+          }
+        },
+        {
+          "kind": "message_accepted",
+          "subject": "verification-receipt",
+          "observer": "town",
+          "detail": {
+            "sender": "claim-verifier",
+            "to": "brief-sender",
+            "kind": "record.verification",
+            "content_fingerprint": "sha256:e38c0ef8a83165b8ff4ff72110a08e942b365b55e414630b3e1085a272691a01"
+          }
+        },
+        {
+          "kind": "message_claimed",
+          "subject": "verification-receipt",
+          "observer": "town",
+          "detail": {
+            "claimant": "brief-sender"
+          }
+        },
+        {
+          "kind": "ack_recorded",
+          "subject": "verification-receipt",
+          "observer": "brief-sender",
+          "detail": {
+            "status": "processed"
+          }
+        }
+      ]
+    }
+  ]
+}

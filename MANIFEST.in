@@ -3,5 +3,6 @@ recursive-include schemas *.json
 # The historical bundle fixture's records are JSON Lines.
 recursive-include tests/fixtures *.jsonl
 recursive-include examples *.py
+recursive-include examples/integrations/synapse-handoff *.md *.json
 include scripts/check_distributions.py
 include tests/fixtures/invalid_json_seller.py
