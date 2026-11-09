@@ -1,0 +1,18 @@
+{
+  "requester_id": "req-demo-01",
+  "description": "Write a persuasive cover letter for a senior product manager role at a climate-tech startup. It should make a hiring manager want to interview me.",
+  "output_description": "A one-page cover letter of 300 to 400 words, warm but professional.",
+  "output_schema": {
+    "type": "string"
+  },
+  "samples": [],
+  "n_real_docs": 15,
+  "job_budget_usd": 5.0,
+  "trial_budget_usd": 0.5,
+  "deadline": null,
+  "deadline_open_ack": true,
+  "region": null,
+  "min_reputation": null,
+  "allow_unrated": true,
+  "sourcing_mode": "registry"
+}
