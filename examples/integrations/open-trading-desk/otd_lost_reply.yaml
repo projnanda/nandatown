@@ -1,0 +1,27 @@
+name: otd_lost_reply
+description: >-
+  The first order result is lost, so the PM retries once. Same trading day against the MCP server, hosted
+  in its own repository. Owner and PM are Town scripts; the only independently
+  developed participant is the server. Synthetic market, simulated broker.
+seed: 42
+plugin_files:
+  - otd_plugin.py
+validator: otd_lost_reply
+agents:
+  - name: desk
+    role: otd_desk
+  - name: owner
+    role: otd_owner
+    config: {desk: desk, pm: pm}
+  - name: pm
+    role: otd_pm
+    config:
+      desk: desk
+      owner: owner
+      expected_providers: [technical-momentum-01, sentiment-headline-01, claude-reasoner-01]
+      tickers: [NVDA, AAPL, TSLA]
+      checkpoints: [65, 125, 185, 245, 305]
+      retry_after: 1.0
+max_time: 1000
+faults:
+  - {action: drop, kind: order_result, nth: 1}

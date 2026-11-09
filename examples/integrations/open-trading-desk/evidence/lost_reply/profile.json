@@ -1,0 +1,76 @@
+{
+  "name": "otd_lost_reply",
+  "description": "The first order result is lost, so the PM retries once. Same trading day against the MCP server, hosted in its own repository. Owner and PM are Town scripts; the only independently developed participant is the server. Synthetic market, simulated broker.",
+  "seed": 42,
+  "layers": {
+    "transport": "memory.v1",
+    "communication": "envelope.v1",
+    "identity": "keys.v1",
+    "registry": "index.v1",
+    "auth": "hmac.v1",
+    "trust": "reputation.v1",
+    "payments": "ledger.v1",
+    "coordination": "contractnet.v1",
+    "negotiation": "haggle.v1",
+    "memory": "kv.v1",
+    "privacy": "redact.v1",
+    "data_facts": "evidence.v1"
+  },
+  "agents": [
+    {
+      "name": "desk",
+      "role": "otd_desk",
+      "config": {}
+    },
+    {
+      "name": "owner",
+      "role": "otd_owner",
+      "config": {
+        "desk": "desk",
+        "pm": "pm"
+      }
+    },
+    {
+      "name": "pm",
+      "role": "otd_pm",
+      "config": {
+        "desk": "desk",
+        "owner": "owner",
+        "expected_providers": [
+          "technical-momentum-01",
+          "sentiment-headline-01",
+          "claude-reasoner-01"
+        ],
+        "tickers": [
+          "NVDA",
+          "AAPL",
+          "TSLA"
+        ],
+        "checkpoints": [
+          65,
+          125,
+          185,
+          245,
+          305
+        ],
+        "retry_after": 1.0
+      }
+    }
+  ],
+  "faults": [
+    {
+      "action": "drop",
+      "kind": "order_result",
+      "nth": 1,
+      "delay": 0.0,
+      "rate": 0.0
+    }
+  ],
+  "redact_fields": [],
+  "max_time": 1000.0,
+  "validator": "otd_lost_reply",
+  "plugin_files": [
+    "/private/tmp/otd-clean/nandatown/examples/integrations/open-trading-desk/otd_plugin.py"
+  ],
+  "adaptations": []
+}

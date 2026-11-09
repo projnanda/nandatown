@@ -1,0 +1,45 @@
+{
+  "run_id": "sim-c2d8b5dab5c8",
+  "profile_name": "otd_workflow",
+  "profile_fingerprint": "sha256:25f748889c1f1d05437d8cfcf2602bf330dda53d4aa0da879da3a74e73b2c124",
+  "created_at": 0.0,
+  "participants": [
+    {
+      "name": "desk",
+      "role": "otd_desk"
+    },
+    {
+      "name": "owner",
+      "role": "otd_owner"
+    },
+    {
+      "name": "pm",
+      "role": "otd_pm"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "lab-0.2.6",
+    "python": "3.11.14"
+  },
+  "config": {
+    "mode": "lab",
+    "seed": 42,
+    "layers": {
+      "transport": "memory.v1",
+      "communication": "envelope.v1",
+      "identity": "keys.v1",
+      "registry": "index.v1",
+      "auth": "hmac.v1",
+      "trust": "reputation.v1",
+      "payments": "ledger.v1",
+      "coordination": "contractnet.v1",
+      "negotiation": "haggle.v1",
+      "memory": "kv.v1",
+      "privacy": "redact.v1",
+      "data_facts": "evidence.v1"
+    },
+    "logical_time": 11.699999999999978,
+    "rerun_command": "nandatown run examples/integrations/open-trading-desk/otd_workflow.yaml --seed 42"
+  }
+}
