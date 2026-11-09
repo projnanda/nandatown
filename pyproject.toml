@@ -29,7 +29,8 @@ nandatown = "nandatown.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-nandatown = ["sim/scenarios/*.yaml", "skills/builtin/*.md"]
+nandatown = ["sim/scenarios/*.yaml", "skills/builtin/*.md",
+             "path_requests/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

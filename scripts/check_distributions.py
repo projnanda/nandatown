@@ -18,7 +18,8 @@ def check(directory: Path) -> None:
     runtime = {
         str(path.relative_to(root / "src"))
         for pattern in ("src/nandatown/sim/scenarios/*.yaml",
-                        "src/nandatown/skills/builtin/*.md")
+                        "src/nandatown/skills/builtin/*.md",
+                        "src/nandatown/path_requests/*.json")
         for path in root.glob(pattern)
     }
     test_data = {
