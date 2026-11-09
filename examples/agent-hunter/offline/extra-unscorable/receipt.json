@@ -1,0 +1,42 @@
+{
+  "payload": {
+    "claim": {
+      "capability": "trial_then_hire",
+      "subject": "http://127.0.0.1:8940",
+      "release_basis": {
+        "profile_fingerprint": "sha256:a808fd6a8c136075783171adc2a6d53b8926ecdec03dda0b22d6563c6c6c7263",
+        "card_digest": "sha256:8e6bb24ab71b5578957573665c36be168ddf13037fb1a8e90d8ff51b6a77bbe1"
+      },
+      "profile": "a2a-trial-then-hire-unscorable@0.1",
+      "verdict": "failed"
+    },
+    "observer": "did:town:bd18ac20dae90cd699380188",
+    "window": {
+      "started": 1794238302.2178812,
+      "evaluated": 1794238302.2178218
+    },
+    "coverage": {
+      "tested": [
+        "resolution",
+        "agent_card_retrieval",
+        "descriptor_consistency",
+        "protocol_invocation",
+        "semantic_result",
+        "duplicate_request"
+      ],
+      "not_tested": []
+    },
+    "limitations": [
+      "one run is one scoped observation, not a certificate",
+      "the signature proves key commitment, not truth, independence, or safety",
+      "a favorable result grants no permissions and endorses nothing"
+    ],
+    "evidence": {
+      "bundle_fingerprint": "sha256:5f493fd9608933ab731c385588c183e26036f222ea9bd726fe2ee8e21c7465c7",
+      "result_digest": "sha256:0a4d9195abe9afb3d1a4b550a57f37bdfef705056e7ba668adf61d04ed27439c",
+      "run_id": "path-7b5a8118649d"
+    }
+  },
+  "signature": "cc1dd70583d9e03bd428be2673a0f7a05008d1f90e61cf3265482bd80e2072b5878ca9d8e83dfdcb7104b10244d7bc99f5b0af1601162dd68ac3d5d8e3b2da00",
+  "controller_public": "f98ddd7f6c6002784fc1c5d106580defad8a57185c7d0a7e343811ed082cd45b"
+}

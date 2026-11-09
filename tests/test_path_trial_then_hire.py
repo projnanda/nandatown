@@ -206,6 +206,33 @@ def test_profiles_carry_the_job_a_long_limit_and_their_scope():
             assert gap in not_tested
 
 
+def test_stock_timeout_variant_differs_only_in_its_limit():
+    main = path_profiles.get_path_profile(PROFILE)
+    stock = path_profiles.get_path_profile(
+        "a2a-trial-then-hire-stock-timeout@0.1")
+    assert stock.limits["timeout_seconds"] == 15.0
+    assert (stock.request, stock.expected, stock.evaluator) \
+        == (main.request, main.expected, main.evaluator)
+
+
+def test_hire_slower_than_the_stock_limit_fails_protocol_invocation(
+        tmp_path, monkeypatch):
+    # The boundary case, scaled down: a hire slower than the limit.
+    ref = "a2a-trial-then-hire-stock-timeout@0.1"
+    stock = path_profiles.get_path_profile(ref)
+    monkeypatch.setitem(path_profiles.PATH_PROFILES, ref, stock.model_copy(
+        update={"limits": dict(stock.limits, timeout_seconds=0.5)}))
+    with loopback(HiringAgent(), delay=1.5) as url:
+        directory, result = run_path_test(url, str(tmp_path),
+                                          profile_ref=ref)
+    assert stage(result, "protocol_invocation").status == "failed"
+    assert stage(result, "protocol_invocation").note == "a2a_timeout"
+    assert [stage(result, name).status for name in
+            ("semantic_result", "duplicate_request")] == ["not_tested"] * 2
+    assert result.verdict == "failed"
+    assert verify_bundle(directory) == []
+
+
 # -- the main profile ---------------------------------------------------
 
 
