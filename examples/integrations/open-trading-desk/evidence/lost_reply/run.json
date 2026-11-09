@@ -1,0 +1,45 @@
+{
+  "run_id": "sim-f9c371b18672",
+  "profile_name": "otd_lost_reply",
+  "profile_fingerprint": "sha256:3c54bac1d39923379d655b30f93d66d4334146cac8a30844f64c4ec844453d25",
+  "created_at": 0.0,
+  "participants": [
+    {
+      "name": "desk",
+      "role": "otd_desk"
+    },
+    {
+      "name": "owner",
+      "role": "otd_owner"
+    },
+    {
+      "name": "pm",
+      "role": "otd_pm"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "lab-0.2.6",
+    "python": "3.11.14"
+  },
+  "config": {
+    "mode": "lab",
+    "seed": 42,
+    "layers": {
+      "transport": "memory.v1",
+      "communication": "envelope.v1",
+      "identity": "keys.v1",
+      "registry": "index.v1",
+      "auth": "hmac.v1",
+      "trust": "reputation.v1",
+      "payments": "ledger.v1",
+      "coordination": "contractnet.v1",
+      "negotiation": "haggle.v1",
+      "memory": "kv.v1",
+      "privacy": "redact.v1",
+      "data_facts": "evidence.v1"
+    },
+    "logical_time": 12.699999999999974,
+    "rerun_command": "nandatown run examples/integrations/open-trading-desk/otd_lost_reply.yaml --seed 42"
+  }
+}

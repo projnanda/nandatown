@@ -1,0 +1,112 @@
+{
+  "run_id": "sim-f9c371b18672",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "connection",
+      "status": "passed",
+      "evidence": [
+        "ev-8"
+      ],
+      "note": "live MCP stdio session; validator otd-3"
+    },
+    {
+      "name": "discovery_and_views",
+      "status": "passed",
+      "evidence": [
+        "ev-22",
+        "ev-24",
+        "ev-25",
+        "ev-28",
+        "ev-30",
+        "ev-31",
+        "ev-33",
+        "ev-35"
+      ],
+      "note": ""
+    },
+    {
+      "name": "decision_and_fill",
+      "status": "passed",
+      "evidence": [
+        "ev-44",
+        "ev-45",
+        "ev-47",
+        "ev-48",
+        "ev-301",
+        "ev-303",
+        "ev-304"
+      ],
+      "note": ""
+    },
+    {
+      "name": "risk_refusals",
+      "status": "passed",
+      "evidence": [
+        "ev-58",
+        "ev-60",
+        "ev-61",
+        "ev-64",
+        "ev-66",
+        "ev-67",
+        "ev-288",
+        "ev-290"
+      ],
+      "note": ""
+    },
+    {
+      "name": "scoring_and_chain",
+      "status": "passed",
+      "evidence": [
+        "ev-301",
+        "ev-303",
+        "ev-304"
+      ],
+      "note": ""
+    },
+    {
+      "name": "pm_knowledge",
+      "status": "passed",
+      "evidence": [
+        "ev-50",
+        "ev-57",
+        "ev-306",
+        "ev-301",
+        "ev-303",
+        "ev-304"
+      ],
+      "note": ""
+    },
+    {
+      "name": "fault_and_retry",
+      "status": "passed",
+      "evidence": [
+        "ev-49",
+        "ev-51",
+        "ev-45",
+        "ev-47",
+        "ev-48",
+        "ev-52",
+        "ev-54",
+        "ev-55"
+      ],
+      "note": ""
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-307"
+      ],
+      "note": "complete run recorded no money moved"
+    },
+    {
+      "name": "privacy",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no redaction declared by this scenario"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794195968.426759
+}
