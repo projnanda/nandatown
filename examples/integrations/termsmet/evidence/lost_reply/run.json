@@ -1,5 +1,5 @@
 {
-  "run_id": "sim-00b53a4d5633",
+  "run_id": "sim-8c7ca6564d71",
   "profile_name": "termsmet_lost_reply",
   "profile_fingerprint": "sha256:81f9d677ab6912ecbb0b13908882ddcba9a07851055862507387bdcf9e96dcc3",
   "created_at": 0.0,
@@ -39,7 +39,7 @@
       "privacy": "redact.v1",
       "data_facts": "evidence.v1"
     },
-    "logical_time": 12.699999999999976,
+    "logical_time": 12.499999999999977,
     "rerun_command": "nandatown run examples/integrations/termsmet/termsmet_lost_reply.yaml --seed 42"
   }
 }

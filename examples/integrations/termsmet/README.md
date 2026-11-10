@@ -53,9 +53,13 @@ Town Lab tm_buyer ── Town messages ── Town Lab tm_provider
 
 ## Reproduce
 
-Both environments use Python 3.11.5 and `mcp==2.3.0`. The runner refuses to
+Both environments use Python 3.11.5 (check that `python3.11 --version` prints
+`Python 3.11.5`) and `mcp==2.3.0`. The runner refuses to
 start when the versions differ from `project_version.json`. Live runs need
 macOS or Linux, because the runner uses `ps` to supervise processes.
+
+Run these from one parent directory, so `termsmet-runtime/` and `nandatown/` are
+siblings and `--project ../termsmet-runtime` resolves from inside `nandatown/`.
 
 ```sh
 git clone https://github.com/wywyou56/termsmet-runtime.git termsmet-runtime
@@ -102,7 +106,7 @@ git diff --check
 `tests/test_termsmet_integration.py` replays the validators over the recorded
 bundles. It checks that mutated traces do not pass: a missing funding or
 retrieval event, a wrong or float amount, a missing row, a wrong agreement
-version, an early release or an added refund, a lost-reply trace without a
+version, a recovery reply that never reached the provider, an early release or an added refund, a lost-reply trace without a
 real drop, a dropped message that was not the PASS, a provider that received
 the PASS early, an extra accepted submission, and tampered bundle files.
 
@@ -111,7 +115,7 @@ the PASS early, an extra accepted submission, and tampered bundle files.
 | Item | Value |
 | --- | --- |
 | Town base (`projnanda/nandatown` main) | `6f9a7c064486c4a0ae9242f1ff341b8a4aad0244` |
-| Integration code used for the recorded runs | `d50be99` on `integration/termsmet-acceptance` |
+| Integration code used for the recorded runs | `beee4a7` on `integration/termsmet-acceptance` |
 | TermsMet public runtime | `7ee09295226d2a41555293f391e13a8c46020031` (from source `e797d7cc8f3fdabd6ff3e2ceec90433e4e6b56be`) |
 | Python / MCP SDK, both sides | 3.11.5 / 2.3.0 |
 | Seed, review window, first-submit window | 42, 2 s, 5 min |
@@ -120,22 +124,26 @@ the PASS early, an extra accepted submission, and tampered bundle files.
 
 ## Expected compared with actual results
 
-Both bundles were recorded on 2026-11-10 from a clean checkout of `d50be99`.
-Each case passed on its first formal attempt, so no failed attempts exist.
+Both bundles were recorded on 2026-11-10 from a clean checkout of `beee4a7`, and each
+case passed on its first formal attempt. They replace an earlier passing pair
+recorded from `d50be99` (still in git history). After review, that version's buyer
+probed retrieval after seeing `IN_REVIEW`. Such a probe can wrongly fail if the real
+deadline passes between calls, so it was removed, and the lost-reply validator was
+tightened to require that the recovery status response reached the provider.
 
 | Stage | Expected | Clean | Lost reply |
 | --- | --- | --- | --- |
 | `agreement_funding` | v1 proposed; provider counters to a 10-minute repair window (v2); both accept v2; stale v1 acceptance returns `VERSION_MISMATCH`; counter after lock returns `INVALID_STATE`; simulated `FUNDED` | passed | passed |
 | `delivery_repair` | submission 1 FAIL with `MISSING_ORDER A102`; provider receives the report before repairing; submission 2 PASS | passed | passed |
-| `release_gating` | retrieval before acceptance and during review returns `PERMISSION_DENIED`; exactly one simulated funding and one simulated release, no refund; release time at or after the real review deadline | passed (19 polls, release 2.04 s after PASS) | passed (19 polls, release 2.04 s after PASS) |
+| `release_gating` | retrieval before acceptance returns `PERMISSION_DENIED`; the buyer retrieves only after a poll observes the release; exactly one simulated funding and one simulated release, no refund; release time at or after the real review deadline | passed (19 polls, release 2.05 s after PASS) | passed (19 polls, release 2.04 s after PASS) |
 | `retrieved_artifact` | buyer receives exactly the independent expected JSON (3 orders, 6 units, 3,560 cents, integer amounts); receipt shows v1/v2, acceptances on v2, submissions 1 and 2 on v2, FAIL then PASS, unchanged source hash and checker version; one job in the database | passed | passed |
 | `lost_reply_recovery` | see below | n/a | passed |
 | Town verdict | passed | **passed** | **passed** |
 
 | Bundle | Run | Bundle fingerprint | Events / server calls / submit attempts |
 | --- | --- | --- | --- |
-| `evidence/clean` | `sim-b1577ee0936b` | `sha256:342df5850697ef2e926c4378e11cf6b693090ede7893652a822d2c2b837c5713` | 222 / 38 / 2 |
-| `evidence/lost_reply` | `sim-00b53a4d5633` | `sha256:fc3c46929fa077107772658c45707640e8c9259ba4f4c8671e4218f812de17ac` | 233 / 40 / 3 |
+| `evidence/clean` | `sim-53a1730b6f20` | `sha256:70394e5b895a83d91609da59ff0196947a4da540309e4822e5b19ad681f61ae2` | 217 / 37 / 2 |
+| `evidence/lost_reply` | `sim-8c7ca6564d71` | `sha256:e50385b96823779cd95e8e1478e0b1d9985bfdd935b5463558f47413f2002039` | 228 / 39 / 3 |
 
 ### What the provider knew during recovery
 
@@ -150,7 +158,8 @@ rejected the retry with `INVALID_STATE` and created no new submission. The
 provider did not treat the rejection as evidence for either verdict. It
 queried `get_job` (status `IN_REVIEW`) and `get_result(job, 2)` (PASS on
 agreement v2). Only after both replies arrived did it record `confirmed_pass`
-(`ev-108`) and tell the buyer the delivery was ready. The validator also
+(`ev-108`) and tell the buyer the delivery was ready. The validator requires
+both replies to have been delivered to the provider first. The validator also
 checks that the dropped message was the server's actual submission-2 PASS and
 not some other message of that kind.
 
@@ -161,8 +170,8 @@ TermsMet deadlines use **real** UTC time. The buyer therefore sleeps 0.1 s of
 real time before each release poll, and a poll after the deadline causes the
 server to record the release. The `tm_server_call` events carry real
 timestamps. Event `at` values are logical. Each live run took about 2.1 s of
-real time between the first and last server call: 10.5 logical seconds for
-the clean run and 12.7 for the lost-reply run.
+real time between the first and last server call: 10.3 logical seconds for
+the clean run and 12.5 for the lost-reply run.
 
 ## Limitations
 

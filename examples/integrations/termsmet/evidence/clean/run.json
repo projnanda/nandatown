@@ -1,5 +1,5 @@
 {
-  "run_id": "sim-b1577ee0936b",
+  "run_id": "sim-53a1730b6f20",
   "profile_name": "termsmet_workflow",
   "profile_fingerprint": "sha256:8359588e5e13c2e8a446f57cfcf896c67c8e52881d8de35fe5ba313de7d2ddb2",
   "created_at": 0.0,
@@ -39,7 +39,7 @@
       "privacy": "redact.v1",
       "data_facts": "evidence.v1"
     },
-    "logical_time": 10.499999999999979,
+    "logical_time": 10.29999999999998,
     "rerun_command": "nandatown run examples/integrations/termsmet/termsmet_workflow.yaml --seed 42"
   }
 }

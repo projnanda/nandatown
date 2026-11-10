@@ -1,5 +1,5 @@
 {
-  "run_id": "sim-b1577ee0936b",
+  "run_id": "sim-53a1730b6f20",
   "evaluator_version": "lab-0.2.6",
   "stages": [
     {
@@ -14,7 +14,7 @@
         "ev-67",
         "ev-59"
       ],
-      "note": "job job-318cb0b2178b43f3a1515f17189e3cee: v2 (repair window 10) accepted by both; simulated funding"
+      "note": "job job-81db14a1044e4dc39827cfb7572feed9: v2 (repair window 10) accepted by both; simulated funding"
     },
     {
       "name": "delivery_repair",
@@ -33,19 +33,18 @@
       "evidence": [
         "ev-18",
         "ev-102",
-        "ev-108",
-        "ev-203",
-        "ev-209"
+        "ev-198",
+        "ev-204"
       ],
-      "note": "release at/after review deadline; 19 real-time polls; release 2.04s after PASS; no refund"
+      "note": "release at/after review deadline; 19 real-time polls; release 2.05s after PASS; no refund"
     },
     {
       "name": "retrieved_artifact",
       "status": "passed",
       "evidence": [
-        "ev-209",
-        "ev-203",
-        "ev-215"
+        "ev-204",
+        "ev-198",
+        "ev-210"
       ],
       "note": "buyer received 3 orders / 6 units / 3560 cents, equal to the independent fixture"
     },
@@ -53,7 +52,7 @@
       "name": "ledger_conserved",
       "status": "passed",
       "evidence": [
-        "ev-222"
+        "ev-217"
       ],
       "note": "complete run recorded no money moved"
     },
@@ -65,5 +64,5 @@
     }
   ],
   "verdict": "passed",
-  "evaluated_at": 1794334576.316823
+  "evaluated_at": 1794339133.953467
 }
