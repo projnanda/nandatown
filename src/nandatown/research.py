@@ -8,6 +8,9 @@ profile to its message kinds, skills, capability, and evaluator release.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
+import math
+import re
 import time
 from typing import Any
 
@@ -19,7 +22,8 @@ from .records import (
     StageResult,
     TestProfile,
     TownEvent,
-    fingerprint,
+    strict_canonical_json,
+    strict_fingerprint,
 )
 
 RESEARCH_EVALUATOR_VERSION = "sharpeshooter-research-0.1.0"
@@ -81,6 +85,17 @@ _RECEIPT_PROVENANCE_FIELDS = {
     "registration_event_id", "approval_event_id", "test_event_id",
     "review_event_id",
 }
+_DIGEST = re.compile(r"^sha256:[0-9a-f]{64}$")
+_PROJECT_ID = re.compile(r"^[0-9a-f]{32}$")
+_SLUG = re.compile(r"^[a-z][a-z0-9-]{0,63}$")
+_RFC3339_Z = re.compile(
+    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$")
+_REVIEW_ASSESSMENT = (
+    "Independent review of the bounded deterministic research task.")
+_REVIEW_CONCERNS = ["Synthetic metrics are not performance evidence."]
+_MAX_PROJECT_RESULT_BYTES = 65_536
+_MAX_RECEIPT_BYTES = 32_768
+_MAX_TOWN_RESULT_BYTES = 98_304
 
 
 @dataclass(frozen=True)
@@ -124,7 +139,7 @@ def contract_for_profile(profile: TestProfile) -> TrackContract:
 
 
 def research_task_digest(task: ResearchTask) -> str:
-    return fingerprint(task.model_dump())
+    return strict_fingerprint(task.model_dump())
 
 
 def build_research_request(task: ResearchTask) -> dict[str, Any]:
@@ -148,11 +163,34 @@ def _reject(code: str, message: str) -> None:
 
 
 def _digest(value: Any) -> str:
-    return fingerprint(value)
+    return strict_fingerprint(value)
 
 
 def _exact_mapping(value: Any, fields: set[str]) -> bool:
     return isinstance(value, dict) and set(value) == fields
+
+
+def _matches(value: Any, pattern: re.Pattern[str]) -> bool:
+    return type(value) is str and pattern.fullmatch(value) is not None
+
+
+def _strict_int(value: Any, expected: int | None = None) -> bool:
+    return (type(value) is int
+            and (expected is None or value == expected))
+
+
+def _valid_utc_timestamp(value: Any) -> bool:
+    if not _matches(value, _RFC3339_Z):
+        return False
+    try:
+        parsed = datetime.fromisoformat(value[:-1] + "+00:00")
+    except ValueError:
+        return False
+    return parsed.utcoffset() == timezone.utc.utcoffset(parsed)
+
+
+def _canonical_bytes(value: Any) -> bytes:
+    return strict_canonical_json(value).encode("utf-8")
 
 
 def validate_research_result(
@@ -169,25 +207,47 @@ def validate_research_result(
     }
     if not isinstance(body, dict) or set(body) != outer_fields:
         _reject("result-shape", "research result fields are invalid")
+    try:
+        body_bytes = _canonical_bytes(body)
+    except (TypeError, ValueError, UnicodeError):
+        _reject("result-shape", "research result is not canonical JSON")
+    if len(body_bytes) > _MAX_TOWN_RESULT_BYTES:
+        _reject("result-size", "research result exceeds its byte limit")
     if (body.get("schema_version") != "sharpeshooter.town-research-result.v1"
-            or body.get("request_id") != request_id):
+            or body.get("request_id") != request_id
+            or request_id != RESEARCH_REQUEST_ID):
         _reject("request-binding", "research result names another request")
     if not isinstance(request, dict) or set(request) != {
             "schema_version", "task", "task_digest"}:
         _reject("request-shape", "stored research request is invalid")
+    if request.get("schema_version") != "sharpeshooter.research-request.v1" \
+            or not _matches(request.get("task_digest"), _DIGEST):
+        _reject("request-shape", "stored research request is invalid")
     try:
         task = ResearchTask.model_validate(request["task"])
+        request_digest = _digest(request)
     except Exception:
         _reject("request-shape", "stored research task is invalid")
     expected_task_digest = research_task_digest(task)
     project = body.get("project_result")
     if not _exact_mapping(project, _PROJECT_FIELDS):
         _reject("result-shape", "project result is invalid")
+    try:
+        project_bytes = _canonical_bytes(project)
+    except (TypeError, ValueError, UnicodeError):
+        _reject("result-shape", "project result is not canonical JSON")
+    if len(project_bytes) > _MAX_PROJECT_RESULT_BYTES:
+        _reject("result-size", "project result exceeds its byte limit")
     if (request.get("task_digest") != expected_task_digest
             or project.get("task_digest") != expected_task_digest):
         _reject("task-digest", "project result is not bound to the task")
-    if body.get("request_digest") != _digest(request):
+    if (not _matches(body.get("request_digest"), _DIGEST)
+            or body.get("request_digest") != request_digest):
         _reject("request-digest", "project result is not bound to the request")
+    if (project.get("schema_version") != "sharpeshooter.research-result.v1"
+            or project.get("agent_runtime") != "fake"
+            or project.get("synthetic_metrics") is not True):
+        _reject("result-contract", "project result literals are invalid")
 
     task_doc = task.model_dump()
     selected = next(candidate for candidate in task_doc["candidates"]
@@ -198,6 +258,12 @@ def validate_research_result(
     receipt = project["receipt"]
     if not isinstance(receipt, dict):
         _reject("receipt-shape", "receipt fields are invalid")
+    try:
+        receipt_bytes = _canonical_bytes(receipt)
+    except (TypeError, ValueError, UnicodeError):
+        _reject("receipt-shape", "receipt is not canonical JSON")
+    if len(receipt_bytes) > _MAX_RECEIPT_BYTES:
+        _reject("receipt-size", "receipt exceeds its byte limit")
     if not isinstance(receipt.get("review"), dict):
         _reject("missing-review", "receipt has no independent review")
     if (not _exact_mapping(receipt, _RECEIPT_FIELDS)
@@ -230,14 +296,19 @@ def validate_research_result(
         for candidate in task_doc["candidates"]
     ]
     candidate_results = project.get("candidate_results")
-    actual_candidates = (
-        [(item.get("candidate_id"), item.get("strategy_hash"))
-         for item in candidate_results]
-        if isinstance(candidate_results, list)
+    candidates_valid = (
+        type(candidate_results) is list
         and all(_exact_mapping(item, _CANDIDATE_FIELDS)
+                and _matches(item.get("candidate_id"), _SLUG)
+                and _matches(item.get("is_run_id"), _PROJECT_ID)
+                and _matches(item.get("strategy_hash"), _DIGEST)
                 for item in candidate_results)
-        else None
+        and len({item["is_run_id"] for item in candidate_results})
+        == len(candidate_results)
     )
+    actual_candidates = ([(item["candidate_id"], item["strategy_hash"])
+                          for item in candidate_results]
+                         if candidates_valid else None)
     if actual_candidates != expected_candidates:
         _reject("candidate-binding", "candidate results do not match the task")
     if (project.get("client_task_id") != task.client_task_id
@@ -248,6 +319,18 @@ def validate_research_result(
 
     author = project.get("author_agent_id")
     reviewer = project.get("reviewer_agent_id")
+    project_ids = (
+        project.get("idea_id"), project.get("family_id"),
+        project.get("oos_run_id"), author, reviewer,
+        project.get("review_id"), project.get("receipt_id"),
+    )
+    if not all(_matches(value, _PROJECT_ID) for value in project_ids):
+        _reject("result-contract", "project identifiers are invalid")
+    if (not _matches(project.get("sources_digest"), _DIGEST)
+            or not _matches(project.get("selected_is_strategy_hash"), _DIGEST)
+            or not _matches(project.get("oos_strategy_hash"), _DIGEST)
+            or not _matches(project.get("receipt_integrity_hash"), _DIGEST)):
+        _reject("result-contract", "project digests are invalid")
     if not isinstance(author, str) or not isinstance(reviewer, str) \
             or author == reviewer:
         _reject("same-reviewer", "reviewer must be distinct from author")
@@ -262,21 +345,69 @@ def validate_research_result(
             or project.get("receipt_verification") != "VERIFIED"
             or project.get("operator_approval") != "approved"
             or project.get("operator_verdict") != "accept"
-            or type(project.get("budget_before")) is not int
-            or project.get("budget_before") != 0
-            or type(project.get("budget_after")) is not int
-            or project.get("budget_after") != 1
-            or type(project.get("family_oos_trial_number")) is not int
-            or project.get("family_oos_trial_number") != 1):
+            or not _strict_int(project.get("budget_before"), 0)
+            or not _strict_int(project.get("budget_after"), 1)
+            or not _strict_int(project.get("family_oos_trial_number"), 1)):
         _reject("false-lifecycle", "project lifecycle controls are incomplete")
     if project.get("limitations") != LIMITATIONS:
         _reject("wrong-limitations", "project limitations differ from the frozen disclosure")
+    idea = receipt["idea"]
+    evaluation = receipt["evaluation"]
+    metrics = evaluation["metrics"]
+    checks = evaluation["checks"]
+    provenance = receipt["provenance"]
+    if (receipt.get("schema_version") != "1.0"
+            or receipt.get("receipt_id") != project.get("receipt_id")
+            or not _valid_utc_timestamp(receipt.get("issued_at"))
+            or idea.get("idea_id") != project.get("idea_id")
+            or idea.get("family_id") != project.get("family_id")
+            or idea.get("author_agent_id") != author
+            or not _matches(idea.get("operator_id"), _PROJECT_ID)
+            or not _matches(strategy.get("version_id"), _PROJECT_ID)
+            or not _valid_utc_timestamp(strategy.get("frozen_at"))
+            or evaluation.get("run_id") != project.get("oos_run_id")
+            or evaluation.get("split") != "oos"
+            or not _strict_int(evaluation.get("family_oos_trial_number"), 1)
+            or evaluation.get("dataset_version") != "hw8-deterministic-fixture"
+            or evaluation.get("dataset_split_hash") != "sha256:" + "2" * 64
+            or evaluation.get("evaluator_name")
+            != "deterministic_synthetic_stub"
+            or evaluation.get("evaluator_version") != "1"
+            or evaluation.get("synthetic_metrics") is not True):
+        _reject("receipt-binding", "receipt is not correlated to the project result")
+    metric_names = (
+        "annualized_return", "annualized_volatility", "sharpe_ratio",
+        "max_drawdown",
+    )
+    if (any(type(metrics.get(name)) is not float
+            or not math.isfinite(metrics[name]) for name in metric_names)
+            or not _strict_int(metrics.get("observations"), 100)
+            or checks.get("opened_split") != "oos"
+            or checks.get("dataset_version") != evaluation["dataset_version"]
+            or checks.get("acceptance") != "pending"
+            or checks.get("dataset_split_hash")
+            != evaluation["dataset_split_hash"]
+            or checks.get("date_min") != "2019-01-02"
+            or checks.get("date_max") != "2026-06-19"
+            or not _strict_int(checks.get("observations"),
+                               metrics["observations"])
+            or checks.get("synthetic_metrics") is not True):
+        _reject("receipt-binding", "receipt evaluation facts are invalid")
+    if (review.get("review_id") != project.get("review_id")
+            or review.get("reviewer_agent_id") != reviewer
+            or review.get("reviewer_operator_id") != idea["operator_id"]
+            or review.get("separation_rule") != "distinct_agent"
+            or review.get("assessment") != _REVIEW_ASSESSMENT
+            or review.get("concerns") != _REVIEW_CONCERNS
+            or review.get("recommendation") != "accept"):
+        _reject("missing-review", "receipt review is absent or non-accepting")
+    provenance_values = list(provenance.values())
+    if (not all(_strict_int(value) and value > 0
+                for value in provenance_values)
+            or len(set(provenance_values)) != len(provenance_values)):
+        _reject("receipt-binding", "receipt provenance is invalid")
     if project.get("receipt_integrity_hash") != _digest(receipt):
         _reject("receipt-hash", "receipt integrity hash does not match")
-    if (receipt.get("receipt_id") != project.get("receipt_id")
-            or receipt.get("idea", {}).get("author_agent_id") != author
-            or review.get("review_id") != project.get("review_id")):
-        _reject("receipt-binding", "receipt is not correlated to the project result")
 
     return {
         "task_bound": True,
@@ -313,101 +444,117 @@ def evaluate_research(profile: TestProfile, run_id: str,
         return found
 
     requests = find("message_accepted", kind=RESEARCH_REQUEST_KIND)
-    request_id = requests[0].subject if len(requests) == 1 else None
+    directed_requests = [event for event in requests
+                         if event.detail.get("sender") == buyer
+                         and event.detail.get("to") == seller]
+    request_id = (directed_requests[0].subject
+                  if len(requests) == len(directed_requests) == 1 else None)
     stages: list[StageResult] = []
-    if len(requests) == 1:
+    if request_id is not None:
         stages.append(_stage("accepted", "passed", [requests[0].event_id]))
-    elif requests:
-        stages.append(_stage("accepted", "failed",
-                             [item.event_id for item in requests],
-                             f"{len(requests)} research requests were accepted; expected one"))
     else:
-        stages.append(_stage("accepted", "not_enough_evidence", [],
-                             "no accepted research request"))
+        stages.append(_stage(
+            "accepted", "failed", [item.event_id for item in requests],
+            "expected exactly one buyer-to-seller research request"))
 
-    claims = find("message_claimed", subject=request_id, claimant=seller) \
-        if request_id else []
-    stages.append(_stage("claimed", "passed" if claims else "not_enough_evidence",
-                         [item.event_id for item in claims],
-                         "" if claims else "the research request was never claimed"))
-    seller_acks = find("ack_recorded", observer=seller, subject=request_id) \
-        if request_id else []
+    request_claims = (find("message_claimed", subject=request_id)
+                      if request_id else [])
+    claims = [item for item in request_claims
+              if item.detail.get("claimant") == seller]
+    claims_valid = len(claims) == len(request_claims) == 1
+    stages.append(_stage(
+        "claimed", "passed" if claims_valid else "failed",
+        [item.event_id for item in request_claims],
+        "" if claims_valid else
+        "the research request lacks a seller-attributed claim"))
+
+    request_acks = (find("ack_recorded", subject=request_id)
+                    if request_id else [])
+    seller_acks = [item for item in request_acks if item.observer == seller]
     received = [item for item in seller_acks
                 if item.detail.get("status") in ("received", "processed")]
-    stages.append(_stage("received", "passed" if received else "not_enough_evidence",
-                         [received[0].event_id] if received else [],
-                         "" if received else "no acknowledged receipt by the provider"))
+    received_valid = (len(received) == len(seller_acks)
+                      == len(request_acks) == 1)
+    stages.append(_stage(
+        "received", "passed" if received_valid else "failed",
+        [item.event_id for item in request_acks],
+        "" if received_valid else
+        "the request lacks a valid seller-attributed receipt"))
     applied = [item for item in seller_acks
                if item.detail.get("status") == "processed"
                and isinstance(item.detail.get("note"), dict)
                and item.detail["note"].get("applied") is True]
-    if len(applied) == 1:
+    if len(applied) == len(seller_acks) == len(request_acks) == 1:
         stages.append(_stage("processed", "passed", [applied[0].event_id]))
     elif len(applied) > 1:
         stages.append(_stage("processed", "failed",
                              [item.event_id for item in applied],
                              f"provider attributed {len(applied)} applications; expected one"))
     else:
-        stages.append(_stage("processed", "not_enough_evidence", [],
+        stages.append(_stage("processed", "failed", [],
                              "no provider-attributed application record"))
 
     responses = find("message_accepted", kind=RESEARCH_RESPONSE_KIND)
-    response_id = responses[0].subject if len(responses) == 1 else None
-    response_claims = find("message_claimed", subject=response_id,
-                           claimant=buyer) if response_id else []
-    correlated = (len(responses) == 1 and request_id is not None
-                  and responses[0].detail.get("request_id") == request_id)
-    if correlated and response_claims:
+    directed_responses = [event for event in responses
+                          if event.detail.get("sender") == seller
+                          and event.detail.get("to") == buyer
+                          and event.detail.get("request_id") == request_id]
+    response_id = (directed_responses[0].subject
+                   if len(responses) == len(directed_responses) == 1
+                   else None)
+    all_response_claims = (find("message_claimed", subject=response_id)
+                           if response_id else [])
+    response_claims = [item for item in all_response_claims
+                       if item.detail.get("claimant") == buyer]
+    response_valid = (response_id is not None
+                      and len(response_claims)
+                      == len(all_response_claims) == 1)
+    if response_valid:
         stages.append(_stage("response", "passed",
                              [responses[0].event_id, response_claims[0].event_id]))
-    elif len(responses) > 1:
-        stages.append(_stage("response", "failed",
-                             [item.event_id for item in responses],
-                             f"{len(responses)} distinct research results were accepted; expected one"))
-    elif responses and not correlated:
-        stages.append(_stage("response", "failed", [responses[0].event_id],
-                             "research result does not name the accepted request"))
     else:
-        stages.append(_stage("response", "not_enough_evidence", [],
-                             "no correlated research result was accepted and claimed"))
+        stages.append(_stage(
+            "response", "failed",
+            [item.event_id for item in responses + all_response_claims],
+            "expected one correlated seller-to-buyer result claimed by buyer"))
 
-    terminal = [item for item in find("ack_recorded", observer=buyer,
-                                      subject=response_id)
-                if item.detail.get("status") != "retryable"] \
-        if response_id else []
-    assertions = terminal[-1].detail.get("note", {}) if terminal else {}
-    semantic = (
+    response_acks = (find("ack_recorded", subject=response_id)
+                     if response_id else [])
+    terminal = [item for item in response_acks
+                if item.observer == buyer
+                and item.detail.get("status") == "processed"]
+    expected_assertions = {
+        "task_bound", "receipt_verified", "independent_review",
+        "control_complete",
+    }
+    if profile.fault == "duplicate_delivery":
+        expected_assertions.add("duplicate_recognized")
+    assertions = (terminal[0].detail.get("note")
+                  if len(terminal) == len(response_acks) == 1 else None)
+    assertion_contract_valid = (
+        isinstance(assertions, dict)
+        and set(assertions) == expected_assertions
+        and all(type(value) is bool for value in assertions.values())
+    )
+    semantic = [
         ("task_bound", "task_bound"),
         ("receipt_integrity", "receipt_verified"),
         ("independent_review", "independent_review"),
         ("control_complete", "control_complete"),
-    )
+    ]
+    if profile.fault == "duplicate_delivery":
+        semantic.append(("duplicate_recognized", "duplicate_recognized"))
     for stage_name, field in semantic:
-        value = assertions.get(field) if isinstance(assertions, dict) else None
+        value = assertions.get(field) if assertion_contract_valid else None
         note = (f"requester-attributed {field}; Town records the assertion"
                 " but does not independently prove it")
         if value is True:
             stages.append(_stage(stage_name, "passed",
-                                 [terminal[-1].event_id], note))
-        elif value is False:
-            stages.append(_stage(stage_name, "failed",
-                                 [terminal[-1].event_id], note))
+                                 [terminal[0].event_id], note))
         else:
-            stages.append(_stage(stage_name, "not_enough_evidence", [], note))
-
-    if profile.fault == "duplicate_delivery":
-        offered = {item.detail.get("fence")
-                   for item in find("duplicate_offered")}
-        duplicates = [item for item in seller_acks
-                      if item.detail.get("status") == "processed"
-                      and item.detail.get("fence") in offered
-                      and item.detail.get("note", {}).get("duplicate") is True]
-        stages.append(_stage(
-            "duplicate_recognized",
-            "passed" if duplicates else "not_enough_evidence",
-            [item.event_id for item in duplicates],
-            "" if duplicates else "no provider-attributed recognition of the injected duplicate",
-        ))
+            stages.append(_stage(stage_name, "failed",
+                                 [item.event_id for item in response_acks],
+                                 note))
     stages.append(_stage("portable_identity", "not_tested", [],
                          "portable identity was not exercised by this profile"))
 

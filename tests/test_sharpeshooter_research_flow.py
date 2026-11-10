@@ -4,6 +4,7 @@ from __future__ import annotations
 from copy import deepcopy
 import importlib
 import json
+import math
 from pathlib import Path
 import subprocess
 import sys
@@ -17,6 +18,7 @@ from nandatown.coordinator import build_app
 from nandatown.profiles import PROFILES
 from nandatown.records import (
     RunRecord, TestProfile as ProfileRecord, TownEvent, fingerprint,
+    strict_fingerprint,
 )
 from nandatown.runner import run_town
 from test_sharpeshooter_adapter import (
@@ -133,6 +135,104 @@ def test_research_task_rejects_malformed_contracts(mutation):
         module.ResearchTask.model_validate(document)
 
 
+@pytest.mark.parametrize("name,mutate", [
+    ("http-uri", lambda value: value["idea"]["sources"][0].update(
+        uri="http://example.com/source")),
+    ("uri-userinfo", lambda value: value["idea"]["sources"][0].update(
+        uri="https://user:secret@example.com/source")),
+    ("ambiguous-uri", lambda value: value["idea"]["sources"][0].update(
+        uri="https://example.com\\@other.example/source")),
+    ("invalid-date", lambda value: value["idea"]["sources"][0].update(
+        accessed_on="2025-02-29")),
+    ("non-nfc", lambda value: value["idea"].update(title="Cafe\u0301")),
+    ("control", lambda value: value["idea"].update(rationale="bad\u0085text")),
+    ("credential", lambda value: value["idea"].update(
+        hypothesis="token sk-ABCDEFGHIJKLMNOP")),
+    ("authority", lambda value: value["candidates"][0]["strategy_spec"]
+     ["parameters"].update(verdict="accept")),
+    ("nonfinite", lambda value: value["candidates"][0]["strategy_spec"]
+     ["parameters"].update(alpha=math.nan)),
+    ("magnitude", lambda value: value["candidates"][0]["strategy_spec"]
+     ["parameters"].update(alpha=1_000_000_000_001)),
+    ("bad-key", lambda value: value["candidates"][0]["strategy_spec"]
+     ["parameters"].update({"Bad-Key": 1})),
+    ("string-bound", lambda value: value["candidates"][0]["strategy_spec"]
+     ["parameters"].update(label="x" * 257)),
+    ("fanout", lambda value: value["candidates"][0]["strategy_spec"]
+     ["parameters"].update(items=list(range(33)))),
+    ("depth", lambda value: value["candidates"][0]["strategy_spec"]
+     ["parameters"].update(level1={"level2": {"level3": {
+         "level4": {"level5": {"too_deep": 1}}}}})),
+])
+def test_research_task_rejects_unsafe_or_authoritative_content(name, mutate):
+    module = research_api()
+    document = task_document()
+    mutate(document)
+    with pytest.raises(ValidationError):
+        module.ResearchTask.model_validate(document)
+
+
+def test_research_task_accepts_parameter_boundaries_and_valid_leap_date():
+    module = research_api()
+    document = task_document()
+    document["idea"]["sources"][0]["accessed_on"] = "2024-02-29"
+    document["candidates"][0]["strategy_spec"]["parameters"] = {
+        **{f"key_{index}": index for index in range(27)},
+        "limit_int": 1_000_000_000_000,
+        "limit_float": -1_000_000_000_000.0,
+        "text": "x" * 256,
+        "nested": [{"level2": [None]}],
+        "boolean": True,
+    }
+    assert len(document["candidates"][0]["strategy_spec"]["parameters"]) == 32
+    module.ResearchTask.model_validate(document)
+
+
+def test_research_task_enforces_canonical_spec_and_task_byte_bounds():
+    module = research_api()
+    oversized_spec = task_document()
+    spec = oversized_spec["candidates"][0]["strategy_spec"]
+    for field in ("universe", "signal", "entry_rule", "exit_rule",
+                  "position_sizing", "rebalance"):
+        spec[field] = "😀" * 512
+    with pytest.raises(ValidationError):
+        module.ResearchTask.model_validate(oversized_spec)
+
+    oversized_task = task_document()
+    oversized_task["idea"].update(
+        title="😀" * 160,
+        hypothesis="😀" * 1000,
+        rationale="😀" * 2000,
+        sources=[{
+            "uri": "https://example.com/" + "x" * 2027,
+            "label": f"source-{index}",
+            "accessed_on": "2024-02-29",
+        } for index in range(8)],
+    )
+    template = oversized_task["candidates"][0]["strategy_spec"]
+    candidates = []
+    for index in range(8):
+        candidate_spec = deepcopy(template)
+        candidate_spec["signal"] = "😀" * 512
+        candidate_spec["universe"] = "u" * 512
+        candidate_spec["entry_rule"] = "e" * 512
+        candidate_spec["exit_rule"] = "x" * 512
+        candidate_spec["position_sizing"] = "p" * 512
+        candidate_spec["rebalance"] = "r" * 512
+        candidate_spec["parameters"] = {"variant": index}
+        candidates.append({"candidate_id": f"candidate-{index}",
+                           "strategy_spec": candidate_spec})
+    oversized_task["candidates"] = candidates
+    oversized_task["selected_candidate_id"] = "candidate-0"
+    with pytest.raises(ValidationError):
+        module.ResearchTask.model_validate(oversized_task)
+
+
+def test_canonical_fingerprint_rejects_nonfinite_numbers():
+    with pytest.raises((ValueError, TypeError)):
+        strict_fingerprint({"value": math.nan})
+
+
 def test_closed_contract_selector_is_profile_specific_and_rejects_unknown_pairing():
     module = research_api()
     quote = module.contract_for_profile(PROFILES["quote-clean"])
@@ -245,6 +345,80 @@ def test_requester_rejects_unknown_project_result_fields(valid_town_result):
             body, request_id="research-1", request=request)
 
 
+@pytest.mark.parametrize("size", [66_000, 99_000])
+def test_requester_reports_frozen_result_byte_bound_failures(
+        valid_town_result, size):
+    module = research_api()
+    request = module.build_research_request(
+        module.ResearchTask.model_validate(task_document()))
+    body = deepcopy(valid_town_result)
+    body["project_result"]["limitations"] = ["x" * size]
+    with pytest.raises(module.ResearchResultError, match="result-size"):
+        module.validate_research_result(
+            body, request_id="research-1", request=request)
+
+
+def _rehash_receipt(body):
+    body["project_result"]["receipt_integrity_hash"] = fingerprint(
+        body["project_result"]["receipt"])
+
+
+def _mutate_project_and_receipt_id(body, field, value):
+    body["project_result"][field] = value
+    body["project_result"]["receipt"]["idea"][field] = value
+    _rehash_receipt(body)
+
+
+def _mutate_receipt(body, path, value):
+    target = body["project_result"]["receipt"]
+    for part in path[:-1]:
+        target = target[part]
+    target[path[-1]] = value
+    _rehash_receipt(body)
+
+
+@pytest.mark.parametrize("name,mutate", [
+    ("project-schema", lambda body: body["project_result"].update(
+        schema_version="wrong")),
+    ("runtime", lambda body: body["project_result"].update(
+        agent_runtime="codex")),
+    ("project-synthetic", lambda body: body["project_result"].update(
+        synthetic_metrics=False)),
+    ("candidate-run-id", lambda body: body["project_result"]
+     ["candidate_results"][0].update(is_run_id="bad")),
+    ("idea-id", lambda body: _mutate_project_and_receipt_id(
+        body, "idea_id", "not-a-project-id")),
+    ("receipt-schema", lambda body: _mutate_receipt(
+        body, ("schema_version",), "2.0")),
+    ("receipt-split", lambda body: _mutate_receipt(
+        body, ("evaluation", "split"), "is")),
+    ("receipt-family", lambda body: _mutate_receipt(
+        body, ("idea", "family_id"), "3" * 32)),
+    ("receipt-run", lambda body: _mutate_receipt(
+        body, ("evaluation", "run_id"), "3" * 32)),
+    ("receipt-trial", lambda body: _mutate_receipt(
+        body, ("evaluation", "family_oos_trial_number"), 2)),
+    ("receipt-synthetic", lambda body: _mutate_receipt(
+        body, ("evaluation", "synthetic_metrics"), False)),
+    ("receipt-check-synthetic", lambda body: _mutate_receipt(
+        body, ("evaluation", "checks", "synthetic_metrics"), False)),
+    ("review-content", lambda body: _mutate_receipt(
+        body, ("review", "assessment"), "plausible but unfrozen")),
+    ("receipt-oversize", lambda body: _mutate_receipt(
+        body, ("review", "assessment"), "x" * 32_769)),
+])
+def test_requester_rejects_invalid_frozen_project_and_receipt_facts(
+        valid_town_result, name, mutate):
+    module = research_api()
+    request = module.build_research_request(
+        module.ResearchTask.model_validate(task_document()))
+    body = deepcopy(valid_town_result)
+    mutate(body)
+    with pytest.raises(module.ResearchResultError):
+        module.validate_research_result(
+            body, request_id="research-1", request=request)
+
+
 def test_research_evaluator_has_independent_attributed_stages():
     module = research_api()
     result = module.evaluate_profile(profile(), "run-1", research_events())
@@ -266,6 +440,94 @@ def test_research_evaluator_has_independent_attributed_stages():
     assert failed.verdict == "failed"
     assert {stage.name: stage.status for stage in failed.stages}[
         "receipt_integrity"] == "failed"
+
+
+@pytest.mark.parametrize("event_index,field,value,stage", [
+    (0, "sender", "seller", "accepted"),
+    (0, "to", "buyer", "accepted"),
+    (3, "sender", "buyer", "response"),
+    (3, "to", "seller", "response"),
+])
+def test_research_evaluator_rejects_wrong_transport_direction(
+        event_index, field, value, stage):
+    module = research_api()
+    events = research_events()
+    events[event_index] = events[event_index].model_copy(update={
+        "detail": {**events[event_index].detail, field: value}})
+    result = module.evaluate_profile(profile(), "run-1", events)
+    assert {item.name: item.status for item in result.stages}[stage] == "failed"
+
+
+@pytest.mark.parametrize("status", ["rejected", "failed", "retryable"])
+def test_research_evaluator_requires_processed_terminal_requester_ack(status):
+    module = research_api()
+    events = research_events()
+    events[-1] = events[-1].model_copy(update={
+        "detail": {**events[-1].detail, "status": status}})
+    result = module.evaluate_profile(profile(), "run-1", events)
+    by_name = {item.name: item.status for item in result.stages}
+    assert all(by_name[name] == "failed" for name in (
+        "task_bound", "receipt_integrity", "independent_review",
+        "control_complete"))
+
+
+def test_research_evaluator_rejects_missing_or_extra_requester_assertions():
+    module = research_api()
+    for note in (
+        {"task_bound": True, "receipt_verified": True,
+         "independent_review": True},
+        {"task_bound": True, "receipt_verified": True,
+         "independent_review": True, "control_complete": True,
+         "unexpected": True},
+    ):
+        events = research_events(note)
+        result = module.evaluate_profile(profile(), "run-1", events)
+        by_name = {item.name: item.status for item in result.stages}
+        assert all(by_name[name] == "failed" for name in (
+            "task_bound", "receipt_integrity", "independent_review",
+            "control_complete"))
+
+    missing_ack = research_events()[:-1]
+    result = module.evaluate_profile(profile(), "run-1", missing_ack)
+    by_name = {item.name: item.status for item in result.stages}
+    assert all(by_name[name] == "failed" for name in (
+        "task_bound", "receipt_integrity", "independent_review",
+        "control_complete"))
+
+
+@pytest.mark.parametrize("duplicate_index,stage", [
+    (1, "claimed"),
+    (2, "received"),
+    (4, "response"),
+    (5, "task_bound"),
+])
+def test_research_evaluator_rejects_extra_claims_and_acknowledgements(
+        duplicate_index, stage):
+    module = research_api()
+    events = research_events()
+    duplicated = events[duplicate_index].model_copy(update={
+        "event_id": f"ev-extra-{duplicate_index}",
+        "at": events[duplicate_index].at + 0.1,
+    })
+    events.append(duplicated)
+    result = module.evaluate_profile(profile(), "run-1", events)
+    assert {item.name: item.status for item in result.stages}[stage] == "failed"
+
+
+def test_duplicate_profile_allows_only_the_fifth_duplicate_assertion():
+    module = research_api()
+    assertions = {
+        "task_bound": True, "receipt_verified": True,
+        "independent_review": True, "control_complete": True,
+        "duplicate_recognized": True,
+    }
+    result = module.evaluate_profile(
+        profile("sharpeshooter-research-duplicate-delivery"), "run-1",
+        research_events(assertions))
+    assert [item.name for item in result.stages][-2:] == [
+        "duplicate_recognized", "portable_identity"]
+    assert {item.name: item.status for item in result.stages}[
+        "duplicate_recognized"] == "passed"
 
 
 def test_research_bundle_replays_its_own_version_without_reinterpreting_quotes(tmp_path):
