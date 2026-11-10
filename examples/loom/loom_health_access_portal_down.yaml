@@ -1,0 +1,79 @@
+name: loom_health_access_portal_down
+description: 'Same agents and requests, but the LOOM portal is unreachable. The gateway must record the
+  outage and fail closed: every request is denied and no health data reaches any agent.'
+seed: 42
+plugin_files: [loom_plugin.py]
+redact_fields: [data]
+agents:
+- name: loom-gateway
+  role: loom_gateway
+  config: {loom_url: 'http://127.0.0.1:9'}
+- name: grocery-agent
+  role: loom_requester
+  config:
+    publisher: freshcart
+    category: agent_for_user
+    steps:
+    - day: 0
+      op: request
+      task: shopping_list
+      tier: L3
+      fields: [constraints]
+      purpose: weekly shopping list
+    - day: 3
+      op: request
+      task: shopping_list
+      tier: L3
+      fields: [constraints]
+      purpose: weekly shopping list
+- name: grocery-agent-injected
+  role: loom_requester
+  config:
+    publisher: freshcart
+    category: agent_for_user
+    steps:
+    - day: 2
+      op: request
+      task: shopping_list
+      tier: L1
+      fields: [readings]
+      purpose: shopping list
+- name: mealplan-agent
+  role: loom_requester
+  config:
+    publisher: plateplan
+    category: agent_for_user
+    steps:
+    - day: 1
+      op: request
+      task: meal_plan
+      tier: L2
+      fields: [glucose_patterns, constraints]
+      purpose: tune meals to post-meal response
+    - {day: 5, op: fetch, task: meal_plan}
+    - {day: 9, op: fetch, task: meal_plan}
+- name: clinic-agent
+  role: loom_requester
+  config:
+    publisher: cambridge-clinic
+    category: care_provider
+    steps:
+    - day: 0
+      op: request
+      task: clinical_visit
+      tier: L2
+      fields: [glucose_patterns, alerts]
+      purpose: next visit
+- name: adco-marketing
+  role: loom_requester
+  config:
+    publisher: adco
+    category: commercial
+    steps:
+    - day: 0
+      op: request
+      task: targeted_ads
+      tier: L1
+      fields: [readings]
+      purpose: personalized ads
+max_time: 20
