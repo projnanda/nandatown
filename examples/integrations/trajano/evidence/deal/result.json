@@ -1,0 +1,105 @@
+{
+  "run_id": "sim-4b1dcbb3d627",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "connection",
+      "status": "passed",
+      "evidence": [
+        "ev-7"
+      ],
+      "note": "12 buyer tools at Trajano 26d78f6c1f02, 5 seller agents"
+    },
+    {
+      "name": "discovery",
+      "status": "passed",
+      "evidence": [
+        "ev-6",
+        "ev-9"
+      ],
+      "note": "buyer found market under procurement.fasteners"
+    },
+    {
+      "name": "quotes",
+      "status": "passed",
+      "evidence": [
+        "ev-20",
+        "ev-23",
+        "ev-35",
+        "ev-38",
+        "ev-55"
+      ],
+      "note": "2 rfqs, a seller offer on each"
+    },
+    {
+      "name": "negotiation",
+      "status": "passed",
+      "evidence": [
+        "ev-45",
+        "ev-55"
+      ],
+      "note": "one counter, answered with a final offer (round limit 1)"
+    },
+    {
+      "name": "order_placed",
+      "status": "passed",
+      "evidence": [
+        "ev-62",
+        "ev-64",
+        "ev-65"
+      ],
+      "note": "order 1 placed under the signed mandate"
+    },
+    {
+      "name": "order_delivered",
+      "status": "passed",
+      "evidence": [
+        "ev-72",
+        "ev-76"
+      ],
+      "note": "order 1 confirmed, shipped and delivered by the seller agent"
+    },
+    {
+      "name": "others_withdrawn",
+      "status": "passed",
+      "evidence": [
+        "ev-69"
+      ],
+      "note": "threads [2] withdrawn in the database"
+    },
+    {
+      "name": "ground_truth",
+      "status": "passed",
+      "evidence": [
+        "ev-81"
+      ],
+      "note": "one order in the database, total 76.00 vs list optimum 79.07"
+    },
+    {
+      "name": "settlement",
+      "status": "passed",
+      "evidence": [
+        "ev-77"
+      ],
+      "note": "7600 cents paid once through Town's ledger"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-77"
+      ],
+      "note": "20000 cents conserved across every movement"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-82"
+      ],
+      "note": "fields ['api_key', 'signature'] never left the run"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794347623.9439309
+}

@@ -1,0 +1,64 @@
+{
+  "name": "trajano_deal",
+  "description": "One B2B purchase on Trajano, hosted in its own repository: a Town buyer finds the market in Town's registry, asks two sellers for quotes over MCP, counters once, accepts under its signed mandate, waits for delivery and pays through Town's ledger. The sellers are Trajano's own rule-based agents. The buyer is a Town script. Task t01 from Trajano's eval set, clock frozen.",
+  "seed": 42,
+  "layers": {
+    "transport": "memory.v1",
+    "communication": "envelope.v1",
+    "identity": "keys.v1",
+    "registry": "index.v1",
+    "auth": "hmac.v1",
+    "trust": "reputation.v1",
+    "payments": "ledger.v1",
+    "coordination": "contractnet.v1",
+    "negotiation": "haggle.v1",
+    "memory": "kv.v1",
+    "privacy": "redact.v1",
+    "data_facts": "evidence.v1"
+  },
+  "agents": [
+    {
+      "name": "market",
+      "role": "trajano_market",
+      "config": {
+        "task": "t01"
+      }
+    },
+    {
+      "name": "buyer",
+      "role": "trajano_buyer",
+      "config": {
+        "balance_cents": 20000,
+        "quotes": 2,
+        "counter_percent": 5,
+        "retry_after": 2.0,
+        "spec": {
+          "diameter": "M8",
+          "length_mm": 30,
+          "material": "steel",
+          "grade": "8.8",
+          "standard": "ISO 4017",
+          "qty": 500,
+          "ship_to": "US-OH",
+          "need_by": "2026-11-20"
+        },
+        "limits": {
+          "max_unit_price": "0.1502",
+          "max_total": "98.84",
+          "max_qty": 1000
+        }
+      }
+    }
+  ],
+  "faults": [],
+  "redact_fields": [
+    "api_key",
+    "signature"
+  ],
+  "max_time": 1000.0,
+  "validator": "trajano_deal",
+  "plugin_files": [
+    "/private/tmp/trajano-town/examples/integrations/trajano/trajano_plugin.py"
+  ],
+  "adaptations": []
+}

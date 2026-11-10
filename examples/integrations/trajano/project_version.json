@@ -1,0 +1,8 @@
+{
+  "project": "Trajano",
+  "repository": "https://github.com/augustoal/trajano",
+  "branch": "augusto/nanda-town",
+  "commit": "26d78f6c1f02c888e38ae48fe898e448f4aefcaa",
+  "python": "3.12",
+  "mcp": "1.30.0"
+}

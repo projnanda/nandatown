@@ -1,0 +1,41 @@
+{
+  "run_id": "sim-4b1dcbb3d627",
+  "profile_name": "trajano_deal",
+  "profile_fingerprint": "sha256:af870dca09e49e8d131447252d8b6d4e9e78771f124afc9e9cfd1563913241d2",
+  "created_at": 0.0,
+  "participants": [
+    {
+      "name": "market",
+      "role": "trajano_market"
+    },
+    {
+      "name": "buyer",
+      "role": "trajano_buyer"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "lab-0.2.6",
+    "python": "3.12.14"
+  },
+  "config": {
+    "mode": "lab",
+    "seed": 42,
+    "layers": {
+      "transport": "memory.v1",
+      "communication": "envelope.v1",
+      "identity": "keys.v1",
+      "registry": "index.v1",
+      "auth": "hmac.v1",
+      "trust": "reputation.v1",
+      "payments": "ledger.v1",
+      "coordination": "contractnet.v1",
+      "negotiation": "haggle.v1",
+      "memory": "kv.v1",
+      "privacy": "redact.v1",
+      "data_facts": "evidence.v1"
+    },
+    "logical_time": 3.9000000000000004,
+    "rerun_command": "nandatown run examples/integrations/trajano/trajano_deal.yaml --seed 42"
+  }
+}

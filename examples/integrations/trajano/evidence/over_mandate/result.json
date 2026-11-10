@@ -1,0 +1,85 @@
+{
+  "run_id": "sim-48a93823512b",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "connection",
+      "status": "passed",
+      "evidence": [
+        "ev-7"
+      ],
+      "note": "12 buyer tools at Trajano 26d78f6c1f02, 5 seller agents"
+    },
+    {
+      "name": "quotes",
+      "status": "passed",
+      "evidence": [
+        "ev-20",
+        "ev-23",
+        "ev-35",
+        "ev-38",
+        "ev-55",
+        "ev-71"
+      ],
+      "note": "2 rfqs, a seller offer on each"
+    },
+    {
+      "name": "careless_accept",
+      "status": "passed",
+      "evidence": [
+        "ev-16",
+        "ev-58"
+      ],
+      "note": "every offer was above the 0.1000 unit cap; the buyer accepted anyway"
+    },
+    {
+      "name": "mandate_refused",
+      "status": "passed",
+      "evidence": [
+        "ev-62"
+      ],
+      "note": "MANDATE_INVALID, not retryable, and not retried"
+    },
+    {
+      "name": "refusal_recorded",
+      "status": "passed",
+      "evidence": [
+        "ev-65",
+        "ev-71"
+      ],
+      "note": "the server wrote a refused message on the thread and the buyer recorded it"
+    },
+    {
+      "name": "no_order",
+      "status": "passed",
+      "evidence": [
+        "ev-80"
+      ],
+      "note": "no order in the database; every thread withdrawn"
+    },
+    {
+      "name": "no_payment",
+      "status": "passed",
+      "evidence": [
+        "ev-85"
+      ],
+      "note": "no money moved"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [],
+      "note": "20000 cents conserved across every movement"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-85"
+      ],
+      "note": "fields ['api_key', 'signature'] never left the run"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794347629.786131
+}
