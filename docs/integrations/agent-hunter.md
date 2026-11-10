@@ -24,9 +24,9 @@ The profiles are described in the [README](../../README.md#a-hiring-agent-trial-
 
 | | Version |
 | -- | -- |
-| Town | this fork's `integration/agent-hunter-trial-then-hire` at `ef2be6c`, `nandatown 0.2.0` |
+| Town | this fork's `integration/agent-hunter-trial-then-hire`; Town code last changed at `a409934`, `nandatown 0.2.0` |
 | Agent-Hunter | [`chris-a-ackerman/agent-hunter`](https://github.com/chris-a-ackerman/agent-hunter) at `735f2d8` |
-| Python | Town ≥ 3.11 (checked on 3.12); Agent-Hunter 3.12 (via [uv](https://docs.astral.sh/uv/)) |
+| Python | Town ≥ 3.11 (full suite passes on 3.11 and 3.12); Agent-Hunter 3.12 (via [uv](https://docs.astral.sh/uv/)) |
 
 ## Reproduce offline, with no keys
 
