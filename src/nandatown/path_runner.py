@@ -35,9 +35,10 @@ from .a2a_transport import (
     validate_response_budget,
 )
 from .path_profiles import (
-    DEFAULT_PATH_PROFILE, ORDER_CONFLICT_EVALUATOR, PATH_EVALUATOR,
-    QUOTE_INTENT_EVALUATOR, QUOTE_INTENT_FIELDS, STRICT_PATH_EVALUATOR,
-    STRICT_QUOTE_INTENT_EVALUATOR, PathProfile, get_path_profile,
+    DEFAULT_PATH_PROFILE, INVOICE_EXTRACTION_EVALUATOR,
+    ORDER_CONFLICT_EVALUATOR, PATH_EVALUATOR, QUOTE_INTENT_EVALUATOR, QUOTE_INTENT_FIELDS, STRICT_PATH_EVALUATOR,
+    STRICT_QUOTE_INTENT_EVALUATOR, TRIAL_HIRE_EVALUATOR, PathProfile,
+    get_path_profile,
 )
 from .records import (
     EvidenceResult,
@@ -53,11 +54,15 @@ PATH_EVALUATOR_VERSION = "path-0.2"
 STRICT_PATH_EVALUATOR_VERSION = "path-0.3"
 STRICT_QUOTE_INTENT_EVALUATOR_VERSION = "path-quote-intent-0.2"
 ORDER_CONFLICT_EVALUATOR_VERSION = "path-order-conflict-0.1"
+TRIAL_HIRE_EVALUATOR_VERSION = "path-trial-hire-0.1"
+INVOICE_EXTRACTION_EVALUATOR_VERSION = "path-invoice-extraction-0.1"
 
 STRICT_PATH_EVALUATORS = {
     STRICT_PATH_EVALUATOR,
     STRICT_QUOTE_INTENT_EVALUATOR,
     ORDER_CONFLICT_EVALUATOR,
+    TRIAL_HIRE_EVALUATOR,
+    INVOICE_EXTRACTION_EVALUATOR,
 }
 LEGACY_PATH_EVALUATORS = {
     PATH_EVALUATOR,
@@ -76,6 +81,10 @@ def path_evaluator_version(profile: PathProfile) -> str:
         return STRICT_QUOTE_INTENT_EVALUATOR_VERSION
     if profile.evaluator == ORDER_CONFLICT_EVALUATOR:
         return ORDER_CONFLICT_EVALUATOR_VERSION
+    if profile.evaluator == TRIAL_HIRE_EVALUATOR:
+        return TRIAL_HIRE_EVALUATOR_VERSION
+    if profile.evaluator == INVOICE_EXTRACTION_EVALUATOR:
+        return INVOICE_EXTRACTION_EVALUATOR_VERSION
     if profile.evaluator == QUOTE_INTENT_EVALUATOR:
         return "path-quote-intent-0.1"
     if profile.evaluator == PATH_EVALUATOR:
@@ -224,6 +233,10 @@ def _quote_intent_errors(profile: PathProfile, detail: dict[str, Any]) -> list[s
 
 def _semantic_fulfillment_stage(
         profile: PathProfile, fulfillment: TownEvent) -> StageResult:
+    if profile.evaluator == TRIAL_HIRE_EVALUATOR:
+        return _trial_hire_stage(profile, fulfillment)
+    if profile.evaluator == INVOICE_EXTRACTION_EVALUATOR:
+        return _invoice_extraction_stage(profile, fulfillment)
     detail = fulfillment.detail
     observed_total = detail.get("total_cents")
     expected_request_id = fulfillment.subject
@@ -255,6 +268,419 @@ def _semantic_fulfillment_stage(
     return StageResult(
         name="semantic_result", status="failed",
         evidence=[fulfillment.event_id], note=note)
+
+
+TRIAL_HIRE_VERDICT_STATUSES = ("recommended", "tie", "insufficient_candidates")
+
+
+def _hire_observation(fulfillment: dict[str, Any]) -> Any:
+    """The parts of a hire result the trial-hire evaluator judges.
+
+    Only keys the subject sent are copied, so a missing key stays missing
+    rather than becoming null; values are recorded as sent, whatever their
+    type, and judged later from this record alone. ``candidates`` (who was
+    considered and who was excluded, and why) is recorded for the reader
+    and never judged.
+    """
+    observed: dict[str, Any] = {
+        key: fulfillment[key]
+        for key in ("mode", "job_id", "job_status", "reason")
+        if key in fulfillment}
+    spend = fulfillment.get("spend_usd")
+    if isinstance(spend, dict) and "providers_usd" in spend:
+        observed["providers_usd"] = spend["providers_usd"]
+    if "verdict" in fulfillment:
+        verdict = fulfillment["verdict"]
+        if isinstance(verdict, dict):
+            kept = {key: verdict[key]
+                    for key in ("status", "recommended", "tie", "tied",
+                                "evidence")
+                    if key in verdict}
+            ranking = verdict.get("ranking")
+            if isinstance(ranking, list):
+                kept["ranking"] = [
+                    {key: row[key] for key in ("provider", "accuracy", "ci_95")
+                     if key in row} if isinstance(row, dict) else row
+                    for row in ranking]
+            elif "ranking" in verdict:
+                kept["ranking"] = ranking
+            verdict = kept
+        observed["verdict"] = verdict
+    if "candidates" in fulfillment:
+        observed["candidates"] = fulfillment["candidates"]
+    return _echoed(observed)
+
+
+def _is_number(value: Any) -> bool:
+    # JSON booleans are not scores or amounts.
+    return (isinstance(value, (int, float)) and not isinstance(value, bool)
+            and math.isfinite(value))
+
+
+def _verdict_errors(verdict: Any, min_ranked: int) -> list[str]:
+    """Whether a ranked verdict holds together, never whether its pick is
+    the best provider: Town sees the trial's claims, not the answer key."""
+    if not isinstance(verdict, dict):
+        return [f"verdict: expected an object for a ranked job, observed"
+                f" {verdict!r:.80}"]
+    errors = []
+    status = verdict.get("status")
+    if status not in TRIAL_HIRE_VERDICT_STATUSES:
+        errors.append(f"verdict.status: expected one of"
+                      f" {list(TRIAL_HIRE_VERDICT_STATUSES)}, observed"
+                      f" {status!r}")
+    tie = verdict.get("tie")
+    if not isinstance(tie, bool) or tie != (status == "tie"):
+        errors.append(f"verdict.tie: expected {status == 'tie'} for status"
+                      f" {status!r}, observed {tie!r}")
+    evidence = verdict.get("evidence")
+    if not isinstance(evidence, str) or not evidence:
+        errors.append(f"verdict.evidence: expected the trial id, observed"
+                      f" {evidence!r}")
+    ranking = verdict.get("ranking")
+    if not isinstance(ranking, list):
+        errors.append("verdict.ranking: expected a list")
+        return errors
+    if len(ranking) < min_ranked:
+        errors.append(f"verdict.ranking: expected at least {min_ranked}"
+                      f" ranked candidates, observed {len(ranking)}")
+    providers = []
+    accuracies = []
+    scored: list[tuple[str, float, list[float]]] = []
+    for i, row in enumerate(ranking):
+        if not isinstance(row, dict):
+            errors.append(f"verdict.ranking[{i}]: expected an object")
+            continue
+        provider = row.get("provider")
+        if isinstance(provider, str) and provider:
+            providers.append(provider)
+        else:
+            errors.append(f"verdict.ranking[{i}].provider: expected a"
+                          f" non-empty string, observed {provider!r}")
+        accuracy = row.get("accuracy")
+        if not _is_number(accuracy) or not 0 <= accuracy <= 1:
+            errors.append(f"verdict.ranking[{i}].accuracy: expected a number"
+                          f" in [0, 1], observed {accuracy!r}")
+            continue
+        accuracies.append(accuracy)
+        ci = row.get("ci_95")
+        if not (isinstance(ci, list) and len(ci) == 2
+                and all(_is_number(bound) for bound in ci)
+                and ci[0] <= accuracy <= ci[1]):
+            errors.append(f"verdict.ranking[{i}].ci_95: expected [lo, hi]"
+                          f" with lo <= {accuracy!r} <= hi, observed {ci!r}")
+        elif isinstance(provider, str) and provider:
+            scored.append((provider, accuracy, ci))
+    if any(a < b for a, b in zip(accuracies, accuracies[1:])):
+        errors.append("verdict.ranking: expected candidates ordered by"
+                      " accuracy, highest first")
+    if len(set(providers)) != len(providers):
+        errors.append("verdict.ranking: a candidate is ranked more than once")
+    recommended = verdict.get("recommended")
+    if status == "insufficient_candidates":
+        if recommended is not None:
+            errors.append(f"verdict.recommended: expected null for status"
+                          f" 'insufficient_candidates', observed"
+                          f" {recommended!r}")
+    elif status in TRIAL_HIRE_VERDICT_STATUSES \
+            and (not isinstance(recommended, str)
+                 or recommended not in providers):
+        errors.append(f"verdict.recommended: {recommended!r} is not a"
+                      " candidate in the ranking")
+    if not errors and len(scored) == len(ranking):
+        errors += _decision_errors(verdict, scored)
+    return errors
+
+
+def _decision_errors(verdict: dict[str, Any],
+                     scored: list[tuple[str, float, list[float]]]) -> list[str]:
+    """Whether the status and the pick follow from the ranking's own CIs.
+
+    The rule: the leader is recommended only if no other candidate's CI
+    reaches the leader's lower bound; otherwise the candidates whose CI
+    reaches it are tied, and the pick (by whatever tie-break) is one of
+    them. With several candidates at the top accuracy, the lowest of their
+    lower bounds is used, so the check never depends on how equal
+    accuracies were ordered. Town can't see which candidates answered, so a
+    candidate that never did can only widen the tie, never narrow it.
+    """
+    status = verdict.get("status")
+    recommended = verdict.get("recommended")
+    if status not in ("recommended", "tie") or len(scored) < 2:
+        return []
+    top = max(accuracy for _, accuracy, _ in scored)
+    leaders = [p for p, accuracy, _ in scored if accuracy == top]
+    floor = min(ci[0] for _, accuracy, ci in scored if accuracy == top)
+    reaching = [p for p, _, ci in scored if ci[1] >= floor]
+    errors = []
+    if status == "recommended":
+        if recommended not in leaders:
+            errors.append(f"verdict.recommended: status 'recommended' must"
+                          f" pick the leader {leaders[0]!r}, observed"
+                          f" {recommended!r}")
+        others = [p for p in reaching if p not in leaders[:1]]
+        if others:
+            errors.append(f"verdict.status: 'recommended', but the CI of"
+                          f" {others} reaches the leader's lower bound"
+                          f" {floor!r}, which is a tie")
+        return errors
+    if len(reaching) < 2:
+        errors.append(f"verdict.status: 'tie', but no other candidate's CI"
+                      f" reaches the leader's lower bound {floor!r}")
+    if recommended not in reaching:
+        hi = next(ci[1] for p, _, ci in scored if p == recommended)
+        errors.append(f"verdict.recommended: {recommended!r} is outside the"
+                      f" tie: its CI upper bound {hi!r} is below the"
+                      f" leader's lower bound {floor!r}")
+    if "tied" in verdict:
+        tied = verdict["tied"]
+        if not (isinstance(tied, list) and len(tied) >= 2
+                and all(isinstance(p, str) for p in tied)
+                and len(set(tied)) == len(tied)):
+            errors.append(f"verdict.tied: expected at least 2 distinct"
+                          f" candidates for a tie, observed {tied!r:.80}")
+        else:
+            outside = [p for p in tied if p not in reaching]
+            if outside:
+                errors.append(f"verdict.tied: {outside} are outside the tie"
+                              f" (CI below the leader's lower bound"
+                              f" {floor!r})")
+            if recommended not in tied:
+                errors.append(f"verdict.tied: does not include the"
+                              f" recommended {recommended!r}")
+    return errors
+
+
+def _trial_hire_errors(profile: PathProfile, hire: dict[str, Any]) -> list[str]:
+    errors = []
+    mode = hire.get("mode")
+    if mode not in ("live", "offline"):
+        errors.append(f"mode: expected 'live' or 'offline', observed {mode!r}")
+    job_id = hire.get("job_id")
+    if not isinstance(job_id, str) or not job_id:
+        errors.append(f"job_id: expected a non-empty string, observed"
+                      f" {job_id!r}")
+    wanted = profile.expected["job_status"]
+    job_status = hire.get("job_status")
+    if job_status != wanted:
+        errors.append(f"job_status: expected {wanted!r}, observed"
+                      f" {job_status!r}")
+        return errors
+    if wanted == "rejected":
+        if "verdict" not in hire or hire["verdict"] is not None:
+            errors.append("verdict: expected null for a rejected job")
+        providers_usd = hire.get("providers_usd")
+        if not _is_number(providers_usd) or providers_usd != 0:
+            errors.append(f"spend_usd.providers_usd: expected 0, no candidate"
+                          f" paid for a trial, observed {providers_usd!r}")
+        return errors
+    return errors + _verdict_errors(hire.get("verdict"),
+                                    profile.expected.get("min_ranked", 2))
+
+
+def _trial_hire_stage(profile: PathProfile,
+                      fulfillment: TownEvent) -> StageResult:
+    detail = fulfillment.detail
+    expected_request_id = fulfillment.subject
+    observed_request_id = detail.get("request_id")
+    hire = detail.get("hire")
+    if not isinstance(hire, dict):
+        hire = {}
+    errors = _trial_hire_errors(profile, hire)
+    if not (isinstance(observed_request_id, str) and observed_request_id
+            and observed_request_id == expected_request_id):
+        errors.append(f"expected request_id {expected_request_id!r},"
+                      f" observed request_id {observed_request_id!r}")
+    mode = hire.get("mode")
+    if errors:
+        return StageResult(
+            name="semantic_result", status="failed",
+            evidence=[fulfillment.event_id],
+            note=f"the hire result does not hold together (mode {mode!r}): "
+                 + "; ".join(errors))
+    if profile.expected["job_status"] == "rejected":
+        note = (f"{mode} run: job {hire.get('job_id')} was rejected before"
+                f" any trial ({hire.get('reason')!r}); no candidate was paid")
+    else:
+        verdict = hire["verdict"]
+        note = (f"{mode} run: job {hire.get('job_id')} ranked"
+                f" {len(verdict['ranking'])} candidates, verdict"
+                f" {verdict['status']!r}, recommended"
+                f" {verdict['recommended']!r}; Town checked that the verdict"
+                " holds together, not that the pick is the best provider")
+    return StageResult(name="semantic_result", status="passed",
+                       evidence=[fulfillment.event_id], note=note)
+
+
+def _hire_duplicate_note(first: TownEvent, second: TownEvent) -> str:
+    """Names both jobs and trials when a duplicate hire ran again."""
+    def ids(event: TownEvent) -> str:
+        hire = event.detail.get("hire")
+        hire = hire if isinstance(hire, dict) else {}
+        verdict = hire.get("verdict")
+        trial = verdict.get("evidence") if isinstance(verdict, dict) else None
+        return f"job {hire.get('job_id')!r}, trial {trial!r}"
+
+    return f"; attempt 1 gave {ids(first)}, attempt 2 gave {ids(second)}"
+
+
+def _failure_code(status: Any) -> Any:
+    """The error a provider gave for a failed task: the "error" value of a
+    JSON object in the status message's first text part, or None."""
+    message = status.get("message") if isinstance(status, dict) else None
+    parts = message.get("parts") if isinstance(message, dict) else None
+    if not isinstance(parts, list) or not parts \
+            or not isinstance(parts[0], dict):
+        return None
+    try:
+        body = json.loads(parts[0].get("text"))
+    except (TypeError, ValueError, RecursionError):
+        return None
+    return body.get("error") if isinstance(body, dict) else None
+
+
+def _declined_work(profile: PathProfile, detail: dict[str, Any]) -> bool:
+    """A provider that ends a task 'failed' completed the A2A exchange; the
+    invoice-extraction profile judges that refusal in semantic_result."""
+    return (profile.evaluator == INVOICE_EXTRACTION_EVALUATOR
+            and detail.get("state") == "failed")
+
+
+def _type_skeleton(value: Any) -> Any:
+    """value with every scalar replaced by its JSON type name.
+
+    The provider-level evaluator checks types only, so the bundle records
+    the output's shape and never the extracted values: a public record of
+    how accurately each provider read the invoice would rank real
+    providers. The content digest still covers the full value.
+    """
+    if isinstance(value, dict):
+        return {key: _type_skeleton(child) for key, child in value.items()}
+    if isinstance(value, list):
+        return [_type_skeleton(child) for child in value]
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "boolean"
+    if isinstance(value, str):
+        return "string"
+    if isinstance(value, float) and not math.isfinite(value):
+        return "non-finite number"
+    return "number"
+
+
+def _provider_observation(fulfillment: dict[str, Any]) -> Any:
+    observed = {key: fulfillment[key]
+                for key in ("task_id", "cost_usd", "provider_version")
+                if key in fulfillment}
+    if "output" in fulfillment:
+        output = fulfillment["output"]
+        observed["output"] = (output
+                              if _nesting_exceeds(output, MAX_ECHOED_NESTING)
+                              else _type_skeleton(output))
+    return _echoed(observed)
+
+
+def _skeleton_label(value: Any) -> str:
+    if isinstance(value, dict):
+        return "object"
+    if isinstance(value, list):
+        return "array"
+    return value if isinstance(value, str) else repr(value)
+
+
+def _schema_errors(schema: dict[str, Any], value: Any, where: str,
+                   defs: dict[str, Any]) -> list[str]:
+    """Where a type skeleton breaks the subset of JSON Schema an output
+    schema like Agent-Hunter's Invoice uses: type, required, properties,
+    additionalProperties false, items, anyOf and local $ref. Formats such
+    as dates are hints, not checks."""
+    ref = schema.get("$ref")
+    if isinstance(ref, str):
+        schema = defs.get(ref.rsplit("/", 1)[-1], {})
+    if "anyOf" in schema:
+        options = schema["anyOf"]
+        if any(not _schema_errors(option, value, where, defs)
+               for option in options):
+            return []
+        wanted = " or ".join(str(option.get("type", "a schema"))
+                             for option in options)
+        return [f"{where}: expected {wanted}, observed"
+                f" {_skeleton_label(value)}"]
+    kind = schema.get("type")
+    if kind == "object":
+        if not isinstance(value, dict):
+            return [f"{where}: expected object, observed"
+                    f" {_skeleton_label(value)}"]
+        errors = [f"{where}.{key}: missing"
+                  for key in schema.get("required", []) if key not in value]
+        properties = schema.get("properties", {})
+        for key, child in value.items():
+            if key in properties:
+                errors += _schema_errors(properties[key], child,
+                                         f"{where}.{key}", defs)
+            elif schema.get("additionalProperties") is False:
+                errors.append(f"{where}.{key}: not in the schema")
+        return errors
+    if kind == "array":
+        if not isinstance(value, list):
+            return [f"{where}: expected array, observed"
+                    f" {_skeleton_label(value)}"]
+        return [error for i, item in enumerate(value)
+                for error in _schema_errors(schema.get("items", {}), item,
+                                            f"{where}[{i}]", defs)]
+    if kind in ("string", "number", "boolean", "null") and value != kind:
+        return [f"{where}: expected {kind}, observed"
+                f" {_skeleton_label(value)}"]
+    return []
+
+
+def _invoice_extraction_stage(profile: PathProfile,
+                              fulfillment: TownEvent) -> StageResult:
+    detail = fulfillment.detail
+    result = detail.get("provider_result")
+    if not isinstance(result, dict):
+        result = {}
+    errors = []
+    expected_request_id = fulfillment.subject
+    observed_request_id = detail.get("request_id")
+    if not (isinstance(observed_request_id, str) and observed_request_id
+            and observed_request_id == expected_request_id):
+        errors.append(f"expected request_id {expected_request_id!r},"
+                      f" observed request_id {observed_request_id!r}")
+    task_id = profile.request.get("task_id")
+    if result.get("task_id") != task_id:
+        errors.append(f"task_id: expected {task_id!r}, observed"
+                      f" {result.get('task_id')!r}")
+    cost = result.get("cost_usd")
+    if not _is_number(cost) or cost < 0:
+        errors.append(f"cost_usd: expected a number >= 0, observed {cost!r}")
+    version = result.get("provider_version")
+    if not isinstance(version, str) or not version:
+        errors.append(f"provider_version: expected a non-empty string,"
+                      f" observed {version!r}")
+    if "output" not in result:
+        errors.append("output: missing")
+    else:
+        schema = profile.request.get("output_schema", {})
+        schema_errors = _schema_errors(schema, result["output"], "output",
+                                       schema.get("$defs", {}))
+        errors += schema_errors[:5]
+        if len(schema_errors) > 5:
+            errors.append(f"and {len(schema_errors) - 5} more schema"
+                          " mismatches")
+    if errors:
+        return StageResult(
+            name="semantic_result", status="failed",
+            evidence=[fulfillment.event_id],
+            note="the provider result is not a valid extraction: "
+                 + "; ".join(errors))
+    return StageResult(
+        name="semantic_result", status="passed",
+        evidence=[fulfillment.event_id],
+        note=f"task {task_id}: the output matches the request's"
+             f" output_schema (types and required keys only; field accuracy"
+             f" is not checked); cost_usd {cost!r}")
 
 
 def _conflicting_retry_stage(profile: PathProfile,
@@ -605,6 +1031,10 @@ def run_path_test(subject_url: str | None, out_dir: str,
                         "kind": _echoed(task.get("kind")),
                         "state": _echoed(state),
                     }
+                    if profile.evaluator == INVOICE_EXTRACTION_EVALUATOR \
+                            and state == "failed":
+                        exchange_detail["error"] = _echoed(
+                            _failure_code(status))
                     terminal_outputs = None
                     if strict_semantics:
                         terminal_outputs = artifact_texts(task)
@@ -671,6 +1101,11 @@ def run_path_test(subject_url: str | None, out_dir: str,
                         "total_cents": _echoed(fulfillment.get("total_cents")),
                         "request_id": _echoed(fulfillment.get("request_id")),
                         "content_digest": content_digest}
+                    if profile.evaluator == TRIAL_HIRE_EVALUATOR:
+                        detail["hire"] = _hire_observation(fulfillment)
+                    if profile.evaluator == INVOICE_EXTRACTION_EVALUATOR:
+                        detail["provider_result"] = \
+                            _provider_observation(fulfillment)
                     if _quote_intent_semantics(profile):
                         detail["quote"] = {
                             field: _echoed(fulfillment[field])
@@ -851,7 +1286,8 @@ def evaluate_path(profile: PathProfile, run_id: str,
                 name="protocol_invocation", status="failed",
                 evidence=[first_exchange[0].event_id],
                 note="the response was not a well-formed task"))
-        elif strict_semantics and detail.get("state") != "completed":
+        elif strict_semantics and detail.get("state") != "completed" \
+                and not _declined_work(profile, detail):
             stages.append(StageResult(
                 name="protocol_invocation", status="failed",
                 evidence=[first_exchange[0].event_id],
@@ -877,7 +1313,16 @@ def evaluate_path(profile: PathProfile, run_id: str,
     first_bad = find("fulfillment_unparseable", attempt=1)
     first_outcomes = first_fulfillment + first_bad
     expected_outputs = profile.expected.get("terminal_fulfillments", 1)
-    if strict_semantics:
+    if len(first_exchange) == 1 and first_exchange[0].detail.get("ok") \
+            and first_exchange[0].detail.get("kind") == "task" \
+            and _declined_work(profile, first_exchange[0].detail):
+        stages.append(StageResult(
+            name="semantic_result", status="failed",
+            evidence=[first_exchange[0].event_id],
+            note="the provider ended the task 'failed' with error"
+                 f" {first_exchange[0].detail.get('error')!r}; no invoice"
+                 " was extracted"))
+    elif strict_semantics:
         successful_exchange = (
             len(first_exchange) == 1
             and first_exchange[0].detail.get("ok")
@@ -992,12 +1437,16 @@ def evaluate_path(profile: PathProfile, run_id: str,
                     note="the same logical order was delivered twice; no"
                          " second distinct fulfillment appeared"))
             else:
+                note = ("idempotency defect: the duplicate produced a"
+                        " second distinct fulfillment")
+                if profile.evaluator == TRIAL_HIRE_EVALUATOR:
+                    note += _hire_duplicate_note(first_fulfillment[0],
+                                                 second[0])
                 stages.append(StageResult(
                     name="duplicate_request", status="failed",
                     evidence=[first_fulfillment[0].event_id,
                               second[0].event_id],
-                    note="idempotency defect: the duplicate produced a"
-                         " second distinct fulfillment"))
+                    note=note))
         elif second_bad:
             stages.append(StageResult(
                 name="duplicate_request", status="failed",

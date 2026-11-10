@@ -1,0 +1,57 @@
+{
+  "run_id": "path-a90fbbc9663e",
+  "evaluator_version": "path-invoice-extraction-0.1",
+  "stages": [
+    {
+      "name": "resolution",
+      "status": "passed",
+      "evidence": [
+        "ev-1"
+      ],
+      "note": ""
+    },
+    {
+      "name": "agent_card_retrieval",
+      "status": "passed",
+      "evidence": [
+        "ev-2"
+      ],
+      "note": "observed card sha256:c094748a722b8f92"
+    },
+    {
+      "name": "descriptor_consistency",
+      "status": "passed",
+      "evidence": [
+        "ev-3",
+        "ev-2"
+      ],
+      "note": ""
+    },
+    {
+      "name": "protocol_invocation",
+      "status": "passed",
+      "evidence": [
+        "ev-4"
+      ],
+      "note": "task task-084b3d38b727 state completed"
+    },
+    {
+      "name": "semantic_result",
+      "status": "failed",
+      "evidence": [
+        "ev-5"
+      ],
+      "note": "the provider result is not a valid extraction: output.vendor_name: missing; output.invoice_number: missing; output.invoice_date: missing; output.currency: missing; output.line_items: missing; and 4 more schema mismatches"
+    },
+    {
+      "name": "duplicate_request",
+      "status": "passed",
+      "evidence": [
+        "ev-7"
+      ],
+      "note": "the same logical order was delivered twice; no second distinct fulfillment appeared"
+    }
+  ],
+  "verdict": "failed",
+  "evaluated_at": 1794238317.109799
+}

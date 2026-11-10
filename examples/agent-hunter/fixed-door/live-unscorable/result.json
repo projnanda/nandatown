@@ -1,0 +1,57 @@
+{
+  "run_id": "path-7217932335ba",
+  "evaluator_version": "path-trial-hire-0.1",
+  "stages": [
+    {
+      "name": "resolution",
+      "status": "passed",
+      "evidence": [
+        "ev-1"
+      ],
+      "note": ""
+    },
+    {
+      "name": "agent_card_retrieval",
+      "status": "passed",
+      "evidence": [
+        "ev-2"
+      ],
+      "note": "observed card sha256:f4386869a5a275d6"
+    },
+    {
+      "name": "descriptor_consistency",
+      "status": "passed",
+      "evidence": [
+        "ev-3",
+        "ev-2"
+      ],
+      "note": ""
+    },
+    {
+      "name": "protocol_invocation",
+      "status": "passed",
+      "evidence": [
+        "ev-4"
+      ],
+      "note": "task task-227a0414f5d3 state completed"
+    },
+    {
+      "name": "semantic_result",
+      "status": "passed",
+      "evidence": [
+        "ev-5"
+      ],
+      "note": "live run: job job-1a02803b030f was rejected before any trial ('This job asks for a persuasive, subjective cover letter rather than extracting objectively scored invoice fields.'); no candidate was paid"
+    },
+    {
+      "name": "duplicate_request",
+      "status": "passed",
+      "evidence": [
+        "ev-7"
+      ],
+      "note": "the same logical order was delivered twice; no second distinct fulfillment appeared"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794254902.712171
+}

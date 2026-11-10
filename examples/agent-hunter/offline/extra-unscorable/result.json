@@ -1,0 +1,58 @@
+{
+  "run_id": "path-7b5a8118649d",
+  "evaluator_version": "path-trial-hire-0.1",
+  "stages": [
+    {
+      "name": "resolution",
+      "status": "passed",
+      "evidence": [
+        "ev-1"
+      ],
+      "note": ""
+    },
+    {
+      "name": "agent_card_retrieval",
+      "status": "passed",
+      "evidence": [
+        "ev-2"
+      ],
+      "note": "observed card sha256:8e6bb24ab71b5578"
+    },
+    {
+      "name": "descriptor_consistency",
+      "status": "passed",
+      "evidence": [
+        "ev-3",
+        "ev-2"
+      ],
+      "note": ""
+    },
+    {
+      "name": "protocol_invocation",
+      "status": "passed",
+      "evidence": [
+        "ev-4"
+      ],
+      "note": "task task-b1a4f18c8224 state completed"
+    },
+    {
+      "name": "semantic_result",
+      "status": "passed",
+      "evidence": [
+        "ev-5"
+      ],
+      "note": "offline run: job job-b1c671ecb574 was rejected before any trial ('Not an invoice-extraction job we can score: the output schema lacks currency, invoice_date, invoice_number, line_items, total, vendor_name.'); no candidate was paid"
+    },
+    {
+      "name": "duplicate_request",
+      "status": "failed",
+      "evidence": [
+        "ev-5",
+        "ev-7"
+      ],
+      "note": "idempotency defect: the duplicate produced a second distinct fulfillment; attempt 1 gave job 'job-b1c671ecb574', trial None, attempt 2 gave job 'job-a2ad34355a5c', trial None"
+    }
+  ],
+  "verdict": "failed",
+  "evaluated_at": 1794238302.2178218
+}

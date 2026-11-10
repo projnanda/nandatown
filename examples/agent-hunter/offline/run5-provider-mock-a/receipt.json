@@ -1,0 +1,42 @@
+{
+  "payload": {
+    "claim": {
+      "capability": "invoice_extraction",
+      "subject": "http://127.0.0.1:8101/p/mock-a/a2a",
+      "release_basis": {
+        "profile_fingerprint": "sha256:7592ba5632918388a3e08b9fa01aa1b758c9677c43ff38891bb675d49e47ef00",
+        "card_digest": "sha256:c254b3d0e6ede0e1e442103f6c50489006b397f7b32d25a84156087a0462ff74"
+      },
+      "profile": "a2a-invoice-extraction@0.1",
+      "verdict": "passed"
+    },
+    "observer": "did:town:bd18ac20dae90cd699380188",
+    "window": {
+      "started": 1794238316.9132218,
+      "evaluated": 1794238316.913141
+    },
+    "coverage": {
+      "tested": [
+        "resolution",
+        "agent_card_retrieval",
+        "descriptor_consistency",
+        "protocol_invocation",
+        "semantic_result",
+        "duplicate_request"
+      ],
+      "not_tested": []
+    },
+    "limitations": [
+      "one run is one scoped observation, not a certificate",
+      "the signature proves key commitment, not truth, independence, or safety",
+      "a favorable result grants no permissions and endorses nothing"
+    ],
+    "evidence": {
+      "bundle_fingerprint": "sha256:99188126807336674ceb0c583047dfa576d365e95bdac727afbda52bb789cbb7",
+      "result_digest": "sha256:8460ca7df6fa94cb8bcc58688341df374c2d824dc2fdb2f3b935ed55834833b0",
+      "run_id": "path-b02781b22f2b"
+    }
+  },
+  "signature": "3eafa8a02dd5de25a57912b51a7a6f2739c0316f054e575a100686bfa724f1afb19d483af06e78f6ad99f4140ddcb0c0477924ace75e768eb9e337ade0614704",
+  "controller_public": "f98ddd7f6c6002784fc1c5d106580defad8a57185c7d0a7e343811ed082cd45b"
+}

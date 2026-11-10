@@ -548,6 +548,63 @@ seller rejects the changed retry. This checks one changed field on one synthetic
 quote. Town records the task state, not whether the agent's reason is true.
 Evaluator: `path-order-conflict-0.1`.
 
+#### A hiring agent: trial then hire
+
+`--path-profile a2a-trial-then-hire@0.1` tests an agent that hires other
+agents. Town posts one invoice-extraction job (`{"job": {...}}`, the posting
+shipped in `src/nandatown/path_requests/`). The subject trials candidate agents
+on it and returns one text part: a JSON hire result with `request_id`, `mode`
+(`live` or `offline`), `job_id`, `job_status`, a `verdict` and `spend_usd`.
+`semantic_result` passes only if the job was `ranked` and the verdict holds
+together: at least two ranked candidates ordered by accuracy, each accuracy
+inside its own `ci_95`, `tie` true exactly when the status is `tie`, and a
+status and pick that follow from those CIs. `recommended` needs the leader
+picked and no other CI reaching the leader's lower bound; `tie` needs another
+CI that does, and a pick (and `tied` list, if sent) from inside that group,
+whatever the tie-break. `insufficient_candidates` picks no one. Unknown keys are ignored, and the stage note names
+the result's `mode`, so an offline run is never read as a live one. The
+duplicate passes only if the resent request returns the same reply bytes: a
+second job or trial means double the spend and possibly a different pick, and
+the note names both job and trial ids.
+
+`a2a-trial-then-hire-unscorable@0.1` posts a job whose output (a cover letter)
+can't be scored automatically. It passes only if the job is `rejected` with
+`verdict: null` and `spend_usd.providers_usd == 0`, before any candidate is paid.
+
+A live hire takes one to two minutes, so both profiles allow 240 s per HTTP
+phase instead of the stock 15 s. They check one synchronous `message/send`. They
+don't test async `tasks/get` polling, streaming, payment, the hire step, or
+whether the recommended candidate is actually the best: Town sees the verdict's
+claims, not the trial's answer key. Evaluator: `path-trial-hire-0.1`.
+
+To rerun these profiles against Agent-Hunter, the hiring agent they were written for (offline,
+with no keys), and to verify its recorded runs in `examples/agent-hunter/`, see
+[docs/integrations/agent-hunter.md](docs/integrations/agent-hunter.md).
+
+#### A provider agent: invoice extraction
+
+`--path-profile a2a-invoice-extraction@0.1` tests the other side of the hire:
+one agent that extracts invoices. Town sends one task (shipped in
+`src/nandatown/path_requests/`) for a single pinned synthetic invoice,
+`examples/agent-hunter/fixtures/d/1070b4b25d3c.pdf`, fetched by its raw URL at
+the tag `agent-hunter-fixture-v1`, with an `output_schema` for the result.
+`semantic_result` passes only if the one text part echoes `request_id` and
+`task_id`, has `cost_usd >= 0` and a `provider_version`, and has an `output`
+that matches the request's own schema: required keys present, the right JSON
+types, no extra keys. A task the provider ends `failed` (for example
+`{"error": "budget_exhausted"}`) completes the A2A exchange but fails
+`semantic_result`, and the note names the error. The duplicate passes only if
+the resent task returns the same bytes: a provider that runs its model again
+reports a new `cost_usd` and fails.
+
+It deliberately doesn't check field accuracy. That is the hiring agent's job,
+and a public record of how well each provider read the invoice would rank
+real providers. So the bundle records the output's types (`"vendor_name":
+"string"`), not its values; the content digest still covers the full reply.
+It checks one synthetic document over one synchronous `message/send` (90 s per
+HTTP phase), and doesn't test streaming, `tasks/get`, payment, or whether
+`cost_usd` is true. Evaluator: `path-invoice-extraction-0.1`.
+
 ## Receipts and Town Proof
 
 ```

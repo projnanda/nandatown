@@ -1,0 +1,50 @@
+{
+  "run_id": "path-c177e2a149de",
+  "evaluator_version": "path-0.3",
+  "stages": [
+    {
+      "name": "resolution",
+      "status": "passed",
+      "evidence": [
+        "ev-1"
+      ],
+      "note": ""
+    },
+    {
+      "name": "agent_card_retrieval",
+      "status": "passed",
+      "evidence": [
+        "ev-2"
+      ],
+      "note": "observed card sha256:3620f36b732f51a2"
+    },
+    {
+      "name": "descriptor_consistency",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no pinned digest to compare; observed card digest is in the evidence"
+    },
+    {
+      "name": "protocol_invocation",
+      "status": "failed",
+      "evidence": [
+        "ev-3"
+      ],
+      "note": "expected successful terminal task state 'completed', observed 'failed'"
+    },
+    {
+      "name": "semantic_result",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "not reached: an earlier boundary broke (no successful terminal task output was observed)"
+    },
+    {
+      "name": "duplicate_request",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "not reached: an earlier boundary broke (the controlled condition was never reached)"
+    }
+  ],
+  "verdict": "failed",
+  "evaluated_at": 1794247641.917811
+}

@@ -1,0 +1,41 @@
+{
+  "run_id": "path-c5a2bb7c3a89",
+  "profile_name": "a2a-trial-then-hire-stock-timeout@0.1",
+  "profile_fingerprint": "sha256:a1c6e2617ca0038aa8ea8b4d1588562e1fc5ad8ae8aaec30c621c50809ad91fe",
+  "created_at": 1794238344.594767,
+  "participants": [
+    {
+      "name": "town-requester",
+      "role": "requester"
+    },
+    {
+      "name": "http://127.0.0.1:8940",
+      "role": "subject"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "path-trial-hire-0.1",
+    "python": "3.12.15"
+  },
+  "config": {
+    "mode": "path",
+    "subject": "http://127.0.0.1:8940",
+    "profile": "a2a-trial-then-hire-stock-timeout@0.1",
+    "pinned_card_digest": "sha256:8e6bb24ab71b5578957573665c36be168ddf13037fb1a8e90d8ff51b6a77bbe1",
+    "nonce": "bf989a0c25",
+    "a2a_transport_policy": {
+      "policy_id": "a2a-bounded-json@0.1",
+      "max_response_bytes": 1048576,
+      "budget_basis": "profile",
+      "accept_encoding": "identity",
+      "follow_redirects": false,
+      "trust_env": false,
+      "transport_retries": 0,
+      "client_ownership": "owned",
+      "phase_timeout_seconds": 15.0,
+      "total_deadline_seconds": null
+    },
+    "rerun_command": "nandatown test-agent --url http://127.0.0.1:8940 --path-profile a2a-trial-then-hire-stock-timeout@0.1 --pin-card-digest sha256:8e6bb24ab71b5578957573665c36be168ddf13037fb1a8e90d8ff51b6a77bbe1"
+  }
+}
