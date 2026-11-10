@@ -44,6 +44,12 @@ def digest(value) -> str:
     return "sha256:" + hashlib.sha256(data).hexdigest()
 
 
+def launch_count(runtime: Path) -> int:
+    invocations = (runtime / "fixture-counter.txt").read_text(encoding="ascii").splitlines()
+    assert invocations and all(value.isascii() and value.isdigit() for value in invocations)
+    return len(invocations)
+
+
 def task() -> dict:
     return json.loads(TASK_FILE.read_text(encoding="utf-8"))
 
@@ -159,7 +165,7 @@ def test_fixture_command_owns_counter_and_emits_a_strict_project_result(tmp_path
         result = json.loads(completed.stdout)
         assert result["task_digest"] == TASK_DIGEST
         assert result["receipt_integrity_hash"] == digest(result["receipt"])
-        assert int((runtime / "fixture-counter.txt").read_text()) == expected
+        assert launch_count(runtime) == expected
 
 
 def test_happy_path_uses_fixed_process_boundary_and_safe_completed_journal(tmp_path):
@@ -175,7 +181,7 @@ def test_happy_path_uses_fixed_process_boundary_and_safe_completed_journal(tmp_p
     assert body["request_id"] == "research-1"
     assert body["request_digest"] == digest(request())
     assert body["project_result"]["task_digest"] == TASK_DIGEST
-    assert int((runtime / "fixture-counter.txt").read_text()) == 1
+    assert launch_count(runtime) == 1
 
     observation = json.loads((runtime / "fixture-observation.json").read_text())
     assert observation["argv"] == [
@@ -221,7 +227,26 @@ def test_matching_completed_state_replays_identically_without_launch(tmp_path):
     assert second == {**first, "replayed": True}
     assert canonical(second["body"]) == canonical(first["body"])
     assert journal_path.read_bytes() == before
-    assert int((runtime / "fixture-counter.txt").read_text()) == 1
+    assert launch_count(runtime) == 1
+
+
+@pytest.mark.parametrize("unsafe_text", ("/etc/passwd", "token=town-secret-marker"))
+def test_completed_journal_rejects_hidden_path_or_token_text(tmp_path, unsafe_text):
+    """Recomputed journal hashes cannot legitimize unsafe receipt content."""
+    module = api()
+    _, env, runtime = call(module, tmp_path)
+    journal_path = Path(env["STATE_DIR"]) / "sharpeshooter-journal-v1.json"
+    journal = json.loads(journal_path.read_text(encoding="utf-8"))
+    project = journal["result_body"]["project_result"]
+    project["receipt"]["review"]["assessment"] = unsafe_text
+    project["receipt_integrity_hash"] = digest(project["receipt"])
+    journal["project_result_digest"] = digest(project)
+    journal["result_body_digest"] = digest(journal["result_body"])
+    journal_path.write_bytes(canonical(journal))
+    expect_failure(module, "state_conflict", lambda: module.process_request(
+        request_id="research-1", request_body=canonical(request()), environment=env,
+    ))
+    assert launch_count(runtime) == 1
 
 
 def test_matching_started_state_fails_interrupted_without_launch(tmp_path):
@@ -261,6 +286,17 @@ def test_invalid_request_or_digest_never_launches(tmp_path, damage):
         request_id="research-1", request_body=canonical(body), environment=env,
     ))
     assert not (runtime / "fixture-counter.txt").exists()
+
+
+def test_only_registered_request_identity_is_accepted(tmp_path):
+    """A different printable Town identity must fail before any state exists."""
+    module = api()
+    env, runtime = configured(tmp_path)
+    expect_failure(module, "invalid_request", lambda: module.process_request(
+        request_id="research-2", request_body=canonical(request()), environment=env,
+    ))
+    assert not (runtime / "fixture-counter.txt").exists()
+    assert not (Path(env["STATE_DIR"]) / "sharpeshooter-journal-v1.json").exists()
 
 
 @pytest.mark.parametrize(
@@ -352,6 +388,11 @@ def test_path_symlink_ownership_overlap_and_freshness_fail_before_state(tmp_path
         ("unsafe-capture", "project_output_invalid"),
         ("mismatch", "project_output_invalid"),
         ("bad-receipt", "project_output_invalid"),
+        ("receipt-unknown-nested", "project_output_invalid"),
+        ("receipt-wrong-type", "project_output_invalid"),
+        ("receipt-spec-mismatch", "project_output_invalid"),
+        ("unsafe-receipt-path", "project_output_invalid"),
+        ("unsafe-receipt-secret", "project_output_invalid"),
         ("unknown-result", "project_output_invalid"),
     ],
 )
@@ -367,11 +408,11 @@ def test_child_failures_are_bounded_redacted_and_never_complete(tmp_path, mode, 
         assert marker not in serialized
     journal = json.loads((Path(env["STATE_DIR"]) / "sharpeshooter-journal-v1.json").read_text())
     assert journal["state"] == "started"
-    launches = int((Path(env["SHARPESHOOTER_DB"]).parent / "fixture-counter.txt").read_text())
+    launches = launch_count(Path(env["SHARPESHOOTER_DB"]).parent)
     expect_failure(module, "interrupted", lambda: module.process_request(
         request_id="research-1", request_body=canonical(request()), environment=env,
     ))
-    assert int((Path(env["SHARPESHOOTER_DB"]).parent / "fixture-counter.txt").read_text()) == launches
+    assert launch_count(Path(env["SHARPESHOOTER_DB"]).parent) == launches
     if mode == "malformed":
         for extra_mode, extra_code in (
             ("project-oversize", "project_output_too_large"),
@@ -409,9 +450,56 @@ def test_timeout_terminates_and_reaps_the_child_process_group(tmp_path, monkeypa
 
 
 @pytest.mark.parametrize(
+    "mode,error_code",
+    (("descendant-normal", None), ("descendant-failure", "project_failed"), ("timeout", "project_timeout")),
+)
+def test_every_outcome_kills_stubborn_process_group_descendants(
+    tmp_path, monkeypatch, mode, error_code,
+):
+    """Leader exit or SIGTERM resistance must not leave group members alive."""
+    module = api()
+    monkeypatch.setattr(module, "TERMINATION_GRACE_SECONDS", 0.1)
+    if mode == "timeout":
+        monkeypatch.setattr(module, "PROJECT_TIMEOUT_SECONDS", 0.5)
+    env, runtime = configured(tmp_path, mode)
+    if error_code is None:
+        outcome = module.process_request(
+            request_id="research-1", request_body=canonical(request()), environment=env,
+        )
+        assert outcome["replayed"] is False
+    else:
+        expect_failure(module, error_code, lambda: module.process_request(
+            request_id="research-1", request_body=canonical(request()), environment=env,
+        ))
+    assert launch_count(runtime) == 1
+    pid = int((runtime / "fixture-descendant.txt").read_text(encoding="ascii"))
+    deadline = time.monotonic() + 2
+    while time.monotonic() < deadline:
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            break
+        time.sleep(0.01)
+    with pytest.raises(ProcessLookupError):
+        os.kill(pid, 0)
+
+
+@pytest.mark.parametrize(
     "journal_bytes",
-    [b"{not-json", b"{}", b"x" * 131_073],
-    ids=("malformed", "unknown-shape", "oversized"),
+    [
+        b"{not-json",
+        b"{}",
+        b"x" * 131_073,
+        canonical({
+            "version": 1,
+            "state": "started",
+            "request_id": "research-1",
+            "request_digest": digest(request()),
+            "task_digest": TASK_DIGEST,
+            "started_at": "2026-02-30T25:61:61Z",
+        }),
+    ],
+    ids=("malformed", "unknown-shape", "oversized", "impossible-timestamp"),
 )
 def test_unsafe_existing_journal_fails_closed_without_launch(tmp_path, journal_bytes):
     """Malformed or oversized replay state must never be ignored or replaced."""
@@ -439,6 +527,37 @@ def test_journal_symlink_fails_closed_without_touching_target(tmp_path):
     assert not (runtime / "fixture-counter.txt").exists()
 
 
+def test_journal_replace_stays_anchored_when_state_path_is_swapped(tmp_path, monkeypatch):
+    """A parent rename/symlink swap must not redirect the completed journal."""
+    module = api()
+    env, runtime = configured(tmp_path)
+    state = Path(env["STATE_DIR"])
+    moved_state = tmp_path / "validated-state"
+    outside = tmp_path / "outside-state"
+    outside.mkdir(mode=0o700)
+    original_replace = module.os.replace
+    swapped = False
+
+    def swap_then_replace(source, destination, *args, **kwargs):
+        nonlocal swapped
+        if not swapped:
+            state.rename(moved_state)
+            state.symlink_to(outside, target_is_directory=True)
+            swapped = True
+        return original_replace(source, destination, *args, **kwargs)
+
+    monkeypatch.setattr(module.os, "replace", swap_then_replace)
+    outcome = module.process_request(
+        request_id="research-1", request_body=canonical(request()), environment=env,
+    )
+    assert outcome["replayed"] is False
+    assert swapped is True
+    assert not (outside / "sharpeshooter-journal-v1.json").exists()
+    journal = json.loads((moved_state / "sharpeshooter-journal-v1.json").read_text())
+    assert journal["state"] == "completed"
+    assert launch_count(runtime) == 1
+
+
 def test_reused_identity_with_changed_content_rejects_without_launch(tmp_path):
     """One Town identity cannot be rebound to another logical request."""
     module = api()
@@ -449,7 +568,7 @@ def test_reused_identity_with_changed_content_rejects_without_launch(tmp_path):
     expect_failure(module, "task_digest_mismatch", lambda: module.process_request(
         request_id="research-1", request_body=canonical(changed), environment=env,
     ))
-    assert int((runtime / "fixture-counter.txt").read_text()) == 1
+    assert launch_count(runtime) == 1
 
 
 def test_duplicate_raw_keys_and_oversized_request_fail_before_state(tmp_path):
@@ -493,13 +612,14 @@ def test_absent_state_race_launches_the_fixture_exactly_once(tmp_path):
     for thread in threads:
         thread.join(timeout=10)
         assert not thread.is_alive()
-    assert int((runtime / "fixture-counter.txt").read_text()) == 1
-    assert sum(value.get("message_id") == "research-1-result" for value in outcomes) >= 1
-    assert all(
-        value.get("message_id") == "research-1-result"
-        or value.get("code") in {"interrupted", "state_conflict"}
-        for value in outcomes
-    )
+    assert launch_count(runtime) == 1
+    assert len(outcomes) == 2
+    fresh = [value for value in outcomes if value.get("replayed") is False]
+    assert len(fresh) == 1 and fresh[0]["message_id"] == "research-1-result"
+    other = next(value for value in outcomes if value is not fresh[0])
+    assert (
+        other.get("message_id") == "research-1-result" and other.get("replayed") is True
+    ) or other.get("code") in {"interrupted", "state_conflict"}
 
 
 def test_raw_task_and_journal_constants_match_the_frozen_contract():

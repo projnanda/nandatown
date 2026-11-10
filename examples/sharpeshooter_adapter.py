@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -16,6 +17,7 @@ import stat
 import subprocess
 import threading
 import time
+import unicodedata
 from typing import Any, Mapping
 
 
@@ -95,6 +97,33 @@ RECEIPT_FIELDS = {
     "schema_version", "receipt_id", "issued_at", "idea", "strategy",
     "evaluation", "review", "provenance",
 }
+RECEIPT_IDEA_FIELDS = {"idea_id", "family_id", "operator_id", "author_agent_id"}
+RECEIPT_STRATEGY_FIELDS = {"version_id", "strategy_hash", "frozen_spec", "frozen_at"}
+RECEIPT_EVALUATION_FIELDS = {
+    "run_id", "split", "family_oos_trial_number", "dataset_version",
+    "dataset_split_hash", "evaluator_name", "evaluator_version",
+    "synthetic_metrics", "metrics", "checks",
+}
+RECEIPT_METRIC_FIELDS = {
+    "annualized_return", "annualized_volatility", "sharpe_ratio",
+    "max_drawdown", "observations",
+}
+RECEIPT_CHECK_FIELDS = {
+    "opened_split", "dataset_version", "acceptance", "dataset_split_hash",
+    "date_min", "date_max", "observations", "synthetic_metrics",
+}
+RECEIPT_REVIEW_FIELDS = {
+    "review_id", "reviewer_agent_id", "reviewer_operator_id", "separation_rule",
+    "assessment", "concerns", "recommendation",
+}
+RECEIPT_PROVENANCE_FIELDS = {
+    "registration_event_id", "approval_event_id", "test_event_id", "review_event_id",
+}
+ABSOLUTE_PATH_TEXT = re.compile(r"(?:^|[\s\"'=])(?:/(?!/)|[A-Za-z]:[\\/])")
+SENSITIVE_ASSIGNMENT = re.compile(
+    r"\b(?:token|credential|credentials|secret|authorization)\b\s*[:=]",
+    re.IGNORECASE,
+)
 STARTED_FIELDS = {
     "version", "state", "request_id", "request_digest", "task_digest",
     "started_at",
@@ -202,6 +231,8 @@ class _Config:
     capture: Path
     runtime: Path
     state: Path
+    state_device: int
+    state_inode: int
 
 
 def _configuration(environment: Mapping[str, str]) -> _Config:
@@ -219,6 +250,7 @@ def _configuration(environment: Mapping[str, str]) -> _Config:
         state = _absolute_without_symlinks(Path(environment["STATE_DIR"]), require_exists=True)
         _owned_directory(root)
         _owned_directory(state)
+        state_details = state.lstat()
         executable_details = executable.lstat()
         if (
             not _inside(executable, root)
@@ -244,6 +276,8 @@ def _configuration(environment: Mapping[str, str]) -> _Config:
             capture=capture,
             runtime=runtime,
             state=state,
+            state_device=state_details.st_dev,
+            state_inode=state_details.st_ino,
         )
     except (KeyError, OSError, ValueError, TypeError):
         _fail("invalid_configuration")
@@ -251,12 +285,7 @@ def _configuration(environment: Mapping[str, str]) -> _Config:
 
 def _validate_request(request_id: str, raw: bytes, approved: str) -> tuple[dict, bytes, str, str]:
     try:
-        if (
-            not isinstance(request_id, str)
-            or not 1 <= len(request_id) <= 120
-            or not request_id.isascii()
-            or any(ord(character) < 0x20 or ord(character) == 0x7F for character in request_id)
-        ):
+        if request_id != "research-1":
             raise ValueError("invalid request id")
         request = _parse_json(raw, MAX_TASK_BYTES)
         if (
@@ -301,25 +330,41 @@ def _write_all(descriptor: int, data: bytes) -> None:
         offset += written
 
 
-def _fsync_directory(path: Path) -> None:
-    descriptor = os.open(path, os.O_RDONLY)
+def _open_state_directory(config: _Config) -> int:
+    flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    descriptor = None
     try:
-        os.fsync(descriptor)
-    finally:
-        os.close(descriptor)
+        descriptor = os.open(config.state, flags)
+        details = os.fstat(descriptor)
+        if (
+            not stat.S_ISDIR(details.st_mode)
+            or details.st_uid != os.geteuid()
+            or details.st_mode & 0o022
+            or details.st_dev != config.state_device
+            or details.st_ino != config.state_inode
+        ):
+            raise ValueError("state directory changed")
+        return descriptor
+    except (OSError, ValueError):
+        if descriptor is not None:
+            try:
+                os.close(descriptor)
+            except OSError:
+                pass
+        _fail("invalid_configuration")
 
 
-def _temp_path(journal: Path) -> Path:
-    return journal.with_name(
-        f".{journal.name}.tmp-{os.getpid()}-{threading.get_ident()}-{time.monotonic_ns()}"
-    )
+def _temp_name() -> str:
+    return f".{JOURNAL_NAME}.tmp-{os.getpid()}-{threading.get_ident()}-{time.monotonic_ns()}"
 
 
-def _write_temp(path: Path, data: bytes) -> None:
+def _write_temp(directory_descriptor: int, name: str, data: bytes) -> None:
     flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
     if hasattr(os, "O_NOFOLLOW"):
         flags |= os.O_NOFOLLOW
-    descriptor = os.open(path, flags, 0o600)
+    descriptor = os.open(name, flags, 0o600, dir_fd=directory_descriptor)
     try:
         _write_all(descriptor, data)
         os.fsync(descriptor)
@@ -327,57 +372,90 @@ def _write_temp(path: Path, data: bytes) -> None:
         os.close(descriptor)
 
 
-def _claim_started(journal: Path, data: bytes) -> bool:
-    temporary = _temp_path(journal)
+def _claim_started(directory_descriptor: int, data: bytes) -> bool:
+    temporary = _temp_name()
     try:
-        _write_temp(temporary, data)
+        _write_temp(directory_descriptor, temporary, data)
         try:
-            os.link(temporary, journal, follow_symlinks=False)
+            os.link(
+                temporary,
+                JOURNAL_NAME,
+                src_dir_fd=directory_descriptor,
+                dst_dir_fd=directory_descriptor,
+                follow_symlinks=False,
+            )
         except FileExistsError:
             return False
-        _fsync_directory(journal.parent)
+        os.fsync(directory_descriptor)
         return True
     finally:
         try:
-            temporary.unlink()
+            os.unlink(temporary, dir_fd=directory_descriptor)
         except FileNotFoundError:
             pass
 
 
-def _replace_completed(journal: Path, data: bytes) -> None:
-    temporary = _temp_path(journal)
+def _replace_completed(directory_descriptor: int, data: bytes) -> None:
+    temporary = _temp_name()
     try:
-        _write_temp(temporary, data)
-        os.replace(temporary, journal)
-        _fsync_directory(journal.parent)
+        _write_temp(directory_descriptor, temporary, data)
+        os.replace(
+            temporary,
+            JOURNAL_NAME,
+            src_dir_fd=directory_descriptor,
+            dst_dir_fd=directory_descriptor,
+        )
+        os.fsync(directory_descriptor)
     finally:
         try:
-            temporary.unlink()
+            os.unlink(temporary, dir_fd=directory_descriptor)
         except FileNotFoundError:
             pass
 
 
-def _journal_value(path: Path) -> dict | None:
+def _journal_value(directory_descriptor: int) -> dict | None:
+    descriptor = None
     try:
-        if path.is_symlink():
-            raise ValueError("journal is a symlink")
-        if not path.exists():
+        flags = os.O_RDONLY
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        try:
+            descriptor = os.open(JOURNAL_NAME, flags, dir_fd=directory_descriptor)
+        except FileNotFoundError:
             return None
-        details = path.lstat()
+        details = os.fstat(descriptor)
         if not stat.S_ISREG(details.st_mode) or details.st_uid != os.geteuid() or details.st_size > MAX_JOURNAL_BYTES:
             raise ValueError("journal is unsafe")
-        with path.open("rb") as source:
-            raw = source.read(MAX_JOURNAL_BYTES + 1)
+        chunks = bytearray()
+        while len(chunks) <= MAX_JOURNAL_BYTES:
+            chunk = os.read(descriptor, min(8192, MAX_JOURNAL_BYTES + 1 - len(chunks)))
+            if not chunk:
+                break
+            chunks.extend(chunk)
+        raw = bytes(chunks)
         value = _parse_json(raw, MAX_JOURNAL_BYTES)
         if raw != _canonical(value) or not isinstance(value, dict):
             raise ValueError("journal is not canonical")
         return value
     except (OSError, UnicodeError, ValueError, TypeError):
         _fail("state_conflict")
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
 
 
 def _strict_string(value: Any, pattern: re.Pattern | None = None) -> bool:
     return isinstance(value, str) and (pattern is None or pattern.fullmatch(value) is not None)
+
+
+def _valid_rfc3339_utc(value: Any) -> bool:
+    if not _strict_string(value, RFC3339_Z):
+        return False
+    try:
+        parsed = datetime.fromisoformat(value[:-1] + "+00:00")
+    except ValueError:
+        return False
+    return parsed.utcoffset() == timezone.utc.utcoffset(parsed)
 
 
 def _validate_candidate_results(value: Any, task: dict) -> list[dict]:
@@ -423,6 +501,118 @@ def _walk_safe(value: Any, key: str = "") -> None:
             raise ValueError("nonfinite result")
     else:
         raise ValueError("unsafe result type")
+
+
+def _safe_receipt_text(value: Any) -> bool:
+    return (
+        isinstance(value, str)
+        and unicodedata.normalize("NFC", value) == value
+        and not any(unicodedata.category(character).startswith("C") for character in value)
+        and SECRET_TEXT.search(value) is None
+        and PRIVATE_PATH.search(value) is None
+        and ABSOLUTE_PATH_TEXT.search(value) is None
+        and SENSITIVE_ASSIGNMENT.search(value) is None
+    )
+
+
+def _validate_receipt(receipt: Any, project: dict, task: dict) -> bytes:
+    if (
+        not isinstance(receipt, dict)
+        or set(receipt) != RECEIPT_FIELDS
+        or receipt.get("schema_version") != "1.0"
+        or receipt.get("receipt_id") != project["receipt_id"]
+        or not _valid_rfc3339_utc(receipt.get("issued_at"))
+    ):
+        raise ValueError("receipt is invalid")
+
+    idea = receipt["idea"]
+    strategy = receipt["strategy"]
+    evaluation = receipt["evaluation"]
+    review = receipt["review"]
+    provenance = receipt["provenance"]
+    selected = next(
+        candidate for candidate in task["candidates"]
+        if candidate["candidate_id"] == task["selected_candidate_id"]
+    )
+    if (
+        not isinstance(idea, dict)
+        or set(idea) != RECEIPT_IDEA_FIELDS
+        or idea.get("idea_id") != project["idea_id"]
+        or idea.get("family_id") != project["family_id"]
+        or idea.get("author_agent_id") != project["author_agent_id"]
+        or not _strict_string(idea.get("operator_id"), IDENTIFIER)
+        or not isinstance(strategy, dict)
+        or set(strategy) != RECEIPT_STRATEGY_FIELDS
+        or not _strict_string(strategy.get("version_id"), IDENTIFIER)
+        or strategy.get("strategy_hash") != project["selected_is_strategy_hash"]
+        or strategy.get("frozen_spec") != selected["strategy_spec"]
+        or not _valid_rfc3339_utc(strategy.get("frozen_at"))
+    ):
+        raise ValueError("receipt provenance is invalid")
+
+    if (
+        not isinstance(evaluation, dict)
+        or set(evaluation) != RECEIPT_EVALUATION_FIELDS
+        or evaluation.get("run_id") != project["oos_run_id"]
+        or evaluation.get("split") != "oos"
+        or type(evaluation.get("family_oos_trial_number")) is not int
+        or evaluation.get("family_oos_trial_number") != 1
+        or evaluation.get("dataset_version") != "hw8-deterministic-fixture"
+        or evaluation.get("dataset_split_hash") != "sha256:" + "2" * 64
+        or evaluation.get("evaluator_name") != "deterministic_synthetic_stub"
+        or evaluation.get("evaluator_version") != "1"
+        or evaluation.get("synthetic_metrics") is not True
+    ):
+        raise ValueError("receipt evaluation is invalid")
+    metrics = evaluation["metrics"]
+    checks = evaluation["checks"]
+    if (
+        not isinstance(metrics, dict)
+        or set(metrics) != RECEIPT_METRIC_FIELDS
+        or any(type(metrics[name]) is not float or not math.isfinite(metrics[name]) for name in (
+            "annualized_return", "annualized_volatility", "sharpe_ratio", "max_drawdown"
+        ))
+        or type(metrics.get("observations")) is not int
+        or metrics.get("observations") != 100
+        or not isinstance(checks, dict)
+        or set(checks) != RECEIPT_CHECK_FIELDS
+        or checks.get("opened_split") != "oos"
+        or checks.get("dataset_version") != evaluation["dataset_version"]
+        or checks.get("acceptance") != "pending"
+        or checks.get("dataset_split_hash") != evaluation["dataset_split_hash"]
+        or checks.get("date_min") != "2019-01-02"
+        or checks.get("date_max") != "2026-06-19"
+        or type(checks.get("observations")) is not int
+        or checks.get("observations") != metrics["observations"]
+        or checks.get("synthetic_metrics") is not True
+    ):
+        raise ValueError("receipt metrics are invalid")
+
+    if (
+        not isinstance(review, dict)
+        or set(review) != RECEIPT_REVIEW_FIELDS
+        or review.get("review_id") != project["review_id"]
+        or review.get("reviewer_agent_id") != project["reviewer_agent_id"]
+        or not _strict_string(review.get("reviewer_operator_id"), IDENTIFIER)
+        or review.get("reviewer_operator_id") != idea["operator_id"]
+        or review.get("separation_rule") != "distinct_agent"
+        or not _safe_receipt_text(review.get("assessment"))
+        or not isinstance(review.get("concerns"), list)
+        or not review["concerns"]
+        or any(not _safe_receipt_text(value) for value in review["concerns"])
+        or review.get("recommendation") != "accept"
+        or not isinstance(provenance, dict)
+        or set(provenance) != RECEIPT_PROVENANCE_FIELDS
+        or any(type(provenance[name]) is not int or provenance[name] <= 0 for name in RECEIPT_PROVENANCE_FIELDS)
+        or len(set(provenance.values())) != len(RECEIPT_PROVENANCE_FIELDS)
+    ):
+        raise ValueError("receipt review is invalid")
+
+    receipt_bytes = _canonical(receipt)
+    if len(receipt_bytes) > MAX_RECEIPT_BYTES:
+        raise ValueError("receipt is oversized")
+    _walk_safe(receipt)
+    return receipt_bytes
 
 
 def _validate_project_result(value: Any, task: dict, task_digest: str, raw: bytes) -> dict:
@@ -473,40 +663,10 @@ def _validate_project_result(value: Any, task: dict, task_digest: str, raw: byte
         or value["limitations"] != LIMITATIONS
     ):
         raise ValueError("project controls are invalid")
-    receipt = value["receipt"]
-    if (
-        not isinstance(receipt, dict)
-        or set(receipt) != RECEIPT_FIELDS
-        or receipt.get("receipt_id") != value["receipt_id"]
-        or receipt.get("schema_version") != "1.0"
-        or not _strict_string(value["receipt_integrity_hash"], SHA256)
-    ):
-        raise ValueError("receipt is invalid")
-    idea = receipt.get("idea")
-    strategy = receipt.get("strategy")
-    evaluation = receipt.get("evaluation")
-    review = receipt.get("review")
-    if (
-        not isinstance(idea, dict)
-        or idea.get("idea_id") != value["idea_id"]
-        or idea.get("family_id") != value["family_id"]
-        or idea.get("author_agent_id") != value["author_agent_id"]
-        or not isinstance(strategy, dict)
-        or strategy.get("strategy_hash") != value["selected_is_strategy_hash"]
-        or not isinstance(evaluation, dict)
-        or evaluation.get("run_id") != value["oos_run_id"]
-        or evaluation.get("split") != "oos"
-        or type(evaluation.get("family_oos_trial_number")) is not int
-        or evaluation.get("family_oos_trial_number") != 1
-        or evaluation.get("synthetic_metrics") is not True
-        or not isinstance(review, dict)
-        or review.get("review_id") != value["review_id"]
-        or review.get("reviewer_agent_id") != value["reviewer_agent_id"]
-        or review.get("recommendation") != "accept"
-    ):
-        raise ValueError("receipt correlation is invalid")
-    receipt_bytes = _canonical(receipt)
-    if len(receipt_bytes) > MAX_RECEIPT_BYTES or _digest(receipt_bytes) != value["receipt_integrity_hash"]:
+    if not _strict_string(value["receipt_integrity_hash"], SHA256):
+        raise ValueError("receipt integrity is invalid")
+    receipt_bytes = _validate_receipt(value["receipt"], value, task)
+    if _digest(receipt_bytes) != value["receipt_integrity_hash"]:
         raise ValueError("receipt integrity is invalid")
     _walk_safe(value)
     return value
@@ -561,40 +721,49 @@ def _read_pipe(stream, limit: int, target: list[bytes], overflow: threading.Even
             pass
 
 
+def _group_alive(process: subprocess.Popen) -> bool:
+    if os.name != "posix":
+        return process.poll() is None
+    try:
+        os.killpg(process.pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def _signal_group(process: subprocess.Popen, signal_number: int) -> None:
+    try:
+        if os.name == "posix":
+            os.killpg(process.pid, signal_number)
+        elif signal_number == signal.SIGTERM:
+            process.terminate()
+        else:
+            process.kill()
+    except ProcessLookupError:
+        return
+    except OSError:
+        try:
+            if signal_number == signal.SIGTERM:
+                process.terminate()
+            else:
+                process.kill()
+        except OSError:
+            pass
+
+
 def _stop_group(process: subprocess.Popen) -> None:
-    if process.poll() is not None:
-        process.wait()
-        return
-    try:
-        if os.name == "posix":
-            os.killpg(process.pid, signal.SIGTERM)
-        else:
-            process.terminate()
-    except ProcessLookupError:
-        pass
-    except OSError:
-        try:
-            process.terminate()
-        except OSError:
-            pass
-    try:
-        process.wait(timeout=TERMINATION_GRACE_SECONDS)
-        return
-    except subprocess.TimeoutExpired:
-        pass
-    try:
-        if os.name == "posix":
-            os.killpg(process.pid, signal.SIGKILL)
-        else:
-            process.kill()
-    except ProcessLookupError:
-        pass
-    except OSError:
-        try:
-            process.kill()
-        except OSError:
-            pass
+    _signal_group(process, signal.SIGTERM)
+    deadline = time.monotonic() + TERMINATION_GRACE_SECONDS
+    while (process.poll() is None or _group_alive(process)) and time.monotonic() < deadline:
+        time.sleep(0.01)
+    if process.poll() is None or _group_alive(process):
+        _signal_group(process, signal.SIGKILL)
     process.wait()
+    reap_deadline = time.monotonic() + TERMINATION_GRACE_SECONDS
+    while _group_alive(process) and time.monotonic() < reap_deadline:
+        time.sleep(0.01)
 
 
 def _run_child(config: _Config, task_bytes: bytes, tmpdir: Path) -> tuple[bytes, bytes]:
@@ -648,17 +817,13 @@ def _run_child(config: _Config, task_bytes: bytes, tmpdir: Path) -> tuple[bytes,
         timed_out = False
         while process.poll() is None:
             if overflow.is_set():
-                _stop_group(process)
                 break
             if time.monotonic() >= deadline:
                 timed_out = True
-                _stop_group(process)
                 break
             time.sleep(0.01)
-        process.wait()
     finally:
-        if process.poll() is None:
-            _stop_group(process)
+        _stop_group(process)
         stdout_reader.join(timeout=TERMINATION_GRACE_SECONDS + 1)
         stderr_reader.join(timeout=TERMINATION_GRACE_SECONDS + 1)
     if timed_out:
@@ -691,7 +856,7 @@ def _existing_outcome(
         or value.get("request_id") != request_id
         or value.get("request_digest") != request_digest
         or value.get("task_digest") != task_digest
-        or not _strict_string(value.get("started_at"), RFC3339_Z)
+        or not _valid_rfc3339_utc(value.get("started_at"))
     ):
         _fail("state_conflict")
     if value.get("state") == "started" and fields == STARTED_FIELDS:
@@ -757,8 +922,32 @@ def process_request(
     request, task_bytes, task_digest, request_digest = _validate_request(
         request_id, request_body, config.approved_digest
     )
-    journal_path = config.state / JOURNAL_NAME
-    existing = _journal_value(journal_path)
+    state_descriptor = _open_state_directory(config)
+    try:
+        return _process_with_state(
+            config=config,
+            request=request,
+            task_bytes=task_bytes,
+            task_digest=task_digest,
+            request_digest=request_digest,
+            request_id=request_id,
+            state_descriptor=state_descriptor,
+        )
+    finally:
+        os.close(state_descriptor)
+
+
+def _process_with_state(
+    *,
+    config: _Config,
+    request: dict,
+    task_bytes: bytes,
+    task_digest: str,
+    request_digest: str,
+    request_id: str,
+    state_descriptor: int,
+) -> dict:
+    existing = _journal_value(state_descriptor)
     if existing is not None:
         return _existing_outcome(
             existing,
@@ -777,11 +966,11 @@ def process_request(
         "started_at": datetime.now(timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z"),
     }
     try:
-        claimed = _claim_started(journal_path, _canonical(started))
+        claimed = _claim_started(state_descriptor, _canonical(started))
     except (OSError, ValueError):
         _fail("state_conflict")
     if not claimed:
-        raced = _journal_value(journal_path)
+        raced = _journal_value(state_descriptor)
         if raced is None:
             _fail("state_conflict")
         return _existing_outcome(
@@ -843,7 +1032,7 @@ def process_request(
         completed_bytes = _canonical(completed)
         if len(completed_bytes) > MAX_JOURNAL_BYTES:
             _fail("project_output_too_large")
-        _replace_completed(journal_path, completed_bytes)
+        _replace_completed(state_descriptor, completed_bytes)
     except AdapterFailure:
         raise
     except (OSError, ValueError, TypeError):

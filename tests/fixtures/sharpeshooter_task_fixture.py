@@ -42,6 +42,35 @@ def argument(name: str) -> str:
     return sys.argv[sys.argv.index(name) + 1]
 
 
+def spawn_stubborn_descendant(runtime: Path) -> int:
+    ready = runtime / "fixture-descendant-ready.txt"
+    child = subprocess.Popen(
+        [
+            sys.executable,
+            "-c",
+            (
+                "import pathlib,signal,sys,time;"
+                "signal.signal(signal.SIGTERM,signal.SIG_IGN);"
+                "pathlib.Path(sys.argv[1]).write_text('ready');"
+                "time.sleep(60)"
+            ),
+            str(ready),
+        ],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    deadline = time.monotonic() + 2
+    while not ready.exists() and time.monotonic() < deadline:
+        time.sleep(0.01)
+    if not ready.exists():
+        child.kill()
+        child.wait()
+        raise RuntimeError("descendant did not start")
+    (runtime / "fixture-descendant.txt").write_text(str(child.pid), encoding="ascii")
+    return child.pid
+
+
 def main() -> int:
     db_path = Path(argument("--db"))
     mode = db_path.parent.name.removeprefix("runtime-")
@@ -49,8 +78,12 @@ def main() -> int:
     runtime = db_path.parent
     raw_task = sys.stdin.buffer.read()
     counter_path = runtime / "fixture-counter.txt"
-    count = int(counter_path.read_text() or "0") + 1 if counter_path.exists() else 1
-    counter_path.write_text(str(count), encoding="ascii")
+    counter_descriptor = os.open(counter_path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+    try:
+        os.write(counter_descriptor, f"{os.getpid()}\n".encode("ascii"))
+        os.fsync(counter_descriptor)
+    finally:
+        os.close(counter_descriptor)
     observation = {
         "argv": sys.argv[1:],
         "cwd": os.getcwd(),
@@ -65,9 +98,11 @@ def main() -> int:
     if mode == "nonzero":
         sys.stderr.write("fixture-secret-nonzero")
         return 7
+    if mode in {"descendant-normal", "descendant-failure", "timeout"}:
+        spawn_stubborn_descendant(runtime)
+    if mode == "descendant-failure":
+        return 7
     if mode == "timeout":
-        child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
-        (runtime / "fixture-descendant.txt").write_text(str(child.pid), encoding="ascii")
         time.sleep(60)
     if mode == "stdout-oversize":
         sys.stdout.write("x" * 131_073)
@@ -124,21 +159,36 @@ def main() -> int:
             "run_id": "4" * 32,
             "split": "oos",
             "family_oos_trial_number": 1,
-            "dataset_version": "dv003",
-            "dataset_split_hash": digest({"split": "oos"}),
+            "dataset_version": "hw8-deterministic-fixture",
+            "dataset_split_hash": "sha256:" + "2" * 64,
             "evaluator_name": "deterministic_synthetic_stub",
             "evaluator_version": "1",
             "synthetic_metrics": True,
-            "metrics": {"observations": 100},
-            "checks": {"synthetic_metrics": True},
+            "metrics": {
+                "annualized_return": 0.1,
+                "annualized_volatility": 0.2,
+                "sharpe_ratio": 0.2,
+                "max_drawdown": -0.2,
+                "observations": 100,
+            },
+            "checks": {
+                "opened_split": "oos",
+                "dataset_version": "hw8-deterministic-fixture",
+                "acceptance": "pending",
+                "dataset_split_hash": "sha256:" + "2" * 64,
+                "date_min": "2019-01-02",
+                "date_max": "2026-06-19",
+                "observations": 100,
+                "synthetic_metrics": True,
+            },
         },
         "review": {
             "review_id": "7" * 32,
             "reviewer_agent_id": "6" * 32,
-            "reviewer_operator_id": "b" * 32,
+            "reviewer_operator_id": "9" * 32,
             "separation_rule": "distinct_agent",
             "assessment": "fixture review",
-            "concerns": [],
+            "concerns": ["Synthetic metrics are not performance evidence."],
             "recommendation": "accept",
         },
         "provenance": {
@@ -148,10 +198,11 @@ def main() -> int:
             "review_event_id": 4,
         },
     }
-    receipt["provenance"]["padding"] = ""
-    receipt["provenance"]["padding"] = "x" * (32_768 - len(canonical(receipt)))
-    if mode == "receipt-oversize":
-        receipt["provenance"]["padding"] += "x"
+    if mode in {"ok", "receipt-oversize"}:
+        receipt["review"]["assessment"] = ""
+        receipt["review"]["assessment"] = "x" * (32_768 - len(canonical(receipt)))
+        if mode == "receipt-oversize":
+            receipt["review"]["assessment"] += "x"
     result = {
         "schema_version": "sharpeshooter.research-result.v1",
         "client_task_id": task["client_task_id"],
@@ -190,6 +241,21 @@ def main() -> int:
         result["receipt_integrity_hash"] = "sha256:" + "0" * 64
     if mode == "bad-receipt-correlation":
         receipt["idea"]["idea_id"] = "0" * 32
+        result["receipt_integrity_hash"] = digest(receipt)
+    if mode == "receipt-unknown-nested":
+        receipt["review"]["unexpected"] = True
+        result["receipt_integrity_hash"] = digest(receipt)
+    if mode == "receipt-wrong-type":
+        receipt["evaluation"]["metrics"]["observations"] = True
+        result["receipt_integrity_hash"] = digest(receipt)
+    if mode == "receipt-spec-mismatch":
+        receipt["strategy"]["frozen_spec"]["name"] = "different strategy"
+        result["receipt_integrity_hash"] = digest(receipt)
+    if mode == "unsafe-receipt-path":
+        receipt["review"]["assessment"] = "/etc/passwd"
+        result["receipt_integrity_hash"] = digest(receipt)
+    if mode == "unsafe-receipt-secret":
+        receipt["review"]["assessment"] = "token=town-secret-marker"
         result["receipt_integrity_hash"] = digest(receipt)
     if mode == "unknown-result":
         result["unexpected"] = True
