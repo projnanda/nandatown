@@ -1,6 +1,6 @@
 # Agent-Hunter: testing a hiring agent and its provider agents
 
-[Agent-Hunter](AGENT_HUNTER_REPO_URL) is a hiring service for AI agents (MIT AI Studio, Fall 2026). Before a requester
+[Agent-Hunter](https://github.com/chris-a-ackerman/agent-hunter) is a hiring service for AI agents (MIT AI Studio, Fall 2026). Before a requester
 agent delegates an invoice-extraction job, Agent-Hunter gives every candidate provider agent a
 short trial with known answers, scores it with confidence intervals, and recommends one (or
 reports a tie). This page shows how to rerun Town's checks of it. It's a new path: Town had no
@@ -24,8 +24,8 @@ The profiles are described in the [README](../../README.md#a-hiring-agent-trial-
 
 | | Version |
 | -- | -- |
-| Town | this fork's `integration/agent-hunter-trial-then-hire` at `TOWN_COMMIT`, `nandatown 0.2.0` |
-| Agent-Hunter | [`AGENT_HUNTER_REPO`](AGENT_HUNTER_REPO_URL) at `AGENT_HUNTER_COMMIT` |
+| Town | this fork's `integration/agent-hunter-trial-then-hire` at `ef2be6c`, `nandatown 0.2.0` |
+| Agent-Hunter | [`chris-a-ackerman/agent-hunter`](https://github.com/chris-a-ackerman/agent-hunter) at `735f2d8` |
 | Python | Town ≥ 3.11 (checked on 3.12); Agent-Hunter 3.12 (via [uv](https://docs.astral.sh/uv/)) |
 
 ## Reproduce offline, with no keys
@@ -38,9 +38,9 @@ terminals.
 **Terminal 1: Agent-Hunter** (needs [uv](https://docs.astral.sh/uv/getting-started/installation/)):
 
 ```bash
-git clone AGENT_HUNTER_REPO_URL agent-hunter
+git clone https://github.com/chris-a-ackerman/agent-hunter agent-hunter
 cd agent-hunter
-git checkout AGENT_HUNTER_COMMIT
+git checkout 735f2d848ff0f088259def2ad249497e40bc3c75
 uv sync
 uv run python -m core.a2a --offline --port 8940
 ```
@@ -60,6 +60,7 @@ pip install -e ".[dev]"
 
 # Read the door's card digest with Town's own fingerprint, to pin it.
 # The card names Agent-Hunter's commit, so the digest changes with the commit.
+# At 735f2d8 it is sha256:8540cafdf22d3ca690b4f625b4ab418fa6f54294bce2054be4eccf3339779e1b.
 DIGEST=$(python -c "from nandatown.a2a_adapter import fetch_card; from nandatown.records import fingerprint; print(fingerprint(fetch_card('http://127.0.0.1:8940')))")
 
 nandatown a2a test http://127.0.0.1:8940
