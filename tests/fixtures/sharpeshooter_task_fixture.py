@@ -120,6 +120,9 @@ def main() -> int:
     if mode == "non-object":
         sys.stdout.write("[]")
         return 0
+    if mode == "deep-json":
+        sys.stdout.write("[" * 10_000 + "0" + "]" * 10_000)
+        return 0
     if mode == "project-oversize":
         sys.stdout.write("x" * 65_537)
         return 0

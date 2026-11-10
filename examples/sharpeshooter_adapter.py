@@ -179,7 +179,10 @@ def _parse_json(raw: bytes, limit: int) -> Any:
         object_pairs_hook=_pairs,
         parse_constant=lambda _value: (_ for _ in ()).throw(ValueError("nonfinite")),
     )
-    value, end = decoder.raw_decode(text)
+    try:
+        value, end = decoder.raw_decode(text)
+    except RecursionError:
+        raise ValueError("invalid JSON") from None
     if text[end:].strip():
         raise ValueError("trailing JSON")
     return value
@@ -1089,9 +1092,13 @@ def main() -> int:
         if claim["kind"] != "research_request":
             return "rejected", {"reason": "unknown_kind"}, []
         try:
+            request_body = _canonical(claim["body"])
+        except RecursionError:
+            return "rejected", {"reason": "invalid_request"}, []
+        try:
             outcome = process_request(
                 request_id=claim["message_id"],
-                request_body=_canonical(claim["body"]),
+                request_body=request_body,
                 environment=environment,
             )
         except AdapterFailure as exc:

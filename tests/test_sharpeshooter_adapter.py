@@ -142,6 +142,19 @@ def expect_failure(module, code: str, function):
     return payload
 
 
+def deeply_nested_json() -> bytes:
+    raw = b"[" * 10_000 + b"0" + b"]" * 10_000
+    assert len(raw) < 65_536
+    return raw
+
+
+def deeply_nested_value():
+    value = 0
+    for _ in range(10_000):
+        value = [value]
+    return value
+
+
 def test_fixture_command_owns_counter_and_emits_a_strict_project_result(tmp_path):
     """A second fixture launch must accumulate independently of adapter state."""
     env, runtime = configured(tmp_path)
@@ -339,6 +352,20 @@ def test_only_registered_request_identity_is_accepted(tmp_path):
     assert not (Path(env["STATE_DIR"]) / "sharpeshooter-journal-v1.json").exists()
 
 
+def test_deeply_nested_raw_request_fails_invalid_without_launch(tmp_path):
+    module = api()
+    env, runtime = configured(tmp_path)
+
+    expect_failure(module, "invalid_request", lambda: module.process_request(
+        request_id="research-1",
+        request_body=deeply_nested_json(),
+        environment=env,
+    ))
+
+    assert not (runtime / "fixture-counter.txt").exists()
+    assert not (Path(env["STATE_DIR"]) / "sharpeshooter-journal-v1.json").exists()
+
+
 @pytest.mark.parametrize(
     "mutate",
     [
@@ -526,6 +553,23 @@ def test_child_failures_are_bounded_redacted_and_never_complete(tmp_path, mode, 
         ))
 
 
+def test_deeply_nested_project_output_fails_invalid_and_leaves_started(tmp_path):
+    module = api()
+    env, runtime = configured(tmp_path, "deep-json")
+
+    expect_failure(module, "project_output_invalid", lambda: module.process_request(
+        request_id="research-1",
+        request_body=canonical(request()),
+        environment=env,
+    ))
+
+    journal = json.loads(
+        (Path(env["STATE_DIR"]) / "sharpeshooter-journal-v1.json").read_text()
+    )
+    assert journal["state"] == "started"
+    assert launch_count(runtime) == 1
+
+
 def test_timeout_terminates_and_reaps_the_child_process_group(tmp_path, monkeypatch):
     """A timeout must not leave the fixture or its descendant running."""
     module = api()
@@ -606,6 +650,23 @@ def test_unsafe_existing_journal_fails_closed_without_launch(tmp_path, journal_b
     expect_failure(module, "state_conflict", lambda: module.process_request(
         request_id="research-1", request_body=canonical(request()), environment=env,
     ))
+    assert not (runtime / "fixture-counter.txt").exists()
+
+
+def test_deeply_nested_existing_journal_fails_state_conflict_without_launch(
+    tmp_path,
+):
+    module = api()
+    env, runtime = configured(tmp_path)
+    path = Path(env["STATE_DIR"]) / "sharpeshooter-journal-v1.json"
+    path.write_bytes(deeply_nested_json())
+
+    expect_failure(module, "state_conflict", lambda: module.process_request(
+        request_id="research-1",
+        request_body=canonical(request()),
+        environment=env,
+    ))
+
     assert not (runtime / "fixture-counter.txt").exists()
 
 
@@ -736,6 +797,46 @@ def test_mailbox_rejects_unknown_message_kind_without_project_launch(
     assert module.main() == 4
     assert observed == {
         "status": "rejected", "note": {"reason": "unknown_kind"},
+        "replies": [],
+    }
+    assert not (runtime / "fixture-counter.txt").exists()
+
+
+def test_mailbox_rejects_deeply_nested_body_without_project_launch(
+    tmp_path, monkeypatch,
+):
+    module = api()
+    env, runtime = configured(tmp_path)
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+    observed = {}
+
+    class Client:
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        def join_auto(self, *_args, **_kwargs):
+            pass
+
+    def run_loop(_client, handler, *, until, on_ack_accepted):
+        status, note, replies = handler({
+            "kind": "research_request",
+            "message_id": "research-1",
+            "body": deeply_nested_value(),
+            "from": "buyer",
+        })
+        observed.update(status=status, note=note, replies=replies)
+        on_ack_accepted({}, note)
+        assert until() is True
+
+    import nandatown.client
+    import nandatown.participants.base
+    monkeypatch.setattr(nandatown.client, "TownClient", Client)
+    monkeypatch.setattr(nandatown.participants.base, "run_loop", run_loop)
+
+    assert module.main() == 4
+    assert observed == {
+        "status": "rejected", "note": {"reason": "invalid_request"},
         "replies": [],
     }
     assert not (runtime / "fixture-counter.txt").exists()
