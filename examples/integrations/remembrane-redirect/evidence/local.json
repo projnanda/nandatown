@@ -1,0 +1,587 @@
+{
+ "format": "remembrane-redirect-v1",
+ "town_base": "6f9a7c064486c4a0ae9242f1ff341b8a4aad0244",
+ "project": "Remembrane",
+ "project_version": "ad3bb6ab7fa9e807f6e4e3bc8757ca9c136701e2",
+ "mode": "local-synthetic",
+ "recorded_at": "2026-11-09T23:56:34+00:00",
+ "cases": [
+  {
+   "case": "clinic-intake",
+   "source": "s_p1_01",
+   "expect": {
+    "status": "granted",
+    "purpose": "intake"
+   },
+   "request_fingerprint": "sha256:d92e9945443a86244d7a2c596854cf1c703084168d712448bc09efcba8cf47ae",
+   "observed": {
+    "status": "granted",
+    "purpose": "intake",
+    "reply_keys": [
+     "expires_in_minutes",
+     "note",
+     "patient",
+     "purpose",
+     "purpose_reason",
+     "redeem_url",
+     "request_id",
+     "status",
+     "token"
+    ],
+    "has_token": true,
+    "expires_in_minutes": 10,
+    "correlated": true,
+    "context": {
+     "http": 200,
+     "purpose": "intake",
+     "items": 129,
+     "tokens": 5299,
+     "sources_cover_items": true,
+     "categories": {
+      "allergy/allergy": 3,
+      "condition/cond_endocrine_metabolic": 1,
+      "condition/cond_injury": 1,
+      "condition/cond_musculoskeletal": 7,
+      "condition/cond_respiratory": 3,
+      "lifestyle/life_exercise": 8,
+      "lifestyle/life_food": 1,
+      "lifestyle/life_sleep": 1,
+      "medication/med_gi": 1,
+      "medication/med_pain_nsaid": 8,
+      "medication/med_respiratory": 10,
+      "medication/med_supplement": 2,
+      "note/care_contact": 12,
+      "observation/lab_blood_count": 14,
+      "observation/lab_kidney": 5,
+      "observation/lab_other": 3,
+      "observation/vitals": 12,
+      "symptom/cond_circulatory": 1,
+      "symptom/cond_digestive_liver": 10,
+      "symptom/cond_injury": 1,
+      "symptom/cond_musculoskeletal": 21,
+      "symptom/cond_neuro": 1,
+      "symptom/cond_symptom_general": 3
+     },
+     "text_fingerprint": "sha256:da4b2dcf615d13bf48e998b4c4e65f27e085aef0c6787666e2b1e5fc8d21341f",
+     "tampered_token_http": 401,
+     "requester_delegate_http": 403
+    }
+   },
+   "mailbox": [
+    {
+     "kind": "message_accepted",
+     "subject": "req-clinic-intake",
+     "observer": "town",
+     "detail": {
+      "sender": "clinic-intake",
+      "to": "personal-agent",
+      "kind": "health.request",
+      "content_fingerprint": "sha256:d92e9945443a86244d7a2c596854cf1c703084168d712448bc09efcba8cf47ae"
+     }
+    },
+    {
+     "kind": "message_claimed",
+     "subject": "req-clinic-intake",
+     "observer": "town",
+     "detail": {
+      "claimant": "personal-agent"
+     }
+    },
+    {
+     "kind": "message_accepted",
+     "subject": "redirect-req-clinic-intake",
+     "observer": "town",
+     "detail": {
+      "sender": "personal-agent",
+      "to": "clinic-intake",
+      "kind": "health.redirect",
+      "content_fingerprint": "sha256:725044d3515bd51d89850bbba62cf877c0c115402b3fedb579d9b323265c78a4"
+     }
+    },
+    {
+     "kind": "ack_recorded",
+     "subject": "req-clinic-intake",
+     "observer": "personal-agent",
+     "detail": {
+      "status": "processed"
+     }
+    },
+    {
+     "kind": "message_claimed",
+     "subject": "redirect-req-clinic-intake",
+     "observer": "town",
+     "detail": {
+      "claimant": "clinic-intake"
+     }
+    },
+    {
+     "kind": "ack_recorded",
+     "subject": "redirect-req-clinic-intake",
+     "observer": "clinic-intake",
+     "detail": {
+      "status": "processed"
+     }
+    }
+   ]
+  },
+  {
+   "case": "coach",
+   "source": "s_p1_02",
+   "expect": {
+    "status": "granted",
+    "purpose": "fitness"
+   },
+   "request_fingerprint": "sha256:f35d7922c28b4257482cc4bb0d27dd3ad590f4924176aee042fd54a0ffcfd270",
+   "observed": {
+    "status": "granted",
+    "purpose": "fitness",
+    "reply_keys": [
+     "expires_in_minutes",
+     "note",
+     "patient",
+     "purpose",
+     "purpose_reason",
+     "redeem_url",
+     "request_id",
+     "status",
+     "token"
+    ],
+    "has_token": true,
+    "expires_in_minutes": 10,
+    "correlated": true,
+    "context": {
+     "http": 200,
+     "purpose": "fitness",
+     "items": 81,
+     "tokens": 3472,
+     "sources_cover_items": true,
+     "categories": {
+      "allergy/allergy": 3,
+      "condition/cond_injury": 1,
+      "condition/cond_musculoskeletal": 7,
+      "condition/cond_respiratory": 3,
+      "lifestyle/life_exercise": 8,
+      "lifestyle/life_food": 1,
+      "lifestyle/life_sleep": 1,
+      "medication/med_pain_nsaid": 8,
+      "medication/med_respiratory": 10,
+      "observation/lab_blood_count": 2,
+      "observation/vitals": 12,
+      "symptom/cond_circulatory": 1,
+      "symptom/cond_digestive_liver": 1,
+      "symptom/cond_injury": 1,
+      "symptom/cond_musculoskeletal": 21,
+      "symptom/cond_neuro": 1
+     },
+     "text_fingerprint": "sha256:c3cc87f89088b8191d47ca80eb40e2c1c2e69c7e9dbb2d40182903c1839beb06",
+     "tampered_token_http": 401,
+     "requester_delegate_http": 403
+    }
+   },
+   "mailbox": [
+    {
+     "kind": "message_accepted",
+     "subject": "req-coach",
+     "observer": "town",
+     "detail": {
+      "sender": "coach",
+      "to": "personal-agent",
+      "kind": "health.request",
+      "content_fingerprint": "sha256:f35d7922c28b4257482cc4bb0d27dd3ad590f4924176aee042fd54a0ffcfd270"
+     }
+    },
+    {
+     "kind": "message_claimed",
+     "subject": "req-coach",
+     "observer": "town",
+     "detail": {
+      "claimant": "personal-agent"
+     }
+    },
+    {
+     "kind": "message_accepted",
+     "subject": "redirect-req-coach",
+     "observer": "town",
+     "detail": {
+      "sender": "personal-agent",
+      "to": "coach",
+      "kind": "health.redirect",
+      "content_fingerprint": "sha256:bec032a57035cdc3aa32754131974ce84136f6930522d59f5fd84193be51d302"
+     }
+    },
+    {
+     "kind": "ack_recorded",
+     "subject": "req-coach",
+     "observer": "personal-agent",
+     "detail": {
+      "status": "processed"
+     }
+    },
+    {
+     "kind": "message_claimed",
+     "subject": "redirect-req-coach",
+     "observer": "town",
+     "detail": {
+      "claimant": "coach"
+     }
+    },
+    {
+     "kind": "ack_recorded",
+     "subject": "redirect-req-coach",
+     "observer": "coach",
+     "detail": {
+      "status": "processed"
+     }
+    }
+   ]
+  },
+  {
+   "case": "employer-wellbeing",
+   "source": "s_p1_03",
+   "expect": {
+    "status": "declined",
+    "purpose": "none"
+   },
+   "request_fingerprint": "sha256:fb94a60f3915f2e449a4e2dd6ab14c736b4f922ce659cf5364ae1e8bfd1fd5b4",
+   "observed": {
+    "status": "declined",
+    "purpose": "none",
+    "reply_keys": [
+     "note",
+     "purpose",
+     "purpose_reason",
+     "request_id",
+     "status"
+    ],
+    "has_token": false,
+    "expires_in_minutes": null,
+    "correlated": true
+   },
+   "mailbox": [
+    {
+     "kind": "message_accepted",
+     "subject": "req-employer-wellbeing",
+     "observer": "town",
+     "detail": {
+      "sender": "employer-wellbeing",
+      "to": "personal-agent",
+      "kind": "health.request",
+      "content_fingerprint": "sha256:fb94a60f3915f2e449a4e2dd6ab14c736b4f922ce659cf5364ae1e8bfd1fd5b4"
+     }
+    },
+    {
+     "kind": "message_claimed",
+     "subject": "req-employer-wellbeing",
+     "observer": "town",
+     "detail": {
+      "claimant": "personal-agent"
+     }
+    },
+    {
+     "kind": "message_accepted",
+     "subject": "redirect-req-employer-wellbeing",
+     "observer": "town",
+     "detail": {
+      "sender": "personal-agent",
+      "to": "employer-wellbeing",
+      "kind": "health.redirect",
+      "content_fingerprint": "sha256:7011ec42dded91e9f48fd53dab088b0b7e6e690d58f17aad59954d3e78b5b046"
+     }
+    },
+    {
+     "kind": "ack_recorded",
+     "subject": "req-employer-wellbeing",
+     "observer": "personal-agent",
+     "detail": {
+      "status": "processed"
+     }
+    },
+    {
+     "kind": "message_claimed",
+     "subject": "redirect-req-employer-wellbeing",
+     "observer": "town",
+     "detail": {
+      "claimant": "employer-wellbeing"
+     }
+    },
+    {
+     "kind": "ack_recorded",
+     "subject": "redirect-req-employer-wellbeing",
+     "observer": "employer-wellbeing",
+     "detail": {
+      "status": "processed"
+     }
+    }
+   ]
+  },
+  {
+   "case": "coach-medical-claim",
+   "source": "a_p1_04 (misstated purpose, false authority), redeeming its own token",
+   "expect": {
+    "status": "granted",
+    "purpose": "fitness"
+   },
+   "request_fingerprint": "sha256:efcd8b587a6a4d1c3e36c09ff2defef7e67eb91d74e19945a9630b7b0dae1f90",
+   "observed": {
+    "status": "granted",
+    "purpose": "fitness",
+    "reply_keys": [
+     "expires_in_minutes",
+     "note",
+     "patient",
+     "purpose",
+     "purpose_reason",
+     "redeem_url",
+     "request_id",
+     "status",
+     "token"
+    ],
+    "has_token": true,
+    "expires_in_minutes": 10,
+    "correlated": true,
+    "context": {
+     "http": 200,
+     "purpose": "fitness",
+     "items": 81,
+     "tokens": 3472,
+     "sources_cover_items": true,
+     "categories": {
+      "allergy/allergy": 3,
+      "condition/cond_injury": 1,
+      "condition/cond_musculoskeletal": 7,
+      "condition/cond_respiratory": 3,
+      "lifestyle/life_exercise": 8,
+      "lifestyle/life_food": 1,
+      "lifestyle/life_sleep": 1,
+      "medication/med_pain_nsaid": 8,
+      "medication/med_respiratory": 10,
+      "observation/lab_blood_count": 2,
+      "observation/vitals": 12,
+      "symptom/cond_circulatory": 1,
+      "symptom/cond_digestive_liver": 1,
+      "symptom/cond_injury": 1,
+      "symptom/cond_musculoskeletal": 21,
+      "symptom/cond_neuro": 1
+     },
+     "text_fingerprint": "sha256:57422efcdb600cecbf347d9ee6f559469cccca3adfc0d6c4f492cf80360910ed",
+     "tampered_token_http": 401,
+     "requester_delegate_http": 403
+    }
+   },
+   "mailbox": [
+    {
+     "kind": "message_accepted",
+     "subject": "req-coach-medical-claim",
+     "observer": "town",
+     "detail": {
+      "sender": "coach-medical-claim",
+      "to": "personal-agent",
+      "kind": "health.request",
+      "content_fingerprint": "sha256:efcd8b587a6a4d1c3e36c09ff2defef7e67eb91d74e19945a9630b7b0dae1f90"
+     }
+    },
+    {
+     "kind": "message_claimed",
+     "subject": "req-coach-medical-claim",
+     "observer": "town",
+     "detail": {
+      "claimant": "personal-agent"
+     }
+    },
+    {
+     "kind": "message_accepted",
+     "subject": "redirect-req-coach-medical-claim",
+     "observer": "town",
+     "detail": {
+      "sender": "personal-agent",
+      "to": "coach-medical-claim",
+      "kind": "health.redirect",
+      "content_fingerprint": "sha256:663d4a113ddcdf8aeaf66ce776a8e58b3947df7732caa57875f6110d5c05f49f"
+     }
+    },
+    {
+     "kind": "ack_recorded",
+     "subject": "req-coach-medical-claim",
+     "observer": "personal-agent",
+     "detail": {
+      "status": "processed"
+     }
+    },
+    {
+     "kind": "message_claimed",
+     "subject": "redirect-req-coach-medical-claim",
+     "observer": "town",
+     "detail": {
+      "claimant": "coach-medical-claim"
+     }
+    },
+    {
+     "kind": "ack_recorded",
+     "subject": "redirect-req-coach-medical-claim",
+     "observer": "coach-medical-claim",
+     "detail": {
+      "status": "processed"
+     }
+    }
+   ]
+  },
+  {
+   "case": "coach-asks-intake",
+   "source": "a_p1_04, also asking for the clinical purpose it claims",
+   "expect": {
+    "status": "declined",
+    "purpose": "none"
+   },
+   "request_fingerprint": "sha256:3bc8d87c753b6e071989fba6f709f6386b4c266b45ad8a8b037076ae22a10f6f",
+   "observed": {
+    "status": "declined",
+    "purpose": "none",
+    "reply_keys": [
+     "note",
+     "purpose",
+     "purpose_reason",
+     "request_id",
+     "status"
+    ],
+    "has_token": false,
+    "expires_in_minutes": null,
+    "correlated": true
+   },
+   "mailbox": [
+    {
+     "kind": "message_accepted",
+     "subject": "req-coach-asks-intake",
+     "observer": "town",
+     "detail": {
+      "sender": "coach-asks-intake",
+      "to": "personal-agent",
+      "kind": "health.request",
+      "content_fingerprint": "sha256:3bc8d87c753b6e071989fba6f709f6386b4c266b45ad8a8b037076ae22a10f6f"
+     }
+    },
+    {
+     "kind": "message_claimed",
+     "subject": "req-coach-asks-intake",
+     "observer": "town",
+     "detail": {
+      "claimant": "personal-agent"
+     }
+    },
+    {
+     "kind": "message_accepted",
+     "subject": "redirect-req-coach-asks-intake",
+     "observer": "town",
+     "detail": {
+      "sender": "personal-agent",
+      "to": "coach-asks-intake",
+      "kind": "health.redirect",
+      "content_fingerprint": "sha256:c2b819fa725d5f6df8e842af03254a440bc52ef76e13b2519684a3af344c745b"
+     }
+    },
+    {
+     "kind": "ack_recorded",
+     "subject": "req-coach-asks-intake",
+     "observer": "personal-agent",
+     "detail": {
+      "status": "processed"
+     }
+    },
+    {
+     "kind": "message_claimed",
+     "subject": "redirect-req-coach-asks-intake",
+     "observer": "town",
+     "detail": {
+      "claimant": "coach-asks-intake"
+     }
+    },
+    {
+     "kind": "ack_recorded",
+     "subject": "redirect-req-coach-asks-intake",
+     "observer": "coach-asks-intake",
+     "detail": {
+      "status": "processed"
+     }
+    }
+   ]
+  },
+  {
+   "case": "memory-unreachable",
+   "source": "s_p1_02 with the memory stopped",
+   "expect": {
+    "status": "unavailable",
+    "purpose": null
+   },
+   "request_fingerprint": "sha256:f35d7922c28b4257482cc4bb0d27dd3ad590f4924176aee042fd54a0ffcfd270",
+   "observed": {
+    "status": "unavailable",
+    "purpose": null,
+    "reply_keys": [
+     "note",
+     "purpose",
+     "purpose_reason",
+     "request_id",
+     "status"
+    ],
+    "has_token": false,
+    "expires_in_minutes": null,
+    "correlated": true
+   },
+   "mailbox": [
+    {
+     "kind": "message_accepted",
+     "subject": "req-memory-unreachable",
+     "observer": "town",
+     "detail": {
+      "sender": "memory-unreachable",
+      "to": "personal-agent",
+      "kind": "health.request",
+      "content_fingerprint": "sha256:f35d7922c28b4257482cc4bb0d27dd3ad590f4924176aee042fd54a0ffcfd270"
+     }
+    },
+    {
+     "kind": "message_claimed",
+     "subject": "req-memory-unreachable",
+     "observer": "town",
+     "detail": {
+      "claimant": "personal-agent"
+     }
+    },
+    {
+     "kind": "message_accepted",
+     "subject": "redirect-req-memory-unreachable",
+     "observer": "town",
+     "detail": {
+      "sender": "personal-agent",
+      "to": "memory-unreachable",
+      "kind": "health.redirect",
+      "content_fingerprint": "sha256:497ba0bdbe601a2faa8a6c24717657174091ef24bd25450c7b28df06d6044101"
+     }
+    },
+    {
+     "kind": "ack_recorded",
+     "subject": "req-memory-unreachable",
+     "observer": "personal-agent",
+     "detail": {
+      "status": "processed"
+     }
+    },
+    {
+     "kind": "message_claimed",
+     "subject": "redirect-req-memory-unreachable",
+     "observer": "town",
+     "detail": {
+      "claimant": "memory-unreachable"
+     }
+    },
+    {
+     "kind": "ack_recorded",
+     "subject": "redirect-req-memory-unreachable",
+     "observer": "memory-unreachable",
+     "detail": {
+      "status": "processed"
+     }
+    }
+   ]
+  }
+ ]
+}
