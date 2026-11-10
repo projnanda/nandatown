@@ -1,0 +1,33 @@
+name: fairclear_procurement
+description: >-
+  A buyer agent finds the FairClear clearing service in the Town index and
+  opens a sealed request for quotes. Three honest sellers submit one sealed,
+  signed bid each; a late bid, a duplicate bid and a forged bid are rejected.
+  The lowest-cost seller wins at the second-lowest price, the buyer verifies
+  the signed result, and payment settles once through Town escrow.
+seed: 42
+plugin_files: [fairclear_town.py]
+validator: fairclear_procurement
+agents:
+  - name: fairclear
+    role: fairclear_clearing
+    config: {close_after: 3.0, backend: reference, balance_cents: 0}
+  - name: buyer-1
+    role: fairclear_buyer
+    config: {sku: widget, quantity: 2, reserve_cents: 2000, balance_cents: 10000}
+  - name: seller-a
+    role: fairclear_seller
+    config: {sku: widget, cost_cents: 1800, bid_delay: 1.0, balance_cents: 0}
+  - name: seller-b
+    role: fairclear_seller
+    config: {sku: widget, cost_cents: 1700, bid_delay: 1.2, balance_cents: 0}
+  - name: seller-c
+    role: fairclear_seller
+    config: {sku: widget, cost_cents: 1900, bid_delay: 1.1, misbehave: duplicate, balance_cents: 0}
+  - name: seller-late
+    role: fairclear_seller
+    config: {sku: widget, cost_cents: 1500, bid_delay: 6.0, misbehave: late, balance_cents: 0}
+  - name: seller-forger
+    role: fairclear_seller
+    config: {sku: widget, cost_cents: 1600, bid_delay: 1.3, misbehave: forge, forge_as: seller-a, balance_cents: 0}
+max_time: 60
