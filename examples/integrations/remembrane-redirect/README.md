@@ -126,10 +126,9 @@ Not tested here:
   not exercised.
 - **Partial A2A.** Only Town's card probe and plain `message/send`; no streaming, push notifications or A2A
   authentication, and no Path profile (Path's contracts are widget quotes).
-- **Category-level scope only.** Time windows (e.g. a coach sees the last 21 days of sleep), patient preferences
-  beyond this patient's, and the wording inside each item are not checked here. Remembrane's own benchmark measures
-  what leaks through item text; on held-out personas, attacks still obtained a forbidden fact 17% of the time,
-  through the text of in-scope items.
+- **Category-level scope only.** Time windows (e.g. a coach sees only the last 21 days of sleep), patient
+  preferences beyond this patient's, and the wording inside each item are not checked here. An allowed item's text
+  can mention something out of scope; Remembrane's own benchmark measures that separately.
 - **Bearer tokens.** A requester can pass its token on before it expires (10 minutes); tokens are not bound to an
   audience.
 - **Limited replay.** One synthetic patient, one date. Replay mode only answers the recorded questions; new
