@@ -1,0 +1,57 @@
+{
+  "run_id": "sim-18beeb42305b",
+  "profile_name": "simops_crane",
+  "profile_fingerprint": "sha256:12e456ce396b508cd394a7120ff65c03f609290e5e23cb6c7220c6094e84c3bc",
+  "created_at": 0.0,
+  "participants": [
+    {
+      "name": "simops-desk",
+      "role": "simops-desk"
+    },
+    {
+      "name": "civil",
+      "role": "simops-trade"
+    },
+    {
+      "name": "concrete",
+      "role": "simops-trade"
+    },
+    {
+      "name": "steel",
+      "role": "simops-trade"
+    },
+    {
+      "name": "mechanical",
+      "role": "simops-trade"
+    },
+    {
+      "name": "electrical",
+      "role": "simops-trade"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "lab-0.2.6",
+    "python": "3.12.11"
+  },
+  "config": {
+    "mode": "lab",
+    "seed": 42,
+    "layers": {
+      "transport": "memory.v1",
+      "communication": "envelope.v1",
+      "identity": "keys.v1",
+      "registry": "index.v1",
+      "auth": "hmac.v1",
+      "trust": "reputation.v1",
+      "payments": "ledger.v1",
+      "coordination": "contractnet.v1",
+      "negotiation": "haggle.v1",
+      "memory": "kv.v1",
+      "privacy": "redact.v1",
+      "data_facts": "evidence.v1"
+    },
+    "logical_time": 20.0,
+    "rerun_command": "nandatown run examples/simops/simops_crane.yaml --seed 42"
+  }
+}

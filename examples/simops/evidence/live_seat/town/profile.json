@@ -1,0 +1,78 @@
+{
+  "name": "simops_week9_live_seat",
+  "description": "Week 9 with Electrical decided by an OpenAI model (gpt-6-luna) through the same desk; the other four trades are rule agents. The model sees SimOps's own MCP tool list, and each tool call it makes is a Town message. Needs OPENAI_API_KEY; the model is a mutable dependency, so its moves can differ between runs.",
+  "seed": 42,
+  "layers": {
+    "transport": "memory.v1",
+    "communication": "envelope.v1",
+    "identity": "keys.v1",
+    "registry": "index.v1",
+    "auth": "hmac.v1",
+    "trust": "reputation.v1",
+    "payments": "ledger.v1",
+    "coordination": "contractnet.v1",
+    "negotiation": "haggle.v1",
+    "memory": "kv.v1",
+    "privacy": "redact.v1",
+    "data_facts": "evidence.v1"
+  },
+  "agents": [
+    {
+      "name": "simops-desk",
+      "role": "simops-desk",
+      "config": {
+        "case": "week9",
+        "close_at": 8.0,
+        "audit_at": 20.0
+      }
+    },
+    {
+      "name": "civil",
+      "role": "simops-trade",
+      "config": {
+        "trade": "civil"
+      }
+    },
+    {
+      "name": "concrete",
+      "role": "simops-trade",
+      "config": {
+        "trade": "concrete"
+      }
+    },
+    {
+      "name": "steel",
+      "role": "simops-trade",
+      "config": {
+        "trade": "steel"
+      }
+    },
+    {
+      "name": "mechanical",
+      "role": "simops-trade",
+      "config": {
+        "trade": "mechanical"
+      }
+    },
+    {
+      "name": "electrical",
+      "role": "simops-llm-trade",
+      "config": {
+        "trade": "electrical",
+        "model": "gpt-6-luna",
+        "calls_per_turn": 12
+      }
+    }
+  ],
+  "faults": [],
+  "redact_fields": [
+    "seat_token",
+    "brief"
+  ],
+  "max_time": 30.0,
+  "validator": "simops_week9",
+  "plugin_files": [
+    "examples/simops/simops_plugin.py"
+  ],
+  "adaptations": []
+}

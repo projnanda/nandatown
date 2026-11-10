@@ -1,0 +1,109 @@
+{
+  "run_id": "sim-f09ae0933297",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "referee_discovered",
+      "status": "passed",
+      "evidence": [
+        "ev-12",
+        "ev-31",
+        "ev-33",
+        "ev-35",
+        "ev-37",
+        "ev-39"
+      ],
+      "note": ""
+    },
+    {
+      "name": "briefs_private",
+      "status": "passed",
+      "evidence": [
+        "ev-67",
+        "ev-70",
+        "ev-73",
+        "ev-76",
+        "ev-79"
+      ],
+      "note": "5 briefs, each to its own trade; bodies redacted"
+    },
+    {
+      "name": "rules_enforced",
+      "status": "passed",
+      "evidence": [
+        "ev-113",
+        "ev-187",
+        "ev-196",
+        "ev-199",
+        "ev-207"
+      ],
+      "note": "4 refused moves, each with a reason; 0 violations"
+    },
+    {
+      "name": "swap_signed_by_all",
+      "status": "passed",
+      "evidence": [
+        "ev-169"
+      ],
+      "note": "1 commits, each signed by every party"
+    },
+    {
+      "name": "applied_once",
+      "status": "passed",
+      "evidence": [
+        "ev-169"
+      ],
+      "note": "1 commits, 0 repeated deliveries, none applied twice"
+    },
+    {
+      "name": "forged_seat_refused",
+      "status": "passed",
+      "evidence": [
+        "ev-187",
+        "ev-196",
+        "ev-199"
+      ],
+      "note": "3 forged calls: 0 stopped by Town auth, 3 reached SimOps and were refused"
+    },
+    {
+      "name": "stale_calls_refused",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no write arrived after the week closed"
+    },
+    {
+      "name": "week_committed",
+      "status": "passed",
+      "evidence": [
+        "ev-206"
+      ],
+      "note": "every task placed, board v2, 1 commits"
+    },
+    {
+      "name": "simops_verified",
+      "status": "passed",
+      "evidence": [
+        "ev-207"
+      ],
+      "note": "replayed 30 calls, I1-I5 hold, log sha256:d54f73994b73…"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-208"
+      ],
+      "note": "complete run recorded no money moved"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-208"
+      ],
+      "note": "fields ['brief', 'seat_token'] never left the run"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794024144.877986
+}

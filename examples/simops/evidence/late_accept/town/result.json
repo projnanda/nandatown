@@ -1,0 +1,101 @@
+{
+  "run_id": "sim-5a6de1de5e30",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "referee_discovered",
+      "status": "passed",
+      "evidence": [
+        "ev-11",
+        "ev-27",
+        "ev-29",
+        "ev-31",
+        "ev-33",
+        "ev-35"
+      ],
+      "note": ""
+    },
+    {
+      "name": "briefs_private",
+      "status": "passed",
+      "evidence": [
+        "ev-63",
+        "ev-66",
+        "ev-69",
+        "ev-72",
+        "ev-75"
+      ],
+      "note": "5 briefs, each to its own trade; bodies redacted"
+    },
+    {
+      "name": "rules_enforced",
+      "status": "passed",
+      "evidence": [
+        "ev-109",
+        "ev-128",
+        "ev-138"
+      ],
+      "note": "2 refused moves, each with a reason; 0 violations"
+    },
+    {
+      "name": "swap_signed_by_all",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "nothing was committed in this run"
+    },
+    {
+      "name": "applied_once",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "nothing was committed and no call was delivered twice"
+    },
+    {
+      "name": "forged_seat_refused",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no rogue in this run"
+    },
+    {
+      "name": "stale_calls_refused",
+      "status": "passed",
+      "evidence": [
+        "ev-128"
+      ],
+      "note": "1 late writes, all refused"
+    },
+    {
+      "name": "week_committed",
+      "status": "failed",
+      "evidence": [
+        "ev-137"
+      ],
+      "note": "unscheduled at the end: ['ELE-roughin']"
+    },
+    {
+      "name": "simops_verified",
+      "status": "passed",
+      "evidence": [
+        "ev-138"
+      ],
+      "note": "replayed 22 calls, I1-I5 hold, log sha256:cc3bec8fccb5…"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-139"
+      ],
+      "note": "complete run recorded no money moved"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-139"
+      ],
+      "note": "fields ['brief', 'seat_token'] never left the run"
+    }
+  ],
+  "verdict": "failed",
+  "evaluated_at": 1794024132.762878
+}

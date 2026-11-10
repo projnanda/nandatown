@@ -1,0 +1,85 @@
+{
+  "run_id": "sim-331547d23018",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "referee_discovered",
+      "status": "passed",
+      "evidence": [
+        "ev-11",
+        "ev-27",
+        "ev-29",
+        "ev-31",
+        "ev-33",
+        "ev-35"
+      ],
+      "note": ""
+    },
+    {
+      "name": "briefs_private",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "SimOps never answered, so no SimOps behaviour was observed"
+    },
+    {
+      "name": "rules_enforced",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "SimOps never answered, so no SimOps behaviour was observed"
+    },
+    {
+      "name": "swap_signed_by_all",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "SimOps never answered, so no SimOps behaviour was observed"
+    },
+    {
+      "name": "applied_once",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "SimOps never answered, so no SimOps behaviour was observed"
+    },
+    {
+      "name": "forged_seat_refused",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "SimOps never answered, so no SimOps behaviour was observed"
+    },
+    {
+      "name": "stale_calls_refused",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "SimOps never answered, so no SimOps behaviour was observed"
+    },
+    {
+      "name": "week_committed",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "SimOps never answered, so no SimOps behaviour was observed"
+    },
+    {
+      "name": "simops_verified",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "SimOps never answered, so no SimOps behaviour was observed"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-62"
+      ],
+      "note": "complete run recorded no money moved"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-62"
+      ],
+      "note": "fields ['brief', 'seat_token'] never left the run"
+    }
+  ],
+  "verdict": "incomplete",
+  "evaluated_at": 1794024151.393196
+}

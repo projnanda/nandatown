@@ -1,0 +1,16 @@
+# Breadth: SimOps case C3, a crane squeeze and a crew limit.
+# SimOps runs elsewhere: set SIMOPS_URL to its base URL (see README.md).
+name: simops_crane
+description: "SimOps case C3 through the same desk: steel and mechanical both want the crane on overlapping days, and steel's crew limit blocks its first slot. The referee refuses, each trade takes its alternative, and the week closes with every task placed."
+seed: 42
+validator: simops_week9
+plugin_files: [simops_plugin.py]
+redact_fields: [seat_token, brief]
+agents:
+  - {name: simops-desk, role: simops-desk, config: {case: C3, close_at: 8.0, audit_at: 20.0}}
+  - {name: civil, role: simops-trade, config: {trade: civil}}
+  - {name: concrete, role: simops-trade, config: {trade: concrete}}
+  - {name: steel, role: simops-trade, config: {trade: steel}}
+  - {name: mechanical, role: simops-trade, config: {trade: mechanical}}
+  - {name: electrical, role: simops-trade, config: {trade: electrical}}
+max_time: 30

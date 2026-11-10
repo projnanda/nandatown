@@ -1,0 +1,20 @@
+# Fault: Town's transport delivers accept_swap and both commit_week calls twice (at-least-once delivery).
+name: simops_week9_duplicate
+description: "Week 9 through the SimOps desk with Town's transport delivering accept_swap and both commit_week calls twice. Each must change SimOps once; the repeat gets a refusal and no second commit."
+seed: 42
+validator: simops_week9
+plugin_files: [simops_plugin.py]
+redact_fields: [seat_token, brief]
+faults:
+  - {action: duplicate, kind: call.accept_swap, nth: 1}
+  - {action: duplicate, kind: call.commit_week, nth: 1}
+  # Rules are tried in order and only the first match counts a message, so this one counts from the 2nd commit_week on.
+  - {action: duplicate, kind: call.commit_week, nth: 1}
+agents:
+  - {name: simops-desk, role: simops-desk, config: {case: week9, close_at: 8.0, audit_at: 20.0}}
+  - {name: civil, role: simops-trade, config: {trade: civil}}
+  - {name: concrete, role: simops-trade, config: {trade: concrete}}
+  - {name: steel, role: simops-trade, config: {trade: steel}}
+  - {name: mechanical, role: simops-trade, config: {trade: mechanical}}
+  - {name: electrical, role: simops-trade, config: {trade: electrical}}
+max_time: 30

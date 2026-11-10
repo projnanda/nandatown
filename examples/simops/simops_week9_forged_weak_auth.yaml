@@ -1,0 +1,18 @@
+# Boundary: the same rogue with the auth layer swapped for plain.v1, so Town lets the forged sender through.
+name: simops_week9_forged_weak_auth
+description: "The forged-sender run with Town's auth swapped for plain.v1, so the forged calls reach the desk as Electrical. SimOps must still refuse them: the rogue has no seat token for Electrical, and the seat comes from the token, never from a name."
+seed: 42
+validator: simops_week9
+plugin_files: [simops_plugin.py]
+redact_fields: [seat_token, brief]
+layers:
+  auth: plain.v1
+agents:
+  - {name: simops-desk, role: simops-desk, config: {case: week9, close_at: 8.0, audit_at: 20.0}}
+  - {name: civil, role: simops-trade, config: {trade: civil}}
+  - {name: concrete, role: simops-trade, config: {trade: concrete}}
+  - {name: steel, role: simops-trade, config: {trade: steel}}
+  - {name: mechanical, role: simops-trade, config: {trade: mechanical}}
+  - {name: electrical, role: simops-trade, config: {trade: electrical}}
+  - {name: rogue, role: simops-rogue, config: {impersonate: electrical, at: 4.0, move: {task: ELE-roughin, zone: H2, days: [43, 45]}}}
+max_time: 30

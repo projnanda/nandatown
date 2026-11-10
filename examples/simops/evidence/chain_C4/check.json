@@ -1,0 +1,199 @@
+{
+ "as_expected": true,
+ "case": "chain_C4",
+ "cross_check": {
+  "calls_matched": 27,
+  "log_digest": "sha256:fe9570bb2faa1593b9bdcbb0fe6886cfde24562ba9db0e9ec6e4faae749a7f94",
+  "ok": true,
+  "problems": [],
+  "refused_at_the_door": 0,
+  "simops_engine_events": [
+   "freeze",
+   "start"
+  ]
+ },
+ "expected": {
+  "stages": {
+   "rules_enforced": "passed",
+   "simops_verified": "passed",
+   "week_committed": "passed"
+  },
+  "verdict": "passed"
+ },
+ "kind": "breadth",
+ "observed": {
+  "board": {
+   "CIV-ducts": {
+    "days": [
+     41,
+     42
+    ],
+    "zone": "YARD"
+   },
+   "CON-H1-pads": {
+    "days": [
+     33,
+     35
+    ],
+    "zone": "H1"
+   },
+   "CON-H2-pads": {
+    "days": [
+     30,
+     32
+    ],
+    "zone": "H2"
+   },
+   "CON-genpads": {
+    "days": [
+     43,
+     44
+    ],
+    "zone": "YARD"
+   },
+   "ELE-energize": {
+    "days": [
+     54,
+     58
+    ],
+    "zone": "H2"
+   },
+   "ELE-feeders": {
+    "days": [
+     43,
+     44
+    ],
+    "zone": "H2"
+   },
+   "ELE-genset": {
+    "days": [
+     45,
+     45
+    ],
+    "zone": "YARD"
+   },
+   "MEC-crah": {
+    "days": [
+     41,
+     43
+    ],
+    "zone": "H1"
+   },
+   "STL-H1": {
+    "days": [
+     36,
+     38
+    ],
+    "zone": "H1"
+   },
+   "STL-H2": {
+    "days": [
+     37,
+     40
+    ],
+    "zone": "H2"
+   },
+   "STL-H3": {
+    "days": [
+     41,
+     43
+    ],
+    "zone": "H3"
+   },
+   "STL-H4": {
+    "days": [
+     44,
+     45
+    ],
+    "zone": "H4"
+   }
+  },
+  "forged": {
+   "reached_simops": 0,
+   "refused_by_simops": 0,
+   "sent": 0,
+   "stopped_by_town": 0
+  },
+  "model": null,
+  "refused": [
+   "conflict"
+  ],
+  "repeated_calls": 0,
+  "simops_audit": {
+   "calls": 29,
+   "invariants": {
+    "I1": true,
+    "I2": true,
+    "I3": true,
+    "I4": true,
+    "I5": true
+   },
+   "log_digest": "sha256:fe9570bb2faa1593b9bdcbb0fe6886cfde24562ba9db0e9ec6e4faae749a7f94",
+   "ok": true,
+   "simops": {
+    "build": "hw8-town@26aa2b8",
+    "version": "0.1.0"
+   },
+   "state_hash": "8ce02ced9bf9f410d1486445b1a12a54d970b6c51e2d4705d4b43a6c0db0f647"
+  },
+  "simops_calls": 27,
+  "stages": {
+   "applied_once": "passed",
+   "briefs_private": "passed",
+   "forged_seat_refused": "not_tested",
+   "ledger_conserved": "passed",
+   "privacy": "passed",
+   "referee_discovered": "passed",
+   "rules_enforced": "passed",
+   "simops_verified": "passed",
+   "stale_calls_refused": "not_tested",
+   "swap_signed_by_all": "passed",
+   "week_committed": "passed"
+  },
+  "unscheduled": [],
+  "verdict": "passed"
+ },
+ "rows": [
+  {
+   "expected": "passed",
+   "observed": "passed",
+   "ok": true,
+   "what": "verdict"
+  },
+  {
+   "expected": "passed",
+   "observed": "passed",
+   "ok": true,
+   "what": "stage rules_enforced"
+  },
+  {
+   "expected": "passed",
+   "observed": "passed",
+   "ok": true,
+   "what": "stage week_committed"
+  },
+  {
+   "expected": "passed",
+   "observed": "passed",
+   "ok": true,
+   "what": "stage simops_verified"
+  }
+ ],
+ "scenario": "simops_chain.yaml",
+ "simops_run": "pg-C4-0780ee03",
+ "tests": "SimOps case C4: a predecessor chain across the yard and Hall 2.",
+ "town_run": "sim-06ac4a6be89b",
+ "versions": {
+  "evaluator": "lab-0.2.6",
+  "nandatown": "0.2.0",
+  "python": "3.12.11",
+  "simops": {
+   "build": "hw8-town@26aa2b8",
+   "version": "0.1.0"
+  },
+  "town_commit": {
+   "base": "6f9a7c064486c4a0ae9242f1ff341b8a4aad0244",
+   "head": "2b104070b7a2669d80588f6bb14f21e9831cf40d"
+  }
+ }
+}

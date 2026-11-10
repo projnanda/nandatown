@@ -1,0 +1,12 @@
+{
+  "payload": {
+    "bundle_fingerprint": "sha256:938b2748c767ac916abf0d618d92403db6294e2d67e60311893ecd3e6e600b40",
+    "run_id": "sim-d19a4b01cbce",
+    "verdict": "failed",
+    "evaluator_version": "lab-0.2.6",
+    "signer": "did:town:358f2a7cf96b42352824baa7",
+    "signed_at": 1794024151.364958
+  },
+  "signature": "6bdde0727b121f5751248dc676289c6cb04707177499555b9e1206c4edfcc5e5548f9bcc236857e42eb5260ad949d39576d1c4c0d8815d53c07aba020238d908",
+  "controller_public": "313374f859246717fe9f9cb59178e947737440b6aa02cb7adde0a8f9c4c8cf84"
+}

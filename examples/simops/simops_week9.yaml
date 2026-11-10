@@ -1,0 +1,16 @@
+# SimOps AI, Building 01 Week 9, played by five Town trade agents through a SimOps desk.
+# SimOps runs elsewhere: set SIMOPS_URL to its base URL (see README.md). Defaults: hmac auth, no faults.
+name: simops_week9
+description: "Five Town trade agents find a SimOps desk in the registry and coordinate Week 9 of a data center job through it. SimOps's referee refuses Electrical's clash with Mechanical, the two agree a swap over Town messages, both sign, the week closes, and SimOps's own audit is recorded."
+seed: 42
+validator: simops_week9
+plugin_files: [simops_plugin.py]
+redact_fields: [seat_token, brief]
+agents:
+  - {name: simops-desk, role: simops-desk, config: {case: week9, close_at: 8.0, audit_at: 20.0}}
+  - {name: civil, role: simops-trade, config: {trade: civil}}
+  - {name: concrete, role: simops-trade, config: {trade: concrete}}
+  - {name: steel, role: simops-trade, config: {trade: steel}}
+  - {name: mechanical, role: simops-trade, config: {trade: mechanical}}
+  - {name: electrical, role: simops-trade, config: {trade: electrical}}
+max_time: 30
