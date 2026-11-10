@@ -230,15 +230,55 @@ def test_matching_completed_state_replays_identically_without_launch(tmp_path):
     assert launch_count(runtime) == 1
 
 
-@pytest.mark.parametrize("unsafe_text", ("/etc/passwd", "token=town-secret-marker"))
-def test_completed_journal_rejects_hidden_path_or_token_text(tmp_path, unsafe_text):
-    """Recomputed journal hashes cannot legitimize unsafe receipt content."""
+@pytest.mark.parametrize(
+    "unsafe_text",
+    (
+        "/etc/passwd",
+        "token=town-secret-marker",
+        "see(/etc/passwd)",
+        "file:/root/private",
+        "password=hunter2",
+        "api_key=disguised-secret",
+        "private_key: disguised-secret",
+        "plausible but non-frozen review text",
+    ),
+)
+def test_completed_journal_rejects_non_frozen_review_assessment(tmp_path, unsafe_text):
+    """Only the task runner's exact deterministic review can be replayed."""
     module = api()
     _, env, runtime = call(module, tmp_path)
     journal_path = Path(env["STATE_DIR"]) / "sharpeshooter-journal-v1.json"
     journal = json.loads(journal_path.read_text(encoding="utf-8"))
     project = journal["result_body"]["project_result"]
     project["receipt"]["review"]["assessment"] = unsafe_text
+    project["receipt_integrity_hash"] = digest(project["receipt"])
+    journal["project_result_digest"] = digest(project)
+    journal["result_body_digest"] = digest(journal["result_body"])
+    journal_path.write_bytes(canonical(journal))
+    expect_failure(module, "state_conflict", lambda: module.process_request(
+        request_id="research-1", request_body=canonical(request()), environment=env,
+    ))
+    assert launch_count(runtime) == 1
+
+
+@pytest.mark.parametrize(
+    "concerns",
+    (
+        [],
+        ["see(/etc/passwd)"],
+        ["Synthetic metrics are not performance evidence.", "extra"],
+        "Synthetic metrics are not performance evidence.",
+    ),
+    ids=("empty", "disguised", "extra", "wrong-type"),
+)
+def test_completed_journal_rejects_non_frozen_review_concerns(tmp_path, concerns):
+    """Concern text and list shape are exact, not a free-text secret channel."""
+    module = api()
+    _, env, runtime = call(module, tmp_path)
+    journal_path = Path(env["STATE_DIR"]) / "sharpeshooter-journal-v1.json"
+    journal = json.loads(journal_path.read_text(encoding="utf-8"))
+    project = journal["result_body"]["project_result"]
+    project["receipt"]["review"]["concerns"] = concerns
     project["receipt_integrity_hash"] = digest(project["receipt"])
     journal["project_result_digest"] = digest(project)
     journal["result_body_digest"] = digest(journal["result_body"])
@@ -555,6 +595,45 @@ def test_journal_replace_stays_anchored_when_state_path_is_swapped(tmp_path, mon
     assert not (outside / "sharpeshooter-journal-v1.json").exists()
     journal = json.loads((moved_state / "sharpeshooter-journal-v1.json").read_text())
     assert journal["state"] == "completed"
+    assert launch_count(runtime) == 1
+
+
+def test_tmpdir_and_child_started_visibility_stay_anchored_after_parent_swap(
+    tmp_path, monkeypatch,
+):
+    """A post-claim pathname swap must not redirect TMPDIR or split state roots."""
+    module = api()
+    env, runtime = configured(tmp_path)
+    state = Path(env["STATE_DIR"])
+    moved_state = tmp_path / "validated-state"
+    outside = tmp_path / "outside-state"
+    outside.mkdir(mode=0o700)
+    original_claim = module._claim_started
+    swapped = False
+
+    def claim_then_swap(directory_descriptor, data):
+        nonlocal swapped
+        claimed = original_claim(directory_descriptor, data)
+        assert claimed is True
+        state.rename(moved_state)
+        state.symlink_to(outside, target_is_directory=True)
+        swapped = True
+        return claimed
+
+    monkeypatch.setattr(module, "_claim_started", claim_then_swap)
+    outcome = module.process_request(
+        request_id="research-1", request_body=canonical(request()), environment=env,
+    )
+
+    assert outcome["replayed"] is False
+    assert swapped is True
+    observation = json.loads((runtime / "fixture-observation.json").read_text())
+    assert observation["started_visible"] is True
+    assert observation["env"]["TMPDIR"] == str(moved_state / "tmp")
+    assert (moved_state / "tmp").is_dir()
+    assert json.loads((moved_state / "sharpeshooter-journal-v1.json").read_text())["state"] == "completed"
+    assert not (outside / "tmp").exists()
+    assert not (outside / "sharpeshooter-journal-v1.json").exists()
     assert launch_count(runtime) == 1
 
 

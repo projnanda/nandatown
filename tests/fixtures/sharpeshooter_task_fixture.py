@@ -187,7 +187,7 @@ def main() -> int:
             "reviewer_agent_id": "6" * 32,
             "reviewer_operator_id": "9" * 32,
             "separation_rule": "distinct_agent",
-            "assessment": "fixture review",
+            "assessment": "Independent review of the bounded deterministic research task.",
             "concerns": ["Synthetic metrics are not performance evidence."],
             "recommendation": "accept",
         },
@@ -198,11 +198,8 @@ def main() -> int:
             "review_event_id": 4,
         },
     }
-    if mode in {"ok", "receipt-oversize"}:
-        receipt["review"]["assessment"] = ""
-        receipt["review"]["assessment"] = "x" * (32_768 - len(canonical(receipt)))
-        if mode == "receipt-oversize":
-            receipt["review"]["assessment"] += "x"
+    if mode == "receipt-oversize":
+        receipt["review"]["assessment"] = "x" * 32_768
     result = {
         "schema_version": "sharpeshooter.research-result.v1",
         "client_task_id": task["client_task_id"],

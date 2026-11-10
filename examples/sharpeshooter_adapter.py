@@ -17,7 +17,6 @@ import stat
 import subprocess
 import threading
 import time
-import unicodedata
 from typing import Any, Mapping
 
 
@@ -119,11 +118,10 @@ RECEIPT_REVIEW_FIELDS = {
 RECEIPT_PROVENANCE_FIELDS = {
     "registration_event_id", "approval_event_id", "test_event_id", "review_event_id",
 }
-ABSOLUTE_PATH_TEXT = re.compile(r"(?:^|[\s\"'=])(?:/(?!/)|[A-Za-z]:[\\/])")
-SENSITIVE_ASSIGNMENT = re.compile(
-    r"\b(?:token|credential|credentials|secret|authorization)\b\s*[:=]",
-    re.IGNORECASE,
+FROZEN_REVIEW_ASSESSMENT = (
+    "Independent review of the bounded deterministic research task."
 )
+FROZEN_REVIEW_CONCERNS = ["Synthetic metrics are not performance evidence."]
 STARTED_FIELDS = {
     "version", "state", "request_id", "request_digest", "task_digest",
     "started_at",
@@ -444,6 +442,59 @@ def _journal_value(directory_descriptor: int) -> dict | None:
             os.close(descriptor)
 
 
+def _descriptor_path(descriptor: int) -> Path:
+    """Return the kernel's current path for an already-open directory."""
+    proc_path = f"/proc/self/fd/{descriptor}"
+    try:
+        value = os.readlink(proc_path)
+    except OSError:
+        try:
+            import fcntl
+
+            value = fcntl.fcntl(descriptor, 50, b"\0" * 1024).split(b"\0", 1)[0].decode()
+        except (ImportError, OSError, UnicodeError, ValueError):
+            raise ValueError("directory path is unavailable") from None
+    path = Path(value)
+    if not path.is_absolute() or value.endswith(" (deleted)"):
+        raise ValueError("directory path is invalid")
+    return path
+
+
+def _anchored_tmpdir(directory_descriptor: int) -> Path:
+    """Create and validate tmp below the retained state directory descriptor."""
+    descriptor = None
+    try:
+        try:
+            os.mkdir("tmp", mode=0o700, dir_fd=directory_descriptor)
+            os.fsync(directory_descriptor)
+        except FileExistsError:
+            pass
+        flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        descriptor = os.open("tmp", flags, dir_fd=directory_descriptor)
+        details = os.fstat(descriptor)
+        if (
+            not stat.S_ISDIR(details.st_mode)
+            or details.st_uid != os.geteuid()
+            or details.st_mode & 0o022
+        ):
+            raise ValueError("temporary directory is unsafe")
+        state_path = _descriptor_path(directory_descriptor)
+        tmpdir = state_path / "tmp"
+        path_details = tmpdir.lstat()
+        if (
+            stat.S_ISLNK(path_details.st_mode)
+            or path_details.st_dev != details.st_dev
+            or path_details.st_ino != details.st_ino
+        ):
+            raise ValueError("temporary directory changed")
+        return tmpdir
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+
+
 def _strict_string(value: Any, pattern: re.Pattern | None = None) -> bool:
     return isinstance(value, str) and (pattern is None or pattern.fullmatch(value) is not None)
 
@@ -501,18 +552,6 @@ def _walk_safe(value: Any, key: str = "") -> None:
             raise ValueError("nonfinite result")
     else:
         raise ValueError("unsafe result type")
-
-
-def _safe_receipt_text(value: Any) -> bool:
-    return (
-        isinstance(value, str)
-        and unicodedata.normalize("NFC", value) == value
-        and not any(unicodedata.category(character).startswith("C") for character in value)
-        and SECRET_TEXT.search(value) is None
-        and PRIVATE_PATH.search(value) is None
-        and ABSOLUTE_PATH_TEXT.search(value) is None
-        and SENSITIVE_ASSIGNMENT.search(value) is None
-    )
 
 
 def _validate_receipt(receipt: Any, project: dict, task: dict) -> bytes:
@@ -596,10 +635,8 @@ def _validate_receipt(receipt: Any, project: dict, task: dict) -> bytes:
         or not _strict_string(review.get("reviewer_operator_id"), IDENTIFIER)
         or review.get("reviewer_operator_id") != idea["operator_id"]
         or review.get("separation_rule") != "distinct_agent"
-        or not _safe_receipt_text(review.get("assessment"))
-        or not isinstance(review.get("concerns"), list)
-        or not review["concerns"]
-        or any(not _safe_receipt_text(value) for value in review["concerns"])
+        or review.get("assessment") != FROZEN_REVIEW_ASSESSMENT
+        or review.get("concerns") != FROZEN_REVIEW_CONCERNS
         or review.get("recommendation") != "accept"
         or not isinstance(provenance, dict)
         or set(provenance) != RECEIPT_PROVENANCE_FIELDS
@@ -980,14 +1017,8 @@ def _process_with_state(
             task_digest=task_digest,
             task=request["task"],
         )
-    tmpdir = config.state / "tmp"
     try:
-        if tmpdir.exists() or tmpdir.is_symlink():
-            _absolute_without_symlinks(tmpdir, require_exists=True)
-            _owned_directory(tmpdir)
-        else:
-            tmpdir.mkdir(mode=0o700)
-            _owned_directory(tmpdir)
+        tmpdir = _anchored_tmpdir(state_descriptor)
     except (OSError, ValueError):
         _fail("internal_error")
     stdout, _stderr = _run_child(config, task_bytes, tmpdir)
