@@ -178,17 +178,12 @@ class TermsMetBuyer(_Participant):
         status = result.get('status')
         self._state('review_observed', job_id=self.job_id, status=status,
                     review_deadline=(result.get('deadlines') or {}).get('review'))
-        if status == 'IN_REVIEW':
-            self._request('retrieve_delivery', {'job_id': self.job_id}, 'review_retrieve')
-        elif status == 'RELEASED':
+        # No retrieval probe here: the real deadline may pass between calls, so
+        # the buyer waits for an observed release before retrieving.
+        if status in ('IN_REVIEW', 'RELEASED'):
             self._start_polling()
         else:
             self._fail('unexpected_status_after_delivery', status=status)
-
-    def after_review_retrieve(self, result, _rid):
-        if _error_code(result) != 'PERMISSION_DENIED':
-            return self._fail('retrieval_during_review_not_denied')
-        self._start_polling()
 
     def _start_polling(self):
         self.poll_started = time.monotonic()
@@ -608,9 +603,6 @@ def _release_gating(tm):
     status = tm.find(purpose='review_status', identity='buyer')
     _need(len(status) == 1, 'buyer did not read the review deadline')
     deadline = _ts(status[0].detail['result']['deadlines']['review'])
-    in_review = tm.find(purpose='review_retrieve', identity='buyer')
-    for c in in_review:
-        _need(_error_code(c.detail['result']) == 'PERMISSION_DENIED', 'retrieval during review was not denied')
     retrieves = [c for c in tm.find(tool='retrieve_delivery') if not _error_code(c.detail['result'])]
     _need(len(retrieves) == 1, 'expected exactly one successful retrieval')
     polls = tm.find(purpose='release_poll')
@@ -628,8 +620,7 @@ def _release_gating(tm):
     released_at = _ts(events[1]['created_at'])
     _need(released_at >= deadline, 'release recorded before the real review deadline')
     real_wait = (released_at - _ts(repair_pass_time(tm))).total_seconds()
-    return ([early.event_id, status[0].event_id] + [c.event_id for c in in_review]
-            + [released_polls[0].event_id, retrieves[0].event_id],
+    return ([early.event_id, status[0].event_id, released_polls[0].event_id, retrieves[0].event_id],
             f'release at/after review deadline; {len(polls)} real-time polls; '
             f'release {real_wait:.2f}s after PASS; no refund')
 
@@ -714,6 +705,9 @@ def _lost_reply_recovery(tm):
     confirm = tm.one('submission 2 report', purpose='confirm_report', identity='provider')
     _need(tm.i(retry_seen) < tm.i(tm.requests[status.detail['request_id']][0])
           and status.detail['result'].get('status') in ('IN_REVIEW', 'RELEASED'), 'state query missing or wrong')
+    status_seen = tm.delivered_to(status, PROVIDER)
+    _need(status_seen is not None and tm.i(status_seen) < tm.i(tm.requests[confirm.detail['request_id']][0]),
+          'provider requested the report before receiving the status response')
     _need(confirm.detail['arguments'].get('submission_version') == 2 and confirm.detail['result'].get('verdict') == 'PASS',
           'submission 2 report did not confirm PASS')
     confirm_seen = tm.delivered_to(confirm, PROVIDER)

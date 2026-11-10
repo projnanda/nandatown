@@ -190,6 +190,17 @@ class TermsMetIntegrationTests(unittest.TestCase):
         events.insert(index + 1, leak)
         self.assert_not_passed(evaluate('termsmet_lost_reply', events), 'lost_reply_recovery')
 
+    def test_recovery_responses_must_reach_provider(self):
+        for purpose in ('recovery_status', 'confirm_report', 'repair_retry'):
+            (call,) = calls(self.lost, purpose=purpose)
+            reply_ids = {e['subject'] for e in self.lost if e['kind'] == 'message_sent'
+                         and e['observer'] == 'tm_adapter'
+                         and e['detail']['body'].get('request_id') == call['detail']['request_id']}
+            events = [e for e in self.lost
+                      if not (e['kind'] == 'message_delivered' and e['subject'] in reply_ids)]
+            self.assertLess(len(events), len(self.lost), purpose)
+            self.assert_not_passed(evaluate('termsmet_lost_reply', events), 'lost_reply_recovery')
+
     def test_extra_retry_or_submission_does_not_pass(self):
         events = copy.deepcopy(self.lost)
 
