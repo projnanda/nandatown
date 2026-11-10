@@ -1,0 +1,120 @@
+{
+  "run_id": "sim-9b41efeb1988",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "jang_reachable",
+      "status": "passed",
+      "evidence": [
+        "ev-5",
+        "ev-15"
+      ],
+      "note": "JANG health, registration and mandate lodging answered for both roles"
+    },
+    {
+      "name": "discovered",
+      "status": "passed",
+      "evidence": [
+        "ev-7",
+        "ev-10",
+        "ev-13"
+      ],
+      "note": "the buyer found the seller through the Town registry and received a quote"
+    },
+    {
+      "name": "mandates_lodged",
+      "status": "passed",
+      "evidence": [
+        "ev-5",
+        "ev-15"
+      ],
+      "note": "JANG accepted both owner-signed mandates (signer: python)"
+    },
+    {
+      "name": "negotiated",
+      "status": "passed",
+      "evidence": [
+        "ev-19",
+        "ev-22",
+        "ev-26",
+        "ev-31",
+        "ev-34",
+        "ev-37",
+        "ev-40",
+        "ev-43"
+      ],
+      "note": "10 alternating offers closed in one agreement on all 4 terms"
+    },
+    {
+      "name": "agreement_verified",
+      "status": "passed",
+      "evidence": [
+        "ev-53",
+        "ev-56"
+      ],
+      "note": "buyer and seller each verified JANG's signature with the trusted key and found the terms inside their own mandate"
+    },
+    {
+      "name": "duplicate_turn_absorbed",
+      "status": "passed",
+      "evidence": [
+        "ev-24",
+        "ev-29"
+      ],
+      "note": "the duplicated turn signal was recognised from JANG's session state; no extra offer"
+    },
+    {
+      "name": "settled_once",
+      "status": "passed",
+      "evidence": [
+        "ev-57",
+        "ev-63",
+        "ev-69"
+      ],
+      "note": "escrow of 120000 cents (agreed price x 1) released exactly once; the duplicated delivery was recognised"
+    },
+    {
+      "name": "reputation",
+      "status": "passed",
+      "evidence": [
+        "ev-66",
+        "ev-65"
+      ],
+      "note": "recorded receipt claims and reference score arithmetic agree; claim truth and reporter authority are not tested"
+    },
+    {
+      "name": "mandate_not_shared",
+      "status": "passed",
+      "evidence": [
+        "ev-11",
+        "ev-13",
+        "ev-16",
+        "ev-20",
+        "ev-23",
+        "ev-27",
+        "ev-32",
+        "ev-35"
+      ],
+      "note": "16 inter-agent messages carried only protocol keys; no mandate field"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-57",
+        "ev-63"
+      ],
+      "note": "200000 cents conserved across every movement"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-70"
+      ],
+      "note": "fields ['mandate'] never left the run"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794339596.617523
+}

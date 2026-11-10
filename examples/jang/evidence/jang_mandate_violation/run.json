@@ -1,0 +1,41 @@
+{
+  "run_id": "sim-ea310737e72c",
+  "profile_name": "jang_mandate_violation",
+  "profile_fingerprint": "sha256:acc7b0919ef43f315d05f0a3ae73de815c9d088b4d7ca0799d1a1950ec225d9c",
+  "created_at": 0.0,
+  "participants": [
+    {
+      "name": "tv-seller",
+      "role": "jang_seller"
+    },
+    {
+      "name": "tv-buyer",
+      "role": "jang_buyer"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "lab-0.2.6",
+    "python": "3.14.7"
+  },
+  "config": {
+    "mode": "lab",
+    "seed": 42,
+    "layers": {
+      "transport": "memory.v1",
+      "communication": "envelope.v1",
+      "identity": "keys.v1",
+      "registry": "index.v1",
+      "auth": "hmac.v1",
+      "trust": "reputation.v1",
+      "payments": "ledger.v1",
+      "coordination": "contractnet.v1",
+      "negotiation": "haggle.v1",
+      "memory": "kv.v1",
+      "privacy": "redact.v1",
+      "data_facts": "evidence.v1"
+    },
+    "logical_time": 2.9000000000000012,
+    "rerun_command": "nandatown run examples/jang/jang_mandate_violation.yaml --seed 42"
+  }
+}

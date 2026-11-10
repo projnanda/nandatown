@@ -1,0 +1,60 @@
+name: jang_mandate_violation
+description: >-
+  Boundary case: on its first move the buyer's adapter proposes a package one
+  price step above its own owner's ceiling. JANG must refuse it (422
+  MANDATE_VIOLATION) without the refusal leaking the limit into Town, and the
+  buyer must recover from JANG's state and still close an in-bounds agreement.
+seed: 42
+plugin_files: [jang_plugin.py]
+validator: jang_mandate_violation
+agents:
+  - name: tv-seller
+    role: jang_seller
+    config: &seller
+      sku: tv-65oled
+      ask_cents: 134900          # posted shelf price, USD 1,349
+      stock: 5
+      quantity: 1
+      max_rounds: 12
+      balance_cents: 0
+      strategy: {kind: rule, options: {toughness: 1.6, respectBounds: true}}
+      item: &item
+        itemId: item-tv-65oled
+        title: 65-inch OLED television (clearance)
+        dimensions:
+          - {key: price, label: Price, unit: USD, min: 500, max: 3000, step: 10, buyerPrefers: low}
+          - {key: deliveryDays, label: Delivery, unit: days, min: 1, max: 45, step: 1, buyerPrefers: low}
+          - {key: warrantyMonths, label: Warranty, unit: months, min: 12, max: 48, step: 6, buyerPrefers: high}
+          - {key: bundle, label: Soundbar bundled, min: 0, max: 1, step: 1, buyerPrefers: high}
+      mandate:
+        agent_id: agent-seller-hanbit
+        owner_id: owner-hanbit-electronics
+        constraints: {price: {min: 1050}, warrantyMonths: {max: 36}}
+        preferences:
+          price: {weight: 5, ideal: 1349, worst: 1050}
+          deliveryDays: {weight: 0.7, ideal: 30, worst: 3}
+          warrantyMonths: {weight: 1.2, ideal: 12, worst: 36}
+          bundle: {weight: 2.2, ideal: 0, worst: 1}
+        reservation_utility: 0.3
+  - name: tv-buyer
+    role: jang_buyer
+    config: &buyer
+      sku: tv-65oled
+      quantity: 1
+      rounds: 1
+      balance_cents: 200000
+      misbehave: offer_outside_mandate   # fixture: first move breaks the buyer's own price ceiling
+      strategy: {kind: rule, options: {toughness: 1.5, respectBounds: true}}
+      mandate:
+        agent_id: agent-buyer-nova
+        owner_id: owner-dana
+        constraints: {price: {max: 1300}, deliveryDays: {max: 30}}
+        preferences:
+          price: {weight: 5, ideal: 999, worst: 1300}
+          deliveryDays: {weight: 1, ideal: 3, worst: 30}
+          warrantyMonths: {weight: 3, ideal: 36, worst: 12}
+          bundle: {weight: 1.5, ideal: 1, worst: 0}
+        reservation_utility: 0.2
+faults: []
+redact_fields: [mandate]
+max_time: 120

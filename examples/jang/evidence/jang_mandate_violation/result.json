@@ -1,0 +1,69 @@
+{
+  "run_id": "sim-ea310737e72c",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "jang_reachable",
+      "status": "passed",
+      "evidence": [
+        "ev-5",
+        "ev-15"
+      ],
+      "note": "JANG health, registration and mandate lodging answered for both roles"
+    },
+    {
+      "name": "violation_refused",
+      "status": "passed",
+      "evidence": [
+        "ev-22",
+        "ev-23"
+      ],
+      "note": "JANG refused the out-of-mandate offer with 422 MANDATE_VIOLATION; the refusal recorded only the dimension, never the limit"
+    },
+    {
+      "name": "recovered_in_bounds",
+      "status": "passed",
+      "evidence": [
+        "ev-51",
+        "ev-52",
+        "ev-55",
+        "ev-56"
+      ],
+      "note": "after the refusal the buyer re-decided from JANG's state and an in-bounds agreement was verified and settled"
+    },
+    {
+      "name": "mandate_not_shared",
+      "status": "passed",
+      "evidence": [
+        "ev-11",
+        "ev-13",
+        "ev-16",
+        "ev-20",
+        "ev-25",
+        "ev-28",
+        "ev-31",
+        "ev-34"
+      ],
+      "note": "16 inter-agent messages carried only protocol keys; no mandate field"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-56",
+        "ev-61"
+      ],
+      "note": "200000 cents conserved across every movement"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-66"
+      ],
+      "note": "fields ['mandate'] never left the run"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794339597.877125
+}

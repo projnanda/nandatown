@@ -1,0 +1,78 @@
+{
+  "run_id": "sim-66a623064ca3",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "jang_reachable",
+      "status": "passed",
+      "evidence": [
+        "ev-5",
+        "ev-15"
+      ],
+      "note": "JANG health, registration and mandate lodging answered for both roles"
+    },
+    {
+      "name": "negotiated",
+      "status": "passed",
+      "evidence": [
+        "ev-19",
+        "ev-22",
+        "ev-25",
+        "ev-28",
+        "ev-31",
+        "ev-34",
+        "ev-37",
+        "ev-40"
+      ],
+      "note": "10 alternating offers closed in one agreement on all 4 terms"
+    },
+    {
+      "name": "tamper_detected",
+      "status": "passed",
+      "evidence": [
+        "ev-51",
+        "ev-54"
+      ],
+      "note": "the altered agreement still fit the buyer's mandate, so only JANG's signature exposed it; the buyer rejected it"
+    },
+    {
+      "name": "no_payment_on_tamper",
+      "status": "passed",
+      "evidence": [
+        "ev-51"
+      ],
+      "note": "no escrow, payment or delivery followed the tampered agreement"
+    },
+    {
+      "name": "mandate_not_shared",
+      "status": "passed",
+      "evidence": [
+        "ev-11",
+        "ev-13",
+        "ev-16",
+        "ev-20",
+        "ev-23",
+        "ev-26",
+        "ev-29",
+        "ev-32"
+      ],
+      "note": "15 inter-agent messages carried only protocol keys; no mandate field"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [],
+      "note": "200000 cents conserved across every movement"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-58"
+      ],
+      "note": "fields ['mandate'] never left the run"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794339599.394788
+}
