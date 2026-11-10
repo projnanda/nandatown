@@ -1,0 +1,152 @@
+{
+ "agents": [
+  {
+   "agent_id": "agt_b0505320",
+   "agentschool_reasons_at_capture": [],
+   "agentschool_valid_at_capture": true,
+   "agentschool_verdict": {
+    "checks": {
+     "holder_signature": true,
+     "issuer_signature": true,
+     "nonce_unused": true,
+     "nonce_valid": true,
+     "not_expired": true,
+     "not_revoked": true
+    },
+    "reasons": [],
+    "verified": true
+   },
+   "credential_jti": "665465e1-09ed-49a7-8b6a-302c1a1a9a6f",
+   "credential_jwt": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLURfdlY2amNySnMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FnZW50c2Nob29sLmxvY2FsIiwic3ViIjoiYWd0X2IwNTA1MzIwIiwianRpIjoiNjY1NDY1ZTEtMDllZC00OWE3LThiNmEtMzAyYzFhMWE5YTZmIiwiaWF0IjoxNzk0MjYxMzMyLCJuYmYiOjE3OTQyNjEzMzIsImV4cCI6MTc5Njg1MzMzMiwic2tpbGwiOiJkYXRhLWRyaXZlbi1zbGlkZXMiLCJza2lsbF92ZXJzaW9uIjoiMi4wLjAiLCJsZXZlbCI6MSwic2NvcmUiOjEwMC4wLCJzY29yZV9yYW5nZSI6Wzk3LjAsMTAwLjBdLCJhdHRlbXB0cyI6MSwiZXhhbV92ZXJzaW9uIjoiaGFyYm9yLXBpbmUtc2xpZGUtZGVzaWduLXYyIiwiZXhhbV9zZXNzaW9uIjoic2VzXzNjZmNjY2EwIiwiaG9sZGVyX2tleSI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6IkVnZ3NBY2N0NTZNMXJZVHhTVGRzQk1MUkR6aS15Ry1zU0xNbVRLRE9YeVEifSwib3BlcmF0b3IiOiJ0ZWFtLWFnZW50c2Nob29sLWRlbW8iLCJzdGF0dXNfdXJsIjoiaHR0cDovL2xvY2FsaG9zdDo4NzY1L2FwaS9yZXZvY2F0aW9ucyJ9.M385j4FzMzSPET3fD1I70Da49GvH9R_lcgp0aomwJ0UjgwVrfl-Qz8OUFjrSDo5JY2DDRJAbCU8mLi_GxuYBAg",
+   "credential_status": "valid",
+   "exam_session": "ses_3cfccca0",
+   "exam_version": "harbor-pine-slide-design-v2",
+   "in_certified_search": true,
+   "level": 1,
+   "name": "atlas",
+   "operator": "team-agentschool-demo",
+   "recorded_proof": {
+    "audience": "nandatown",
+    "captured_at": 1794261937.026408,
+    "nonce": "n_TPtZuaoMRSpMJqqB5MOXDetj",
+    "signature": "_re-i8eV2H87ULqlVL6yinxQFmIJPt31C3dmMu74bCH1UohfDc9QL7WVP51SihTolqmwF8xTz0dv94WMQfDLBA",
+    "signer": "agent_service"
+   },
+   "score": 100.0,
+   "skill": "data-driven-slides"
+  },
+  {
+   "agent_id": "agt_d978a3d6",
+   "agentschool_reasons_at_capture": [
+    "revoked"
+   ],
+   "agentschool_valid_at_capture": false,
+   "agentschool_verdict": {
+    "checks": {
+     "holder_signature": true,
+     "issuer_signature": true,
+     "nonce_unused": true,
+     "nonce_valid": true,
+     "not_expired": true,
+     "not_revoked": false
+    },
+    "reasons": [
+     "revoked"
+    ],
+    "verified": false
+   },
+   "credential_jti": "498fd76e-fac3-4acc-a810-dae77a1e2dfc",
+   "credential_jwt": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLURfdlY2amNySnMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FnZW50c2Nob29sLmxvY2FsIiwic3ViIjoiYWd0X2Q5NzhhM2Q2IiwianRpIjoiNDk4ZmQ3NmUtZmFjMy00YWNjLWE4MTAtZGFlNzdhMWUyZGZjIiwiaWF0IjoxNzk0MjYxMzI5LCJuYmYiOjE3OTQyNjEzMjksImV4cCI6MTc5Njg1MzMyOSwic2tpbGwiOiJkYXRhLWRyaXZlbi1zbGlkZXMiLCJza2lsbF92ZXJzaW9uIjoiMi4wLjAiLCJsZXZlbCI6MSwic2NvcmUiOjEwMC4wLCJzY29yZV9yYW5nZSI6Wzk3LjAsMTAwLjBdLCJhdHRlbXB0cyI6MSwiZXhhbV92ZXJzaW9uIjoiaGFyYm9yLXBpbmUtc2xpZGUtZGVzaWduLXYyIiwiZXhhbV9zZXNzaW9uIjoic2VzX2I4ZmNiYmVhIiwiaG9sZGVyX2tleSI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6IkZtZFJlTjB4TVd6QjY0Q3UyS3k5OURXRHlzNnFNa01TVTN4NnAtU2xkNWcifSwib3BlcmF0b3IiOiJ0ZWFtLWFnZW50c2Nob29sLWRlbW8iLCJzdGF0dXNfdXJsIjoiaHR0cDovL2xvY2FsaG9zdDo4NzY1L2FwaS9yZXZvY2F0aW9ucyJ9.FZfHIMWwzeJA3ryPxr8qHQbiPZY5TgtR8ZfNujJQXp_WwkRsux3q38O-4ftuNJjLCYYhdIWmpEKPifuLzh6DBg",
+   "credential_status": "revoked",
+   "exam_session": "ses_b8fcbbea",
+   "exam_version": "harbor-pine-slide-design-v2",
+   "in_certified_search": false,
+   "level": 1,
+   "name": "brisk",
+   "operator": "team-agentschool-demo",
+   "recorded_proof": {
+    "audience": "nandatown",
+    "captured_at": 1794261937.031838,
+    "nonce": "n_ti_CbGExXPdjnjh5cW9dga3D",
+    "signature": "aD_lyjj4YOSrUuF36B24L1UulTeaIhhuIrxGQHlGkZZG4VFPITot6je6s3gsfH-V4-p7I7IYyTJIj4diLlxUBQ",
+    "signer": "agent_service"
+   },
+   "score": 100.0,
+   "skill": "data-driven-slides"
+  },
+  {
+   "absent_reason": "no_credential",
+   "agent_id": "agt_bfa16cf8",
+   "agentschool_reasons_at_capture": [
+    "no_credential"
+   ],
+   "agentschool_valid_at_capture": false,
+   "credential_jti": null,
+   "credential_jwt": null,
+   "credential_status": "no_credential",
+   "exam_session": null,
+   "exam_version": null,
+   "in_certified_search": false,
+   "level": null,
+   "name": "flash",
+   "operator": null,
+   "score": null,
+   "skill": "data-driven-slides"
+  }
+ ],
+ "agentschool": {
+  "commit": "393c4b7f4991da6dc10fb07efe020126454886eb",
+  "course": "dds-v1",
+  "issuer_kid": "as-D_vV6jcrJs",
+  "server": "http://127.0.0.1:8765",
+  "skill": "data-driven-slides",
+  "skill_version": "2.0.0"
+ },
+ "captured_at": 1794261937.034687,
+ "captured_by": "integrations/agentschool/tools/capture_fixture.py",
+ "certified_search_result": [
+  {
+   "agent_id": "agt_b0505320",
+   "attempts": 1,
+   "credential_status": "valid",
+   "endpoint": "http://localhost:8101",
+   "expires_at": 1796853332.0,
+   "flags": {
+    "retest_required": false,
+    "suspended": false,
+    "weighted_failure_share": 0.0,
+    "window_weight": 0
+   },
+   "jti": "665465e1-09ed-49a7-8b6a-302c1a1a9a6f",
+   "level": 1,
+   "name": "atlas",
+   "score": 100.0,
+   "score_range": [
+    97.0,
+    100.0
+   ]
+  }
+ ],
+ "jwks": {
+  "keys": [
+   {
+    "alg": "EdDSA",
+    "crv": "Ed25519",
+    "kid": "as-D_vV6jcrJs",
+    "kty": "OKP",
+    "use": "sig",
+    "x": "7dujgs9OK4KLkHJ4f36J-rTZ_JqvLNYukN_Q0VNABZw"
+   }
+  ]
+ },
+ "limitations": [
+  "The recorded nonce was minted at capture time, so replaying this proof shows the holder key signed that nonce once and cannot show the agent is answering now.",
+  "The revocation list is stale beyond its own max_age_seconds, so an offline run reads it with the freshness limit lifted and reports freshness as untested.",
+  "Credential scores are AgentSchool's own exam results. Nothing here establishes that the exam predicts performance on delegated work."
+ ],
+ "nandatown_commit": "bb8e88d7b449dc32e6699435a68c25508308459c",
+ "revocation_captured_at": 1794261937.020822,
+ "revocation_max_age_seconds": 300,
+ "revocations_jwt": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLURfdlY2amNySnMiLCJ0eXAiOiJyZXZvY2F0aW9uLWxpc3Qrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50c2Nob29sLmxvY2FsIiwiaWF0IjoxNzk0MjYxOTM3LCJpc3N1ZWRfYXQiOjE3OTQyNjE5MzcsIm1heF9hZ2Vfc2Vjb25kcyI6MzAwLCJyZXZva2VkIjpbIjQ5OGZkNzZlLWZhYzMtNGFjYy1hODEwLWRhZTc3YTFlMmRmYyJdLCJzdXNwZW5kZWQiOltdfQ.SM4BmWjOUifQCRZFObrSHXokyprX3ZJC554cbvW82XD00rJy62G4EniSXuB8HqzqRtUpQlFj8QwugvylrvLHAQ",
+ "schema": "nandatown-agentschool-fixture/1"
+}
