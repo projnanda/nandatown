@@ -5,7 +5,9 @@ Requesters (a clinic, a coach, an employer programme, and an adversarial coach) 
 for health information through Town's HTTP mailbox. The personal agent (personal_agent.py, a separate process)
 never answers itself: it replies with a scoped token from Remembrane, or a decline. Each requester redeems its
 token at Remembrane's /context and the script checks what came back against the sharing policy, by category.
-A last run points the personal agent at an unreachable memory and expects a fail-closed reply.
+A last run points the personal agent at an unreachable memory and expects a fail-closed reply. The same agent is
+then served over A2A: Town's own probe (`nandatown a2a test`) checks its card and one round trip, and the same
+requesters repeat the handshake with A2A message/send.
 
     python run_check.py --out evidence.json --remembrane-url http://127.0.0.1:8765 \
         --owner-token-file .../hw8_owner_token --patient-file .../hw8_patient --project-version <commit>
@@ -34,6 +36,7 @@ import time
 import httpx
 import uvicorn
 
+from nandatown.a2a_adapter import artifact_texts, probe_endpoint, send_message
 from nandatown.client import TownClient
 from nandatown.coordinator import build_app
 from nandatown.profiles import PROFILES
@@ -265,6 +268,70 @@ def verify_case(case):
                 f"{name}: {subject} was not accepted, claimed and acknowledged in order")
 
 
+@contextmanager
+def a2a_agent(memory_url, owner, patient):
+    """personal_agent.py --a2a as its own process; yields its base URL once the card is served."""
+    port = free_port()
+    env = {**os.environ, "REMEMBRANE_URL": memory_url, "REMEMBRANE_OWNER_TOKEN": owner, "REMEMBRANE_PATIENT": patient}
+    proc = subprocess.Popen([sys.executable, str(HERE / "personal_agent.py"), "--a2a", "--port", str(port)], env=env,
+                            stdout=subprocess.DEVNULL)
+    url = f"http://127.0.0.1:{port}"
+    try:
+        deadline = time.monotonic() + TIMEOUT
+        while True:
+            try:
+                if httpx.get(url + "/.well-known/agent-card.json", timeout=1, trust_env=False).status_code == 200:
+                    break
+            except httpx.HTTPError:
+                pass
+            require(time.monotonic() < deadline, "the A2A personal agent did not start")
+            time.sleep(0.1)
+        yield url
+    finally:
+        proc.terminate()
+        proc.wait(timeout=TIMEOUT)
+
+
+def run_a2a(url, requesters, memory):
+    """Town's A2A probe, then each requester's handshake over message/send."""
+    report = probe_endpoint(url)          # exactly what `nandatown a2a test URL` runs
+    probe = {"ok": report["ok"], "problems": report["problems"], "task_state": report.get("task_state"),
+             "card_name": (report.get("card") or {}).get("name")}
+    cases = []
+    for r in requesters:
+        task = send_message(url, json.dumps(request_body(r)), timeout_seconds=REPLY_WAIT)
+        texts = artifact_texts(task)
+        require(len(texts) == 1 and isinstance(texts[0], str), f"{r['name']}: expected one text artifact")
+        reply = json.loads(texts[0])
+        observed = {"status": reply.get("status"), "purpose": reply.get("purpose"), "reply_keys": sorted(reply),
+                    "has_token": bool(reply.get("token")), "expires_in_minutes": reply.get("expires_in_minutes"),
+                    "correlated": reply.get("request_id") == task.get("id")}
+        if observed["has_token"]:
+            observed["context"] = redeem(memory, reply, r["message"])
+        case = {"case": r["name"], "source": r.get("source"), "expect": r["expect"],
+                "request_fingerprint": fingerprint(request_body(r)), "observed": observed,
+                "task": {"kind": task.get("kind"), "state": (task.get("status") or {}).get("state"),
+                         "text_artifacts": len(texts)}}
+        verify_a2a_case(case)
+        cases.append(case)
+    verify_probe(probe)
+    return {"probe": probe, "cases": cases}
+
+
+def verify_probe(probe):
+    # Town's probe sends a widget quote; a health redirect agent must answer it with a well-formed failed task.
+    require(probe["ok"] and not probe["problems"] and probe["task_state"] == "failed"
+            and probe["card_name"] == "remembrane-personal-agent", "Town's A2A probe did not pass as expected")
+
+
+def verify_a2a_case(case):
+    failed = [k for k, ok in verdict(case).items() if not ok]
+    require(not failed, f"a2a {case['case']}: failed {failed}")
+    require(case["task"] == {"kind": "task", "state": "completed", "text_artifacts": 1},
+            f"a2a {case['case']}: not one completed task with one text artifact")
+    require(re.fullmatch(r"sha256:[0-9a-f]{64}", case["request_fingerprint"]), "invalid request fingerprint")
+
+
 def verify_file(path):
     evidence = json.loads(Path(path).read_text(encoding="utf-8"))
     require(evidence.get("format") == FORMAT and evidence.get("town_base") == TOWN_BASE,
@@ -278,6 +345,17 @@ def verify_file(path):
                     and c["expect"] == fixtures[c["case"]]["expect"], f"{c['case']}: not the committed fixture")
         verify_case(c)
         print(f"Verified {c['case']}: {c['observed']['status']} / {c['observed']['purpose']}")
+    a2a = evidence["a2a"]
+    verify_probe(a2a["probe"])
+    print(f"Verified a2a probe: card {a2a['probe']['card_name']}, quote answered {a2a['probe']['task_state']}")
+    require([c["case"] for c in a2a["cases"]] == list(fixtures) + ["memory-unreachable"],
+            "A2A evidence does not hold every case in order")
+    for c in a2a["cases"]:
+        if c["case"] in fixtures:
+            require(c["request_fingerprint"] == fingerprint(request_body(fixtures[c["case"]]))
+                    and c["expect"] == fixtures[c["case"]]["expect"], f"a2a {c['case']}: not the committed fixture")
+        verify_a2a_case(c)
+        print(f"Verified a2a {c['case']}: {c['observed']['status']} / {c['observed']['purpose']}")
     return evidence
 
 
@@ -299,9 +377,13 @@ def record(args):
                                                                                  "purpose": None}}
                 cases += run_requesters(http, admin, town_url, f"http://127.0.0.1:{free_port()}", owner, patient,
                                         [down], memory)
+        with a2a_agent(args.remembrane_url, owner, patient) as url:
+            a2a = run_a2a(url, fixtures, memory)
+        with a2a_agent(f"http://127.0.0.1:{free_port()}", owner, patient) as url:
+            a2a["cases"] += run_a2a(url, [down], memory)["cases"]
     return {"format": FORMAT, "town_base": TOWN_BASE, "project": "Remembrane",
             "project_version": args.project_version, "mode": "local-synthetic",
-            "recorded_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "cases": cases}
+            "recorded_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "cases": cases, "a2a": a2a}
 
 
 def main():
@@ -327,6 +409,10 @@ def main():
             ctx = c["observed"].get("context") or {}
             print(f"PASS {c['case']}: {c['observed']['status']} / {c['observed']['purpose']}"
                   + (f" ; {ctx['items']} items, all in scope" if ctx else ""))
+        print(f"PASS a2a probe: card {evidence['a2a']['probe']['card_name']}, quote answered "
+              f"{evidence['a2a']['probe']['task_state']}")
+        for c in evidence["a2a"]["cases"]:
+            print(f"PASS a2a {c['case']}: {c['observed']['status']} / {c['observed']['purpose']}")
         return 0
     except CheckFailure as error:
         print(f"Check failed: {error}", file=sys.stderr)

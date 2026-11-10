@@ -8,24 +8,31 @@ picks the purpose from the card and returns a short-lived token for that purpose
 a decline with no token. When Remembrane cannot be reached, the reply says so and shares nothing (fail closed).
 The requester's message text is never read and never forwarded.
 
+The same agent has two edges: Town's HTTP mailbox (default) and A2A (`--a2a --port N`: an agent card at
+/.well-known/agent-card.json and JSON-RPC message/send, whose text part is the same JSON request and whose one text
+artifact is the same redirect).
+
 Plain standard-library Python, like examples/byoa_seller.py. Environment:
-  TOWN_URL, RUN_ID, NAME, TOKEN, DEADLINE      Town's participant credentials
+  TOWN_URL, RUN_ID, NAME, TOKEN, DEADLINE      Town's participant credentials (mailbox edge only)
   REMEMBRANE_URL                               e.g. http://127.0.0.1:8765
   REMEMBRANE_OWNER_TOKEN                       the personal agent's owner token for that memory
   REMEMBRANE_PATIENT                           the patient's id in that memory
 """
 
+import argparse
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
 import sys
 import time
 import urllib.error
 import urllib.request
+import uuid
 
-TOWN = os.environ["TOWN_URL"]
-RUN = os.environ["RUN_ID"]
-NAME = os.environ["NAME"]
-TOKEN = os.environ["TOKEN"]
+TOWN = os.environ.get("TOWN_URL", "")
+RUN = os.environ.get("RUN_ID", "")
+NAME = os.environ.get("NAME", "")
+TOKEN = os.environ.get("TOKEN", "")
 DEADLINE = time.time() + float(os.environ.get("DEADLINE", "120"))
 MEMORY = os.environ["REMEMBRANE_URL"].rstrip("/")
 OWNER = os.environ["REMEMBRANE_OWNER_TOKEN"]
@@ -96,7 +103,7 @@ def redirect_for(message_id, body):
     return reply
 
 
-def main():
+def mailbox():
     global session
     session = town("POST", "/join", {"name": NAME, "token": TOKEN})["session"]
     while time.time() < DEADLINE:
@@ -119,5 +126,97 @@ def main():
     return 0
 
 
+# --- the A2A edge ----------------------------------------------------------------------------------------------------
+def agent_card(base_url):
+    return {
+        "name": "remembrane-personal-agent",
+        "description": "A patient's personal agent. It never answers health questions itself: it redirects the "
+                       "requester to the patient's health memory with a token scoped to the requester's purpose.",
+        "url": base_url,
+        "version": "0.1.0",
+        "capabilities": {"streaming": False, "pushNotifications": False},
+        "defaultInputModes": ["text"],
+        "defaultOutputModes": ["text"],
+        "skills": [{
+            "id": "health.redirect",
+            "name": "Health information redirect",
+            "description": "Send one text part holding JSON {card: {kind, operator, description}, message, "
+                           "requested_purpose?}. The reply is one text artifact holding JSON {status: granted | "
+                           "declined | unavailable | invalid, purpose, note, and when granted token, redeem_url, "
+                           "patient, expires_in_minutes}. Redeem with POST redeem_url, JSON {patient, questions}, "
+                           "Authorization: Bearer token. No health information is ever returned by this agent.",
+            "tags": ["health", "privacy", "redirect", "remembrane"],
+        }],
+    }
+
+
+class A2AHandler(BaseHTTPRequestHandler):
+    tasks = {}
+
+    def log_message(self, *args):
+        pass
+
+    def _json(self, code, body):
+        raw = json.dumps(body).encode()
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(raw)))
+        self.end_headers()
+        self.wfile.write(raw)
+
+    def do_GET(self):
+        if self.path in ("/.well-known/agent-card.json", "/.well-known/agent.json"):
+            return self._json(200, agent_card(f"http://{self.server.server_address[0]}:{self.server.server_port}"))
+        self._json(404, {"error": "not found"})
+
+    def do_POST(self):
+        try:
+            rpc = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}")
+        except ValueError:
+            return self._json(200, {"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "parse error"}})
+        rid, method = rpc.get("id"), rpc.get("method")
+        if method == "tasks/get":
+            task = self.tasks.get((rpc.get("params") or {}).get("id", ""))
+            if task is None:
+                return self._json(200, {"jsonrpc": "2.0", "id": rid, "error": {"code": -32001,
+                                                                              "message": "task not found"}})
+            return self._json(200, {"jsonrpc": "2.0", "id": rid, "result": task})
+        if method != "message/send":
+            return self._json(200, {"jsonrpc": "2.0", "id": rid,
+                                    "error": {"code": -32601, "message": f"method {method!r} not found"}})
+        message = (rpc.get("params") or {}).get("message") or {}
+        text = next((p.get("text", "") for p in message.get("parts") or [] if p.get("kind") == "text"), "")
+        task_id = "task-" + uuid.uuid4().hex[:12]
+        try:
+            body = json.loads(text)
+            if not isinstance(body, dict) or "card" not in body:
+                raise ValueError
+        except ValueError:
+            state, out = "failed", {"status": "invalid", "note": NOTES["invalid"]}
+        else:
+            out = redirect_for(task_id, body)
+            state = "completed"
+        task = {"id": task_id, "contextId": "ctx-" + task_id, "kind": "task", "status": {"state": state},
+                "artifacts": [{"artifactId": "a-1", "name": "health.redirect",
+                               "parts": [{"kind": "text", "text": json.dumps(out)}]}]}
+        self.tasks[task_id] = task
+        self._json(200, {"jsonrpc": "2.0", "id": rid, "result": task})
+
+
+def a2a(host, port):
+    server = ThreadingHTTPServer((host, port), A2AHandler)
+    print(f"personal agent (A2A) on http://{host}:{server.server_port}", flush=True)
+    try:
+        server.serve_forever()
+    finally:
+        server.server_close()
+    return 0
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    ap = argparse.ArgumentParser(description="A patient's personal agent that redirects health requests.")
+    ap.add_argument("--a2a", action="store_true", help="serve A2A instead of joining the Town mailbox")
+    ap.add_argument("--host", default="127.0.0.1")
+    ap.add_argument("--port", type=int, default=8940)
+    args = ap.parse_args()
+    sys.exit(a2a(args.host, args.port) if args.a2a else mailbox())

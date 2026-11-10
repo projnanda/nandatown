@@ -7,7 +7,8 @@ Remembrane, which picks a purpose from the card. The personal agent then replies
 purpose and where to redeem it, or with a decline. The requester redeems the token directly at Remembrane. No model
 writes the shared content, and what comes back is limited to the purpose's categories, with a source for every item.
 
-This example runs that handshake between separate agents through Town's HTTP mailbox, against a running Remembrane.
+This example runs that handshake between separate agents through Town's HTTP mailbox and over A2A, against a
+running Remembrane.
 
 ## Workflow
 
@@ -15,6 +16,7 @@ This example runs that handshake between separate agents through Town's HTTP mai
 |---|---|---|
 | `personal-agent` | `personal_agent.py`, its own process (standard-library Python, Town's participant environment) | Claims `health.request`, calls Remembrane `POST /delegate` with the card only, replies `health.redirect` |
 | five requesters | `run_check.py`, through `TownClient` | Each finds the personal agent by its `health.redirect` capability, sends a request, claims the reply and redeems the token at `POST /context` |
+| `personal_agent.py --a2a` | the same agent as an A2A endpoint (agent card, JSON-RPC `message/send`) | Town's `probe_endpoint` (what `nandatown a2a test` runs) checks it; then the same requesters repeat the handshake with `message/send` |
 
 1. A requester sends `health.request` with `{card, message, requested_purpose?}` to `personal-agent`.
 2. The personal agent claims the request. It never reads or forwards `message`, so it answers nothing from its own
@@ -24,7 +26,11 @@ This example runs that handshake between separate agents through Town's HTTP mai
 3. The requester claims the redirect. It posts `{patient, questions: [message]}` with the bearer token to
    `redeem_url`. It also checks that a tampered token is refused (401), and that its own token cannot mint another
    (`/delegate` answers 403). Then it acknowledges.
-4. `run_check.py` checks every returned item's category against the sharing policy for the assigned purpose (table
+4. The same agent is then served over A2A. Its card declares one skill, `health.redirect`. A `message/send` text
+   part holding the same JSON request gets one completed task with one text artifact: the same redirect. Town's
+   A2A probe sends a widget quote, which is not a health request, so the agent answers it with a well-formed
+   `failed` task, which the probe accepts.
+5. `run_check.py` checks every returned item's category against the sharing policy for the assigned purpose (table
    in `run_check.py`, from Remembrane's `eval/world_v4/POLICY.md` §2–4). It records only protocol events,
    fingerprints, purposes, category counts and verdicts: no tokens and no health text.
 
@@ -43,7 +49,7 @@ Remembrane's dev evaluation set (fictional patient "Alex", `p1_triathlete`):
 ## Reproduce
 
 Town base `6f9a7c064486c4a0ae9242f1ff341b8a4aad0244` (0.2.0). Remembrane version
-`ad3bb6ab7fa9e807f6e4e3bc8757ca9c136701e2`. Recorded 2026-11-09 with Python 3.13.
+`ad3bb6ab7fa9e807f6e4e3bc8757ca9c136701e2`. Recorded 2026-11-10 with Python 3.13.
 
 **Offline** (no Remembrane, no credentials). This re-verifies the recorded run: every request fingerprint against
 the committed fixtures, the mailbox order (accepted, claimed, acknowledged, for each request and its redirect) and
@@ -73,6 +79,15 @@ python examples/integrations/remembrane-redirect/run_check.py --out /tmp/remembr
 python examples/integrations/remembrane-redirect/run_check.py --verify /tmp/remembrane-evidence.json
 ```
 
+To probe the A2A edge by hand, with or without a memory behind it:
+
+```sh
+REMEMBRANE_URL=http://127.0.0.1:8765 REMEMBRANE_OWNER_TOKEN=$(cat <remembrane>/data/hw8_owner_token) \
+  REMEMBRANE_PATIENT=$(cat <remembrane>/data/hw8_patient) \
+  python examples/integrations/remembrane-redirect/personal_agent.py --a2a --port 8940
+nandatown a2a test http://127.0.0.1:8940
+```
+
 ## Expected and observed
 
 | Case | Expected | Observed |
@@ -88,6 +103,12 @@ Each exchange's Town trace shows the request accepted, claimed by `personal-agen
 the redirect accepted, claimed by the requester and acknowledged `processed`. A second, replay-only run gave
 identical outcomes and identical context fingerprints.
 
+**Over A2A:**
+- Town's probe passed: the card is valid, and the round trip returns a task whose state is `failed`, because a
+  quote is not a health request.
+- All six cases gave the same outcomes as through the mailbox: one completed task with one text artifact each.
+- Each requester received the same context, with the same fingerprint, as through the mailbox.
+
 ## What this shows and what remains untested
 
 It shows that an agent with no knowledge of Remembrane can get scoped health context through Town:
@@ -98,8 +119,10 @@ It shows that an agent with no knowledge of Remembrane can get scoped health con
 Not tested here:
 - **No independent agent.** Every participant and the fixtures are the project's own; the requesters follow the
   redirect by construction.
-- **No signed identity.** Cards are self-asserted. Town's portable identity grants, a deployed NANDA Index and the
-  A2A edge are not exercised.
+- **No signed identity.** Cards are self-asserted. Town's portable identity grants and a deployed NANDA Index are
+  not exercised.
+- **Partial A2A.** Only Town's card probe and plain `message/send`; no streaming, push notifications or A2A
+  authentication, and no Path profile (Path's contracts are widget quotes).
 - **Category-level scope only.** Time windows (e.g. a coach sees the last 21 days of sleep), patient preferences
   beyond this patient's, and the wording inside each item are not checked here. Remembrane's own benchmark measures
   what leaks through item text; on held-out personas, attacks still obtained a forbidden fact 17% of the time,

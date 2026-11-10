@@ -20,8 +20,10 @@ spec.loader.exec_module(check)
 
 def test_recorded_evidence_verifies_offline():
     evidence = check.verify_file(HERE / "evidence" / "local.json")
-    assert [c["observed"]["status"] for c in evidence["cases"]] == [
-        "granted", "granted", "declined", "granted", "declined", "unavailable"]
+    statuses = ["granted", "granted", "declined", "granted", "declined", "unavailable"]
+    assert [c["observed"]["status"] for c in evidence["cases"]] == statuses
+    assert [c["observed"]["status"] for c in evidence["a2a"]["cases"]] == statuses
+    assert evidence["a2a"]["probe"]["ok"]
 
 
 def test_scope_table_follows_the_policy():
@@ -98,3 +100,19 @@ def test_redirect_through_the_town_mailbox_against_a_stand_in():
     assert [(c["case"], c["observed"]["status"], c["observed"]["purpose"]) for c in cases] == [
         ("clinic-intake", "granted", "intake"), ("coach", "granted", "fitness"),
         ("employer-wellbeing", "declined", "none"), ("coach-asks-intake", "declined", "none")]
+
+
+def test_redirect_over_a2a_against_a_stand_in():
+    fixtures = json.loads((HERE / "requesters.json").read_text(encoding="utf-8"))["requesters"]
+    pick = [r for r in fixtures if r["name"] in ("coach", "employer-wellbeing")]
+    stand_in = ThreadingHTTPServer(("127.0.0.1", 0), _StandIn)
+    Thread(target=stand_in.serve_forever, daemon=True).start()
+    try:
+        with httpx.Client(timeout=10, trust_env=False) as memory, \
+                check.a2a_agent(f"http://127.0.0.1:{stand_in.server_port}", _StandIn.owner, "patient-1") as url:
+            out = check.run_a2a(url, pick, memory)
+    finally:
+        stand_in.shutdown()
+    assert out["probe"]["ok"] and out["probe"]["task_state"] == "failed"
+    assert [(c["case"], c["observed"]["status"]) for c in out["cases"]] == [
+        ("coach", "granted"), ("employer-wellbeing", "declined")]
