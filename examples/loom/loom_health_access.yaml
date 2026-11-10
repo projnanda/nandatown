@@ -1,0 +1,76 @@
+name: loom_health_access
+description: >-
+  Agents ask the external LOOM portal for a person's glucose context.
+  Depth follows the task, overreach is blocked and recorded in the town
+  trust layer, grants expire, credit changes friction but not depth, and
+  a duplicated request is answered once.
+seed: 42
+plugin_files: [loom_plugin.py]
+redact_fields: [data]
+faults:
+  # The first context_request on the wire (grocery-agent, day 0) is
+  # delivered twice. LOOM must answer the copy as a replay.
+  - {action: duplicate, kind: context_request, nth: 1}
+agents:
+  - name: loom-gateway
+    role: loom_gateway
+    config: {}
+
+  # Same publisher (freshcart) as the injected agent below, so the
+  # overreach on day 2 lowers the credit this agent sees on day 3.
+  - name: grocery-agent
+    role: loom_requester
+    config:
+      publisher: freshcart
+      category: agent_for_user
+      steps:
+        - {day: 0, op: request, task: shopping_list, tier: L3, fields: [constraints],
+           purpose: "weekly shopping list",
+           expect: {decision: granted, tier_granted: L3, confirmation: first_request}}
+        - {day: 3, op: request, task: shopping_list, tier: L3, fields: [constraints],
+           purpose: "weekly shopping list",
+           expect: {decision: granted, tier_granted: L3, confirmation: every_time}}
+
+  # A prompt-injected copy of the grocery agent asks for 5-minute readings.
+  - name: grocery-agent-injected
+    role: loom_requester
+    config:
+      publisher: freshcart
+      category: agent_for_user
+      steps:
+        - {day: 2, op: request, task: shopping_list, tier: L1, fields: [readings],
+           purpose: "shopping list",
+           expect: {decision: blocked, reason: overreach}}
+
+  - name: mealplan-agent
+    role: loom_requester
+    config:
+      publisher: plateplan
+      category: agent_for_user
+      steps:
+        - {day: 1, op: request, task: meal_plan, tier: L2, fields: [glucose_patterns, constraints],
+           purpose: "tune meals to post-meal response",
+           expect: {decision: granted, tier_granted: L2, valid_days: 7.0}}
+        - {day: 5, op: fetch, task: meal_plan, expect: {decision: granted}}
+        - {day: 9, op: fetch, task: meal_plan, expect: {decision: denied, reason: expired}}
+
+  - name: clinic-agent
+    role: loom_requester
+    config:
+      publisher: cambridge-clinic
+      category: care_provider
+      steps:
+        - {day: 0, op: request, task: clinical_visit, tier: L2, fields: [glucose_patterns, alerts],
+           purpose: "next visit",
+           expect: {decision: granted, tier_granted: L2, auto_renew: true}}
+
+  - name: adco-marketing
+    role: loom_requester
+    config:
+      publisher: adco
+      category: commercial
+      steps:
+        - {day: 0, op: request, task: targeted_ads, tier: L1, fields: [readings],
+           purpose: "personalized ads",
+           expect: {decision: denied, reason: no_task_basis}}
+max_time: 20
