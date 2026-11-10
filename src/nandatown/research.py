@@ -431,6 +431,7 @@ def evaluate_research(profile: TestProfile, run_id: str,
                       events: list[TownEvent]) -> EvidenceResult:
     """Evaluate transport separately from requester's semantic assertions."""
     contract_for_profile(profile)
+    duplicate_profile = profile.fault == "duplicate_delivery"
     seller = next((name for name, role in profile.roles.items()
                    if role == "seller"), "seller")
     buyer = next((name for name, role in profile.roles.items()
@@ -479,8 +480,9 @@ def evaluate_research(profile: TestProfile, run_id: str,
     seller_acks = [item for item in request_acks if item.observer == seller]
     received = [item for item in seller_acks
                 if item.detail.get("status") in ("received", "processed")]
+    expected_acknowledgements = 2 if duplicate_profile else 1
     received_valid = (len(received) == len(seller_acks)
-                      == len(request_acks) == 1)
+                      == len(request_acks) == expected_acknowledgements)
     stages.append(_stage(
         "received", "passed" if received_valid else "failed",
         [item.event_id for item in request_acks],
@@ -488,9 +490,10 @@ def evaluate_research(profile: TestProfile, run_id: str,
         "the request lacks a valid seller-attributed receipt"))
     applied = [item for item in seller_acks
                if item.detail.get("status") == "processed"
-               and isinstance(item.detail.get("note"), dict)
-               and item.detail["note"].get("applied") is True]
-    if len(applied) == len(seller_acks) == len(request_acks) == 1:
+               and item.detail.get("note") == {"applied": True}]
+    if (len(applied) == 1
+            and len(seller_acks) == len(request_acks)
+            == expected_acknowledgements):
         stages.append(_stage("processed", "passed", [applied[0].event_id]))
     elif len(applied) > 1:
         stages.append(_stage("processed", "failed",
@@ -533,8 +536,6 @@ def evaluate_research(profile: TestProfile, run_id: str,
         "task_bound", "receipt_verified", "independent_review",
         "control_complete",
     }
-    if profile.fault == "duplicate_delivery":
-        expected_assertions.add("duplicate_recognized")
     assertions = (terminal[0].detail.get("note")
                   if len(terminal) == len(response_acks) == 1 else None)
     assertion_contract_valid = (
@@ -548,8 +549,6 @@ def evaluate_research(profile: TestProfile, run_id: str,
         ("independent_review", "independent_review"),
         ("control_complete", "control_complete"),
     ]
-    if profile.fault == "duplicate_delivery":
-        semantic.append(("duplicate_recognized", "duplicate_recognized"))
     for stage_name, field in semantic:
         value = assertions.get(field) if assertion_contract_valid else None
         note = (f"requester-attributed {field}; Town records the assertion"
@@ -561,6 +560,55 @@ def evaluate_research(profile: TestProfile, run_id: str,
             stages.append(_stage(stage_name, "failed",
                                  [item.event_id for item in response_acks],
                                  note))
+    if duplicate_profile:
+        offers = (find("duplicate_offered", subject=request_id)
+                  if request_id else [])
+        replays = (find("replay_returned", subject=response_id)
+                   if response_id else [])
+        offer = offers[0] if len(offers) == 1 else None
+        offer_fence = (offer.detail.get("fence") if offer is not None
+                       else None)
+        offer_valid = (
+            offer is not None
+            and isinstance(offer_fence, str)
+            and bool(offer_fence)
+            and offer.detail.get("fault") == "duplicate_delivery"
+            and type(offer.detail.get("attempt")) is int
+            and offer.detail.get("attempt") == 2
+        )
+        duplicate_acks = [item for item in seller_acks
+                          if item.detail.get("fence") == offer_fence
+                          and type(item.detail.get("attempt")) is int
+                          and item.detail.get("attempt") == 2
+                          and item.detail.get("status") == "processed"
+                          and item.detail.get("note")
+                          == {"duplicate": True}]
+        replay_valid = (
+            len(replays) == 1
+            and replays[0].detail == {"sender": seller}
+            and len(responses) == 1
+            and replays[0].at > responses[0].at
+        )
+        duplicate_valid = (
+            offer_valid
+            and len(duplicate_acks) == 1
+            and duplicate_acks[0].at >= offer.at
+            and replay_valid
+        )
+        evidence = [item.event_id for item in offers + duplicate_acks
+                    + replays]
+        duplicate_note = (
+            "Town observed one injected duplicate offer, its matching "
+            "fence-bound seller acknowledgement, and replay of the single "
+            "accepted result identity/body; requester-attributed result "
+            "checks are evaluated separately"
+        )
+        stages.append(_stage(
+            "duplicate_recognized",
+            "passed" if duplicate_valid else "failed",
+            evidence,
+            duplicate_note,
+        ))
     stages.append(_stage("portable_identity", "not_tested", [],
                          "portable identity was not exercised by this profile"))
 

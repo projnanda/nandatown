@@ -89,6 +89,17 @@ def research_events(assertions: dict[str, bool] | None = None) -> list[TownEvent
     ]
 
 
+def duplicate_research_events() -> list[TownEvent]:
+    return research_events() + [
+        event(7, "duplicate_offered", "research-1",
+              fault="duplicate_delivery", fence="f-3", attempt=2),
+        event(8, "ack_recorded", "research-1", observer="seller",
+              status="processed", fence="f-3", attempt=2,
+              note={"duplicate": True}),
+        event(9, "replay_returned", "research-1-result", sender="seller"),
+    ]
+
+
 def test_research_task_and_profiles_round_trip_strictly_without_changing_quotes():
     module = research_api()
     task = module.ResearchTask.model_validate(task_document())
@@ -552,20 +563,53 @@ def test_research_evaluator_rejects_extra_claims_and_acknowledgements(
     assert {item.name: item.status for item in result.stages}[stage] == "failed"
 
 
-def test_duplicate_profile_allows_only_the_fifth_duplicate_assertion():
+def test_duplicate_profile_derives_recognition_from_town_transport_events():
     module = research_api()
-    assertions = {
-        "task_bound": True, "receipt_verified": True,
-        "independent_review": True, "control_complete": True,
-        "duplicate_recognized": True,
-    }
     result = module.evaluate_profile(
         profile("sharpeshooter-research-duplicate-delivery"), "run-1",
-        research_events(assertions))
+        duplicate_research_events())
     assert [item.name for item in result.stages][-2:] == [
         "duplicate_recognized", "portable_identity"]
     assert {item.name: item.status for item in result.stages}[
         "duplicate_recognized"] == "passed"
+    duplicate_stage = next(item for item in result.stages
+                           if item.name == "duplicate_recognized")
+    assert "Town observed" in duplicate_stage.note
+    assert "evaluated separately" in duplicate_stage.note
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        lambda events: events.__delitem__(6),
+        lambda events: events[6].detail.update(fence=["f-3"]),
+        lambda events: events[7].detail.update(fence="wrong-fence"),
+        lambda events: events[7].detail.update(note={"duplicate": True,
+                                                     "extra": True}),
+        lambda events: events.__delitem__(8),
+        lambda events: events.__setitem__(
+            8, events[8].model_copy(update={"subject": "wrong-result"})),
+        lambda events: events.append(events[6].model_copy(
+            update={"event_id": "ev-extra-offer", "at": 9.5})),
+        lambda events: events.append(events[8].model_copy(
+            update={"event_id": "ev-extra-replay", "at": 10.0})),
+    ],
+    ids=(
+        "missing-offer", "malformed-offer-fence", "wrong-ack-fence",
+        "nonexact-duplicate-note", "missing-replay",
+        "wrong-replay-identity", "multiple-offers", "multiple-replays",
+    ),
+)
+def test_duplicate_recognition_rejects_unbound_or_ambiguous_transport(mutation):
+    module = research_api()
+    events = duplicate_research_events()
+    mutation(events)
+
+    result = module.evaluate_profile(
+        profile("sharpeshooter-research-duplicate-delivery"), "run-1", events)
+
+    assert {item.name: item.status for item in result.stages}[
+        "duplicate_recognized"] == "failed"
 
 
 def test_research_bundle_replays_its_own_version_without_reinterpreting_quotes(tmp_path):
@@ -673,3 +717,81 @@ def test_fixture_only_healthy_profile_runs_through_the_real_coordinator(
         text=True, capture_output=True, check=False)
     assert replayed.returncode == 0, replayed.stdout + replayed.stderr
     assert replayed.stdout.startswith("Replay of ")
+
+
+def test_fixture_only_duplicate_profile_runs_through_the_real_coordinator(
+        tmp_path, monkeypatch):
+    """Two Town deliveries must replay one fixture result under one fence."""
+    env, runtime = configure_adapter(tmp_path / "fixture-duplicate-boundary")
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    bundle_dir, result = run_town(
+        "sharpeshooter-research-duplicate-delivery",
+        str(tmp_path / "town-duplicate-bundle"),
+        external={"seller": [sys.executable, str(ADAPTER)]},
+        wait_timeout=90,
+    )
+
+    bundle = load_bundle(bundle_dir)
+    events = bundle["events"]
+    assert result.verdict == "passed", {
+        "stages": [(stage.name, stage.status, stage.note)
+                   for stage in result.stages],
+        "events": [(item.kind, item.subject, item.observer, item.detail)
+                   for item in events],
+    }
+    assert verify_bundle(bundle_dir) == []
+    assert launch_count(runtime) == 1
+
+    requests = [item for item in events
+                if item.kind == "message_accepted"
+                and item.detail.get("kind") == "research_request"]
+    assert [item.subject for item in requests] == ["research-1"]
+
+    seller_claims = [item for item in events
+                     if item.kind == "message_claimed"
+                     and item.subject == "research-1"
+                     and item.detail.get("claimant") == "seller"]
+    seller_acks = [item for item in events
+                   if item.kind == "ack_recorded"
+                   and item.subject == "research-1"
+                   and item.observer == "seller"
+                   and item.detail.get("status") == "processed"]
+    assert len(seller_claims) == 1
+    assert len(seller_acks) == 2
+    assert [item.detail["note"] for item in seller_acks] == [
+        {"applied": True}, {"duplicate": True}]
+
+    duplicate_offers = [item for item in events
+                        if item.kind == "duplicate_offered"
+                        and item.subject == "research-1"]
+    assert len(duplicate_offers) == 1
+    duplicate_fence = duplicate_offers[0].detail["fence"]
+    assert seller_acks[1].detail["fence"] == duplicate_fence
+
+    responses = [item for item in events
+                 if item.kind == "message_accepted"
+                 and item.detail.get("kind") == "research_result"]
+    assert [item.subject for item in responses] == ["research-1-result"]
+    response_replays = [item for item in events
+                        if item.kind == "replay_returned"
+                        and item.subject == "research-1-result"]
+    assert len(response_replays) == 1
+
+    journal_path = (Path(bundle_dir) / "state" / "seller"
+                    / "sharpeshooter-journal-v1.json")
+    journal = json.loads(journal_path.read_text(encoding="utf-8"))
+    module = adapter_api()
+    assert journal["state"] == "completed"
+    assert journal["result_message_id"] == responses[0].subject
+    assert journal["result_body"]["request_id"] == requests[0].subject
+    assert journal["result_body_digest"] == module._digest(
+        journal["result_body"])
+    assert journal["project_result_digest"] == module._digest(
+        journal["result_body"]["project_result"])
+    assert journal["replay_facts"] == {
+        "project_invocations": 1, "response_count": 1}
+
+    statuses = {stage.name: stage.status for stage in result.stages}
+    assert statuses["duplicate_recognized"] == "passed"
