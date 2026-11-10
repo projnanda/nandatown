@@ -1,0 +1,14 @@
+{
+  "mandate_id": "mdt_town_track",
+  "owner_id": "owner-town",
+  "agent_id": "buyer",
+  "payees": [
+    {"payee_id": "seller", "display_name": "seller", "pix_key": "seller@town.example", "pix_key_type": "EMAIL", "categories": ["goods"]}
+  ],
+  "per_payment_cap_cents": 5000,
+  "daily_cap_cents": 20000,
+  "hard_cap_cents": 30000,
+  "valid_until": null,
+  "revoked": false,
+  "signature": ""
+}

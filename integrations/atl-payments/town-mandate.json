@@ -1,0 +1,17 @@
+{
+  "mandate_id": "mdt_town_buyer1",
+  "owner_id": "owner-town",
+  "agent_id": "buyer-1",
+  "town_category": "goods",
+  "payees": [
+    {"payee_id": "seller-a", "display_name": "seller-a", "pix_key": "seller-a@town.example", "pix_key_type": "EMAIL", "categories": ["goods"]},
+    {"payee_id": "seller-b", "display_name": "seller-b", "pix_key": "seller-b@town.example", "pix_key_type": "EMAIL", "categories": ["goods"]},
+    {"payee_id": "seller-honest", "display_name": "seller-honest", "pix_key": "seller-honest@town.example", "pix_key_type": "EMAIL", "categories": ["goods"]}
+  ],
+  "per_payment_cap_cents": 8000,
+  "daily_cap_cents": 20000,
+  "hard_cap_cents": 30000,
+  "valid_until": null,
+  "revoked": false,
+  "signature": ""
+}
