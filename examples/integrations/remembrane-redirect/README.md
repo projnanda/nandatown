@@ -32,7 +32,8 @@ running Remembrane.
    `failed` task, which the probe accepts.
 5. `run_check.py` checks every returned item's category against the sharing policy for the assigned purpose (table
    in `run_check.py`, from Remembrane's `eval/world_v4/POLICY.md` §2–4). It records only protocol events,
-   fingerprints, purposes, category counts and verdicts: no tokens and no health text.
+   fingerprints, purposes and verdicts, plus what each requester received: the context text and its sources (kind,
+   category, date, who said it). The patient is synthetic. Tokens are never kept.
 
 The requesters (`requesters.json`) are synthetic. Their identity cards and opening messages are copied from
 Remembrane's dev evaluation set (fictional patient "Alex", `p1_triathlete`):
@@ -59,6 +60,8 @@ every verdict, recomputed from the recorded observations and the scope table:
 python -m pip install -e '.[dev]'
 python examples/integrations/remembrane-redirect/run_check.py --verify examples/integrations/remembrane-redirect/evidence/local.json
 python -m pytest -q tests/test_example_remembrane_redirect.py
+# read what one requester received (context text and sources); cases: clinic-intake, coach, coach-medical-claim, ...
+python examples/integrations/remembrane-redirect/run_check.py --show examples/integrations/remembrane-redirect/evidence/local.json coach
 ```
 
 The test also runs the personal agent through Town's real mailbox against a small stand-in that speaks Remembrane's

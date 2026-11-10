@@ -13,8 +13,8 @@ requesters repeat the handshake with A2A message/send.
         --owner-token-file .../hw8_owner_token --patient-file .../hw8_patient --project-version <commit>
     python run_check.py --verify evidence/local.json        # offline; needs neither Remembrane nor Town running
 
-Evidence keeps protocol events, fingerprints, purposes, category counts and verdicts; it never keeps tokens or the
-health text returned (only its fingerprint).
+Evidence keeps protocol events, fingerprints, purposes, verdicts, and what each requester received: the context text
+and its sources (kind, category, date, who said it). The patient is synthetic. Tokens are never kept.
 """
 
 import argparse
@@ -151,6 +151,13 @@ def wait_reply(client, message_id):
     raise CheckFailure(f"no reply to {message_id} through Town")
 
 
+SOURCE_FIELDS = ("kind", "category", "date", "source", "origin")
+
+
+def category_counts(sources):
+    return dict(sorted(Counter(f"{s.get('kind')}/{s.get('category')}" for s in sources.values()).items()))
+
+
 def redeem(memory, reply, message):
     """What a requester that has never heard of Remembrane does with the redirect: POST to the address with the token."""
     r = memory.post(reply["redeem_url"], headers={"Authorization": f"Bearer {reply['token']}"},
@@ -162,9 +169,10 @@ def redeem(memory, reply, message):
         items = j.get("item_ids") or []
         out.update(purpose=j.get("purpose"), items=len(items), tokens=j.get("tokens"),
                    sources_cover_items=set(items) <= set(sources),
-                   categories=dict(sorted(Counter(f"{s.get('kind')}/{s.get('category')}"
-                                                  for s in sources.values()).items())),
-                   text_fingerprint=fingerprint({"text": j.get("text", "")}))
+                   categories=category_counts(sources),
+                   text_fingerprint=fingerprint({"text": j.get("text", "")}),
+                   text=j.get("text", ""),
+                   sources={i: {k: s.get(k) for k in SOURCE_FIELDS} for i, s in sorted(sources.items())})
     # boundary checks with the same token: tampered, and used to mint a new one
     bad = reply["token"][:-4] + ("AAAA" if not reply["token"].endswith("AAAA") else "BBBB")
     out["tampered_token_http"] = memory.post(reply["redeem_url"], headers={"Authorization": f"Bearer {bad}"},
@@ -238,6 +246,10 @@ def verdict(case):
             context_ok=ctx.get("http") == 200 and ctx.get("purpose") == exp["purpose"] and ctx.get("items", 0) > 0,
             every_item_has_a_source=bool(ctx.get("sources_cover_items")),
             every_source_in_scope=bool(cats) and all(in_scope(exp["purpose"], *k.split("/", 1)) for k in cats),
+            # the published text and sources are the ones the verdict was computed on
+            text_matches_fingerprint=ctx.get("text_fingerprint") == fingerprint({"text": ctx.get("text", "")}),
+            sources_match_counts=category_counts(ctx.get("sources") or {}) == cats
+            and len(ctx.get("sources") or {}) == ctx.get("items"),
             tampered_token_refused=ctx.get("tampered_token_http") == 401,
             requester_cannot_mint_tokens=ctx.get("requester_delegate_http") == 403)
     else:
@@ -391,6 +403,8 @@ def main():
     action = ap.add_mutually_exclusive_group(required=True)
     action.add_argument("--out", type=Path, help="run every case and write the evidence JSON here")
     action.add_argument("--verify", type=Path, help="check an existing evidence JSON offline")
+    action.add_argument("--show", nargs=2, metavar=("EVIDENCE", "CASE"),
+                        help="print what one requester received over the mailbox (context text and sources)")
     ap.add_argument("--remembrane-url", default="http://127.0.0.1:8765")
     ap.add_argument("--owner-token-file")
     ap.add_argument("--patient-file")
@@ -399,6 +413,21 @@ def main():
     try:
         if args.verify:
             verify_file(args.verify)
+            return 0
+        if args.show:
+            evidence = json.loads(Path(args.show[0]).read_text(encoding="utf-8"))
+            case = next((c for c in evidence["cases"] if c["case"] == args.show[1]), None)
+            require(case is not None, f"no case {args.show[1]!r}; cases: {[c['case'] for c in evidence['cases']]}")
+            obs = case["observed"]
+            print(f"# {case['case']} ({case['source']}): {obs['status']}, purpose {obs['purpose']}\n")
+            ctx = obs.get("context")
+            if not ctx:
+                print("(no token, nothing received)")
+                return 0
+            print(ctx["text"])
+            print(f"\n# {ctx['items']} items, {ctx['tokens']} tokens; sources:")
+            for i, src in ctx["sources"].items():
+                print(f"{i}  {src['date']}  {src['kind']}/{src['category']}  {src['source']}")
             return 0
         if not (args.owner_token_file and args.patient_file and args.project_version):
             ap.error("--out needs --owner-token-file, --patient-file and --project-version")
