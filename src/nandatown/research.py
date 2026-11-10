@@ -311,7 +311,10 @@ def validate_research_result(
                          if candidates_valid else None)
     if actual_candidates != expected_candidates:
         _reject("candidate-binding", "candidate results do not match the task")
-    if project.get("oos_run_id") in {
+    oos_run_id = project.get("oos_run_id")
+    if not _matches(oos_run_id, _PROJECT_ID):
+        _reject("result-contract", "project OOS run identifier is invalid")
+    if oos_run_id in {
             item["is_run_id"] for item in candidate_results}:
         _reject("run-separation", "OOS run must be distinct from IS runs")
     if (project.get("client_task_id") != task.client_task_id
@@ -324,8 +327,8 @@ def validate_research_result(
     reviewer = project.get("reviewer_agent_id")
     project_ids = (
         project.get("idea_id"), project.get("family_id"),
-        project.get("oos_run_id"), author, reviewer,
-        project.get("review_id"), project.get("receipt_id"),
+        author, reviewer, project.get("review_id"),
+        project.get("receipt_id"),
     )
     if not all(_matches(value, _PROJECT_ID) for value in project_ids):
         _reject("result-contract", "project identifiers are invalid")

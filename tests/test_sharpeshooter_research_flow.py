@@ -407,6 +407,12 @@ def _reuse_is_run_as_oos(body):
     _rehash_receipt(body)
 
 
+def _use_unhashable_oos_run_id(body):
+    body["project_result"]["oos_run_id"] = []
+    body["project_result"]["receipt"]["evaluation"]["run_id"] = []
+    _rehash_receipt(body)
+
+
 @pytest.mark.parametrize("name,mutate", [
     ("project-schema", lambda body: body["project_result"].update(
         schema_version="wrong")),
@@ -427,6 +433,7 @@ def _reuse_is_run_as_oos(body):
     ("receipt-run", lambda body: _mutate_receipt(
         body, ("evaluation", "run_id"), "3" * 32)),
     ("reused-is-run", _reuse_is_run_as_oos),
+    ("unhashable-oos-run", _use_unhashable_oos_run_id),
     ("receipt-trial", lambda body: _mutate_receipt(
         body, ("evaluation", "family_oos_trial_number"), 2)),
     ("receipt-synthetic", lambda body: _mutate_receipt(
