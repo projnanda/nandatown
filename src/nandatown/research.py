@@ -450,6 +450,8 @@ def evaluate_research(profile: TestProfile, run_id: str,
             found.append(event)
         return found
 
+    event_order = {id(event): index for index, event in enumerate(events)}
+
     requests = find("message_accepted", kind=RESEARCH_REQUEST_KIND)
     directed_requests = [event for event in requests
                          if event.detail.get("sender") == buyer
@@ -587,13 +589,14 @@ def evaluate_research(profile: TestProfile, run_id: str,
             len(replays) == 1
             and replays[0].detail == {"sender": seller}
             and len(responses) == 1
-            and replays[0].at > responses[0].at
         )
         duplicate_valid = (
             offer_valid
             and len(duplicate_acks) == 1
-            and duplicate_acks[0].at >= offer.at
             and replay_valid
+            and event_order[id(responses[0])] < event_order[id(offer)]
+            < event_order[id(replays[0])]
+            and event_order[id(offer)] < event_order[id(duplicate_acks[0])]
         )
         evidence = [item.event_id for item in offers + duplicate_acks
                     + replays]

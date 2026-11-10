@@ -589,6 +589,7 @@ def test_duplicate_profile_derives_recognition_from_town_transport_events():
         lambda events: events.__delitem__(8),
         lambda events: events.__setitem__(
             8, events[8].model_copy(update={"subject": "wrong-result"})),
+        lambda events: events.insert(6, events.pop(8)),
         lambda events: events.append(events[6].model_copy(
             update={"event_id": "ev-extra-offer", "at": 9.5})),
         lambda events: events.append(events[8].model_copy(
@@ -597,7 +598,8 @@ def test_duplicate_profile_derives_recognition_from_town_transport_events():
     ids=(
         "missing-offer", "malformed-offer-fence", "wrong-ack-fence",
         "nonexact-duplicate-note", "missing-replay",
-        "wrong-replay-identity", "multiple-offers", "multiple-replays",
+        "wrong-replay-identity", "replay-before-offer", "multiple-offers",
+        "multiple-replays",
     ),
 )
 def test_duplicate_recognition_rejects_unbound_or_ambiguous_transport(mutation):
@@ -786,6 +788,8 @@ def test_fixture_only_duplicate_profile_runs_through_the_real_coordinator(
     assert journal["state"] == "completed"
     assert journal["result_message_id"] == responses[0].subject
     assert journal["result_body"]["request_id"] == requests[0].subject
+    assert responses[0].detail["content_fingerprint"] == fingerprint(
+        journal["result_body"])
     assert journal["result_body_digest"] == module._digest(
         journal["result_body"])
     assert journal["project_result_digest"] == module._digest(
