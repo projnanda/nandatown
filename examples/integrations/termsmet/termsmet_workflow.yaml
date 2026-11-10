@@ -1,0 +1,17 @@
+name: termsmet_workflow
+description: >-
+  Scripted buyer and provider complete a TermsMet acceptance workflow through
+  Town messages; tm_adapter is the only role that calls the real TermsMet MCP
+  service. No faults.
+seed: 42
+max_time: 1000
+validator: termsmet_clean
+agents:
+  - name: tm_adapter
+    role: termsmet_adapter
+  - name: tm_buyer
+    role: termsmet_buyer
+    config: {poll_interval_seconds: 0.1, poll_limit_seconds: 30}
+  - name: tm_provider
+    role: termsmet_provider
+    config: {reply_timeout: 2.0}

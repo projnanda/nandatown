@@ -1,0 +1,21 @@
+name: termsmet_lost_reply
+description: >-
+  Same TermsMet workflow, but Town transport drops the first tm_repair_result
+  (the adapter's reply carrying the server's submission-2 PASS). The provider
+  must treat the repair as unconfirmed, retry once, and confirm by querying.
+seed: 42
+max_time: 1000
+validator: termsmet_lost_reply
+agents:
+  - name: tm_adapter
+    role: termsmet_adapter
+  - name: tm_buyer
+    role: termsmet_buyer
+    config: {poll_interval_seconds: 0.1, poll_limit_seconds: 30}
+  - name: tm_provider
+    role: termsmet_provider
+    config: {reply_timeout: 2.0}
+faults:
+  - action: drop
+    kind: tm_repair_result
+    nth: 1
