@@ -2,10 +2,14 @@
 import importlib.util
 import os
 import pathlib
+import sys
 import tempfile
 import threading
 import time
 import unittest
+if importlib.util.find_spec("mcp") is None:
+    raise unittest.SkipTest("Install examples/integrations/termsmet/requirements.lock to run TermsMet bridge tests")
+
 from mcp.types import CallToolResult, TextContent
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -26,16 +30,30 @@ class BridgeTests(unittest.TestCase):
         self.bridges = []
         self.addCleanup(self.close_all)
 
-    def bridge(self, project=PROJECT, **kwargs):
-        bridge = TermsMetBridge(project, PYTHON, self.root / 'test.sqlite', **kwargs)
+    def bridge(self, project=PROJECT, project_python=PYTHON, **kwargs):
+        bridge = TermsMetBridge(project, project_python, self.root / 'test.sqlite', **kwargs)
         self.bridges.append(bridge)
         return bridge
+
+    def require_runtime(self):
+        server = PROJECT / 'server/mcp_server.py'
+        missing = []
+        if not server.is_file():
+            missing.append(f'TERMSMET_PROJECT_DIR: missing {server}')
+        if not PYTHON.is_file() or not os.access(PYTHON, os.X_OK):
+            missing.append(f'TERMSMET_PROJECT_PYTHON: missing or non-executable {PYTHON}')
+        if missing:
+            message = 'TermsMet runtime configuration invalid: ' + '; '.join(missing)
+            if 'TERMSMET_PROJECT_DIR' in os.environ or 'TERMSMET_PROJECT_PYTHON' in os.environ:
+                self.fail(message)
+            self.skipTest(message)
 
     def close_all(self):
         for bridge in self.bridges:
             bridge.close()
 
     def test_real_sessions_shared_database_permissions_and_snapshots(self):
+        self.require_runtime()
         bridge = self.bridge()
         inventory = bridge.start()
         self.assertEqual(set(inventory['buyer']), TOOLS)
@@ -71,6 +89,7 @@ class BridgeTests(unittest.TestCase):
                 module._business_result(response)
 
     def test_sdk_validation_error_is_transport_error(self):
+        self.require_runtime()
         bridge = self.bridge()
         bridge.start()
         with self.assertRaises(BridgeError) as error:
@@ -101,7 +120,7 @@ MCPServer('fake', tools=[Tool.from_function(slow)]).run(transport='stdio')
         return self.root
 
     def test_queue_deadline_prevents_late_execution(self):
-        bridge = self.bridge(self.fake_server(), call_timeout=2, startup_timeout=10)
+        bridge = self.bridge(self.fake_server(), project_python=sys.executable, call_timeout=2, startup_timeout=10)
         bridge.start()
         results = []
         first = threading.Thread(target=lambda: results.append(bridge.call('buyer', 'slow', {'delay': 0.7, 'marker': 'first'}, request_id='first')))
@@ -121,7 +140,7 @@ MCPServer('fake', tools=[Tool.from_function(slow)]).run(transport='stdio')
         self.assertEqual(bridge.records[1]['transport_error'], 'queue_timeout')
 
     def test_queued_arguments_are_copied_before_dispatch(self):
-        bridge = self.bridge(self.fake_server(), call_timeout=3, startup_timeout=10)
+        bridge = self.bridge(self.fake_server(), project_python=sys.executable, call_timeout=3, startup_timeout=10)
         bridge.start()
         first = threading.Thread(target=lambda: bridge.call('buyer', 'slow', {'delay': 0.5, 'marker': 'first'}, request_id='first'))
         first.start()
@@ -146,7 +165,7 @@ MCPServer('fake', tools=[Tool.from_function(slow)]).run(transport='stdio')
         self.assertEqual(bridge.records[1]['arguments']['marker'], 'original')
 
     def test_started_timeout_closes_sessions_and_rejects_calls(self):
-        bridge = self.bridge(self.fake_server(), call_timeout=0.25, startup_timeout=10)
+        bridge = self.bridge(self.fake_server(), project_python=sys.executable, call_timeout=0.25, startup_timeout=10)
         bridge.start()
         pids = [int((self.root / (identity + '.pid')).read_text()) for identity in ('buyer', 'provider')]
         with self.assertRaises(BridgeError) as error:
@@ -161,7 +180,7 @@ MCPServer('fake', tools=[Tool.from_function(slow)]).run(transport='stdio')
         self.assertEqual((self.root / 'calls').read_text().splitlines(), ['slow'])
 
     def test_partial_start_timeout_cleans_up_both_processes(self):
-        bridge = self.bridge(self.fake_server(provider_delay=8), startup_timeout=2)
+        bridge = self.bridge(self.fake_server(provider_delay=8), project_python=sys.executable, startup_timeout=2)
         with self.assertRaises(BridgeError) as error:
             bridge.start()
         self.assertEqual(error.exception.category, 'startup_timeout')
