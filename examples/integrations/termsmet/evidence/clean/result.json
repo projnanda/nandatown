@@ -1,0 +1,68 @@
+{
+  "run_id": "sim-53a1730b6f20",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "agreement_funding",
+      "status": "passed",
+      "evidence": [
+        "ev-12",
+        "ev-32",
+        "ev-49",
+        "ev-37",
+        "ev-54",
+        "ev-67",
+        "ev-59"
+      ],
+      "note": "job job-81db14a1044e4dc39827cfb7572feed9: v2 (repair window 10) accepted by both; simulated funding"
+    },
+    {
+      "name": "delivery_repair",
+      "status": "passed",
+      "evidence": [
+        "ev-77",
+        "ev-82",
+        "ev-84",
+        "ev-88"
+      ],
+      "note": "submission 1 FAIL (MISSING_ORDER A102) -> report read -> submission 2 PASS"
+    },
+    {
+      "name": "release_gating",
+      "status": "passed",
+      "evidence": [
+        "ev-18",
+        "ev-102",
+        "ev-198",
+        "ev-204"
+      ],
+      "note": "release at/after review deadline; 19 real-time polls; release 2.05s after PASS; no refund"
+    },
+    {
+      "name": "retrieved_artifact",
+      "status": "passed",
+      "evidence": [
+        "ev-204",
+        "ev-198",
+        "ev-210"
+      ],
+      "note": "buyer received 3 orders / 6 units / 3560 cents, equal to the independent fixture"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-217"
+      ],
+      "note": "complete run recorded no money moved"
+    },
+    {
+      "name": "privacy",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no redaction declared by this scenario"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794339133.953467
+}

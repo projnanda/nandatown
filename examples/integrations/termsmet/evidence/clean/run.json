@@ -1,0 +1,45 @@
+{
+  "run_id": "sim-53a1730b6f20",
+  "profile_name": "termsmet_workflow",
+  "profile_fingerprint": "sha256:8359588e5e13c2e8a446f57cfcf896c67c8e52881d8de35fe5ba313de7d2ddb2",
+  "created_at": 0.0,
+  "participants": [
+    {
+      "name": "tm_adapter",
+      "role": "termsmet_adapter"
+    },
+    {
+      "name": "tm_buyer",
+      "role": "termsmet_buyer"
+    },
+    {
+      "name": "tm_provider",
+      "role": "termsmet_provider"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "lab-0.2.6",
+    "python": "3.11.5"
+  },
+  "config": {
+    "mode": "lab",
+    "seed": 42,
+    "layers": {
+      "transport": "memory.v1",
+      "communication": "envelope.v1",
+      "identity": "keys.v1",
+      "registry": "index.v1",
+      "auth": "hmac.v1",
+      "trust": "reputation.v1",
+      "payments": "ledger.v1",
+      "coordination": "contractnet.v1",
+      "negotiation": "haggle.v1",
+      "memory": "kv.v1",
+      "privacy": "redact.v1",
+      "data_facts": "evidence.v1"
+    },
+    "logical_time": 10.29999999999998,
+    "rerun_command": "nandatown run examples/integrations/termsmet/termsmet_workflow.yaml --seed 42"
+  }
+}

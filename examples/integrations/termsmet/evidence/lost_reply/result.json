@@ -1,0 +1,83 @@
+{
+  "run_id": "sim-8c7ca6564d71",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "agreement_funding",
+      "status": "passed",
+      "evidence": [
+        "ev-12",
+        "ev-32",
+        "ev-49",
+        "ev-37",
+        "ev-54",
+        "ev-67",
+        "ev-59"
+      ],
+      "note": "job job-0a262be2bebd437b83c9b1fd5cae5f42: v2 (repair window 10) accepted by both; simulated funding"
+    },
+    {
+      "name": "delivery_repair",
+      "status": "passed",
+      "evidence": [
+        "ev-77",
+        "ev-82",
+        "ev-84",
+        "ev-88"
+      ],
+      "note": "submission 1 FAIL (MISSING_ORDER A102) -> report read -> submission 2 PASS"
+    },
+    {
+      "name": "release_gating",
+      "status": "passed",
+      "evidence": [
+        "ev-18",
+        "ev-113",
+        "ev-209",
+        "ev-215"
+      ],
+      "note": "release at/after review deadline; 19 real-time polls; release 2.04s after PASS; no refund"
+    },
+    {
+      "name": "retrieved_artifact",
+      "status": "passed",
+      "evidence": [
+        "ev-215",
+        "ev-209",
+        "ev-221"
+      ],
+      "note": "buyer received 3 orders / 6 units / 3560 cents, equal to the independent fixture"
+    },
+    {
+      "name": "lost_reply_recovery",
+      "status": "passed",
+      "evidence": [
+        "ev-88",
+        "ev-90",
+        "ev-91",
+        "ev-94",
+        "ev-100",
+        "ev-105",
+        "ev-108",
+        "ev-109"
+      ],
+      "note": "PASS dropped in transit; provider unconfirmed -> 1 retry rejected INVALID_STATE -> status IN_REVIEW + report -> confirmed"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-228"
+      ],
+      "note": "complete run recorded no money moved"
+    },
+    {
+      "name": "privacy",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no redaction declared by this scenario"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794339137.556343
+}
