@@ -149,7 +149,7 @@ nandatown run auction --seed 7
 
 Every scenario also gets two standing checks: the ledger conserved money across every movement, and no redacted field leaked into the exported records.
 
-A scenario is a short YAML file: agents and roles, the plugin per layer, the faults, the seed. Point `nandatown run path/to/your.yaml` at your own; `plugin_files:` in the YAML loads your own plugin and validator modules first.
+A scenario is a short YAML file: agents and roles, the plugin per layer, the faults, the seed. Point `nandatown run path/to/your.yaml` at your own; `plugin_files:` in the YAML loads your own plugin and validator modules first. To verify a bundle judged by your own validator, name the same file again: `nandatown verify runs/<id> --plugin your_plugin.py` (verify never loads code from paths inside a bundle).
 
 ## Track profiles
 

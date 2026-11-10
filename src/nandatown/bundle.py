@@ -272,6 +272,21 @@ def verify_bundle_integrity(
     return integrity, differs
 
 
+def _unregistered_validator_hint(bundle: dict) -> str:
+    """When a Lab bundle was judged by a validator this Town does not have,
+    which is what happens with a plugin validator, say so and how to load it."""
+    if bundle["mode"] != "lab":
+        return ""
+    from .sim.validators import VALIDATORS
+
+    name = getattr(bundle["profile"], "validator", "")
+    if not name or name in VALIDATORS:
+        return ""
+    return (f"; the bundle was judged by validator {name!r}, which is not"
+            " registered here (if it comes from a plugin file, verify with:"
+            " nandatown verify <bundle> --plugin <file>)")
+
+
 def verify_bundle(directory: str) -> list[str]:
     """Check integrity and evaluator reproducibility. Returns problems."""
     problems: list[str] = []
@@ -434,7 +449,8 @@ def verify_bundle(directory: str) -> list[str]:
             if recorded_result != replay_result:
                 problems.append(
                     "evaluator replay mismatch: result.json does not match a"
-                    " fresh deterministic evaluation")
+                    " fresh deterministic evaluation"
+                    + _unregistered_validator_hint(bundle))
 
     attestation_path = os.path.join(directory, "attestation.json")
     if os.path.lexists(attestation_path):
