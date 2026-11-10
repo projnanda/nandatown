@@ -1,0 +1,45 @@
+# SPDX-License-Identifier: Apache-2.0
+name: leal_recipe_sponsorship_bar
+description: >-
+  The boundary case. The only posting bars visa sponsorship, and the candidate
+  needs it. The agent following Leal's recipe stops at the first step, before
+  writing anything. The same agent without the recipe writes both documents,
+  applies, and is rejected.
+seed: 42
+validator: leal_recipe_sponsorship_bar
+plugin_files:
+  - ../plugin.py
+agents:
+  - name: leal
+    role: leal_recipes
+    config:
+      balance_cents: 0
+
+  - name: northwind-bank
+    role: employer
+    config:
+      employer: Northwind Bank
+      role: Product Manager, Digital Banking
+      posting_text: >-
+        Northwind Bank is hiring a Product Manager for its mobile app.
+        This role will not be providing visa sponsorship now or in the future.
+      sponsors: false
+      balance_cents: 0
+
+  - name: alex-agent
+    role: job_agent
+    config:
+      employer: Northwind Bank
+      documents: clean
+      use_recipe: true
+      balance_cents: 0
+
+  # The comparison: the same agent, the same documents, no recipe.
+  - name: alex-agent-no-recipe
+    role: job_agent
+    config:
+      employer: Northwind Bank
+      documents: clean
+      use_recipe: false
+      balance_cents: 0
+max_time: 30

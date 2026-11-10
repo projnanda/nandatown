@@ -1,0 +1,36 @@
+# SPDX-License-Identifier: Apache-2.0
+name: leal_recipe_application
+description: >-
+  A candidate's job agent finds a Product Manager posting in Town's registry,
+  asks Leal for its free job-application recipe, follows the recipe step by
+  step, applies, and records the employer's confirmation word for word.
+seed: 42
+validator: leal_recipe_application
+plugin_files:
+  - ../plugin.py
+agents:
+  - name: leal
+    role: leal_recipes
+    config:
+      balance_cents: 0
+
+  - name: acme-payments
+    role: employer
+    config:
+      employer: Acme Payments
+      role: Product Manager, Payments
+      posting_text: >-
+        Acme Payments is hiring a Product Manager to own cross-border transfers.
+        You will run experiments, talk to customers and ship weekly.
+        Visa sponsorship is available for this role.
+      sponsors: true
+      balance_cents: 0
+
+  - name: alex-agent
+    role: job_agent
+    config:
+      employer: Acme Payments
+      documents: clean
+      use_recipe: true
+      balance_cents: 0
+max_time: 30

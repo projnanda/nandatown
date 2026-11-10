@@ -1,0 +1,79 @@
+{
+  "captured": "2026-11-10",
+  "leal_commit": "98e308a",
+  "recipes": {
+    "job-applications": {
+      "id": "job-applications",
+      "version": "2.0.0",
+      "name": "Job applications that sound like you and never lie",
+      "creator": "Joaquin Laria, from more than 20 real applications (Sep to Nov 2026)",
+      "price": "free",
+      "steps": [
+        {
+          "id": "screen",
+          "do": "Read the whole posting before writing anything. If it contains any of the stop phrases, stop, write nothing, and tell the candidate which phrase you found.",
+          "stop_phrases": [
+            "will not be providing visa sponsorship",
+            "unable to consider candidates that will require visa sponsorship",
+            "not eligible for any employment-based immigration sponsorship",
+            "we do not sponsor",
+            "no sponsorship available",
+            "must be authorized to work without sponsorship",
+            "must be a u.s. citizen",
+            "u.s. citizen or national",
+            "itar",
+            "export control",
+            "security clearance required"
+          ],
+          "why": "In the creator's first batch, 6 of 17 queued jobs were impossible on these rules. Reading first saves the work and keeps a rejection off the record."
+        },
+        {
+          "id": "research",
+          "do": "Find what the company sells, to whom and how it makes money, and write one real insight about why the business works."
+        },
+        {
+          "id": "tailor_resume",
+          "do": "Rewrite the resume for this posting: lead with the bullets that prove what it asks for, result first, in plain words. Use only facts and numbers the candidate confirmed. Readable beats keyword-matched. One page."
+        },
+        {
+          "id": "write_letter",
+          "do": "One page, 4 or 5 paragraphs. Open on a specific moment, not the job title. One paragraph on how the business works. Answer the obvious objection. Close with a direct ask."
+        },
+        {
+          "id": "self_check",
+          "do": "Before submitting: one page each, every number confirmed, no dashes, none of the banned phrases, no mention of AI, work authorization answers exactly as the candidate gave them.",
+          "banned_phrases": [
+            "delve",
+            "crucial",
+            "robust",
+            "seamless",
+            "cutting-edge",
+            "tapestry",
+            "testament",
+            "pivotal",
+            "spearheaded",
+            "passionate about",
+            "excited about the opportunity",
+            "utilize",
+            "furthermore",
+            "moreover",
+            "ever-evolving",
+            "deep dive",
+            "i am writing to apply",
+            "i believe i would be a great fit"
+          ]
+        },
+        {
+          "id": "submit",
+          "do": "Submit, then record the employer's confirmation word for word. A click is not a confirmation."
+        }
+      ],
+      "never": [
+        "Invent a number, title, scope or result",
+        "Change a visa, sponsorship or citizenship answer",
+        "Apply to a job that bars sponsorship or requires citizenship",
+        "Mention AI anywhere in the application"
+      ]
+    }
+  }
+}
