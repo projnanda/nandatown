@@ -38,6 +38,8 @@ pipx-managed CLIs.
 
 Start with the [existing-agent testing guide](docs/testing-an-existing-agent.md)
 for A2A endpoints, OpenClaw or another runtime, and a reproducible handoff.
+The deterministic SharpeShooter Track integration has its own
+[reproduction and claim-boundary guide](docs/sharpeshooter-research.md).
 
 ## The front door
 

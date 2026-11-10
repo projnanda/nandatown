@@ -137,6 +137,8 @@ def test_research_task_rejects_unknown_fields_at_every_contract_layer(path):
     lambda value: value.update(candidates=value["candidates"][:1]),
     lambda value: value["candidates"][1].update(
         candidate_id=value["candidates"][0]["candidate_id"]),
+    lambda value: value["candidates"][1].update(
+        strategy_spec=deepcopy(value["candidates"][0]["strategy_spec"])),
 ])
 def test_research_task_rejects_malformed_contracts(mutation):
     module = research_api()
@@ -342,6 +344,8 @@ def test_requester_builds_canonical_request_and_accepts_a_valid_reviewed_result(
 
 
 @pytest.mark.parametrize("name,mutate", [
+    ("request-binding", lambda body: body.update(schema_version="wrong")),
+    ("request-binding", lambda body: body.update(request_id="research-2")),
     ("task-digest", lambda body: body["project_result"].update(
         task_digest="sha256:" + "0" * 64)),
     ("request-digest", lambda body: body.update(
@@ -350,11 +354,41 @@ def test_requester_builds_canonical_request_and_accepts_a_valid_reviewed_result(
         receipt_integrity_hash="sha256:" + "0" * 64)),
     ("selected-spec", lambda body: body["project_result"]["receipt"]
      ["strategy"]["frozen_spec"].update(name="wrong strategy")),
+    ("selected-spec", lambda body: body["project_result"].update(
+        selected_candidate_id="candidate-b")),
+    ("selected-spec", lambda body: body["project_result"].update(
+        selected_is_strategy_hash="sha256:" + "0" * 64)),
+    ("candidate-binding", lambda body: body["project_result"].update(
+        candidate_results=list(reversed(
+            body["project_result"]["candidate_results"])))),
+    ("candidate-binding", lambda body: body["project_result"][
+        "candidate_results"][1].update(
+            candidate_id=body["project_result"]["candidate_results"][0]
+            ["candidate_id"])),
+    ("task-binding", lambda body: body["project_result"].update(
+        client_task_id="another-task")),
+    ("task-binding", lambda body: body["project_result"].update(title="wrong")),
+    ("task-binding", lambda body: body["project_result"].update(
+        hypothesis="wrong")),
+    ("task-binding", lambda body: body["project_result"].update(
+        sources_digest="sha256:" + "0" * 64)),
     ("same-reviewer", lambda body: body["project_result"].update(
         reviewer_agent_id=body["project_result"]["author_agent_id"])),
     ("missing-review", lambda body: body["project_result"]["receipt"].pop("review")),
+    ("missing-review", lambda body: body["project_result"].update(
+        review_recommendation="reject")),
     ("false-lifecycle", lambda body: body["project_result"].update(
         receipt_consumed_by_scout=False)),
+    ("false-lifecycle", lambda body: body["project_result"].update(
+        receipt_verification="FAILED")),
+    ("false-lifecycle", lambda body: body["project_result"].update(
+        operator_approval="pending")),
+    ("false-lifecycle", lambda body: body["project_result"].update(
+        operator_verdict="reject")),
+    ("false-lifecycle", lambda body: body["project_result"].update(
+        budget_before=1)),
+    ("false-lifecycle", lambda body: body["project_result"].update(
+        budget_after=0)),
     ("wrong-limitations", lambda body: body["project_result"].update(limitations=[])),
 ])
 def test_requester_rejects_unbound_or_unreviewed_results(
@@ -483,12 +517,26 @@ def test_research_evaluator_has_independent_attributed_stages():
                  "control_complete"):
         assert by_name[name].status == "passed"
         assert "requester-attributed" in by_name[name].note
-    failed = module.evaluate_profile(profile(), "run-1", research_events({
-        "task_bound": True, "receipt_verified": False,
-        "independent_review": True, "control_complete": True}))
+
+
+@pytest.mark.parametrize("assertion,stage", [
+    ("task_bound", "task_bound"),
+    ("receipt_verified", "receipt_integrity"),
+    ("independent_review", "independent_review"),
+    ("control_complete", "control_complete"),
+])
+def test_research_evaluator_fails_each_requester_assertion_independently(
+        assertion, stage):
+    module = research_api()
+    assertions = {
+        "task_bound": True, "receipt_verified": True,
+        "independent_review": True, "control_complete": True,
+    }
+    assertions[assertion] = False
+    failed = module.evaluate_profile(
+        profile(), "run-1", research_events(assertions))
     assert failed.verdict == "failed"
-    assert {stage.name: stage.status for stage in failed.stages}[
-        "receipt_integrity"] == "failed"
+    assert {item.name: item.status for item in failed.stages}[stage] == "failed"
 
 
 @pytest.mark.parametrize("event_index,field,value,stage", [

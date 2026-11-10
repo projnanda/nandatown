@@ -117,6 +117,9 @@ def main() -> int:
     if mode == "malformed":
         sys.stdout.write("{not-json")
         return 0
+    if mode == "non-object":
+        sys.stdout.write("[]")
+        return 0
     if mode == "project-oversize":
         sys.stdout.write("x" * 65_537)
         return 0

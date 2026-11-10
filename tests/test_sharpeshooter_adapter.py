@@ -366,6 +366,61 @@ def test_invalid_configuration_or_approval_never_launches(tmp_path, mutate):
 
 @pytest.mark.parametrize(
     "damage",
+    ("missing-root", "root-is-file", "missing-executable",
+     "executable-outside-root", "non-executable"),
+)
+def test_named_invalid_roots_and_entrypoints_fail_before_state(tmp_path, damage):
+    """Every frozen root/entry-point error must reject before state or launch."""
+    module = api()
+    env, runtime = configured(tmp_path)
+    root = Path(env["SHARPESHOOTER_ROOT"])
+    executable = Path(env["SHARPESHOOTER_TASK_EXECUTABLE"])
+    if damage == "missing-root":
+        env["SHARPESHOOTER_ROOT"] = str(tmp_path / "absent-root")
+    elif damage == "root-is-file":
+        root_file = tmp_path / "root-file"
+        root_file.write_text("not a directory", encoding="ascii")
+        env["SHARPESHOOTER_ROOT"] = str(root_file)
+    elif damage == "missing-executable":
+        env["SHARPESHOOTER_TASK_EXECUTABLE"] = str(root / "absent")
+    elif damage == "executable-outside-root":
+        outside = tmp_path / "outside-executable"
+        outside.write_text("#!/bin/sh\nexit 0\n", encoding="ascii")
+        outside.chmod(0o700)
+        env["SHARPESHOOTER_TASK_EXECUTABLE"] = str(outside)
+    else:
+        executable.chmod(0o600)
+    expect_failure(module, "invalid_configuration", lambda: module.process_request(
+        request_id="research-1", request_body=canonical(request()), environment=env,
+    ))
+    assert not (runtime / "fixture-counter.txt").exists()
+    assert not (Path(env["STATE_DIR"]) / "sharpeshooter-journal-v1.json").exists()
+
+
+def test_metacharacters_in_owned_paths_remain_literal_argv_not_shell(tmp_path):
+    """Shell metacharacters in trusted paths must never become commands."""
+    module = api()
+    owned = tmp_path / "space ; dollar $(not-a-command)"
+    outcome, env, runtime = call(module, owned)
+    observation = json.loads((runtime / "fixture-observation.json").read_text())
+    assert outcome["replayed"] is False
+    assert observation["argv"][4] == env["SHARPESHOOTER_DB"]
+    assert observation["argv"][6] == env["SHARPESHOOTER_CAPTURE"]
+    assert not (tmp_path / "not-a-command").exists()
+
+
+def test_ambient_provider_and_auth_environment_never_reaches_child(tmp_path):
+    """The child environment is an allowlist, not ambient inheritance."""
+    module = api()
+    _outcome, env, runtime = call(module, tmp_path)
+    observed = json.loads((runtime / "fixture-observation.json").read_text())["env"]
+    for key in ("HOME", "CODEX_HOME", "HTTPS_PROXY", "OPENAI_API_KEY",
+                "UNRELATED", "TOKEN", "TOWN_URL"):
+        assert key in env and key not in observed
+
+
+@pytest.mark.parametrize(
+    "damage",
     ("executable-symlink", "project-symlink", "runtime-symlink", "state-symlink",
      "unsafe-state-mode", "runtime-overlap", "existing-db", "existing-wal",
      "existing-shm", "existing-capture"),
@@ -421,6 +476,7 @@ def test_path_symlink_ownership_overlap_and_freshness_fail_before_state(tmp_path
     [
         ("nonzero", "project_failed"),
         ("malformed", "project_output_invalid"),
+        ("non-object", "project_output_invalid"),
         ("stdout-oversize", "project_output_too_large"),
         ("stderr-oversize", "project_output_too_large"),
         ("both-oversize", "project_output_too_large"),
@@ -550,6 +606,138 @@ def test_unsafe_existing_journal_fails_closed_without_launch(tmp_path, journal_b
     expect_failure(module, "state_conflict", lambda: module.process_request(
         request_id="research-1", request_body=canonical(request()), environment=env,
     ))
+    assert not (runtime / "fixture-counter.txt").exists()
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    (
+        lambda value: value.update(state="unknown"),
+        lambda value: value.update(version=2),
+        lambda value: value.update(unexpected=True),
+    ),
+    ids=("unknown-state", "unknown-version", "extra-field"),
+)
+def test_named_unknown_journal_discriminators_fail_closed(tmp_path, mutation):
+    """Unknown state, version, or field must never be treated as resumable."""
+    module = api()
+    env, runtime = configured(tmp_path)
+    journal = {
+        "version": 1, "state": "started", "request_id": "research-1",
+        "request_digest": digest(request()), "task_digest": TASK_DIGEST,
+        "started_at": "2026-11-09T00:00:00Z",
+    }
+    mutation(journal)
+    (Path(env["STATE_DIR"]) / "sharpeshooter-journal-v1.json").write_bytes(
+        canonical(journal))
+    expect_failure(module, "state_conflict", lambda: module.process_request(
+        request_id="research-1", request_body=canonical(request()), environment=env,
+    ))
+    assert not (runtime / "fixture-counter.txt").exists()
+
+
+@pytest.mark.parametrize(
+    "operation", ("temporary-open", "temporary-write", "temporary-fsync"),
+)
+def test_started_journal_temporary_io_failure_never_launches(
+    tmp_path, monkeypatch, operation,
+):
+    """Failure before the durable started claim must leave no runnable state."""
+    module = api()
+    env, runtime = configured(tmp_path)
+
+    def fail_io(*_args, **_kwargs):
+        raise OSError(f"simulated {operation} failure")
+
+    if operation == "temporary-open":
+        original_open = module.os.open
+
+        def fail_temp_open(path, *args, **kwargs):
+            if isinstance(path, str) and path.startswith(
+                    f".{module.JOURNAL_NAME}.tmp-"):
+                raise OSError("simulated temporary open failure")
+            return original_open(path, *args, **kwargs)
+
+        monkeypatch.setattr(module.os, "open", fail_temp_open)
+    elif operation == "temporary-write":
+        monkeypatch.setattr(module.os, "write", fail_io)
+    else:
+        monkeypatch.setattr(module.os, "fsync", fail_io)
+    expect_failure(module, "state_conflict", lambda: module.process_request(
+        request_id="research-1", request_body=canonical(request()), environment=env,
+    ))
+    state = Path(env["STATE_DIR"])
+    assert not (state / "sharpeshooter-journal-v1.json").exists()
+    assert not list(state.glob(".sharpeshooter-journal-v1.json.tmp-*"))
+    assert not (runtime / "fixture-counter.txt").exists()
+
+
+def test_completed_journal_replace_failure_leaves_started_and_never_relaunches(
+    tmp_path, monkeypatch,
+):
+    """A failed completion write must stay ambiguous and fail closed."""
+    module = api()
+    env, runtime = configured(tmp_path)
+    original_replace = module.os.replace
+    replacements = 0
+
+    def fail_completion_replace(source, destination, *args, **kwargs):
+        nonlocal replacements
+        replacements += 1
+        if replacements == 1:
+            raise OSError("simulated completion write failure")
+        return original_replace(source, destination, *args, **kwargs)
+
+    monkeypatch.setattr(module.os, "replace", fail_completion_replace)
+    expect_failure(module, "internal_error", lambda: module.process_request(
+        request_id="research-1", request_body=canonical(request()), environment=env,
+    ))
+    monkeypatch.setattr(module.os, "replace", original_replace)
+    journal = json.loads(
+        (Path(env["STATE_DIR"]) / "sharpeshooter-journal-v1.json").read_text())
+    assert journal["state"] == "started"
+    assert launch_count(runtime) == 1
+    expect_failure(module, "interrupted", lambda: module.process_request(
+        request_id="research-1", request_body=canonical(request()), environment=env,
+    ))
+    assert launch_count(runtime) == 1
+
+
+def test_mailbox_rejects_unknown_message_kind_without_project_launch(
+    tmp_path, monkeypatch,
+):
+    """A non-research Town message must be acknowledged rejected without work."""
+    module = api()
+    env, runtime = configured(tmp_path)
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+    observed = {}
+
+    class Client:
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        def join_auto(self, *_args, **_kwargs):
+            pass
+
+    def run_loop(_client, handler, *, until, on_ack_accepted):
+        status, note, replies = handler({
+            "kind": "quote_request", "message_id": "research-1",
+            "body": request(), "from": "buyer",
+        })
+        observed.update(status=status, note=note, replies=replies)
+        on_ack_accepted({}, note)
+        assert until() is True
+
+    import nandatown.client
+    import nandatown.participants.base
+    monkeypatch.setattr(nandatown.client, "TownClient", Client)
+    monkeypatch.setattr(nandatown.participants.base, "run_loop", run_loop)
+    assert module.main() == 4
+    assert observed == {
+        "status": "rejected", "note": {"reason": "unknown_kind"},
+        "replies": [],
+    }
     assert not (runtime / "fixture-counter.txt").exists()
 
 
