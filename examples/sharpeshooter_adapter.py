@@ -15,6 +15,7 @@ import re
 import signal
 import stat
 import subprocess
+import sys
 import threading
 import time
 from typing import Any, Mapping
@@ -1071,5 +1072,61 @@ def _process_with_state(
     return {"message_id": message_id, "body": body, "replayed": False}
 
 
+def main() -> int:
+    """Serve the Town mailbox while preserving the byte-oriented core."""
+    from nandatown.client import TownClient
+    from nandatown.participants.base import run_loop
+
+    environment = dict(os.environ)
+    client = TownClient(environment["TOWN_URL"], environment["RUN_ID"])
+    client.join_auto(environment["NAME"], environment["TOKEN"],
+                     environment.get("TOWN_GRANT"))
+    deadline = time.time() + float(environment["DEADLINE"])
+    state = {"applied_ack": False, "duplicate_ack": False,
+             "failed_ack": False}
+
+    def handler(claim: dict[str, Any]):
+        if claim["kind"] != "research_request":
+            return "rejected", {"reason": "unknown_kind"}, []
+        try:
+            outcome = process_request(
+                request_id=claim["message_id"],
+                request_body=_canonical(claim["body"]),
+                environment=environment,
+            )
+        except AdapterFailure as exc:
+            return "rejected", {"reason": exc.payload["code"]}, []
+        note = ({"duplicate": True} if outcome["replayed"]
+                else {"applied": True})
+        return "processed", note, [{
+            "message_id": outcome["message_id"],
+            "to": claim["from"],
+            "kind": "research_result",
+            "body": outcome["body"],
+        }]
+
+    def on_ack_accepted(_claim: dict[str, Any], note: dict[str, Any]) -> None:
+        if note.get("applied") is True:
+            state["applied_ack"] = True
+        elif note.get("duplicate") is True:
+            state["duplicate_ack"] = True
+        else:
+            state["failed_ack"] = True
+
+    duplicate_profile = environment.get("FAULT") == "duplicate_delivery"
+    run_loop(
+        client,
+        handler,
+        until=lambda: (
+            state["failed_ack"]
+            or (state["applied_ack"] and
+                (not duplicate_profile or state["duplicate_ack"]))
+            or time.time() > deadline
+        ),
+        on_ack_accepted=on_ack_accepted,
+    )
+    return 0 if state["applied_ack"] else 4
+
+
 if __name__ == "__main__":
-    raise SystemExit("Milestone 2 adds the Town mailbox loop; import process_request for now.")
+    sys.exit(main())

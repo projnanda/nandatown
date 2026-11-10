@@ -13,7 +13,7 @@ import hashlib
 import json
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 def canonical_json(obj: Any) -> str:
@@ -54,6 +54,60 @@ class QuoteTask(BaseModel):
     expected_total_cents: int
 
 
+class _StrictFrozenModel(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid", strict=True)
+
+
+class ResearchSource(_StrictFrozenModel):
+    uri: str = Field(min_length=1, max_length=2048)
+    label: str = Field(min_length=1, max_length=128)
+    accessed_on: str
+
+
+class ResearchIdea(_StrictFrozenModel):
+    title: str = Field(min_length=1, max_length=160)
+    hypothesis: str = Field(min_length=1, max_length=1000)
+    rationale: str = Field(min_length=1, max_length=2000)
+    sources: list[ResearchSource] = Field(min_length=1, max_length=8)
+
+
+class ResearchStrategySpec(_StrictFrozenModel):
+    name: str = Field(min_length=1, max_length=128)
+    universe: str = Field(min_length=1, max_length=512)
+    signal: str = Field(min_length=1, max_length=512)
+    entry_rule: str = Field(min_length=1, max_length=512)
+    exit_rule: str = Field(min_length=1, max_length=512)
+    position_sizing: str = Field(min_length=1, max_length=512)
+    rebalance: str = Field(min_length=1, max_length=512)
+    parameters: dict[str, Any]
+
+
+class ResearchCandidate(_StrictFrozenModel):
+    candidate_id: str = Field(pattern=r"^[a-z][a-z0-9-]{0,63}$")
+    strategy_spec: ResearchStrategySpec
+
+
+class ResearchTask(_StrictFrozenModel):
+    schema_version: Literal["sharpeshooter.research-task.v1"]
+    client_task_id: str = Field(pattern=r"^[a-z][a-z0-9-]{0,63}$")
+    idea: ResearchIdea
+    candidates: list[ResearchCandidate] = Field(min_length=2, max_length=8)
+    selected_candidate_id: str = Field(pattern=r"^[a-z][a-z0-9-]{0,63}$")
+
+    @model_validator(mode="after")
+    def validate_candidate_identity(self):
+        ids = [candidate.candidate_id for candidate in self.candidates]
+        if len(ids) != len(set(ids)):
+            raise ValueError("candidate ids must be unique")
+        if self.selected_candidate_id not in ids:
+            raise ValueError("selected candidate must exist")
+        specs = [canonical_json(candidate.strategy_spec.model_dump())
+                 for candidate in self.candidates]
+        if len(specs) != len(set(specs)):
+            raise ValueError("candidate strategy specifications must be unique")
+        return self
+
+
 Fault = Literal[
     "none", "drop_wakeup", "duplicate_delivery", "lost_ack",
     "crash_after_claim", "context_truncation", "tool_error",
@@ -67,7 +121,7 @@ class TestProfile(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     name: str
-    task: QuoteTask
+    task: QuoteTask | ResearchTask
     roles: dict[str, str]
     capabilities: dict[str, list[str]]
     fault: Fault

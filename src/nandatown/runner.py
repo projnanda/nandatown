@@ -30,9 +30,9 @@ import httpx
 
 from . import __version__
 from .bundle import write_bundle
-from .evaluator import EVALUATOR_VERSION, RESPONSE_KIND, evaluate
 from .records import RunRecord, TestProfile, TownEvent, fingerprint
 from .profiles import PROFILES
+from .research import contract_for_profile, evaluate_profile
 
 SELLER_CRASH_EXIT = 3
 
@@ -501,8 +501,9 @@ def _quiescent(profile: TestProfile, events: list[dict[str, Any]]) -> bool:
     return bool(applied)
 
 
-def _buyer_settled_response(events: list[dict[str, Any]]) -> bool:
-    """Has the buyer acknowledged a quote response it was sent?
+def _buyer_settled_response(events: list[dict[str, Any]],
+                            response_kind: str) -> bool:
+    """Has the buyer acknowledged the profile's response it was sent?
 
     Any status except ``retryable`` settles the buyer's claim, so by then
     the buyer has recorded whatever it will assert about the response.
@@ -511,7 +512,7 @@ def _buyer_settled_response(events: list[dict[str, Any]]) -> bool:
     """
     responses = {e["subject"] for e in events
                  if e["kind"] == "message_accepted"
-                 and e["detail"].get("kind") == RESPONSE_KIND}
+                 and e["detail"].get("kind") == response_kind}
     return any(e["kind"] == "ack_recorded"
                and e["observer"] == "buyer"
                and e["subject"] in responses
@@ -519,8 +520,9 @@ def _buyer_settled_response(events: list[dict[str, Any]]) -> bool:
                for e in events)
 
 
-def _response_accepted(events: list[dict[str, Any]], buyer: str) -> bool:
-    """Has the town accepted a quote response addressed to the buyer?
+def _response_accepted(events: list[dict[str, Any]], buyer: str,
+                       response_kind: str) -> bool:
+    """Has the town accepted the profile's response for the buyer?
 
     From then on the response waits in the buyer's inbox: a seller that
     exits has finished its part, and claiming and judging the response
@@ -528,7 +530,7 @@ def _response_accepted(events: list[dict[str, Any]], buyer: str) -> bool:
     inbox, so it leaves the buyer nothing to finish.
     """
     return any(e["kind"] == "message_accepted"
-               and e["detail"].get("kind") == RESPONSE_KIND
+               and e["detail"].get("kind") == response_kind
                and e["detail"].get("to") == buyer
                for e in events)
 
@@ -553,6 +555,7 @@ def run_town(profile_name: str, out_dir: str, port: int = 0,
         raise RunnerError(f"unknown profile {profile_name!r};"
                           f" choose from {sorted(PROFILES)}")
     profile = PROFILES[profile_name]
+    contract = contract_for_profile(profile)
     _validate_role_overrides(profile, harnesses, external)
     check_wait_timeout(wait_timeout)
     model = model or os.environ.get("TOWN_MODEL", "mock:v1")
@@ -713,7 +716,8 @@ def run_town(profile_name: str, out_dir: str, port: int = 0,
                 # a seller to acknowledge, not to say "applied".
                 events = get_events()
                 if ((seller_done or _quiescent(profile, events))
-                        and _buyer_settled_response(events)):
+                        and _buyer_settled_response(
+                            events, contract.response_kind)):
                     break
             if grants:
                 # Reuse this iteration's fetch when the buyer check made one.
@@ -737,7 +741,9 @@ def run_town(profile_name: str, out_dir: str, port: int = 0,
                     else:
                         post_event("runner", "participant_exited",
                                    "seller", {"exit_code": rc})
-                        if not _response_accepted(get_events(), buyer_name):
+                        if not _response_accepted(
+                                get_events(), buyer_name,
+                                contract.response_kind):
                             break
                         # The seller left after its quote response to the
                         # buyer was accepted, so its part is over, but the
@@ -797,7 +803,7 @@ def run_town(profile_name: str, out_dir: str, port: int = 0,
         skill_releases = [
             {"kind": "skill", "name": name, "version": "1",
              "content_fingerprint": fingerprint(skill_source(name))}
-            for name in ("town-protocol", "quote.read", "quote.request")
+            for name in contract.skills
         ]
         uses_llm = "llm" in participant_kinds.values()
         recorded_harnesses = _recorded_harnesses(
@@ -831,12 +837,12 @@ def run_town(profile_name: str, out_dir: str, port: int = 0,
             participants=directory,
             releases={
                 "nandatown": __version__,
-                "evaluator": EVALUATOR_VERSION,
+                "evaluator": contract.evaluator_version,
                 "python": sys.version.split()[0],
             },
             config=config,
         )
-        result = evaluate(profile, run_id, events)
+        result = evaluate_profile(profile, run_id, events)
         bundle_dir = os.path.join(out_dir, run_id)
         write_bundle(bundle_dir, profile, run_record, intents, events, result)
         from .bundle import attest_bundle

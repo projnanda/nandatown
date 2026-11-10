@@ -10,6 +10,7 @@ import time
 import shlex
 from typing import Any
 
+from .records import ResearchTask
 from .url_credentials import Labeller, Scrubber, scrub
 
 STATUS_LABEL = {
@@ -27,6 +28,10 @@ STAGE_MEANING = {
     "processed": "the seller applied the task exactly once",
     "response": "the response was accepted and reached the buyer",
     "correct": "the buyer checked the total itself",
+    "task_bound": "the requester checked the result against the exact task",
+    "receipt_integrity": "the requester checked the receipt's canonical hash",
+    "independent_review": "the requester checked the recorded reviewer separation",
+    "control_complete": "the requester checked the bounded lifecycle controls",
     "recovered_after_restart": "accepted work survived the crash and was"
                                " redelivered",
     "stale_fence_rejected": "the old attempt could not act after its lease",
@@ -126,9 +131,16 @@ def render_report(bundle: dict[str, Any]) -> str:
     else:
         task = profile.task
         add(f"Profile:   {profile.name} (fault: {profile.fault})")
-        add(f"Task:      quote {task.quantity} x {task.sku} at"
-            f" {task.unit_price_cents} cents, expecting"
-            f" {task.expected_total_cents} cents")
+        if isinstance(task, ResearchTask):
+            add(f"Task:      research {task.idea.title};"
+                f" {len(task.candidates)} frozen candidates, selected"
+                f" {task.selected_candidate_id}")
+            add("Scope:     this run alone is not proof of real project,"
+                " OOS, or receipt compatibility")
+        else:
+            add(f"Task:      quote {task.quantity} x {task.sku} at"
+                f" {task.unit_price_cents} cents, expecting"
+                f" {task.expected_total_cents} cents")
     add(f"Releases:  " + ", ".join(f"{k} {v}"
                                    for k, v in sorted(run.releases.items())))
     if bundle.get("mode") == "lab":
