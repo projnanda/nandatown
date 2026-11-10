@@ -92,9 +92,16 @@ agents:
             runner._check_result(result, 'clean')
 
     def test_missing_formal_files_and_nonempty_output(self):
-        result = subprocess.run([sys.executable, str(RUNNER), '--project', str(self.project), '--case', 'clean', '--out', str(self.root / 'out')], capture_output=True, text=True, timeout=10)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn('formal TermsMet plugin or scenario is missing', result.stderr)
+        for missing in (self.plugin, self.integration / runner.SCENARIOS['clean']):
+            with self.subTest(missing=missing.name):
+                contents = missing.read_bytes()
+                missing.unlink()
+                try:
+                    result = subprocess.run([sys.executable, str(self.integration / 'run.py'), '--project', str(self.project), '--case', 'clean', '--out', str(self.root / 'out')], capture_output=True, text=True, timeout=10)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertEqual(result.stderr.strip(), 'TermsMet runner: formal TermsMet plugin or scenario is missing')
+                finally:
+                    missing.write_bytes(contents)
         out = self.root / 'clean'
         out.mkdir()
         (out / 'existing').write_text('preserve')
