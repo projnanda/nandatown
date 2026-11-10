@@ -1,6 +1,6 @@
 # Adgentic on the Town Track
 
-[Adgentic](https://github.com/NastasiaBroncard/adgentic) is an exchange for shopping
+[Adgentic](https://github.com/meganshi-418/adgentic) is an exchange for shopping
 agents. A buyer agent posts what its owner needs (`post_intent`). The exchange routes
 the request to seller agents, which return signed, structured offers. Offer Review
 checks each offer against the seller's registered records and strips prompt-injection
@@ -50,12 +50,12 @@ acknowledgement. The questions are:
 
 Versions used: Town `projnanda/nandatown@6f9a7c064486c4a0ae9242f1ff341b8a4aad0244`
 (nandatown 0.2.0, Track evaluator 0.5.0). Adgentic
-`NastasiaBroncard/adgentic@8e1a07458b1b5546e78dddb96ca1600bc02a4d1b` (branch
+`meganshi-418/adgentic@8e1a07458b1b5546e78dddb96ca1600bc02a4d1b` (branch
 `hw8-nandatown`). Python 3.13; the integration uses only features available in 3.11+.
 
 ```bash
 # Adgentic, checked out next to this repository
-git clone https://github.com/NastasiaBroncard/adgentic ../adgentic
+git clone https://github.com/meganshi-418/adgentic ../adgentic
 git -C ../adgentic checkout 8e1a07458b1b5546e78dddb96ca1600bc02a4d1b
 python3 -m venv ../adgentic/.venv && ../adgentic/.venv/bin/pip install -r ../adgentic/requirements.txt
 
