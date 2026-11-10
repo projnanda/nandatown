@@ -311,6 +311,9 @@ def validate_research_result(
                          if candidates_valid else None)
     if actual_candidates != expected_candidates:
         _reject("candidate-binding", "candidate results do not match the task")
+    if project.get("oos_run_id") in {
+            item["is_run_id"] for item in candidate_results}:
+        _reject("run-separation", "OOS run must be distinct from IS runs")
     if (project.get("client_task_id") != task.client_task_id
             or project.get("title") != task.idea.title
             or project.get("hypothesis") != task.idea.hypothesis

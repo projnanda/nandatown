@@ -142,6 +142,14 @@ def test_research_task_rejects_malformed_contracts(mutation):
         uri="https://user:secret@example.com/source")),
     ("ambiguous-uri", lambda value: value["idea"]["sources"][0].update(
         uri="https://example.com\\@other.example/source")),
+    ("invalid-host-underscore", lambda value: value["idea"]["sources"][0]
+     .update(uri="https://bad_host.example/source")),
+    ("invalid-host-leading-hyphen", lambda value: value["idea"]["sources"][0]
+     .update(uri="https://-bad.example/source")),
+    ("invalid-host-trailing-dot", lambda value: value["idea"]["sources"][0]
+     .update(uri="https://example.com./source")),
+    ("invalid-port", lambda value: value["idea"]["sources"][0].update(
+        uri="https://example.com:not-a-port/source")),
     ("invalid-date", lambda value: value["idea"]["sources"][0].update(
         accessed_on="2025-02-29")),
     ("non-nfc", lambda value: value["idea"].update(title="Cafe\u0301")),
@@ -186,6 +194,21 @@ def test_research_task_accepts_parameter_boundaries_and_valid_leap_date():
     }
     assert len(document["candidates"][0]["strategy_spec"]["parameters"]) == 32
     module.ResearchTask.model_validate(document)
+
+
+@pytest.mark.parametrize("uri", [
+    "https://127.0.0.1:443/source",
+    "https://[2001:db8::1]/source",
+    "https://münich.example/source",
+    "https://example.test/research%7Bvalue%7D?value=%22%3C%3E%5E%60%7C#value=%5B%5D",
+])
+def test_research_task_accepts_frozen_https_host_and_component_boundaries(uri):
+    module = research_api()
+    document = task_document()
+    document["idea"]["sources"][0]["uri"] = uri
+
+    assert module.ResearchTask.model_validate(
+        document).idea.sources[0].uri == uri
 
 
 def test_research_task_enforces_canonical_spec_and_task_byte_bounds():
@@ -377,6 +400,13 @@ def _mutate_receipt(body, path, value):
     _rehash_receipt(body)
 
 
+def _reuse_is_run_as_oos(body):
+    reused_run_id = body["project_result"]["candidate_results"][0]["is_run_id"]
+    body["project_result"]["oos_run_id"] = reused_run_id
+    body["project_result"]["receipt"]["evaluation"]["run_id"] = reused_run_id
+    _rehash_receipt(body)
+
+
 @pytest.mark.parametrize("name,mutate", [
     ("project-schema", lambda body: body["project_result"].update(
         schema_version="wrong")),
@@ -396,6 +426,7 @@ def _mutate_receipt(body, path, value):
         body, ("idea", "family_id"), "3" * 32)),
     ("receipt-run", lambda body: _mutate_receipt(
         body, ("evaluation", "run_id"), "3" * 32)),
+    ("reused-is-run", _reuse_is_run_as_oos),
     ("receipt-trial", lambda body: _mutate_receipt(
         body, ("evaluation", "family_oos_trial_number"), 2)),
     ("receipt-synthetic", lambda body: _mutate_receipt(

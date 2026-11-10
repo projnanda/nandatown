@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from datetime import date
 import hashlib
+import ipaddress
 import json
 import math
 import re
@@ -118,6 +119,12 @@ _DENIED_PARAMETER_KEYS = frozenset({
 })
 _BAD_PERCENT_ESCAPE = re.compile(r"%(?![0-9A-Fa-f]{2})")
 _EXACT_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_HOST_LABEL = re.compile(
+    r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$")
+_URI_PATH = re.compile(
+    r"^(?:[A-Za-z0-9._~!$&'()*+,;=:@/\-]|%[0-9A-Fa-f]{2})*$")
+_URI_QUERY_FRAGMENT = re.compile(
+    r"^(?:[A-Za-z0-9._~!$&'()*+,;=:@/?\-]|%[0-9A-Fa-f]{2})*$")
 
 
 def _validate_task_text(value: str, *, max_length: int | None = None) -> None:
@@ -194,12 +201,27 @@ class ResearchSource(_StrictFrozenModel):
             _ = parsed.port
         except ValueError:
             raise ValueError("source URI is invalid") from None
-        if (parsed.scheme != "https" or not host
+        if (parsed.scheme != "https" or not parsed.netloc or not host
                 or parsed.username is not None or parsed.password is not None
                 or any(char.isspace() for char in value)
-                or any(char in '\\<>"{}|^`' for char in value)
-                or _BAD_PERCENT_ESCAPE.search(value)):
+                or "\\" in value or _BAD_PERCENT_ESCAPE.search(value)
+                or _URI_PATH.fullmatch(parsed.path) is None
+                or _URI_QUERY_FRAGMENT.fullmatch(parsed.query) is None
+                or _URI_QUERY_FRAGMENT.fullmatch(parsed.fragment) is None):
             raise ValueError("source URI must be HTTPS without userinfo")
+        try:
+            ipaddress.ip_address(host)
+            return value
+        except ValueError:
+            pass
+        try:
+            ascii_host = host.encode("idna").decode("ascii")
+        except UnicodeError:
+            raise ValueError("source URI hostname is invalid") from None
+        if (len(ascii_host) > 253 or ascii_host.endswith(".")
+                or not all(_HOST_LABEL.fullmatch(label)
+                           for label in ascii_host.split("."))):
+            raise ValueError("source URI hostname is invalid")
         return value
 
     @field_validator("accessed_on")
