@@ -1,0 +1,32 @@
+{
+ "buyer": "claude",
+ "adgentic_dir": "/home/claude/nastasiabroncard/adgentic",
+ "town_profile_fault": "crash_after_claim",
+ "claude": {
+  "result": "I bought 2 widgets from BudgetBasics for $33.92 all-in, which is $5.98 under your $39.90 limit.\n\n**Receipt**\n| Field | Value |\n|---|---|\n| Receipt ID | rcpt-25e3cc5f |\n| Intent / Offer | int-2d145697 / off-a3e99922 |\n| Seller | BudgetBasics (s1) |\n| Product | Widget (BudgetBasics), SKU s1-widget, ONE SIZE, qty 2 |\n| All-in price | **$33.92** |\n| Delivery | 7 days |\n| Returns | 30 days |\n| Review status | approved, no reason codes |\n| Accepted at | 2026-11-10T19:35:08Z |\n\n**How I chose:** I got three offers and picked the cheapest one that wasn't flagged or rejected:\n- **BudgetBasics, $33.92, approved:** the lowest price among the offers you allowed, so I accepted it.\n- **MegaDealz, $38.90, flagged:** I skipped it as you asked. It was flagged for `POLICY_MISMATCH` and `INJECTION_STRIPPED`, meaning the reviewer removed instructions hidden in its pitch text, and its \"60-day returns\" claim didn't match policy.\n- **Town seller, $39.90, approved:** this was right at your limit, more expensive, and had no returns.",
+  "total_cost_usd": 0.049555,
+  "num_turns": 4,
+  "is_error": false
+ },
+ "receipt": {
+  "receipt_id": "rcpt-25e3cc5f",
+  "intent_id": "int-2d145697",
+  "offer_id": "off-a3e99922",
+  "seller_id": "s1",
+  "seller_name": "BudgetBasics",
+  "product": {
+   "sku": "s1-widget",
+   "name": "Widget (BudgetBasics)",
+   "size": "ONE SIZE",
+   "quantity": 2
+  },
+  "all_in_price": 33.92,
+  "delivery_days": 7,
+  "return_days_registered": 30,
+  "review_status": "approved",
+  "reason_codes": [],
+  "accepted_at": "2026-11-10T19:35:08.067110+00:00"
+ },
+ "wall_s": 17.84,
+ "exit_code": 0
+}
