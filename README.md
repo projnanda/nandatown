@@ -575,6 +575,10 @@ don't test async `tasks/get` polling, streaming, payment, the hire step, or
 whether the recommended candidate is actually the best: Town sees the verdict's
 claims, not the trial's answer key. Evaluator: `path-trial-hire-0.1`.
 
+To rerun these profiles against Agent-Hunter, the hiring agent they were written for (offline,
+with no keys), and to verify its recorded runs in `examples/agent-hunter/`, see
+[docs/integrations/agent-hunter.md](docs/integrations/agent-hunter.md).
+
 #### A provider agent: invoice extraction
 
 `--path-profile a2a-invoice-extraction@0.1` tests the other side of the hire:
