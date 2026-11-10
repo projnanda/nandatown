@@ -1,0 +1,84 @@
+{
+  "run_id": "sim-00b53a4d5633",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "agreement_funding",
+      "status": "passed",
+      "evidence": [
+        "ev-12",
+        "ev-32",
+        "ev-49",
+        "ev-37",
+        "ev-54",
+        "ev-67",
+        "ev-59"
+      ],
+      "note": "job job-965e9b676c064d168bdea71634056746: v2 (repair window 10) accepted by both; simulated funding"
+    },
+    {
+      "name": "delivery_repair",
+      "status": "passed",
+      "evidence": [
+        "ev-77",
+        "ev-82",
+        "ev-84",
+        "ev-88"
+      ],
+      "note": "submission 1 FAIL (MISSING_ORDER A102) -> report read -> submission 2 PASS"
+    },
+    {
+      "name": "release_gating",
+      "status": "passed",
+      "evidence": [
+        "ev-18",
+        "ev-113",
+        "ev-119",
+        "ev-214",
+        "ev-220"
+      ],
+      "note": "release at/after review deadline; 19 real-time polls; release 2.04s after PASS; no refund"
+    },
+    {
+      "name": "retrieved_artifact",
+      "status": "passed",
+      "evidence": [
+        "ev-220",
+        "ev-214",
+        "ev-226"
+      ],
+      "note": "buyer received 3 orders / 6 units / 3560 cents, equal to the independent fixture"
+    },
+    {
+      "name": "lost_reply_recovery",
+      "status": "passed",
+      "evidence": [
+        "ev-88",
+        "ev-90",
+        "ev-91",
+        "ev-94",
+        "ev-100",
+        "ev-105",
+        "ev-108",
+        "ev-109"
+      ],
+      "note": "PASS dropped in transit; provider unconfirmed -> 1 retry rejected INVALID_STATE -> status IN_REVIEW + report -> confirmed"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-233"
+      ],
+      "note": "complete run recorded no money moved"
+    },
+    {
+      "name": "privacy",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no redaction declared by this scenario"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794334579.937723
+}

@@ -1,0 +1,45 @@
+{
+  "run_id": "sim-00b53a4d5633",
+  "profile_name": "termsmet_lost_reply",
+  "profile_fingerprint": "sha256:81f9d677ab6912ecbb0b13908882ddcba9a07851055862507387bdcf9e96dcc3",
+  "created_at": 0.0,
+  "participants": [
+    {
+      "name": "tm_adapter",
+      "role": "termsmet_adapter"
+    },
+    {
+      "name": "tm_buyer",
+      "role": "termsmet_buyer"
+    },
+    {
+      "name": "tm_provider",
+      "role": "termsmet_provider"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "lab-0.2.6",
+    "python": "3.11.5"
+  },
+  "config": {
+    "mode": "lab",
+    "seed": 42,
+    "layers": {
+      "transport": "memory.v1",
+      "communication": "envelope.v1",
+      "identity": "keys.v1",
+      "registry": "index.v1",
+      "auth": "hmac.v1",
+      "trust": "reputation.v1",
+      "payments": "ledger.v1",
+      "coordination": "contractnet.v1",
+      "negotiation": "haggle.v1",
+      "memory": "kv.v1",
+      "privacy": "redact.v1",
+      "data_facts": "evidence.v1"
+    },
+    "logical_time": 12.699999999999976,
+    "rerun_command": "nandatown run examples/integrations/termsmet/termsmet_lost_reply.yaml --seed 42"
+  }
+}

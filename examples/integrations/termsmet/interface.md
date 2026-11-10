@@ -1,6 +1,6 @@
 # TermsMet Town integration interface
 
-Y4 provides runner and bridge scaffolding. The formal plugin, scenarios, roles and validators remain to be implemented; no Town TermsMet transaction has been demonstrated.
+Y4 provided the runner and bridge scaffolding. Stage two added the formal plugin (`termsmet_plugin.py`), both scenarios, validators and recorded evidence; see `README.md` for results.
 
 ## Files and lifecycle
 
@@ -24,6 +24,6 @@ Fixed participants are `tm_buyer`, `tm_provider`, and `tm_adapter`. Requests use
 .venv/bin/python examples/integrations/termsmet/run.py --verify examples/integrations/termsmet/evidence
 ```
 
-The live commands currently fail clearly because the formal plugin and scenarios are absent. `--project-python` overrides the default `<project>/.venv/bin/python`. Live runs check the pinned runtime commit, clean tracked runtime files, both recorded Python versions, and MCP SDK version. They refuse nonempty output directories, use seed 42, and cap a trial at 120 seconds of real time. The output directory is the canonical bundle; failed attempts retain a `failure.json` and any available partial bundle under `.pending`. Do not reuse or overwrite it. `--verify` expects `clean/` and `lost_reply/` canonical bundles beneath its argument and loads validators without the runtime or MCP.
+`--project-python` overrides the default `<project>/.venv/bin/python`. Live runs check the pinned runtime commit, clean tracked runtime files, both recorded Python versions, and MCP SDK version. They refuse nonempty output directories, use seed 42, and cap a trial at 120 seconds of real time. The output directory is the canonical bundle; failed attempts retain a `failure.json` and any available partial bundle under `.pending`. Do not reuse or overwrite it. `--verify` expects `clean/` and `lost_reply/` canonical bundles beneath its argument and loads validators without the runtime or MCP.
 
 On macOS and Linux, the supervisor observes trial descendants throughout execution. It requests orderly worker cleanup on timeout or interruption, waits five seconds, then forcibly terminates tracked survivors and waits another five seconds. It reaps its direct child and reports any forced termination or surviving tracked process as cleanup failure. Process observation requires `ps`; if it is unavailable the live run fails. Processes that deliberately escape observation are outside this local demonstration's guarantees. No recorded bundle files are modified after Town writes them.
