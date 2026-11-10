@@ -1,0 +1,86 @@
+{
+  "run_id": "sim-c5fff40605f6",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "connection",
+      "status": "passed",
+      "evidence": [
+        "ev-7"
+      ],
+      "note": "12 buyer tools at Trajano 26d78f6c1f02, 5 seller agents"
+    },
+    {
+      "name": "reply_lost",
+      "status": "passed",
+      "evidence": [
+        "ev-64",
+        "ev-59",
+        "ev-65"
+      ],
+      "note": "Town dropped the first accept reply; the buyer did not know whether it had bought"
+    },
+    {
+      "name": "retried_same_key",
+      "status": "passed",
+      "evidence": [
+        "ev-62",
+        "ev-68"
+      ],
+      "note": "two accept calls, both with key accept-3"
+    },
+    {
+      "name": "replayed",
+      "status": "passed",
+      "evidence": [
+        "ev-62",
+        "ev-68",
+        "ev-71"
+      ],
+      "note": "the retry returned the original result, order 1, unchanged"
+    },
+    {
+      "name": "order_delivered",
+      "status": "passed",
+      "evidence": [
+        "ev-78",
+        "ev-82"
+      ],
+      "note": "order 1 confirmed, shipped and delivered by the seller agent"
+    },
+    {
+      "name": "ground_truth",
+      "status": "passed",
+      "evidence": [
+        "ev-87"
+      ],
+      "note": "one order in the database, total 76.00 vs list optimum 79.07"
+    },
+    {
+      "name": "settlement",
+      "status": "passed",
+      "evidence": [
+        "ev-83"
+      ],
+      "note": "7600 cents paid once through Town's ledger"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-83"
+      ],
+      "note": "20000 cents conserved across every movement"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-88"
+      ],
+      "note": "fields ['api_key', 'signature'] never left the run"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794347627.24686
+}

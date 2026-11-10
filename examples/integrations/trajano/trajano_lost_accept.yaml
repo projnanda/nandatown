@@ -1,0 +1,36 @@
+name: trajano_lost_accept
+description: >-
+  The same purchase, but Town drops the market's first reply to accept_offer.
+  The buyer does not know whether it bought, and retries once with the same
+  idempotency key. Trajano must replay the first answer, not place a second
+  order. The sellers are Trajano's own rule-based agents. The
+  buyer is a Town script. Task t01 from Trajano's eval set, clock frozen.
+seed: 42
+plugin_files:
+  - trajano_plugin.py
+validator: trajano_lost_accept
+redact_fields: [api_key, signature]
+agents:
+  - name: market
+    role: trajano_market
+    config: {task: t01}
+  - name: buyer
+    role: trajano_buyer
+    config:
+      balance_cents: 20000
+      quotes: 2
+      counter_percent: 5
+      retry_after: 2.0
+      spec:
+        diameter: M8
+        length_mm: 30
+        material: steel
+        grade: '8.8'
+        standard: ISO 4017
+        qty: 500
+        ship_to: US-OH
+        need_by: '2026-11-20'
+      limits: {max_unit_price: '0.1502', max_total: '98.84', max_qty: 1000}
+max_time: 1000
+faults:
+  - {action: drop, kind: accept_offer_result, nth: 1}
