@@ -1,0 +1,28 @@
+# Needs the Rebbi plugin and a Rebbi checkout: run it with examples/rebbi/run.py, which passes
+# --plugin examples/rebbi/rebbi_plugin.py as a relative path so no local path enters the evidence.
+name: rebbi_duplicate
+description: >-
+  The same job, but Town delivers the worker's borrow request to Rebbi
+  twice (at-least-once delivery). The worker ignores the second answer;
+  Rebbi must not book a second loan for the same request.
+seed: 42
+validator: rebbi_duplicate
+agents:
+  - name: rebbi
+    role: rebbi_adapter
+    config: {fleet: [worker-01, lender-a, lender-b], snapshot_at: 30}
+  - name: lender-a
+    role: rebbi_lender
+    config: {broker: rebbi, reserve_tokens: 80000}
+  - name: lender-b
+    role: rebbi_lender
+    config: {broker: rebbi, reserve_tokens: 70000}
+  - name: worker-01
+    role: rebbi_worker
+    config: {broker: rebbi, steps: [8000, 9000, 6000], retry_after: 2.0, max_retries: 1}
+  - name: client
+    role: rebbi_client
+    config: {worker: worker-01, job_id: job-1, est_tokens: 25000, price_cents: 5000, balance_cents: 10000, start_at: 1.0}
+max_time: 100
+faults:
+  - {action: duplicate, kind: borrow_request, nth: 1}

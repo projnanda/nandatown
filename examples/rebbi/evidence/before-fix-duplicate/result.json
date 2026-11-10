@@ -1,0 +1,110 @@
+{
+  "run_id": "sim-3ff898c47b09",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "rebbi_connected",
+      "status": "passed",
+      "evidence": [
+        "ev-9",
+        "ev-10",
+        "ev-11"
+      ],
+      "note": "3 live MCP sessions, one per fleet agent"
+    },
+    {
+      "name": "rebbi_version_pinned",
+      "status": "passed",
+      "evidence": [
+        "ev-8"
+      ],
+      "note": "Rebbi at 3db016d06ad1b0ef093a0a2ae7fe54703e060edd, clean tree"
+    },
+    {
+      "name": "headroom_published",
+      "status": "passed",
+      "evidence": [
+        "ev-21",
+        "ev-25"
+      ],
+      "note": "every lender's reserve is published in Rebbi"
+    },
+    {
+      "name": "fault_injected",
+      "status": "passed",
+      "evidence": [
+        "ev-43"
+      ],
+      "note": "Town injected a duplicate of borrow_request"
+    },
+    {
+      "name": "loan_granted",
+      "status": "passed",
+      "evidence": [
+        "ev-45"
+      ],
+      "note": "Rebbi lent the full shortfall, lender reserve intact"
+    },
+    {
+      "name": "one_loan_per_request",
+      "status": "failed",
+      "evidence": [
+        "ev-45",
+        "ev-48"
+      ],
+      "note": "worker-01/job-1/borrow-1 booked loans [1, 2]; Rebbi's ledger holds 2 loans for 1 lent request(s)"
+    },
+    {
+      "name": "job_paid",
+      "status": "passed",
+      "evidence": [
+        "ev-73",
+        "ev-71"
+      ],
+      "note": "the client received the result and released escrow"
+    },
+    {
+      "name": "loans_settled",
+      "status": "failed",
+      "evidence": [
+        "ev-79",
+        "ev-75"
+      ],
+      "note": "loan 2 is active"
+    },
+    {
+      "name": "rebbi_invariants",
+      "status": "passed",
+      "evidence": [
+        "ev-79"
+      ],
+      "note": "Rebbi's own ledger check passes"
+    },
+    {
+      "name": "duplicate_gets_original",
+      "status": "failed",
+      "evidence": [
+        "ev-45",
+        "ev-48"
+      ],
+      "note": "worker-01/job-1/borrow-1: a repeat booked loan 2 instead of returning loan 1"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-31",
+        "ev-71"
+      ],
+      "note": "10000 cents conserved across every movement"
+    },
+    {
+      "name": "privacy",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no redaction declared by this scenario"
+    }
+  ],
+  "verdict": "failed",
+  "evaluated_at": 1794338626.2631946
+}

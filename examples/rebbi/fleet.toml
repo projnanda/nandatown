@@ -1,0 +1,56 @@
+# Rebbi's own scenario file for the Town runs (Rebbi reads it from REBBI_SCENARIO).
+#
+# Same format and rules as Rebbi's config/scenario.toml; only the fleet differs. Agent ids match the
+# Town agent names, because the adapter opens each Rebbi MCP session as the agent that sent the message.
+#
+#   worker-01  budget 7,000 tokens, lends nothing. The Town job needs 25,000.
+#   lender-a   180,000 - 80,000 reserve - 20,000 declared demand = 80,000 it can lend.
+#   lender-b   100,000 - 70,000 reserve - 30,000 declared demand = nothing to lend.
+
+[rules]
+max_loan_tokens = 60000
+min_loan_tokens = 5000
+loan_ttl_s = 900
+
+[harness]
+warn_fraction = 0.2
+max_turns = 60
+max_usd = 3.0
+
+# Required by Rebbi's scenario loader; the Town runs make no model calls and never read it.
+[target]
+repo = "https://github.com/simonw/sqlite-utils"
+commit = "9d7da0606e98713896bbc9fc885a5b0cd54ac2fd"
+local_path = "targets/sqlite-utils"
+key = "specs/answer-key-sqlite-utils-3.38.json"
+expected_tokens = 0
+
+[[agents]]
+id = "worker-01"
+owner = "town"
+model = "none"
+role = "Takes a 25,000-token job with a 7,000-token budget"
+budget_tokens = 7000
+reserve_tokens = 0
+expected_demand_tokens = 0
+will_lend = false
+
+[[agents]]
+id = "lender-a"
+owner = "town"
+model = "none"
+role = "Idle; lends what sits above its reserve"
+budget_tokens = 180000
+reserve_tokens = 80000
+expected_demand_tokens = 20000
+will_lend = true
+
+[[agents]]
+id = "lender-b"
+owner = "town"
+model = "none"
+role = "Busy; nothing above its reserve"
+budget_tokens = 100000
+reserve_tokens = 70000
+expected_demand_tokens = 30000
+will_lend = true

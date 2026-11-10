@@ -1,0 +1,26 @@
+# Needs the Rebbi plugin and a Rebbi checkout: run it with examples/rebbi/run.py, which passes
+# --plugin examples/rebbi/rebbi_plugin.py as a relative path so no local path enters the evidence.
+name: rebbi_no_room
+description: >-
+  Boundary case: lender-a raises its reserve to 175,000, so no lender has
+  anything above its reserve. Rebbi must refuse with each lender's reason,
+  the worker must decline without spending, and the client is refunded.
+seed: 42
+validator: rebbi_no_room
+agents:
+  - name: rebbi
+    role: rebbi_adapter
+    config: {fleet: [worker-01, lender-a, lender-b], snapshot_at: 30}
+  - name: lender-a
+    role: rebbi_lender
+    config: {broker: rebbi, reserve_tokens: 175000}
+  - name: lender-b
+    role: rebbi_lender
+    config: {broker: rebbi, reserve_tokens: 70000}
+  - name: worker-01
+    role: rebbi_worker
+    config: {broker: rebbi, steps: [8000, 9000, 6000], retry_after: 2.0, max_retries: 1}
+  - name: client
+    role: rebbi_client
+    config: {worker: worker-01, job_id: job-1, est_tokens: 25000, price_cents: 5000, balance_cents: 10000, start_at: 1.0}
+max_time: 100
