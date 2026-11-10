@@ -1,0 +1,45 @@
+{
+  "run_id": "sim-a455e3eaab54",
+  "profile_name": "probiai-insured-repeat",
+  "profile_fingerprint": "sha256:d2e24f5c29dff22f7d91901e9f8f6b9c63c270bde11dc319a1f03b3ebef89df1",
+  "created_at": 0.0,
+  "participants": [
+    {
+      "name": "seller-a",
+      "role": "seller"
+    },
+    {
+      "name": "seller-b",
+      "role": "seller"
+    },
+    {
+      "name": "buyer-1",
+      "role": "buyer"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "lab-0.2.6",
+    "python": "3.12.9"
+  },
+  "config": {
+    "mode": "lab",
+    "seed": 42,
+    "layers": {
+      "transport": "memory.v1",
+      "communication": "envelope.v1",
+      "identity": "keys.v1",
+      "registry": "index.v1",
+      "auth": "hmac.v1",
+      "trust": "reputation.v1",
+      "payments": "probiai-insured.v1",
+      "coordination": "contractnet.v1",
+      "negotiation": "haggle.v1",
+      "memory": "kv.v1",
+      "privacy": "redact.v1",
+      "data_facts": "evidence.v1"
+    },
+    "logical_time": 4.299999999999999,
+    "rerun_command": "nandatown run examples/probiai/insured-repeat.yaml --seed 42"
+  }
+}

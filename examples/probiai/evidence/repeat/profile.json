@@ -1,0 +1,73 @@
+{
+  "name": "probiai-insured-repeat",
+  "description": "Boundary: two separate orders from the same seller at the same price, each paid once. A double-payment rule that only compares amount and seller would raise a false alarm here.",
+  "seed": 42,
+  "layers": {
+    "transport": "memory.v1",
+    "communication": "envelope.v1",
+    "identity": "keys.v1",
+    "registry": "index.v1",
+    "auth": "hmac.v1",
+    "trust": "reputation.v1",
+    "payments": "probiai-insured.v1",
+    "coordination": "contractnet.v1",
+    "negotiation": "haggle.v1",
+    "memory": "kv.v1",
+    "privacy": "redact.v1",
+    "data_facts": "evidence.v1"
+  },
+  "agents": [
+    {
+      "name": "seller-a",
+      "role": "seller",
+      "config": {
+        "sku": "widget",
+        "ask_cents": 2100,
+        "floor_cents": 1800,
+        "stock": 10,
+        "balance_cents": 0
+      }
+    },
+    {
+      "name": "seller-b",
+      "role": "seller",
+      "config": {
+        "sku": "widget",
+        "ask_cents": 1995,
+        "floor_cents": 1700,
+        "stock": 10,
+        "balance_cents": 0
+      }
+    },
+    {
+      "name": "buyer-1",
+      "role": "buyer",
+      "config": {
+        "sku": "widget",
+        "quantity": 2,
+        "cap_cents": 1900,
+        "balance_cents": 10000,
+        "rounds": 2,
+        "budget_cents": "[redacted]"
+      }
+    }
+  ],
+  "faults": [
+    {
+      "action": "duplicate",
+      "kind": "delivery",
+      "nth": 1,
+      "delay": 0.0,
+      "rate": 0.0
+    }
+  ],
+  "redact_fields": [
+    "budget_cents"
+  ],
+  "max_time": 60.0,
+  "validator": "probiai-insured",
+  "plugin_files": [
+    "/Users/avinash/Documents/AgentSure/vendor/nandatown/examples/probiai/probiai_insured_ledger.py"
+  ],
+  "adaptations": []
+}
