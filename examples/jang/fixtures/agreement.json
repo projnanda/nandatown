@@ -1,0 +1,46 @@
+{
+ "source": "live JANG 4fb4eca, in-memory store",
+ "trusted_jang_public_key": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAePXfsnEtmA3SXkG+iQLQkhsBfY9O39eVXEJcvG/pE30=\n-----END PUBLIC KEY-----\n",
+ "agreement": {
+  "agreementId": "agr_959f5b31-9d0f-4948-88fb-7e23906bcd9a",
+  "sessionId": "sess_23701f59-ed05-4de4-855f-f05cb7945cca",
+  "itemId": "item-fixture",
+  "buyerAgentId": "fixture-buyer-112d14",
+  "sellerAgentId": "fixture-seller-112d14",
+  "terms": {
+   "price": 1200
+  },
+  "buyerMandateId": "mdt_fixture-buyer-112d14",
+  "sellerMandateId": "mdt_fixture-seller-112d14",
+  "offerId": "offer_71b27d50-2272-46d7-b75c-1a85aeefd6e5",
+  "acceptedByAgentId": "fixture-buyer-112d14",
+  "rounds": 1,
+  "agreedAt": "2026-11-10T18:10:58.162Z",
+  "algorithm": "ed25519",
+  "jangPublicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAePXfsnEtmA3SXkG+iQLQkhsBfY9O39eVXEJcvG/pE30=\n-----END PUBLIC KEY-----\n",
+  "signature": "XvGdvUyd3qDF1y5iLPBgMKHZq3IXz2pgwuG0z0fmz6CdyixwsU4llRKhvlvqx/IaNetwDS01jQU1jhXJIpx1AA=="
+ },
+ "buyer_mandate": {
+  "mandateId": "mdt_fixture-buyer-112d14",
+  "agentId": "fixture-buyer-112d14",
+  "ownerId": "owner-fixture",
+  "role": "buyer",
+  "itemId": "item-fixture",
+  "constraints": {
+   "price": {
+    "max": 1300
+   }
+  },
+  "preferences": {
+   "price": {
+    "weight": 5,
+    "ideal": 999,
+    "worst": 1300
+   }
+  },
+  "reservationUtility": 0.2,
+  "expiresAt": "2026-11-10T19:10:58.000Z",
+  "ownerPublicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAPCQsl5aqlb98WSPb6G3hT5AsU8gVB6OG+n6ipZL3qtw=\n-----END PUBLIC KEY-----\n",
+  "signature": "pz6zO0xUm8QmVYeN9wDfgYiM84XdDgHWQx+zl2uZ3vS2QSJdK1jg+2GEsR5GwfhaWEzfY4FguJR1rfl9a3H7Aw=="
+ }
+}

@@ -1,0 +1,70 @@
+{
+  "run_id": "sim-4a6954289f09",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "jang_reachable",
+      "status": "passed",
+      "evidence": [
+        "ev-5",
+        "ev-15"
+      ],
+      "note": "JANG health, registration and mandate lodging answered for both roles"
+    },
+    {
+      "name": "negotiation_attempted",
+      "status": "passed",
+      "evidence": [
+        "ev-19",
+        "ev-22",
+        "ev-25",
+        "ev-28",
+        "ev-31",
+        "ev-34",
+        "ev-37",
+        "ev-40"
+      ],
+      "note": "12 offers were exchanged"
+    },
+    {
+      "name": "no_deal_no_money",
+      "status": "passed",
+      "evidence": [
+        "ev-56",
+        "ev-59"
+      ],
+      "note": "no package fits both mandates: the session ended without an agreement and no money moved"
+    },
+    {
+      "name": "mandate_not_shared",
+      "status": "passed",
+      "evidence": [
+        "ev-11",
+        "ev-13",
+        "ev-16",
+        "ev-20",
+        "ev-23",
+        "ev-26",
+        "ev-29",
+        "ev-32"
+      ],
+      "note": "16 inter-agent messages carried only protocol keys; no mandate field"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [],
+      "note": "200000 cents conserved across every movement"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-60"
+      ],
+      "note": "fields ['mandate'] never left the run"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794339602.386585
+}

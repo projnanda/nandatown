@@ -1,0 +1,41 @@
+{
+  "run_id": "sim-4a6954289f09",
+  "profile_name": "jang_no_zopa",
+  "profile_fingerprint": "sha256:d27541215104d1c9a17b884ecc76e8282bcca6ce92f9e767c4298ac2fcfb0b8b",
+  "created_at": 0.0,
+  "participants": [
+    {
+      "name": "tv-seller",
+      "role": "jang_seller"
+    },
+    {
+      "name": "tv-buyer",
+      "role": "jang_buyer"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "lab-0.2.6",
+    "python": "3.14.7"
+  },
+  "config": {
+    "mode": "lab",
+    "seed": 42,
+    "layers": {
+      "transport": "memory.v1",
+      "communication": "envelope.v1",
+      "identity": "keys.v1",
+      "registry": "index.v1",
+      "auth": "hmac.v1",
+      "trust": "reputation.v1",
+      "payments": "ledger.v1",
+      "coordination": "contractnet.v1",
+      "negotiation": "haggle.v1",
+      "memory": "kv.v1",
+      "privacy": "redact.v1",
+      "data_facts": "evidence.v1"
+    },
+    "logical_time": 2.9000000000000012,
+    "rerun_command": "nandatown run examples/jang/jang_no_zopa.yaml --seed 42"
+  }
+}

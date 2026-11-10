@@ -1,0 +1,103 @@
+{
+ "town_commit": "6f9a7c0",
+ "jang_commit": "4fb4eca",
+ "signer": "python",
+ "runs": {
+  "jang_market": {
+   "run_id": "sim-9b41efeb1988",
+   "verdict": "passed",
+   "bundle_fingerprint": "sha256:0f6ce4c91262bd512b9976ef09f5955ccab9002ab227aaefd3919d3a6121f9f6",
+   "evaluator_version": "lab-0.2.6",
+   "stages": {
+    "jang_reachable": "passed",
+    "discovered": "passed",
+    "mandates_lodged": "passed",
+    "negotiated": "passed",
+    "agreement_verified": "passed",
+    "duplicate_turn_absorbed": "passed",
+    "settled_once": "passed",
+    "reputation": "passed",
+    "mandate_not_shared": "passed",
+    "ledger_conserved": "passed",
+    "privacy": "passed"
+   }
+  },
+  "jang_mandate_violation": {
+   "run_id": "sim-ea310737e72c",
+   "verdict": "passed",
+   "bundle_fingerprint": "sha256:b8cd6ac8cb602eab835078f21a8a185df8388aac179afd93e60915fe2f24b874",
+   "evaluator_version": "lab-0.2.6",
+   "stages": {
+    "jang_reachable": "passed",
+    "violation_refused": "passed",
+    "recovered_in_bounds": "passed",
+    "mandate_not_shared": "passed",
+    "ledger_conserved": "passed",
+    "privacy": "passed"
+   }
+  },
+  "jang_tampered_agreement": {
+   "run_id": "sim-66a623064ca3",
+   "verdict": "passed",
+   "bundle_fingerprint": "sha256:938bf01c14db38fd062cda5f9dc59ecf7f8b7f4168c20689499af067fa047143",
+   "evaluator_version": "lab-0.2.6",
+   "stages": {
+    "jang_reachable": "passed",
+    "negotiated": "passed",
+    "tamper_detected": "passed",
+    "no_payment_on_tamper": "passed",
+    "mandate_not_shared": "passed",
+    "ledger_conserved": "passed",
+    "privacy": "passed"
+   }
+  },
+  "jang_tampered_agreement_unverified": {
+   "run_id": "sim-9561ba9ff4e7",
+   "verdict": "failed",
+   "bundle_fingerprint": "sha256:7294f61947361f9d0b7a3da7d4d1eef4e5a68b862d99dd66a126fe6a6e474c08",
+   "evaluator_version": "lab-0.2.6",
+   "stages": {
+    "jang_reachable": "passed",
+    "negotiated": "passed",
+    "tamper_detected": "failed",
+    "no_payment_on_tamper": "failed",
+    "mandate_not_shared": "passed",
+    "ledger_conserved": "passed",
+    "privacy": "passed"
+   }
+  },
+  "jang_no_zopa": {
+   "run_id": "sim-4a6954289f09",
+   "verdict": "passed",
+   "bundle_fingerprint": "sha256:4d82af5fbffb5b0598ec290ea1d99e3ac8a3803a3848ae576735907003e64746",
+   "evaluator_version": "lab-0.2.6",
+   "stages": {
+    "jang_reachable": "passed",
+    "negotiation_attempted": "passed",
+    "no_deal_no_money": "passed",
+    "mandate_not_shared": "passed",
+    "ledger_conserved": "passed",
+    "privacy": "passed"
+   }
+  },
+  "jang_claude": {
+   "run_id": "sim-bb72fbdc9f70",
+   "verdict": "passed",
+   "bundle_fingerprint": "sha256:7e553d034a4254b7b043aef37c8146e31881a453d5c613fbbfbaec78fe2cea4f",
+   "evaluator_version": "lab-0.2.6",
+   "stages": {
+    "jang_reachable": "passed",
+    "discovered": "passed",
+    "mandates_lodged": "passed",
+    "negotiated": "passed",
+    "agreement_verified": "passed",
+    "duplicate_turn_absorbed": "passed",
+    "settled_once": "passed",
+    "reputation": "passed",
+    "mandate_not_shared": "passed",
+    "ledger_conserved": "passed",
+    "privacy": "passed"
+   }
+  }
+ }
+}

@@ -1,0 +1,125 @@
+{
+  "name": "jang_market",
+  "description": "A buyer finds a TV seller through the Town registry and both delegate the negotiation to JANG under owner-signed mandates (price, delivery, warranty, soundbar). JANG signs the agreed package; each side verifies the signature and audits the terms against its own mandate before Town escrow is held and released. One turn signal and one delivery are duplicated in transit.",
+  "seed": 42,
+  "layers": {
+    "transport": "memory.v1",
+    "communication": "envelope.v1",
+    "identity": "keys.v1",
+    "registry": "index.v1",
+    "auth": "hmac.v1",
+    "trust": "reputation.v1",
+    "payments": "ledger.v1",
+    "coordination": "contractnet.v1",
+    "negotiation": "haggle.v1",
+    "memory": "kv.v1",
+    "privacy": "redact.v1",
+    "data_facts": "evidence.v1"
+  },
+  "agents": [
+    {
+      "name": "tv-seller",
+      "role": "jang_seller",
+      "config": {
+        "sku": "tv-65oled",
+        "ask_cents": 134900,
+        "stock": 5,
+        "quantity": 1,
+        "max_rounds": 12,
+        "balance_cents": 0,
+        "strategy": {
+          "kind": "rule",
+          "options": {
+            "toughness": 1.6,
+            "respectBounds": true
+          }
+        },
+        "item": {
+          "itemId": "item-tv-65oled",
+          "title": "65-inch OLED television (clearance)",
+          "dimensions": [
+            {
+              "key": "price",
+              "label": "Price",
+              "unit": "USD",
+              "min": 500,
+              "max": 3000,
+              "step": 10,
+              "buyerPrefers": "low"
+            },
+            {
+              "key": "deliveryDays",
+              "label": "Delivery",
+              "unit": "days",
+              "min": 1,
+              "max": 45,
+              "step": 1,
+              "buyerPrefers": "low"
+            },
+            {
+              "key": "warrantyMonths",
+              "label": "Warranty",
+              "unit": "months",
+              "min": 12,
+              "max": 48,
+              "step": 6,
+              "buyerPrefers": "high"
+            },
+            {
+              "key": "bundle",
+              "label": "Soundbar bundled",
+              "min": 0,
+              "max": 1,
+              "step": 1,
+              "buyerPrefers": "high"
+            }
+          ]
+        },
+        "mandate": "[redacted]"
+      }
+    },
+    {
+      "name": "tv-buyer",
+      "role": "jang_buyer",
+      "config": {
+        "sku": "tv-65oled",
+        "quantity": 1,
+        "rounds": 1,
+        "balance_cents": 200000,
+        "strategy": {
+          "kind": "rule",
+          "options": {
+            "toughness": 1.5,
+            "respectBounds": true
+          }
+        },
+        "mandate": "[redacted]"
+      }
+    }
+  ],
+  "faults": [
+    {
+      "action": "duplicate",
+      "kind": "jang_turn",
+      "nth": 2,
+      "delay": 0.0,
+      "rate": 0.0
+    },
+    {
+      "action": "duplicate",
+      "kind": "delivery",
+      "nth": 1,
+      "delay": 0.0,
+      "rate": 0.0
+    }
+  ],
+  "redact_fields": [
+    "mandate"
+  ],
+  "max_time": 120.0,
+  "validator": "jang_market",
+  "plugin_files": [
+    "/private/tmp/nandatown/examples/jang/jang_plugin.py"
+  ],
+  "adaptations": []
+}
