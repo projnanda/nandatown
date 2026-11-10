@@ -18,6 +18,7 @@ FAKE_TESTS = (
     'test_started_timeout_closes_sessions_and_rejects_calls',
 )
 REAL_TESTS = (
+    'test_real_bridge_service_boundary',
     'test_real_sessions_shared_database_permissions_and_snapshots',
     'test_sdk_validation_error_is_transport_error',
 )
@@ -57,8 +58,8 @@ class BridgePortabilityTests(unittest.TestCase):
     def test_sdk_without_runtime_skips_only_real_tests(self):
         result = self.run_tests()
         self.assertEqual(result.returncode, 0, result.stdout)
-        self.assertIn('Ran 7 tests', result.stdout)
-        self.assertIn('skipped=2', result.stdout)
+        self.assertIn('Ran 8 tests', result.stdout)
+        self.assertIn('skipped=3', result.stdout)
         for name in FAKE_TESTS:
             self.assertRegex(result.stdout, rf'{name} .* \.\.\. ok')
         for name in REAL_TESTS:
@@ -71,7 +72,7 @@ class BridgePortabilityTests(unittest.TestCase):
         self.assertIn('TermsMet runtime configuration invalid:', result.stdout)
         self.assertIn('TERMSMET_PROJECT_DIR: missing', result.stdout)
         self.assertIn('TERMSMET_PROJECT_PYTHON: missing or non-executable', result.stdout)
-        self.assertIn('failures=2', result.stdout)
+        self.assertIn('failures=3', result.stdout)
         for name in FAKE_TESTS:
             self.assertRegex(result.stdout, rf'{name} .* \.\.\. ok')
         for name in REAL_TESTS:

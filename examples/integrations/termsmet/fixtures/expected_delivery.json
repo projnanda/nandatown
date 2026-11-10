@@ -1,0 +1,5 @@
+[
+  {"order_id": "A101", "quantity": 2, "unit_price_cents": 350, "total_cents": 700},
+  {"order_id": "A102", "quantity": 1, "unit_price_cents": 2500, "total_cents": 2500},
+  {"order_id": "A103", "quantity": 3, "unit_price_cents": 120, "total_cents": 360}
+]

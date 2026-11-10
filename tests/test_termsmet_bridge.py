@@ -1,5 +1,11 @@
 """Focused bridge checks against real SDK processes and a slow test server."""
+import csv
+from datetime import datetime
+from decimal import Decimal, ROUND_HALF_UP
+import hashlib
 import importlib.util
+import io
+import json
 import os
 import pathlib
 import sys
@@ -78,6 +84,90 @@ class BridgeTests(unittest.TestCase):
         bridge.close()
         with self.assertRaises(BridgeError):
             bridge.call('buyer', 'list_jobs', {}, request_id='closed')
+
+    def test_real_bridge_service_boundary(self):
+        self.require_runtime()
+        fixtures = ROOT / 'examples/integrations/termsmet/fixtures'
+        source = (fixtures / 'orders.csv').read_text(encoding='utf-8')
+        initial = json.loads((fixtures / 'initial_delivery.json').read_text(encoding='utf-8'))
+        self.assertTrue(source.endswith('\n'))
+        bridge = self.bridge(review_seconds=2)
+        bridge.start()
+        sequence = 0
+
+        def call(identity, tool, **arguments):
+            nonlocal sequence
+            sequence += 1
+            return bridge.call(identity, tool, arguments, request_id=f'boundary-{sequence}')
+
+        proposal = call('buyer', 'propose_agreement', template_id='order_extraction_v1', source_csv=source)
+        job_id = proposal['job_id']
+        self.assertEqual(proposal['version'], 1)
+        self.assertEqual(proposal['source_hash'], hashlib.sha256(source.encode()).hexdigest())
+        self.assertEqual(proposal['checker_version'], 'order_extraction_v1.0')
+        self.assertEqual(call('buyer', 'retrieve_delivery', job_id=job_id)['error']['code'], 'PERMISSION_DENIED')
+        self.assertEqual(call('provider', 'counter_agreement', job_id=job_id, repair_window_minutes=10)['version'], 2)
+        self.assertEqual(call('buyer', 'accept_agreement', job_id=job_id, version=1)['error']['code'], 'VERSION_MISMATCH')
+        call('provider', 'accept_agreement', job_id=job_id, version=2)
+        accepted = call('buyer', 'accept_agreement', job_id=job_id, version=2)
+        self.assertEqual(accepted['status'], 'ACCEPTED')
+        self.assertEqual(set(accepted['accepted_by']), {'buyer', 'provider'})
+        self.assertEqual(call('provider', 'counter_agreement', job_id=job_id, repair_window_minutes=5)['error']['code'], 'INVALID_STATE')
+        funding = call('buyer', 'fund_job', job_id=job_id)
+        self.assertEqual((funding['status'], funding['simulated']), ('FUNDED', True))
+        first = call('provider', 'submit_delivery', job_id=job_id, delivery=initial)
+        self.assertEqual((first['submission_version'], first['verdict'], first['release_allowed']), (1, 'FAIL', False))
+        report = call('provider', 'get_result', job_id=job_id, submission_version=1)
+        self.assertEqual(report['errors'], [{'code': 'MISSING_ORDER', 'order_id': 'A102'}])
+        agreed = call('provider', 'get_job', job_id=job_id)
+        self.assertEqual((agreed['version'], agreed['terms']['repair_window_minutes'], agreed['terms']['max_repairs']), (2, 10, 1))
+        missing = {error['order_id'] for error in report['errors'] if error['code'] == 'MISSING_ORDER'}
+        repaired = list(initial)
+        for position, row in enumerate(csv.DictReader(io.StringIO(agreed['source_csv']))):
+            if row['Order'] in missing:
+                quantity = int(row['Units'])
+                cents = int((Decimal(row['Price'].removeprefix('$')) * 100).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+                repaired.insert(position, {'order_id': row['Order'], 'quantity': quantity,
+                                           'unit_price_cents': cents, 'total_cents': quantity * cents})
+        passing = call('provider', 'submit_delivery', job_id=job_id, delivery=repaired)
+        self.assertEqual((passing['submission_version'], passing['verdict'], passing['release_allowed']), (2, 'PASS', False))
+        duplicate = call('provider', 'submit_delivery', job_id=job_id, delivery=repaired)
+        self.assertEqual(duplicate['error']['code'], 'INVALID_STATE')
+        job = call('provider', 'get_job', job_id=job_id)
+        self.assertIn(job['status'], ('IN_REVIEW', 'RELEASED'))
+        review_deadline = datetime.fromisoformat(job['deadlines']['review'])
+        confirmed = call('provider', 'get_result', job_id=job_id, submission_version=2)
+        self.assertEqual((confirmed['submission_version'], confirmed['agreement_version'], confirmed['verdict']), (2, 2, 'PASS'))
+        deadline = time.monotonic() + 15
+        while True:
+            remaining = deadline - time.monotonic()
+            self.assertGreater(remaining, 0, 'release polling exceeded 15 seconds')
+            bridge.call_timeout = min(10, remaining)
+            final = call('buyer', 'get_result', job_id=job_id, submission_version=2)
+            if final['release_allowed']:
+                break
+            self.assertEqual(final['settlement']['status'], 'NONE')
+            time.sleep(min(0.1, max(0, deadline - time.monotonic())))
+        bridge.call_timeout = 10
+        self.assertEqual(final['settlement'], {'status': 'RELEASED', 'simulated': True})
+        receipt = final['receipt']
+        self.assertEqual(receipt['status'], 'RELEASED')
+        self.assertEqual([(a['version'], a['identity']) for a in receipt['acceptances']], [(2, 'buyer'), (2, 'provider')])
+        self.assertEqual([item['submission_version'] for item in receipt['submissions']], [1, 2])
+        self.assertEqual([item['verdict'] for item in receipt['check_results']], ['FAIL', 'PASS'])
+        self.assertTrue(all(item['agreement_version'] == 2 for item in receipt['check_results']))
+        self.assertTrue(all(item['source_hash'] == proposal['source_hash'] and item['checker_version'] == proposal['checker_version'] for item in receipt['check_results']))
+        events = receipt['settlement_events']
+        self.assertEqual([event['event_type'] for event in events], ['SIMULATED_FUNDING', 'SIMULATED_RELEASE'])
+        self.assertTrue(all(event['simulated'] is True for event in events))
+        self.assertGreaterEqual(datetime.fromisoformat(events[1]['created_at']), review_deadline)
+        delivery = call('buyer', 'retrieve_delivery', job_id=job_id)['delivery']
+        expected = json.loads((fixtures / 'expected_delivery.json').read_text(encoding='utf-8'))
+        self.assertEqual(delivery, expected)
+        self.assertTrue(all(type(row[key]) is int for row in delivery for key in ('quantity', 'unit_price_cents', 'total_cents')))
+        self.assertEqual((len(delivery), sum(row['quantity'] for row in delivery), sum(row['total_cents'] for row in delivery)), (3, 6, 3560))
+        self.assertEqual(len(call('buyer', 'list_jobs')['jobs']), 1)
+        self.assertEqual(call('buyer', 'get_result', job_id=job_id, submission_version=2)['receipt']['settlement_events'], events)
 
     def test_protocol_errors_and_strict_response_consistency(self):
         make = lambda text, data, error=False: CallToolResult(
