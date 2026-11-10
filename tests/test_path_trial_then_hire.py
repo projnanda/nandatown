@@ -13,6 +13,7 @@ import threading
 import time
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 import httpx
 import pytest
@@ -102,6 +103,21 @@ class HiringAgent:
                            recommended=None, tie=False)
         elif self.defect == "insufficient_recommends":
             verdict.update(status="insufficient_candidates", tie=False)
+        elif self.defect == "pick_outside_tie":
+            verdict["recommended"] = "gamma@1"
+        elif self.defect == "tied_too_wide":
+            verdict["tied"] = ["alpha@1", "beta@1", "gamma@1"]
+        elif self.defect == "tie_without_overlap":
+            ranking[1].update(accuracy=0.91, ci_95=[0.89, 0.92])
+        elif self.defect == "recommended_despite_overlap":
+            verdict.update(status="recommended", recommended="alpha@1",
+                           tie=False, tied=[])
+        elif self.defect in ("clear_leader", "recommends_runner_up"):
+            # beta's CI no longer reaches alpha's lower bound (0.93).
+            ranking[1].update(accuracy=0.91, ci_95=[0.89, 0.92])
+            verdict.update(status="recommended", tie=False, tied=[],
+                           recommended="alpha@1"
+                           if self.defect == "clear_leader" else "beta@1")
         return {"job_id": job_id, "job_status": "ranked", "reason": None,
                 "verdict": verdict,
                 "spend_usd": {"platform_usd": 0.004, "providers_usd": 0.12,
@@ -320,6 +336,21 @@ def test_report_names_the_failure(tmp_path):
     ("insufficient_recommends",
      "verdict.recommended: expected null for status"
      " 'insufficient_candidates', observed 'beta@1'"),
+    ("pick_outside_tie",
+     "verdict.recommended: 'gamma@1' is outside the tie: its CI upper bound"
+     " 0.0 is below the leader's lower bound 0.93"),
+    ("tied_too_wide",
+     "verdict.tied: ['gamma@1'] are outside the tie (CI below the leader's"
+     " lower bound 0.93)"),
+    ("tie_without_overlap",
+     "verdict.status: 'tie', but no other candidate's CI reaches the"
+     " leader's lower bound 0.93"),
+    ("recommended_despite_overlap",
+     "verdict.status: 'recommended', but the CI of ['beta@1'] reaches the"
+     " leader's lower bound 0.93, which is a tie"),
+    ("recommends_runner_up",
+     "verdict.recommended: status 'recommended' must pick the leader"
+     " 'alpha@1', observed 'beta@1'"),
 ])
 def test_a_verdict_that_does_not_hold_together_fails(tmp_path, defect,
                                                      expected):
@@ -332,6 +363,34 @@ def test_a_verdict_that_does_not_hold_together_fails(tmp_path, defect,
     assert stage(result, "duplicate_request").status == "passed"
     assert result.verdict == "failed"
     assert verify_bundle(directory) == []
+
+
+def test_a_clear_leader_recommended_passes(tmp_path):
+    directory, result = run(tmp_path, HiringAgent(defect="clear_leader"))
+    assert stage(result, "semantic_result").status == "passed"
+    assert "verdict 'recommended', recommended 'alpha@1'" \
+        in stage(result, "semantic_result").note
+    assert verify_bundle(directory) == []
+
+
+def test_a_tie_pick_need_not_be_the_leader(tmp_path):
+    # The honest stub ties alpha and beta and picks beta (cheaper): a pick
+    # inside the tie that isn't the top accuracy is consistent.
+    _, result = run(tmp_path, HiringAgent())
+    assert stage(result, "semantic_result").status == "passed"
+    assert "verdict 'tie', recommended 'beta@1'" \
+        in stage(result, "semantic_result").note
+
+
+@pytest.mark.parametrize("directory", sorted(
+    path.parent for path in (Path(__file__).resolve().parents[1]
+                             / "examples" / "agent-hunter").glob(
+                                 "*/*/events.jsonl")),
+    ids=lambda path: f"{path.parent.name}/{path.name}")
+def test_recorded_agent_hunter_bundles_still_verify(directory):
+    # The recorded bundles were judged before the tie checks existed; they
+    # must replay to the same judgment under the current evaluator.
+    assert verify_bundle(str(directory)) == []
 
 
 def test_insufficient_candidates_without_a_pick_passes(tmp_path):

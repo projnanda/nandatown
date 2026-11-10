@@ -558,8 +558,10 @@ on it and returns one text part: a JSON hire result with `request_id`, `mode`
 `semantic_result` passes only if the job was `ranked` and the verdict holds
 together: at least two ranked candidates ordered by accuracy, each accuracy
 inside its own `ci_95`, `tie` true exactly when the status is `tie`, and a
-recommended candidate that appears in the ranking (or none, for
-`insufficient_candidates`). Unknown keys are ignored, and the stage note names
+status and pick that follow from those CIs. `recommended` needs the leader
+picked and no other CI reaching the leader's lower bound; `tie` needs another
+CI that does, and a pick (and `tied` list, if sent) from inside that group,
+whatever the tie-break. `insufficient_candidates` picks no one. Unknown keys are ignored, and the stage note names
 the result's `mode`, so an offline run is never read as a live one. The
 duplicate passes only if the resent request returns the same reply bytes: a
 second job or trial means double the spend and possibly a different pick, and

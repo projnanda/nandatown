@@ -293,7 +293,8 @@ def _hire_observation(fulfillment: dict[str, Any]) -> Any:
         verdict = fulfillment["verdict"]
         if isinstance(verdict, dict):
             kept = {key: verdict[key]
-                    for key in ("status", "recommended", "tie", "evidence")
+                    for key in ("status", "recommended", "tie", "tied",
+                                "evidence")
                     if key in verdict}
             ranking = verdict.get("ranking")
             if isinstance(ranking, list):
@@ -345,6 +346,7 @@ def _verdict_errors(verdict: Any, min_ranked: int) -> list[str]:
                       f" ranked candidates, observed {len(ranking)}")
     providers = []
     accuracies = []
+    scored: list[tuple[str, float, list[float]]] = []
     for i, row in enumerate(ranking):
         if not isinstance(row, dict):
             errors.append(f"verdict.ranking[{i}]: expected an object")
@@ -367,6 +369,8 @@ def _verdict_errors(verdict: Any, min_ranked: int) -> list[str]:
                 and ci[0] <= accuracy <= ci[1]):
             errors.append(f"verdict.ranking[{i}].ci_95: expected [lo, hi]"
                           f" with lo <= {accuracy!r} <= hi, observed {ci!r}")
+        elif isinstance(provider, str) and provider:
+            scored.append((provider, accuracy, ci))
     if any(a < b for a, b in zip(accuracies, accuracies[1:])):
         errors.append("verdict.ranking: expected candidates ordered by"
                       " accuracy, highest first")
@@ -383,6 +387,67 @@ def _verdict_errors(verdict: Any, min_ranked: int) -> list[str]:
                  or recommended not in providers):
         errors.append(f"verdict.recommended: {recommended!r} is not a"
                       " candidate in the ranking")
+    if not errors and len(scored) == len(ranking):
+        errors += _decision_errors(verdict, scored)
+    return errors
+
+
+def _decision_errors(verdict: dict[str, Any],
+                     scored: list[tuple[str, float, list[float]]]) -> list[str]:
+    """Whether the status and the pick follow from the ranking's own CIs.
+
+    The rule: the leader is recommended only if no other candidate's CI
+    reaches the leader's lower bound; otherwise the candidates whose CI
+    reaches it are tied, and the pick (by whatever tie-break) is one of
+    them. With several candidates at the top accuracy, the lowest of their
+    lower bounds is used, so the check never depends on how equal
+    accuracies were ordered. Town can't see which candidates answered, so a
+    candidate that never did can only widen the tie, never narrow it.
+    """
+    status = verdict.get("status")
+    recommended = verdict.get("recommended")
+    if status not in ("recommended", "tie") or len(scored) < 2:
+        return []
+    top = max(accuracy for _, accuracy, _ in scored)
+    leaders = [p for p, accuracy, _ in scored if accuracy == top]
+    floor = min(ci[0] for _, accuracy, ci in scored if accuracy == top)
+    reaching = [p for p, _, ci in scored if ci[1] >= floor]
+    errors = []
+    if status == "recommended":
+        if recommended not in leaders:
+            errors.append(f"verdict.recommended: status 'recommended' must"
+                          f" pick the leader {leaders[0]!r}, observed"
+                          f" {recommended!r}")
+        others = [p for p in reaching if p not in leaders[:1]]
+        if others:
+            errors.append(f"verdict.status: 'recommended', but the CI of"
+                          f" {others} reaches the leader's lower bound"
+                          f" {floor!r}, which is a tie")
+        return errors
+    if len(reaching) < 2:
+        errors.append(f"verdict.status: 'tie', but no other candidate's CI"
+                      f" reaches the leader's lower bound {floor!r}")
+    if recommended not in reaching:
+        hi = next(ci[1] for p, _, ci in scored if p == recommended)
+        errors.append(f"verdict.recommended: {recommended!r} is outside the"
+                      f" tie: its CI upper bound {hi!r} is below the"
+                      f" leader's lower bound {floor!r}")
+    if "tied" in verdict:
+        tied = verdict["tied"]
+        if not (isinstance(tied, list) and len(tied) >= 2
+                and all(isinstance(p, str) for p in tied)
+                and len(set(tied)) == len(tied)):
+            errors.append(f"verdict.tied: expected at least 2 distinct"
+                          f" candidates for a tie, observed {tied!r:.80}")
+        else:
+            outside = [p for p in tied if p not in reaching]
+            if outside:
+                errors.append(f"verdict.tied: {outside} are outside the tie"
+                              f" (CI below the leader's lower bound"
+                              f" {floor!r})")
+            if recommended not in tied:
+                errors.append(f"verdict.tied: does not include the"
+                              f" recommended {recommended!r}")
     return errors
 
 
