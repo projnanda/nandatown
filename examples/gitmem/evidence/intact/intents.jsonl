@@ -1,0 +1,11 @@
+{"intent_id": "in-1", "run_id": "run-c3bc9fb1f486", "at": 1794408810.263689, "actor": "buyer", "action": "send", "payload": {"message_id": "q-1", "to": "seller", "kind": "quote_request", "body": {"sku": "widget", "quantity": 2, "unit_price_cents": 1995}}}
+{"intent_id": "in-2", "run_id": "run-c3bc9fb1f486", "at": 1794408810.359415, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-3", "run_id": "run-c3bc9fb1f486", "at": 1794408810.4226098, "actor": "seller", "action": "send", "payload": {"message_id": "r-1", "to": "buyer", "kind": "quote_response", "body": {"request_id": "q-1", "sku": "widget", "quantity": 2, "total_cents": 3990}}}
+{"intent_id": "in-4", "run_id": "run-c3bc9fb1f486", "at": 1794408810.4304519, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-5", "run_id": "run-c3bc9fb1f486", "at": 1794408810.4391859, "actor": "buyer", "action": "ack", "payload": {"message_id": "r-1", "fence": "fence-36587ac1770d41df8491c56585664bcd", "status": "processed", "note": {"correct": true, "total_cents": 3990, "expected_total_cents": 3990}}}
+{"intent_id": "in-6", "run_id": "run-c3bc9fb1f486", "at": 1794408811.0466921, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-7", "run_id": "run-c3bc9fb1f486", "at": 1794408811.4094348, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-8", "run_id": "run-c3bc9fb1f486", "at": 1794408811.775419, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-9", "run_id": "run-c3bc9fb1f486", "at": 1794408812.139509, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-10", "run_id": "run-c3bc9fb1f486", "at": 1794408812.151999, "actor": "seller", "action": "send", "payload": {"message_id": "r-1", "to": "buyer", "kind": "quote_response", "body": {"quantity": 2, "request_id": "q-1", "sku": "widget", "total_cents": 3990}}}
+{"intent_id": "in-11", "run_id": "run-c3bc9fb1f486", "at": 1794408812.164257, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-405653979b3f4784a8a05ba3b4e97217", "status": "processed", "note": {"gitmem": {"policy": "verify", "outside_edits": [], "restored": false}, "duplicate": true, "applied": true, "total_cents": 3990}}}

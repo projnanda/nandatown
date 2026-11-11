@@ -1,0 +1,20 @@
+{
+  "_comment": "The write contract for the gitmem Track seller. Exact keys win, then patterns, then the default. Both lanes pass through it: the seller's own writes and the observer's facts derived from Town's events.",
+  "default": {
+    "type": "string",
+    "max_length": 200
+  },
+  "keys": {
+    "memory.outside_edits_count": {"type": "integer", "min": 0},
+    "memory.outside_edits": {"type": "string", "max_length": 400}
+  },
+  "patterns": {
+    "quote.*.reply": {"type": "string", "max_length": 400},
+    "quote.*.total_cents": {"type": "integer", "min": 0},
+    "quote.*.reported": {"type": "boolean"},
+    "quote.*.resend_refused": {"type": "boolean"},
+    "quote.*.reply_id": {"type": "string", "max_length": 60},
+    "quote.*.reply_fingerprint": {"type": "string", "max_length": 80},
+    "quote.*.refused_resends": {"type": "integer", "min": 0}
+  }
+}
