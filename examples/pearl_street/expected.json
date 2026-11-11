@@ -1,5 +1,5 @@
 {
-  "_how": "Worked by hand from pearl_street_peak.yaml before the first run, using Pearl Street's M1 rules (clearing: merit order by floor then arrival, uniform price = floor of the last accepted offer; settlement: credit = price x delivered kW x 3 h / 1000, shortfall charge = price cap x (awarded - delivered) kW x 3 h / 1000). Physics: an asset follows its award up to its attested power.",
+  "_how": "Worked by hand from pearl_street_peak.yaml before the first run, using Pearl Street's M1 rules (clearing: merit order by floor then arrival, uniform price = floor of the last accepted offer; settlement: credit = price x delivered kW x 3 h / 1000, shortfall charge = price cap x (awarded - delivered) kW x 3 h / 1000). Physics: an asset follows its award up to its attested power. After the first run, two non-numeric fields were corrected: Town's standing check is named privacy and reports not_tested (it had been written as privacy_clean: passed), and verdict was added. No numeric value changed.",
   "rejections": {
     "pvb-12": {"msg_type": "offer", "code": "outside_mandate", "why": "10,000 kW offer over its declared 7,170 kW"},
     "pvb-36": {"msg_type": "offer", "code": "after_gate_closure", "why": "offer at 21:05 UTC, gate 21:00 UTC"},

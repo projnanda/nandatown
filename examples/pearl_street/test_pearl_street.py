@@ -7,7 +7,10 @@
 Runs pearl_street_peak.yaml once and compares the bundle with the values in
 expected.json, which were worked by hand before the first run. The run's
 verdict is FAILED on purpose: awards_within_attested_limits catches the
-overpromiser that Pearl Street admits. Every other stage must pass.
+overpromiser that Pearl Street admits. The other seven scenario stages and
+ledger_conserved must pass; Town's privacy check is not_tested because the
+scenario declares no redacted fields. A separate test verifies the committed
+evidence bundle.
 """
 
 import json
@@ -20,11 +23,12 @@ import pytest
 pytest.importorskip("exchange.core", reason="install requirements.txt (Pearl Street's exchange)")
 
 from nandatown.bundle import load_bundle, verify_bundle  # noqa: E402
-from nandatown.sim.runner import run_lab  # noqa: E402
+from nandatown.sim.runner import load_plugin_files, run_lab  # noqa: E402
 from nandatown.sim.scenario import load_scenario_file  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SCENARIO = os.path.join(HERE, "pearl_street_peak.yaml")
+EVIDENCE = os.path.join(HERE, "evidence", "sim-637f85c72035")
 EXPECTED = json.load(open(os.path.join(HERE, "expected.json"), encoding="utf-8"))
 
 
@@ -105,6 +109,16 @@ def test_scenario_limits_come_from_the_engie_slice():
     for asset in slice_["assets"]:
         a = by_entity[asset["entity_id"]]
         assert (a["power_kw"], a["usable_kwh"]) == (asset["power_kw"], asset["usable_kwh"])
+
+
+def test_committed_evidence_bundle_verifies():
+    """The bundle in evidence/ still hashes and replays to its recorded result
+    (and matches expected.json), once this process has the plugin files."""
+    load_plugin_files([os.path.join(HERE, "pearl_street_town.py"),
+                       os.path.join(HERE, "pearl_street_validator.py")])
+    assert verify_bundle(EVIDENCE) == []
+    result = json.load(open(os.path.join(EVIDENCE, "result.json"), encoding="utf-8"))
+    assert {s["name"]: s["status"] for s in result["stages"]} == EXPECTED["stages"]
 
 
 def test_known_gap_fresh_process_verify_does_not_load_plugin_files(run, tmp_path):

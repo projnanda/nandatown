@@ -83,14 +83,16 @@ pip install --no-deps -r examples/pearl_street/requirements.txt
 python -m pytest -q examples/pearl_street/test_pearl_street.py
 ```
 
-Expected: `3 passed`. To see the stage table and write a bundle:
+Expected: `4 passed`. To see the stage table and write a bundle:
 
 ```bash
 nandatown run examples/pearl_street/pearl_street_peak.yaml --out runs
 ```
 
 The run's verdict is **FAILED on purpose**: `awards_within_attested_limits`
-fails and all other stages pass.
+fails. The other seven scenario stages and Town's standing `ledger_conserved`
+check pass. Town's standing `privacy` check is **not tested**, because this
+scenario declares no redacted fields.
 
 - Town commit: `6f9a7c064486c4a0ae9242f1ff341b8a4aad0244`, nandatown 0.2.0,
   Lab evaluator `lab-0.2.6`.
@@ -104,12 +106,15 @@ the run above: the five records, `manifest.json`, `attestation.json` and
 a fresh process, `nandatown verify` reports
 `evaluator replay mismatch`, because `verify` does not load a scenario's
 `plugin_files`, so the `pearl_street_peak` validator is not registered. The
-test verifies the bundle in the same process after the plugin files are loaded,
-and a third test pins the gap.
+tests verify the fresh run's bundle and this committed bundle in the same
+process after loading the plugin files, and another test pins the gap.
 
 ## Results
 
 Expected values were worked by hand (`expected.json`) before the first run.
+After that run, two non-numeric fields were corrected: Town's standing check
+is named `privacy` and reports `not_tested` (I had written `privacy_clean:
+passed`), and the overall `verdict` was added. No numeric value changed.
 
 | | Expected | Observed |
 |---|---|---|
