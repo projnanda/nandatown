@@ -1,6 +1,6 @@
 """End-to-end check: Nanda Town Lab <-> external LOOM portal.
 
-    pip install "git+https://github.com/jasonpipi/loom-portal@v0.1.0"
+    pip install "git+https://github.com/jasonpipi/loom-portal@480558ee41af23a3f0937cfa207cff1e0ed43d32"
     python -m pytest -q examples/loom
 
 Starts a real LOOM portal on a free local port, runs both scenarios
@@ -29,8 +29,8 @@ DOWN = os.path.join(HERE, "loom_health_access_portal_down.yaml")
 MAIN_STAGES = {
     "loom_reachable", "discovery", "decisions_match_policy",
     "minimum_disclosure", "overreach_contained", "expiry_enforced",
-    "friction_not_depth", "idempotent_retry", "ledger_conserved",
-    "privacy",
+    "friction_not_depth", "idempotent_retry", "replay_rechecks_validity",
+    "ledger_conserved", "privacy",
 }
 DOWN_STAGES = {"loom_unreachable_observed", "fail_closed",
                "ledger_conserved", "privacy"}

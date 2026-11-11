@@ -3,7 +3,8 @@ description: >-
   Agents ask the external LOOM portal for a person's glucose context.
   Depth follows the task, overreach is blocked and recorded in the town
   trust layer, grants expire, credit changes friction but not depth, and
-  a duplicated request is answered once.
+  a duplicated request is answered once, and a retry after expiry
+  carries no data.
 seed: 42
 plugin_files: [loom_plugin.py]
 redact_fields: [data]
@@ -53,6 +54,9 @@ agents:
            expect: {decision: granted, tier_granted: L2, valid_days: 7.0}}
         - {day: 5, op: fetch, task: meal_plan, expect: {decision: granted}}
         - {day: 9, op: fetch, task: meal_plan, expect: {decision: denied, reason: expired}}
+        # Retry of the day-5 fetch (step 1) after the grant expired: same
+        # decision, no credit change, and no data from the replay cache.
+        - {day: 10, op: retry, of: 1}
 
   - name: clinic-agent
     role: loom_requester

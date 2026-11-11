@@ -29,30 +29,45 @@ Town Lab (deterministic, logical time: 1 unit = 1 day)
   denies the request (fail closed). `loom_requester` finds the gateway
   through the registry and runs scripted steps on logical days.
 - The decisions come from the external portal, not from this file.
-  Portal source: https://github.com/jasonpipi/loom-portal (tag `v0.1.0`,
-  policy `loom-policy-0.1.0`). It uses only the standard library.
+  Portal source: https://github.com/jasonpipi/loom-portal (v0.1.1, commit `480558e`,
+  policy `loom-policy-0.1.1`). It uses only the standard library.
 - Each run uses its own portal namespace (`/v1/<run_id>/...`), so runs
   never share state.
 
 ## Reproduce
 
-Tested on Nanda Town `main` @ `6f9a7c064486c4a0ae9242f1ff341b8a4aad0244`,
-evaluator `lab-0.2.6`, Python 3.12.
+- Nanda Town upstream base: `6f9a7c064486c4a0ae9242f1ff341b8a4aad0244`
+- LOOM integration snapshot from PR #329: `72a03e6cdbb2507288b82dc06b71bb8e3bd0aeb8`
+- LOOM portal: `v0.1.1`, commit `480558ee41af23a3f0937cfa207cff1e0ed43d32` (policy `loom-policy-0.1.1`)
+- Python 3.12, Town evaluator `lab-0.2.6`
+
+Run from an empty working directory. Fetch the PR ref before checking out the
+pinned integration snapshot, which contains `examples/loom/`.
 
 ```bash
-git clone https://github.com/projnanda/nandatown && cd nandatown
-python3.12 -m venv .venv && source .venv/bin/activate
+git clone https://github.com/projnanda/nandatown
+cd nandatown
+git fetch origin refs/pull/329/head
+git checkout --detach 72a03e6cdbb2507288b82dc06b71bb8e3bd0aeb8
+python3.12 -m venv .venv
+source .venv/bin/activate
 python -m pip install -e '.[dev]'
-python -m pip install "git+https://github.com/jasonpipi/loom-portal@v0.1.0"
-
-# one command: starts a portal on a free port, runs both scenarios, verifies bundles
+python -m pip install "git+https://github.com/jasonpipi/loom-portal@480558ee41af23a3f0937cfa207cff1e0ed43d32"
 python -m pytest -q examples/loom
+```
 
-# or by hand
+The test command starts a local portal, runs both scenarios, and verifies the
+evidence bundles with the LOOM validators loaded.
+
+To run the scenarios and verify a bundle manually:
+
+```bash
 loom-portal --port 8787 --seed-credit cambridge-clinic=85 &
 LOOM_URL=http://127.0.0.1:8787 nandatown run examples/loom/loom_health_access.yaml --out runs/loom
 nandatown run examples/loom/loom_health_access_portal_down.yaml --out runs/loom-down
-python examples/loom/verify_loom.py runs/loom/<run-id>
+# Set BUNDLE to the directory printed for the main scenario.
+BUNDLE=runs/loom/REPLACE_WITH_RUN_ID
+python examples/loom/verify_loom.py "$BUNDLE"
 ```
 
 `--seed-credit cambridge-clinic=85` starts the clinic in the high-credit
@@ -60,14 +75,14 @@ band so its grant auto-renews. Every other publisher starts at 60.
 
 ## What the main scenario tests
 
-One synthetic glucose record, six agents, eight steps. The first
+One synthetic glucose record, six agents, eight steps plus one retry. The first
 `context_request` on the wire is duplicated by Town's transport fault
 injection.
 
 | Day | Agent (publisher) | Asks for | Expected | Observed |
 |---|---|---|---|---|
 | 0 | grocery-agent (freshcart) | shopping list, L3 constraints | granted L3, single use, confirm on first request | granted L3, `first_request`, credit 60 → 61 |
-| 0 | same message, duplicated | | replay, credit unchanged | replay, credit stays 61 |
+| 0 | same message, duplicated | | replay, credit unchanged, no second copy of the single-use data | replay, credit stays 61, `data_withheld: expired`, no data |
 | 0 | clinic-agent (cambridge-clinic) | clinical visit, L2 patterns + alerts | granted L2, 14 days, auto-renew | granted L2, 14 days, `auto_renew: true` |
 | 0 | adco-marketing (adco) | targeted ads, L1 readings | denied by default, no penalty | denied `no_task_basis`, credit 60 → 60 |
 | 1 | mealplan-agent (plateplan) | meal plan, L2 patterns + constraints | granted L2, 7 days | granted L2, 7 days |
@@ -75,21 +90,23 @@ injection.
 | 3 | grocery-agent (freshcart) | shopping list again | still L3, now confirm every time | granted L3, `every_time`, credit 41 → 42 |
 | 5 | mealplan-agent | fetch under its grant | granted | granted L2 |
 | 9 | mealplan-agent | fetch after expiry | denied, expired | denied `expired`, credit 61 → 56 |
+| 10 | mealplan-agent | retry of the day-5 fetch (same `request_id`) | replay, credit unchanged, `data_withheld: expired`, no data | replay, credit stays 61, `data_withheld: expired`, no data |
 
-Stages (real output, run `sim-c3e408c63ba5`):
+Stages (real output, run `sim-2094eaa8c81d`):
 
 ```
 Verdict:   PASSED
-  loom_reachable          Passed   gateway reached LOOM 0.1.0 (loom-policy-0.1.0)
-  discovery               Passed   5 of 5 requesters found health.context via the town registry
-  decisions_match_policy  Passed   all 8 requests and fetches got the declared outcome
-  minimum_disclosure      Passed   every delivery stayed within its granted tier and requested fields; denied requests carried no data
-  overreach_contained     Passed   overreach was blocked, the publisher lost LOOM credit, and a signed receipt lowered the requester's town reputation
-  expiry_enforced         Passed   a grant that served fetches inside its window was refused after expiry
-  friction_not_depth      Passed   after a credit drop the same task kept its tier; only the confirmation requirement changed
-  idempotent_retry        Passed   a duplicated request was answered as a replay; credit moved once
-  ledger_conserved        Passed   complete run recorded no money moved
-  privacy                 Passed   fields ['data'] never left the run
+  loom_reachable            Passed   gateway reached LOOM 0.1.1 (loom-policy-0.1.1)
+  discovery                 Passed   5 of 5 requesters found health.context via the town registry
+  decisions_match_policy    Passed   all 8 requests and fetches got the declared outcome
+  minimum_disclosure        Passed   every grant delivered exactly its granted fields within its tier; denied requests and withheld replays carried no data
+  overreach_contained       Passed   overreach was blocked, the publisher lost LOOM credit, and a signed receipt lowered the requester's town reputation
+  expiry_enforced           Passed   a grant that served fetches inside its window was refused after expiry
+  friction_not_depth        Passed   after a credit drop the same task kept its tier; only the confirmation requirement changed
+  idempotent_retry          Passed   a duplicated request was answered as a replay; credit moved once
+  replay_rechecks_validity  Passed   a retry after expiry kept its original decision and credit but carried no data
+  ledger_conserved          Passed   complete run recorded no money moved
+  privacy                   Passed   fields ['data'] never left the run
 ```
 
 ## Failure and boundary cases
@@ -114,7 +131,24 @@ Verdict:   PASSED
    portal now leaves the receive time out of the idempotency digest, with a
    regression test, and the rerun passes. LOOM's own unit tests had missed
    this, because they always resent identical bodies.
-4. **The validators can fail.** Running the main scenario with no portal
+4. **Replay after expiry (found in review).** Portal v0.1.0 answered a
+   replay from its cache, and the cache held the data delivered the first
+   time. A retry sent after the grant expired therefore got the data
+   again, and `minimum_disclosure` only looked for extra fields, so it
+   would also have passed a grant that delivered nothing. v0.1.1 keeps
+   the two questions apart: a replay still returns the original decision
+   and never moves credit (`idempotent_retry`), but data is re-sent only
+   while the grant is valid at the replay's time; otherwise the reply says
+   `data_withheld: expired` (`replay_rechecks_validity`).
+   `minimum_disclosure` now requires each grant to deliver exactly its
+   granted fields. Both checks were run against the faulty behavior:
+   with portal v0.1.0 the main scenario is `FAILED` at
+   `replay_rechecks_validity` (`grocery-agent-0: replay after expiry
+   carried ['constraints']; mealplan-agent-1: ... ['constraints',
+   'glucose_patterns']`), and with a gateway patched to drop the
+   clinic's data it is `FAILED` at `minimum_disclosure`
+   (`clinic-agent-0: received [], granted ['alerts', 'glucose_patterns']`).
+5. **The validators can fail.** Running the main scenario with no portal
    gives `FAILED` at `loom_reachable`, with `decisions_match_policy` and
    `idempotent_retry` also failed.
 

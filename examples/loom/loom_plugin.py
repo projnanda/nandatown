@@ -104,7 +104,7 @@ class LoomGateway(SimAgent):
             "publisher", "tier_requested", "tier_granted",
             "fields_requested", "fields_granted", "grant_id",
             "valid_days", "expires_at", "single_use", "credit_before", "credit_after",
-            "replay", "policy") if k in out}
+            "replay", "data_withheld", "policy") if k in out}
         detail["requester"] = msg["sender"]
         if isinstance(out.get("friction"), dict):
             detail["confirmation"] = out["friction"].get("confirmation")
@@ -134,6 +134,7 @@ class LoomRequester(SimAgent):
 
     def on_start(self):
         self.grants: dict[str, str] = {}
+        self.sent: dict[int, tuple[str, dict[str, Any]]] = {}
         self.api.register([f"agent.{self.config.get('category', 'unknown')}"])
         self.api.later(0.01, self._discover)
 
@@ -151,18 +152,26 @@ class LoomRequester(SimAgent):
 
     def _run(self, i: int, step: dict[str, Any]):
         rid = f"{self.name}-{i}"
+        if step["op"] == "retry":
+            # Resend an earlier step unchanged (same request_id and body),
+            # as an agent would after a lost reply.
+            if int(step["of"]) in self.sent:
+                kind, body = self.sent[int(step["of"])]
+                self.api.send(self.gateway, kind, dict(body))
+            return
         if step["op"] == "fetch":
             gid = self.grants.get(step["task"], "")
-            self.api.send(self.gateway, "context_fetch",
-                          {"request_id": rid, "grant_id": gid})
-            return
-        self.api.send(self.gateway, "context_request", {
-            "request_id": rid,
-            "publisher": self.config["publisher"],
-            "category": self.config["category"],
-            "task": step["task"], "purpose": step.get("purpose", ""),
-            "tier": step["tier"], "fields": step.get("fields", []),
-        })
+            kind, body = "context_fetch", {"request_id": rid, "grant_id": gid}
+        else:
+            kind, body = "context_request", {
+                "request_id": rid,
+                "publisher": self.config["publisher"],
+                "category": self.config["category"],
+                "task": step["task"], "purpose": step.get("purpose", ""),
+                "tier": step["tier"], "fields": step.get("fields", []),
+            }
+        self.sent[i] = (kind, body)
+        self.api.send(self.gateway, kind, body)
 
     def _received(self, msg, granted: bool):
         b = msg["body"]
@@ -175,7 +184,9 @@ class LoomRequester(SimAgent):
             "fields_received": sorted(data) if isinstance(data, dict)
             else [],
             "fields_requested": b.get("fields_requested"),
+            "fields_granted": b.get("fields_granted"),
             "replay": b.get("replay"),
+            "data_withheld": b.get("data_withheld"),
         })
 
     def handle_context_grant(self, msg):
@@ -194,6 +205,8 @@ def _expectations(spec) -> list[tuple[str, str, dict[str, Any]]]:
         if a.role != "loom_requester":
             continue
         for i, step in enumerate(a.config.get("steps", [])):
+            if step.get("op") == "retry":
+                continue  # checked by replay_rechecks_validity
             out.append((a.name, f"{a.name}-{i}", step))
     return out
 
@@ -263,11 +276,20 @@ def loom_health_access(spec, trace):
         elif d.get("fields_requested") is not None \
                 and got - set(d.get("fields_requested")):
             leaks.append(f"{e.subject}: fields not requested")
+        elif d.get("decision") == "granted":
+            # Check what actually arrived, not only that nothing extra
+            # did: a grant must deliver exactly its granted fields, and
+            # a replay whose data was withheld must deliver nothing.
+            want = (set() if d.get("data_withheld")
+                    else set(d.get("fields_granted") or []))
+            if got != want:
+                leaks.append(f"{e.subject}: received {sorted(got)},"
+                             f" granted {sorted(want)}")
     stages.append(_check(
         "minimum_disclosure", not leaks, recv_ids,
         "; ".join(leaks[:4]),
-        "every delivery stayed within its granted tier and requested"
-        " fields; denied requests carried no data"))
+        "every grant delivered exactly its granted fields within its"
+        " tier; denied requests and withheld replays carried no data"))
 
     blocked = [e for e in decisions.values()
                if e.detail.get("decision") == "blocked"]
@@ -340,6 +362,38 @@ def loom_health_access(spec, trace):
             "a duplicated request changed the decision or credit twice",
             "a duplicated request was answered as a replay; credit moved"
             " once"))
+
+    # Idempotency (above) is about credit. Whether data may still be
+    # sent is a separate question, decided at the replay's time: judged
+    # here from the event clock, not from the portal's own marker.
+    first_by_rid = {e.subject: e for e in decisions.values()}
+    late, bad = [], []
+    for e in trace.find("loom_decision"):
+        orig = first_by_rid.get(e.subject)
+        if not e.detail.get("replay") or orig is None \
+                or orig.detail.get("decision") != "granted":
+            continue
+        exp_at = orig.detail.get("expires_at")
+        if exp_at is None or e.at <= exp_at:
+            continue
+        late.append(e)
+        if e.detail.get("credit_after") != orig.detail.get("credit_after"):
+            bad.append(f"{e.subject}: credit moved on replay")
+        for r in trace.find("context_received", subject=e.subject):
+            if r.detail.get("replay") and r.at > exp_at \
+                    and r.detail.get("fields_received"):
+                bad.append(f"{e.subject}: replay after expiry carried"
+                           f" {r.detail.get('fields_received')}")
+    if not late:
+        stages.append(_missing("replay_rechecks_validity",
+                               "no replay arrived after its grant expired"))
+    else:
+        stages.append(_check(
+            "replay_rechecks_validity", not bad,
+            [e.event_id for e in late],
+            "; ".join(bad[:4]),
+            "a retry after expiry kept its original decision and credit"
+            " but carried no data"))
     return stages
 
 
