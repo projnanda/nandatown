@@ -577,6 +577,16 @@ def cmd_report(args: argparse.Namespace) -> int:
 def cmd_verify(args: argparse.Namespace) -> int:
     from .bundle import verify_bundle
 
+    if args.plugin:
+        import os
+
+        from .sim.runner import LabError, load_plugin_files
+
+        try:
+            load_plugin_files([os.path.abspath(p) for p in args.plugin])
+        except (LabError, OSError) as exc:
+            print(f"problem: cannot load plugin file: {exc}")
+            return 2
     problems = verify_bundle(args.bundle_dir)
     if not problems:
         print("bundle verified: hashes match and the evaluator reproduces"
@@ -1084,6 +1094,13 @@ def main(argv: list[str] | None = None) -> int:
                               help="check a bundle's integrity and replay"
                                    " the evaluator")
     p_verify.add_argument("bundle_dir")
+    p_verify.add_argument("--plugin", action="append", default=[],
+                          metavar="FILE",
+                          help="Lab only: load a plugin/validator file"
+                               " before replaying, for a bundle whose"
+                               " validator a plugin defines. This runs the"
+                               " file's code; verify never loads a file a"
+                               " bundle names")
     p_verify.set_defaults(func=cmd_verify)
 
     p_replay = sub.add_parser("replay", help="step through a bundle's"
