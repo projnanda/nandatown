@@ -1,0 +1,18 @@
+name: atl_over_cap
+description: A buyer orders five widgets (about R$ 92 at the agreed price) while the owner's per-payment cap is 8000 cents. ATL escalates the escrow release to the owner, the scripted owner refuses, the escrow is refunded and the seller is not paid.
+seed: 42
+validator: atl_over_cap
+plugin_files: [../atl_payments.py]
+layers:
+  payments: atl.v1
+agents:
+  - name: seller-a
+    role: seller
+    config: {sku: widget, ask_cents: 2100, floor_cents: 1800, stock: 10, balance_cents: 0}
+  - name: seller-b
+    role: seller
+    config: {sku: widget, ask_cents: 1995, floor_cents: 1700, stock: 10, balance_cents: 0}
+  - name: buyer-1
+    role: buyer
+    config: {sku: widget, quantity: 5, cap_cents: 1900, balance_cents: 10000, rounds: 1}
+max_time: 60
