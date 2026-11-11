@@ -37,9 +37,11 @@ def build(workdir: Path) -> dict:
     gate.register_receiver(RECEIVER, min_stake=MIN_STAKE,
                            policy={"escalate_above": {"place_order": bw.ESCALATE_ABOVE}},
                            pubkey=seller_key["pub"])
-    acme, shady = bw.operator("AcmeCorp"), bw.operator("ShadyCo")
-    body = {"stake": True, "issuer": acme["pub"], "name": "AcmeCorp", "amount": 25000.0}
-    assert gate.stake(acme["pub"], "AcmeCorp", 25000.0, crypto.sign(acme["priv"], body))["ok"]
+    acme, shady, flaky = bw.operator("AcmeCorp"), bw.operator("ShadyCo"), bw.operator("FlakyCo")
+    for op, amount in ((acme, 25000.0), (flaky, 20000.0)):
+        body = {"stake": True, "issuer": op["pub"], "name": op["name"], "amount": amount}
+        assert gate.stake(op["pub"], op["name"], amount, crypto.sign(op["priv"], body))["ok"]
+    gate.configure(dispute_window_s=0)      # an undisputed slashing claim is upheld at once
     proc = bw.agent("acme-procurement", acme, "procurement: quotes and orders",
                     ["request_quote", "place_order"], 10000)
     cast = {
@@ -47,6 +49,8 @@ def build(workdir: Path) -> dict:
         "receiver": RECEIVER,
         # staked operator, valid mandate: should be served
         "proc": proc,
+        # narrowed sub-agent: quotes up to 5,000 only (valid delegation, depth 2)
+        "sub_ok": bw.delegate(proc, "acme-sub-ok", ["request_quote"], 5000),
         # sub-agent whose mandate (15,000) is wider than its parent's (10,000)
         "greedy": bw.delegate(proc, "acme-sub-greedy", ["place_order"], 15000),
         # credential says AcmeCorp but ShadyCo (unstaked) signed it
@@ -54,6 +58,17 @@ def build(workdir: Path) -> dict:
                            ["request_quote", "place_order"], 10000, claimed_operator="AcmeCorp"),
         # no credential, no mandate
         "newcomer": bw.bare("newcomer"),
+        # staked operator whose credential is fine but whose mandate has already expired
+        "expired": bw.agent("acme-procurement-old", acme, "procurement: quotes and orders",
+                            ["request_quote", "place_order"], 10000, mandate_days=-1),
+        # a second staked operator, to be slashed in the slashing test
+        "flaky": bw.agent("flaky-buyer", flaky, "procurement for FlakyCo",
+                          ["request_quote", "place_order"], 5000),
+        # four more roots under AcmeCorp's single stake, for the issuer-exposure test
+        **{f"cap{i}": bw.agent(f"acme-cap-{i}", acme, "procurement: orders",
+                               ["request_quote", "place_order"], 10000) for i in range(1, 5)},
+        # keys the tests need to act as an operator or as the receiver (test keys only)
+        "keys": {"acme": acme, "flaky": flaky, "seller": seller_key},
     }
     (workdir / "cast.json").write_text(json.dumps(cast, indent=1))
     return cast

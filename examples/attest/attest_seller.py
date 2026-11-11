@@ -60,7 +60,10 @@ def build_handler(journal: Journal | None):
         note = {"attest_decision": decision, "attest_reason": verdict["reason"],
                 "attest_receipt_id": (receipt or {}).get("id"),
                 "runtime": "attest-gated-seller"}
-        if decision == "allow":
+        # `unknown` + `pow_ok` is Attest's answer for an unstaked sender that solved the
+        # puzzle: read-only, so a quote is fine, an order never reaches this branch.
+        serve = decision == "allow" or (decision == "unknown" and verdict["reason"] == "pow_ok")
+        if serve:
             total = body["quantity"] * body["unit_price_cents"]
             reply = {"message_id": "r-" + mid.removeprefix("q-"), "to": claim["from"],
                      "kind": "quote_response",
@@ -72,7 +75,8 @@ def build_handler(journal: Journal | None):
             reply = {"message_id": "x-" + mid.removeprefix("q-"), "to": claim["from"],
                      "kind": "quote_refusal",
                      "body": {"request_id": mid, "attest_decision": decision,
-                              "reason": verdict["reason"], "attest_receipt": receipt}}
+                              "reason": verdict["reason"], "attest_receipt": receipt,
+                              "challenge": verdict.get("challenge")}}
             note.update(applied=False)
         if journal is not None:
             journal.record(mid, {"note": note, "reply": reply})
