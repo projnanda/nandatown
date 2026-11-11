@@ -1,0 +1,21 @@
+{
+  "profile_id": "a2a-capability-fulfillment",
+  "version": "0.3",
+  "protocol": "a2a",
+  "capability": "quote",
+  "request": {
+    "sku": "widget",
+    "quantity": 2,
+    "unit_price_cents": 1995
+  },
+  "expected": {
+    "total_cents": 3990,
+    "terminal_fulfillments": 1
+  },
+  "controlled_condition": "duplicate_request",
+  "limits": {
+    "timeout_seconds": 15.0,
+    "max_response_bytes": 1048576.0
+  },
+  "evaluator": "path-evaluator@0.2"
+}

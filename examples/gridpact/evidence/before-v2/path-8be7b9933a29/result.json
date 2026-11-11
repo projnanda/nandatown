@@ -1,0 +1,55 @@
+{
+  "run_id": "path-8be7b9933a29",
+  "evaluator_version": "path-order-conflict-0.1",
+  "stages": [
+    {
+      "name": "resolution",
+      "status": "passed",
+      "evidence": [
+        "ev-1"
+      ],
+      "note": ""
+    },
+    {
+      "name": "agent_card_retrieval",
+      "status": "passed",
+      "evidence": [
+        "ev-2"
+      ],
+      "note": "observed card sha256:97be0d82b2f66b35"
+    },
+    {
+      "name": "descriptor_consistency",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no pinned digest to compare; observed card digest is in the evidence"
+    },
+    {
+      "name": "protocol_invocation",
+      "status": "passed",
+      "evidence": [
+        "ev-3"
+      ],
+      "note": "task task-def76652657d state completed"
+    },
+    {
+      "name": "semantic_result",
+      "status": "passed",
+      "evidence": [
+        "ev-4"
+      ],
+      "note": "exactly one fulfillment, total 3990"
+    },
+    {
+      "name": "conflicting_retry",
+      "status": "failed",
+      "evidence": [
+        "ev-4",
+        "ev-6"
+      ],
+      "note": "conflict defect: the order id was answered again under changed terms {'quantity': 5} with a different quote: total_cents 3990, then 9975"
+    }
+  ],
+  "verdict": "failed",
+  "evaluated_at": 1794374846.119475
+}

@@ -1,0 +1,42 @@
+variant: honest
+GridPact: hw8-v2   idempotent propose: yes
+
+== a2a-capability-fulfillment@0.3
+Verdict:   PASSED
+  resolution              Passed               the subject was found through the declared path [ev-1]
+  agent_card_retrieval    Passed               the agent card was fetched and digested [ev-2]
+                          note: observed card sha256:97be0d82b2f66b35
+  descriptor_consistency  Not tested           not exercised in this run
+                          note: no pinned digest to compare; observed card digest is in the evidence
+  protocol_invocation     Passed               a native protocol exchange returned a task [ev-3]
+                          note: task task-4e45794a964a state completed
+  semantic_result         Passed               the task produced the required result [ev-4]
+                          note: exactly one fulfillment, total 3990
+  duplicate_request       Passed               the duplicate order caused no second fulfillment [ev-6]
+                          note: the same logical order was delivered twice; no second distinct fulfillment appeared
+Evidence bundle: examples/gridpact/evidence/after-honest/path-659556109b33
+-- what GridPact recorded
+offers: 1 | commitments: 1 | stake locked now: $120.00
+ledger: {'commit': 1, 'propose': 1, 'register': 3, 'settle': 12}
+commitment 1: PVB_17 167 kWh/step (ordered 167), active
+settled commitment 1: committed 2000 kWh, delivered 2000, shortfall 0, penalty $0.00
+
+== a2a-order-conflict@0.1
+Verdict:   PASSED
+  resolution              Passed               the subject was found through the declared path [ev-1]
+  agent_card_retrieval    Passed               the agent card was fetched and digested [ev-2]
+                          note: observed card sha256:97be0d82b2f66b35
+  descriptor_consistency  Not tested           not exercised in this run
+                          note: no pinned digest to compare; observed card digest is in the evidence
+  protocol_invocation     Passed               a native protocol exchange returned a task [ev-3]
+                          note: task task-33eaf5bf278a state completed
+  semantic_result         Passed               the task produced the required result [ev-4]
+                          note: exactly one fulfillment, total 3990
+  conflicting_retry       Passed               a reused order id with changed terms was refused [ev-5]
+                          note: the order id was reused with changed terms {'quantity': 5} and the task ended 'rejected'; the first quote stands. Town does not check the subject's stated reason
+Evidence bundle: examples/gridpact/evidence/after-honest/path-50e757236041
+-- what GridPact recorded
+offers: 1 | commitments: 1 | stake locked now: $120.00
+ledger: {'commit': 1, 'propose': 1, 'register': 3, 'settle': 12}
+commitment 1: PVB_17 167 kWh/step (ordered 167), active
+settled commitment 1: committed 2000 kWh, delivered 2000, shortfall 0, penalty $0.00

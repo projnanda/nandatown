@@ -1,0 +1,54 @@
+{
+  "run_id": "path-b029c5e67c49",
+  "evaluator_version": "path-order-conflict-0.1",
+  "stages": [
+    {
+      "name": "resolution",
+      "status": "passed",
+      "evidence": [
+        "ev-1"
+      ],
+      "note": ""
+    },
+    {
+      "name": "agent_card_retrieval",
+      "status": "passed",
+      "evidence": [
+        "ev-2"
+      ],
+      "note": "observed card sha256:97be0d82b2f66b35"
+    },
+    {
+      "name": "descriptor_consistency",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no pinned digest to compare; observed card digest is in the evidence"
+    },
+    {
+      "name": "protocol_invocation",
+      "status": "passed",
+      "evidence": [
+        "ev-3"
+      ],
+      "note": "task task-68fd310f4e76 state completed"
+    },
+    {
+      "name": "semantic_result",
+      "status": "passed",
+      "evidence": [
+        "ev-4"
+      ],
+      "note": "exactly one fulfillment, total 3990"
+    },
+    {
+      "name": "conflicting_retry",
+      "status": "passed",
+      "evidence": [
+        "ev-5"
+      ],
+      "note": "the order id was reused with changed terms {'quantity': 5} and the task ended 'rejected'; the first quote stands. Town does not check the subject's stated reason"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794374839.638413
+}

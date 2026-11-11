@@ -1,0 +1,50 @@
+variant: liar
+GridPact: hw8-v2   idempotent propose: yes
+
+== a2a-capability-fulfillment@0.3
+Verdict:   PASSED
+  resolution              Passed               the subject was found through the declared path [ev-1]
+  agent_card_retrieval    Passed               the agent card was fetched and digested [ev-2]
+                          note: observed card sha256:97be0d82b2f66b35
+  descriptor_consistency  Not tested           not exercised in this run
+                          note: no pinned digest to compare; observed card digest is in the evidence
+  protocol_invocation     Passed               a native protocol exchange returned a task [ev-3]
+                          note: task task-abc7cf750106 state completed
+  semantic_result         Passed               the task produced the required result [ev-4]
+                          note: exactly one fulfillment, total 3990
+  duplicate_request       Passed               the duplicate order caused no second fulfillment [ev-6]
+                          note: the same logical order was delivered twice; no second distinct fulfillment appeared
+Evidence bundle: examples/gridpact/evidence/after-liar-haiku/path-a31025b5fccf
+-- Haiku decisions
+haiku seller {"action": "accept", "reason": "Order's 1000 kWh per step fits the declared 1250 kWh per-step capacity, and the $19.95/MWh price is positive. Shortfall stake terms apply."}
+haiku auditor {"challenge": true, "claim": "PVB_37 declared 5000 kW flexible capacity, exceeding its nameplate by over 10%.", "evidence": "Public registry nameplate battery power is 2500 kW; declaration is 100% above nameplate, be
+-- what GridPact recorded
+offers: 1 | commitments: 1 | stake locked now: $63.00
+ledger: {'challenge': 1, 'commit': 1, 'propose': 1, 'register': 3, 'settle': 2, 'trim': 1}
+commitment 1: PVB_37 625 kWh/step (ordered 1000), challenged
+challenge on commitment 1: valid, bounty $12.00
+settled commitment 1: committed 1250 kWh, delivered 1250, shortfall 0, penalty $0.00
+
+== a2a-order-conflict@0.1
+Verdict:   PASSED
+  resolution              Passed               the subject was found through the declared path [ev-1]
+  agent_card_retrieval    Passed               the agent card was fetched and digested [ev-2]
+                          note: observed card sha256:97be0d82b2f66b35
+  descriptor_consistency  Not tested           not exercised in this run
+                          note: no pinned digest to compare; observed card digest is in the evidence
+  protocol_invocation     Passed               a native protocol exchange returned a task [ev-3]
+                          note: task task-b1edbe0d0b75 state completed
+  semantic_result         Passed               the task produced the required result [ev-4]
+                          note: exactly one fulfillment, total 3990
+  conflicting_retry       Passed               a reused order id with changed terms was refused [ev-5]
+                          note: the order id was reused with changed terms {'quantity': 5} and the task ended 'rejected'; the first quote stands. Town does not check the subject's stated reason
+Evidence bundle: examples/gridpact/evidence/after-liar-haiku/path-301072e44998
+-- Haiku decisions
+haiku seller {"action": "accept", "reason": "Order of 1000 kWh per step fits the declared 1250 kWh per-step capacity, and the $19.95/MWh price is positive. Shortfall stake of $60/MWh will be locked."}
+haiku auditor {"challenge": true, "claim": "Seller PVB_37 declared 5000 kW flexible capacity, exceeding nameplate by 100%.", "evidence": "Public registry nameplate battery power is 2500 kW. 5000 kW is double nameplate, above the 1
+-- what GridPact recorded
+offers: 1 | commitments: 1 | stake locked now: $63.00
+ledger: {'challenge': 1, 'commit': 1, 'propose': 1, 'register': 3, 'settle': 2, 'trim': 1}
+commitment 1: PVB_37 625 kWh/step (ordered 1000), challenged
+challenge on commitment 1: valid, bounty $12.00
+settled commitment 1: committed 1250 kWh, delivered 1250, shortfall 0, penalty $0.00

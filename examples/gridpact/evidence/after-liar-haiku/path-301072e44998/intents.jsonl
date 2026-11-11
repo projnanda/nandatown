@@ -1,0 +1,4 @@
+{"intent_id": "in-1", "run_id": "path-301072e44998", "at": 1794424266.742839, "actor": "town-requester", "action": "resolve", "payload": {"url": "http://127.0.0.1:8941"}}
+{"intent_id": "in-2", "run_id": "path-301072e44998", "at": 1794424266.742892, "actor": "town-requester", "action": "fetch_card", "payload": {"url": "http://127.0.0.1:8941"}}
+{"intent_id": "in-3", "run_id": "path-301072e44998", "at": 1794424266.763047, "actor": "town-requester", "action": "message_send", "payload": {"attempt": 1, "body": {"sku": "widget", "quantity": 2, "unit_price_cents": 1995, "request_id": "order-795c11a704", "nonce": "795c11a704"}}}
+{"intent_id": "in-4", "run_id": "path-301072e44998", "at": 1794424269.825113, "actor": "town-requester", "action": "message_send", "payload": {"attempt": 2, "body": {"sku": "widget", "quantity": 5, "unit_price_cents": 1995, "request_id": "order-795c11a704", "nonce": "795c11a704"}}}
