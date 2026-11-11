@@ -1,0 +1,39 @@
+{"intent_id": "in-1", "run_id": "run-5e9c7f1a6291", "at": 1794366313.012251, "actor": "buyer", "action": "send", "payload": {"message_id": "q-1", "to": "seller", "kind": "quote_request", "body": {"sku": "widget", "quantity": 2, "unit_price_cents": 1995}}}
+{"intent_id": "in-2", "run_id": "run-5e9c7f1a6291", "at": 1794366313.3315682, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-3", "run_id": "run-5e9c7f1a6291", "at": 1794366313.6043258, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-4", "run_id": "run-5e9c7f1a6291", "at": 1794366313.648142, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-5", "run_id": "run-5e9c7f1a6291", "at": 1794366313.9654799, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-6", "run_id": "run-5e9c7f1a6291", "at": 1794366314.292744, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-7", "run_id": "run-5e9c7f1a6291", "at": 1794366314.610838, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-8", "run_id": "run-5e9c7f1a6291", "at": 1794366314.930819, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-9", "run_id": "run-5e9c7f1a6291", "at": 1794366315.253183, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-10", "run_id": "run-5e9c7f1a6291", "at": 1794366315.5754938, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-11", "run_id": "run-5e9c7f1a6291", "at": 1794366315.615702, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-5e46b9e845bf409f8b2f5f35c4ca5225", "status": "processed", "note": {"after_crash_stall": true}}}
+{"intent_id": "in-12", "run_id": "run-5e9c7f1a6291", "at": 1794366315.89255, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-13", "run_id": "run-5e9c7f1a6291", "at": 1794366316.2118652, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-14", "run_id": "run-5e9c7f1a6291", "at": 1794366316.529452, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-15", "run_id": "run-5e9c7f1a6291", "at": 1794366316.8475258, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-16", "run_id": "run-5e9c7f1a6291", "at": 1794366317.014251, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-17", "run_id": "run-5e9c7f1a6291", "at": 1794366317.1690612, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-18", "run_id": "run-5e9c7f1a6291", "at": 1794366317.497258, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-19", "run_id": "run-5e9c7f1a6291", "at": 1794366317.8191218, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-20", "run_id": "run-5e9c7f1a6291", "at": 1794366318.154158, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-21", "run_id": "run-5e9c7f1a6291", "at": 1794366318.47718, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-22", "run_id": "run-5e9c7f1a6291", "at": 1794366318.806868, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-23", "run_id": "run-5e9c7f1a6291", "at": 1794366319.1267798, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-24", "run_id": "run-5e9c7f1a6291", "at": 1794366319.450191, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-25", "run_id": "run-5e9c7f1a6291", "at": 1794366319.7733068, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-26", "run_id": "run-5e9c7f1a6291", "at": 1794366320.089411, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-27", "run_id": "run-5e9c7f1a6291", "at": 1794366320.4171982, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-28", "run_id": "run-5e9c7f1a6291", "at": 1794366320.738446, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-29", "run_id": "run-5e9c7f1a6291", "at": 1794366321.061235, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-30", "run_id": "run-5e9c7f1a6291", "at": 1794366321.3844008, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-31", "run_id": "run-5e9c7f1a6291", "at": 1794366321.707572, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-32", "run_id": "run-5e9c7f1a6291", "at": 1794366322.039844, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-33", "run_id": "run-5e9c7f1a6291", "at": 1794366322.12496, "actor": "seller", "action": "send", "payload": {"message_id": "r-1", "to": "buyer", "kind": "quote_response", "body": {"request_id": "q-1", "sku": "widget", "quantity": 2, "total_cents": 3990}}}
+{"intent_id": "in-34", "run_id": "run-5e9c7f1a6291", "at": 1794366322.1567612, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-35", "run_id": "run-5e9c7f1a6291", "at": 1794366322.162719, "actor": "buyer", "action": "ack", "payload": {"message_id": "r-1", "fence": "fence-54f6d93ec25b4d88935af83b35ee14dc", "status": "processed", "note": {"correct": true, "total_cents": 3990, "expected_total_cents": 3990}}}
+{"intent_id": "in-36", "run_id": "run-5e9c7f1a6291", "at": 1794366325.0870771, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-b8999e762ef64cb987ebabd473722040", "status": "processed", "note": {"applied": true, "duplicate": false, "total_cents": 3990, "reason": "Stock hold task_1 was confirmed (CONFIRMED_SUCCESS) and a quote of 2 x 1995 = 3990 cents was sent to the buyer as r-1.", "path": "actionledger", "action_id": "town:run-5e9c7f1a6291:q-1", "hold": "task_1", "ledger_status": "CONFIRMED_SUCCESS", "brain": "claude-opus-5-5", "harness": "v2"}}}
+{"intent_id": "in-37", "run_id": "run-5e9c7f1a6291", "at": 1794366325.421828, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-38", "run_id": "run-5e9c7f1a6291", "at": 1794366325.426385, "actor": "seller", "action": "send", "payload": {"message_id": "r-1", "to": "buyer", "kind": "quote_response", "body": {"request_id": "q-1", "sku": "widget", "quantity": 2, "total_cents": 3990}}}
+{"intent_id": "in-39", "run_id": "run-5e9c7f1a6291", "at": 1794366325.4308228, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-be73f0db1e704ce4b5167bdc5759b56b", "status": "processed", "note": {"applied": true, "duplicate": false, "total_cents": 3990, "reason": "Stock hold task_1 was confirmed (CONFIRMED_SUCCESS) and a quote of 2 x 1995 = 3990 cents was sent to the buyer as r-1.", "path": "actionledger", "action_id": "town:run-5e9c7f1a6291:q-1", "hold": "task_1", "ledger_status": "CONFIRMED_SUCCESS", "brain": "claude-opus-5-5", "harness": "v2", "reacked_by_harness": true}}}
