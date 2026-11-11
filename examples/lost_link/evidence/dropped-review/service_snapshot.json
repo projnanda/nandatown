@@ -1,0 +1,68 @@
+{
+  "audit": [
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "GET",
+      "path": "/openapi.json",
+      "principal": "anonymous",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "POST",
+      "path": "/v1/reports",
+      "principal": "finder",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "POST",
+      "path": "/v1/reports",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "GET",
+      "path": "/v1/reports/L-CC87E8/matches",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "POST",
+      "path": "/v1/claims",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "GET",
+      "path": "/v1/cases/C-B153B7",
+      "principal": "owner",
+      "status": 200
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "C-B153B7",
+      "pickup_instructions": null,
+      "status": "submitted"
+    }
+  ],
+  "human_actions": [],
+  "reports": [
+    {
+      "kind": "found",
+      "owner_agent": "finder",
+      "report_id": "F-92F85C",
+      "status": "open"
+    },
+    {
+      "kind": "lost",
+      "owner_agent": "owner",
+      "report_id": "L-CC87E8",
+      "status": "open"
+    }
+  ]
+}

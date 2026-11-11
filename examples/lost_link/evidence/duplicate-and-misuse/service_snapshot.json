@@ -1,0 +1,177 @@
+{
+  "audit": [
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "GET",
+      "path": "/openapi.json",
+      "principal": "anonymous",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "POST",
+      "path": "/v1/reports",
+      "principal": "finder",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "POST",
+      "path": "/v1/reports",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "GET",
+      "path": "/v1/reports/L-AB7AE6/matches",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "POST",
+      "path": "/v1/claims",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "GET",
+      "path": "/v1/cases/C-329DB5",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "POST",
+      "path": "/v1/human/cases/C-329DB5/decision",
+      "principal": "owner",
+      "status": 403
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "POST",
+      "path": "/v1/claims",
+      "principal": "owner",
+      "status": 422
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "GET",
+      "path": "/v1/cases/C-329DB5",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "POST",
+      "path": "/v1/reports",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "GET",
+      "path": "/v1/reports/L-AB7AE6/matches",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "POST",
+      "path": "/v1/claims",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "GET",
+      "path": "/v1/human/inbox",
+      "principal": "human:scripted-holder",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "POST",
+      "path": "/v1/human/cases/C-329DB5/decision",
+      "principal": "human:scripted-holder",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "GET",
+      "path": "/v1/cases/C-329DB5",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "POST",
+      "path": "/v1/cases/C-329DB5/info",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "GET",
+      "path": "/v1/human/inbox",
+      "principal": "human:scripted-holder",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "POST",
+      "path": "/v1/human/cases/C-329DB5/decision",
+      "principal": "human:scripted-holder",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "GET",
+      "path": "/v1/cases/C-329DB5",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "POST",
+      "path": "/v1/human/cases/C-329DB5/returned",
+      "principal": "human:scripted-holder",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:07+00:00",
+      "method": "GET",
+      "path": "/v1/cases/C-329DB5",
+      "principal": "owner",
+      "status": 200
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "C-329DB5",
+      "pickup_instructions": "Synthetic Hayden front desk, 09:00-17:00",
+      "status": "returned"
+    }
+  ],
+  "human_actions": [
+    "need_info",
+    "approve",
+    "returned"
+  ],
+  "reports": [
+    {
+      "kind": "found",
+      "owner_agent": "finder",
+      "report_id": "F-9EA636",
+      "status": "closed"
+    },
+    {
+      "kind": "lost",
+      "owner_agent": "owner",
+      "report_id": "L-AB7AE6",
+      "status": "closed"
+    }
+  ]
+}

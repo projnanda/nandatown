@@ -1,0 +1,13 @@
+name: lost-link-duplicate-and-misuse
+description: Duplicate the finder notification; retry application requests and refuse agent attempts to approve a pickup.
+validator: lost-link-lifecycle@1
+plugin_files: [adapter.py]
+seed: 42
+agents:
+  - {name: finder, role: lostlink.finder}
+  - {name: owner, role: lostlink.owner, config: {probe_permissions: true}}
+  - {name: operator, role: lostlink.human_fixture}
+faults:
+  - {action: duplicate, kind: lostlink_found_available, nth: 1}
+redact_fields: [private_detail, your_private_detail, Authorization, X-Human-Token]
+max_time: 10

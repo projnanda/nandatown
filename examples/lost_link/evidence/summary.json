@@ -1,0 +1,100 @@
+{
+  "adapter_sha256": "9c2bd94f37523deffe42a5d4d8a0c00edd99bc12790410c1022a3abfbffae7e5",
+  "dependencies": {
+    "fastapi": "0.162.4",
+    "httpx": "0.28.1",
+    "nandatown": "0.2.0",
+    "pydantic": "2.14.3",
+    "uvicorn": "0.54.0"
+  },
+  "integration_contract": "lost-link-lifecycle@1",
+  "project_commit": "c26cddbfc9721c12acafa4603f70265c6f37bd11",
+  "project_repository": "https://github.com/cathyliu0510/Lost-Link",
+  "python": "3.12.14",
+  "results": {
+    "clean": {
+      "actual_verdict": "passed",
+      "bundle": "clean/sim-e8608b552fea",
+      "elapsed_seconds": 0.372,
+      "expected_verdict": "passed",
+      "http_calls": 14,
+      "model_calls": 0,
+      "service_case_status": "returned",
+      "service_cases": 1,
+      "service_reports": 2,
+      "stages": {
+        "claim_links_reports": "passed",
+        "clarification_round_trip": "passed",
+        "human_approval_releases_pickup": "passed",
+        "ledger_conserved": "passed",
+        "operator_receives_private_claim": "passed",
+        "pickup_withheld_before_approval": "passed",
+        "privacy": "passed",
+        "reports_registered": "passed",
+        "return_confirmed": "passed",
+        "search_private_detail_withheld": "passed",
+        "target_retrieved": "passed",
+        "town_discovery": "passed"
+      },
+      "verification_problems": []
+    },
+    "dropped-review": {
+      "actual_verdict": "incomplete",
+      "bundle": "dropped-review/sim-e40deb2edcd4",
+      "elapsed_seconds": 0.067,
+      "expected_verdict": "incomplete",
+      "http_calls": 5,
+      "model_calls": 0,
+      "service_case_status": "submitted",
+      "service_cases": 1,
+      "service_reports": 2,
+      "stages": {
+        "claim_links_reports": "passed",
+        "clarification_round_trip": "not_enough_evidence",
+        "human_approval_releases_pickup": "not_enough_evidence",
+        "ledger_conserved": "passed",
+        "operator_receives_private_claim": "not_enough_evidence",
+        "pickup_withheld_before_approval": "passed",
+        "privacy": "passed",
+        "reports_registered": "passed",
+        "return_confirmed": "not_enough_evidence",
+        "search_private_detail_withheld": "passed",
+        "target_retrieved": "passed",
+        "town_discovery": "passed"
+      },
+      "verification_problems": []
+    },
+    "duplicate-and-misuse": {
+      "actual_verdict": "passed",
+      "bundle": "duplicate-and-misuse/sim-453b4e162aec",
+      "elapsed_seconds": 0.124,
+      "expected_verdict": "passed",
+      "http_calls": 20,
+      "model_calls": 0,
+      "service_case_status": "returned",
+      "service_cases": 1,
+      "service_reports": 2,
+      "stages": {
+        "agent_cannot_approve": "passed",
+        "claim_links_reports": "passed",
+        "clarification_round_trip": "passed",
+        "duplicate_delivery_is_idempotent": "passed",
+        "forged_approval_flag_refused": "passed",
+        "human_approval_releases_pickup": "passed",
+        "ledger_conserved": "passed",
+        "misuse_keeps_case_pending": "passed",
+        "operator_receives_private_claim": "passed",
+        "pickup_withheld_before_approval": "passed",
+        "privacy": "passed",
+        "reports_registered": "passed",
+        "return_confirmed": "passed",
+        "search_private_detail_withheld": "passed",
+        "target_retrieved": "passed",
+        "town_discovery": "passed"
+      },
+      "verification_problems": []
+    }
+  },
+  "town_base_commit": "6f9a7c064486c4a0ae9242f1ff341b8a4aad0244",
+  "town_checkout_commit": "6f9a7c064486c4a0ae9242f1ff341b8a4aad0244"
+}

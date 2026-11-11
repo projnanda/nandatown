@@ -1,0 +1,97 @@
+{
+  "run_id": "sim-e40deb2edcd4",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "town_discovery",
+      "status": "passed",
+      "evidence": [
+        "ev-17"
+      ],
+      "note": ""
+    },
+    {
+      "name": "reports_registered",
+      "status": "passed",
+      "evidence": [
+        "ev-8",
+        "ev-18"
+      ],
+      "note": ""
+    },
+    {
+      "name": "target_retrieved",
+      "status": "passed",
+      "evidence": [
+        "ev-19"
+      ],
+      "note": ""
+    },
+    {
+      "name": "search_private_detail_withheld",
+      "status": "passed",
+      "evidence": [
+        "ev-20"
+      ],
+      "note": ""
+    },
+    {
+      "name": "claim_links_reports",
+      "status": "passed",
+      "evidence": [
+        "ev-21"
+      ],
+      "note": ""
+    },
+    {
+      "name": "pickup_withheld_before_approval",
+      "status": "passed",
+      "evidence": [
+        "ev-22"
+      ],
+      "note": ""
+    },
+    {
+      "name": "operator_receives_private_claim",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "Required observation is missing"
+    },
+    {
+      "name": "clarification_round_trip",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "Required observation is missing"
+    },
+    {
+      "name": "human_approval_releases_pickup",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "Required observation is missing"
+    },
+    {
+      "name": "return_confirmed",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "Required observation is missing"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-25"
+      ],
+      "note": "complete run recorded no money moved"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-25"
+      ],
+      "note": "fields ['Authorization', 'X-Human-Token', 'private_detail', 'your_private_detail'] never left the run"
+    }
+  ],
+  "verdict": "incomplete",
+  "evaluated_at": 1794415147.569962
+}
