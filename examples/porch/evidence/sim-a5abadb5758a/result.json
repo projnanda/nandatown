@@ -1,0 +1,141 @@
+{
+  "run_id": "sim-a5abadb5758a",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "gateway_reachable",
+      "status": "passed",
+      "evidence": [
+        "ev-28",
+        "ev-83",
+        "ev-34",
+        "ev-47",
+        "ev-58",
+        "ev-69",
+        "ev-88",
+        "ev-99"
+      ],
+      "note": "Porch answered 13 MCP calls"
+    },
+    {
+      "name": "discovery",
+      "status": "passed",
+      "evidence": [
+        "ev-15",
+        "ev-24",
+        "ev-79",
+        "ev-147"
+      ],
+      "note": "3 agents found the gateway's verified card"
+    },
+    {
+      "name": "home_described",
+      "status": "passed",
+      "evidence": [
+        "ev-28",
+        "ev-83"
+      ],
+      "note": "describe_home matched the expected home"
+    },
+    {
+      "name": "decisions_match_policy",
+      "status": "passed",
+      "evidence": [
+        "ev-34",
+        "ev-47",
+        "ev-58",
+        "ev-69",
+        "ev-88",
+        "ev-99",
+        "ev-115",
+        "ev-126"
+      ],
+      "note": "9 of 9 steps got the expected decision; every allowed step was executed and verified by Porch, no other step was executed"
+    },
+    {
+      "name": "hub_state_confirmed",
+      "status": "passed",
+      "evidence": [
+        "ev-42",
+        "ev-53",
+        "ev-64",
+        "ev-75",
+        "ev-94",
+        "ev-105",
+        "ev-121",
+        "ev-132"
+      ],
+      "note": "11 of 11 hub reads matched the expected state"
+    },
+    {
+      "name": "owner_approval",
+      "status": "passed",
+      "evidence": [
+        "ev-99",
+        "ev-110",
+        "ev-115"
+      ],
+      "note": "the request was held, the owner approved it through Porch, and the retry with the approval id was executed and verified"
+    },
+    {
+      "name": "unknown_agent_rejected",
+      "status": "passed",
+      "evidence": [
+        "ev-151",
+        "ev-156"
+      ],
+      "note": "Porch refused all 2 calls from an agent with no Porch key"
+    },
+    {
+      "name": "impersonation_blocked",
+      "status": "passed",
+      "evidence": [
+        "ev-167",
+        "ev-171",
+        "ev-174"
+      ],
+      "note": "the request signed with the wrong key failed Town's signature check, never reached Porch, and the device did not change"
+    },
+    {
+      "name": "duplicate_applied_once",
+      "status": "passed",
+      "evidence": [
+        "ev-32",
+        "ev-37",
+        "ev-177"
+      ],
+      "note": "1 request was delivered twice by Town and Porch's audit log holds exactly one entry for it"
+    },
+    {
+      "name": "audit_complete",
+      "status": "passed",
+      "evidence": [
+        "ev-177",
+        "ev-34",
+        "ev-47",
+        "ev-58",
+        "ev-69",
+        "ev-88",
+        "ev-99",
+        "ev-115"
+      ],
+      "note": "9 Porch audit entries match 9 adapter decisions by audit id, agent, request and decision"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-178"
+      ],
+      "note": "complete run recorded no money moved"
+    },
+    {
+      "name": "privacy",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no redaction declared by this scenario"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794357106.453199
+}

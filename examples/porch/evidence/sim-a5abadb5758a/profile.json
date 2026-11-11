@@ -1,0 +1,224 @@
+{
+  "name": "porch_home",
+  "description": "Town agents find a Porch home gateway in the town index and act on a home through it. Porch's scopes, household limits and owner approval must hold, a request Town delivers twice must reach the device once, and a request signed with the wrong key must reach nothing.",
+  "seed": 42,
+  "layers": {
+    "transport": "memory.v1",
+    "communication": "envelope.v1",
+    "identity": "keys.v1",
+    "registry": "index.v1",
+    "auth": "hmac.v1",
+    "trust": "reputation.v1",
+    "payments": "ledger.v1",
+    "coordination": "contractnet.v1",
+    "negotiation": "haggle.v1",
+    "memory": "kv.v1",
+    "privacy": "redact.v1",
+    "data_facts": "evidence.v1"
+  },
+  "agents": [
+    {
+      "name": "owner",
+      "role": "porch_home_owner",
+      "config": {
+        "occupied": false,
+        "audit_at": 40.0,
+        "approve": [
+          {
+            "agent": "concierge-agent",
+            "device": "home-1/front-door-lock",
+            "command": "UnlockDoor"
+          }
+        ]
+      }
+    },
+    {
+      "name": "porch",
+      "role": "porch_gateway",
+      "config": {
+        "dedup": true,
+        "expect_home": {
+          "devices": 8,
+          "platforms": [
+            "google_home",
+            "lg_thinq",
+            "matter"
+          ]
+        }
+      }
+    },
+    {
+      "name": "auditor",
+      "role": "porch_hub_auditor",
+      "config": {}
+    },
+    {
+      "name": "energy-agent",
+      "role": "porch_home_agent",
+      "config": {
+        "start_at": 1.0,
+        "plan": [
+          {
+            "step": "lamp_off",
+            "device": "home-1/desk-lamp-plug",
+            "command": "Off",
+            "reason": "Nobody is in the office; saving energy.",
+            "expect": "allowed",
+            "expect_state": {
+              "OnOff.OnOff": false
+            }
+          },
+          {
+            "step": "dryer_delay_6h",
+            "device": "home-1/laundry-dryer",
+            "command": "SetDelayStart",
+            "params": {
+              "hours": 6
+            },
+            "reason": "Run the dryer off-peak tonight.",
+            "expect": "allowed",
+            "expect_state": {
+              "PorchLaundryExtension.RelativeHourToStart": 6
+            }
+          },
+          {
+            "step": "dryer_delay_20h",
+            "device": "home-1/laundry-dryer",
+            "command": "SetDelayStart",
+            "params": {
+              "hours": 20
+            },
+            "reason": "Even later.",
+            "expect": "denied",
+            "expect_state": {
+              "PorchLaundryExtension.RelativeHourToStart": 6
+            }
+          },
+          {
+            "step": "unlock_door",
+            "device": "home-1/front-door-lock",
+            "command": "UnlockDoor",
+            "reason": "Outside this agent's scope on purpose.",
+            "expect": "denied",
+            "expect_state": {
+              "DoorLock.LockState": "Locked"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "concierge-agent",
+      "role": "porch_home_agent",
+      "config": {
+        "start_at": 10.0,
+        "plan": [
+          {
+            "step": "heater_on",
+            "device": "home-1/space-heater-plug",
+            "command": "On",
+            "reason": "Warm the house for the delivery.",
+            "expect": "denied",
+            "expect_state": {
+              "OnOff.OnOff": false
+            }
+          },
+          {
+            "step": "unlock_door",
+            "device": "home-1/front-door-lock",
+            "command": "UnlockDoor",
+            "reason": "Let the delivery driver in.",
+            "expect": "held_for_owner_approval",
+            "ask_owner": true,
+            "expect_state": {
+              "DoorLock.LockState": "Locked"
+            }
+          },
+          {
+            "step": "unlock_door_approved",
+            "device": "home-1/front-door-lock",
+            "command": "UnlockDoor",
+            "reason": "The owner approved.",
+            "approval_from": "unlock_door",
+            "expect": "allowed",
+            "expect_state": {
+              "DoorLock.LockState": "Unlocked"
+            }
+          },
+          {
+            "step": "unlock_door_again",
+            "device": "home-1/front-door-lock",
+            "command": "UnlockDoor",
+            "reason": "Reusing the same approval.",
+            "approval_from": "unlock_door",
+            "expect": "denied",
+            "expect_state": {
+              "DoorLock.LockState": "Unlocked"
+            }
+          },
+          {
+            "step": "lock_door",
+            "device": "home-1/front-door-lock",
+            "command": "LockDoor",
+            "reason": "Delivery done; locking up.",
+            "expect": "allowed",
+            "expect_state": {
+              "DoorLock.LockState": "Locked"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "stranger",
+      "role": "porch_home_agent",
+      "config": {
+        "start_at": 20.0,
+        "expect_describe": "rejected",
+        "plan": [
+          {
+            "step": "lamp_on",
+            "device": "home-1/desk-lamp-plug",
+            "command": "On",
+            "reason": "An agent the household never connected.",
+            "expect": "rejected",
+            "expect_state": {
+              "OnOff.OnOff": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "impersonator",
+      "role": "porch_impersonator",
+      "config": {
+        "start_at": 25.0,
+        "claim_to_be": "energy-agent",
+        "step": "forged_lamp_on",
+        "device": "home-1/desk-lamp-plug",
+        "command": "On",
+        "reason": "Signed with the wrong key.",
+        "expect_state": {
+          "OnOff.OnOff": false
+        }
+      }
+    }
+  ],
+  "faults": [
+    {
+      "action": "duplicate",
+      "kind": "home_action_request",
+      "nth": 1,
+      "delay": 0.0,
+      "rate": 0.0
+    }
+  ],
+  "redact_fields": [],
+  "max_time": 60.0,
+  "validator": "porch_home",
+  "plugin_files": [
+    "/home/claude/projnanda/nandatown/examples/porch/porch_town.py"
+  ],
+  "adaptations": []
+}
