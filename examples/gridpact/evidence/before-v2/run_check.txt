@@ -1,0 +1,42 @@
+variant: honest
+GridPact: v2   idempotent propose: no
+
+== a2a-capability-fulfillment@0.3
+Verdict:   FAILED
+  resolution              Passed               the subject was found through the declared path [ev-1]
+  agent_card_retrieval    Passed               the agent card was fetched and digested [ev-2]
+                          note: observed card sha256:97be0d82b2f66b35
+  descriptor_consistency  Not tested           not exercised in this run
+                          note: no pinned digest to compare; observed card digest is in the evidence
+  protocol_invocation     Passed               a native protocol exchange returned a task [ev-3]
+                          note: task task-de6cebef1f46 state completed
+  semantic_result         Passed               the task produced the required result [ev-4]
+                          note: exactly one fulfillment, total 3990
+  duplicate_request       Failed               the duplicate order caused no second fulfillment [ev-4, ev-6]
+                          note: idempotency defect: the duplicate produced a second distinct fulfillment
+Evidence bundle: examples/gridpact/evidence/before-v2/path-f225095edd10
+-- what GridPact recorded
+offers: 2 | commitments: 2 | stake locked now: $240.00
+ledger: {'commit': 2, 'propose': 2, 'register': 3}
+commitment 1: PVB_17 167 kWh/step (ordered 167), active
+commitment 2: PVB_17 167 kWh/step (ordered 167), active
+
+== a2a-order-conflict@0.1
+Verdict:   FAILED
+  resolution              Passed               the subject was found through the declared path [ev-1]
+  agent_card_retrieval    Passed               the agent card was fetched and digested [ev-2]
+                          note: observed card sha256:97be0d82b2f66b35
+  descriptor_consistency  Not tested           not exercised in this run
+                          note: no pinned digest to compare; observed card digest is in the evidence
+  protocol_invocation     Passed               a native protocol exchange returned a task [ev-3]
+                          note: task task-def76652657d state completed
+  semantic_result         Passed               the task produced the required result [ev-4]
+                          note: exactly one fulfillment, total 3990
+  conflicting_retry       Failed               a reused order id with changed terms was refused [ev-4, ev-6]
+                          note: conflict defect: the order id was answered again under changed terms {'quantity': 5} with a different quote: total_cents 3990, then 9975
+Evidence bundle: examples/gridpact/evidence/before-v2/path-8be7b9933a29
+-- what GridPact recorded
+offers: 2 | commitments: 2 | stake locked now: $420.00
+ledger: {'commit': 2, 'propose': 2, 'register': 3}
+commitment 1: PVB_17 167 kWh/step (ordered 167), active
+commitment 2: PVB_17 417 kWh/step (ordered 417), active

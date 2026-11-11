@@ -19,7 +19,7 @@ class FakeGridPact:
     """In-memory stand-in for GridPact's MCP tools, with the request_id behaviour of tag hw8-v1."""
 
     def __init__(self, url=None, idempotent=True):
-        self.idempotent, self.offers, self.commits, self.next = idempotent, {}, {}, 1
+        self.idempotent, self.offers, self.commits, self.next, self.challenges = idempotent, {}, {}, 1, []
         self.tools = {"propose": {"inputSchema": {"properties": {"request_id": {}} if idempotent else {}}}}
 
     def supports_request_id(self):
@@ -44,18 +44,24 @@ class FakeGridPact:
             oid = a["offer_id"]
             terms, rid, _ = self.offers[oid]
             self.offers[oid] = (terms, rid, "accepted")
-            self.commits[oid] = {"commitment_id": oid, "offer_id": oid, "seller": "PVB_17", "kwh_per_step": terms[3],
+            self.commits[oid] = {"commitment_id": oid, "offer_id": oid, "seller": terms[0], "kwh_per_step": terms[3],
                                  "price_usd_mwh": terms[4], "stake_usd": 1.0}
             return {"ok": True, "commitment_id": oid}
+        if name == "find_counterparties":     # both sellers declare 5000 kW; the nameplates are 5000 and 2500
+            return {"ok": True, "counterparties": [{"agent_id": "PVB_17", "declared_flex_kw": 5000.0},
+                                                   {"agent_id": "PVB_37", "declared_flex_kw": 5000.0}]}
+        if name == "challenge":
+            self.challenges.append(a["commitment_id"])
+            return {"ok": True, "verdict": "valid", "bounty_usd": 1.0}
         if name == "get_ledger":
             return {"ok": True, "entries": [{"action": "commit", "payload": p} for p in self.commits.values()]}
         raise AssertionError(name)
 
 
-def make(monkeypatch, idempotent=True):
+def make(monkeypatch, idempotent=True, **opts):
     fake = FakeGridPact(idempotent=idempotent)
     monkeypatch.setattr(adapter, "GridPactClient", lambda url: fake)
-    return TestClient(adapter.build_app("http://unused", "http://testserver")), fake
+    return TestClient(adapter.build_app("http://unused", "http://testserver", **opts)), fake
 
 
 def send(client, body):
@@ -105,11 +111,35 @@ def test_bad_request_fails_without_touching_gridpact(monkeypatch):
     assert state == "failed" and not fake.offers
 
 
+def test_honest_seller_is_not_challenged(monkeypatch):
+    client, fake = make(monkeypatch)
+    state, quote = send(client, ORDER)
+    assert fake.challenges == [] and quote["audit"] == "not challenged"
+
+
+def test_over_declared_seller_is_challenged_before_the_quote(monkeypatch):
+    client, fake = make(monkeypatch, seller="PVB_37", declared_flex_kw=5000.0, steps=2)
+    state, quote = send(client, ORDER)
+    assert state == "completed" and fake.challenges == [quote["commitment_id"]] and quote["audit"] == "challenge valid"
+    assert quote["total_cents"] == 3990                               # the order's value; delivery is reported separately
+    assert list(fake.offers.values())[0][0][3] == 1000.0              # 2 MWh packed into 2 steps
+
+
+def test_a_repeat_after_the_audit_does_not_challenge_again(monkeypatch):
+    client, fake = make(monkeypatch, seller="PVB_37", declared_flex_kw=5000.0, steps=2)
+    assert send(client, ORDER) == send(client, ORDER) and len(fake.challenges) == 1
+
+
 @pytest.mark.skipif(not os.environ.get("GRIDPACT_DIR") or not shutil.which("nandatown"),
                     reason="set GRIDPACT_DIR to a gridpact checkout (tag hw8-v1 or later)")
 def test_town_path_profiles_pass_against_real_gridpact(tmp_path):
     env = {**os.environ, "GRIDPACT_PYTHON": os.environ.get("GRIDPACT_PYTHON", "python")}
-    out = subprocess.run([str(ROOT / "examples" / "gridpact" / "run_check.sh"), str(tmp_path)], env=env,
-                         capture_output=True, text=True, timeout=300).stdout
-    assert out.count("Verdict:   PASSED") == 2, out
-    assert "duplicate_request       Passed" in out and "conflicting_retry       Passed" in out
+    script = str(ROOT / "examples" / "gridpact" / "run_check.sh")
+    honest = subprocess.run([script, str(tmp_path / "h")], env=env, capture_output=True, text=True, timeout=300).stdout
+    assert honest.count("Verdict:   PASSED") == 2, honest
+    assert "duplicate_request       Passed" in honest and "conflicting_retry       Passed" in honest
+    assert "settled commitment 1: committed 2000 kWh, delivered 2000, shortfall 0" in honest
+    liar = subprocess.run([script, str(tmp_path / "l")], env={**env, "VARIANT": "liar"}, capture_output=True,
+                          text=True, timeout=300).stdout
+    assert liar.count("Verdict:   PASSED") == 2, liar
+    assert "challenge on commitment 1: valid" in liar and "625 kWh/step (ordered 1000), challenged" in liar
