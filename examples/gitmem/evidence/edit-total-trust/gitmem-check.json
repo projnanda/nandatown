@@ -1,0 +1,84 @@
+{
+  "run_id": "run-b05d604c6a7e",
+  "town_verdict": "incomplete",
+  "seller_reported": {
+    "policy": "trust",
+    "outside_edits": [],
+    "restored": false,
+    "resend_refused": true
+  },
+  "outside_edits_unrepaired": [
+    {
+      "path": "facts/seller/self/f-0001.md",
+      "change": "modified"
+    },
+    {
+      "path": "facts/seller/self/f-0002.md",
+      "change": "modified"
+    }
+  ],
+  "observer_commit": "aef315a",
+  "observer_refused": [],
+  "requests": {
+    "q-1": {
+      "self": {
+        "reply_id": "r-1",
+        "reply_fingerprint": "sha256:d27e552a5c6a4da97ccddbfe663812a499e8b124b43a558f3057ed5c9093bbf4",
+        "total_cents": 3999
+      },
+      "observed": {
+        "reply_id": "r-1",
+        "reply_fingerprint": "sha256:174cc1a85e695923fbbdbc95ebec0a8219019977e3593090c8131aef0d7d8b38",
+        "total_cents": 3990
+      },
+      "reconcile": {
+        "counts": {
+          "agreed": 1,
+          "omission": 0,
+          "contradiction": 2,
+          "unsupported": 0
+        },
+        "findings": [
+          {
+            "kind": "contradiction",
+            "key": "reply_fingerprint",
+            "self": "sha256:d27e552a5c6a4da97ccddbfe663812a499e8b124b43a558f3057ed5c9093bbf4",
+            "observed": "sha256:174cc1a85e695923fbbdbc95ebec0a8219019977e3593090c8131aef0d7d8b38"
+          },
+          {
+            "kind": "agreed",
+            "key": "reply_id",
+            "self": "r-1",
+            "observed": "r-1"
+          },
+          {
+            "kind": "contradiction",
+            "key": "total_cents",
+            "self": 3999,
+            "observed": 3990
+          }
+        ]
+      },
+      "applications": 1,
+      "town_refused_resends": 1
+    }
+  },
+  "history": [
+    "aef315a memory: +4 added, ~0 updated, -0 invalidated (observer: derived from Town's events)",
+    "c976627 memory: +0 added, ~1 updated, -0 invalidated (town recorded q-1)",
+    "02b8811 memory: +1 added, ~0 updated, -0 invalidated (town refused resend of q-1)",
+    "4e4bf19 memory: +3 added, ~0 updated, -0 invalidated (applied q-1)",
+    "d040d58 memory: empty store"
+  ],
+  "case": "edit-total-trust",
+  "env": {
+    "GITMEM_EDIT": "total",
+    "GITMEM_TRUST": "trust",
+    "profile": "quote-amnesia-restart"
+  },
+  "versions": {
+    "seller_sha256": "sha256:eb31688711d3c156dd007be0bcdb49a32054ce9f9c8ff9710b4d62c6ced5cc53",
+    "gitmem_commit": "121a10dc214a6f7475ff764a33f23d2be6d63d9d",
+    "gitmem_dirty": false
+  }
+}

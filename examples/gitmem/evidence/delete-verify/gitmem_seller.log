@@ -1,0 +1,6 @@
+1794408823.453 memory commit e529456: applied q-1
+1794408823.706 hand edit 'delete' touched ['facts/seller/self/f-0001.md', 'facts/seller/self/f-0002.md']
+1794408823.818 memory commit ac60a18: restored facts edited outside the store
+1794408823.818 restored 2 fact(s) edited outside the store: [{'path': 'facts/seller/self/f-0001.md', 'change': 'deleted'}, {'path': 'facts/seller/self/f-0002.md', 'change': 'deleted'}]
+1794408825.320 memory commit 9da3d08: town recorded q-1
+1794408825.320 stopping after finishing the memory write

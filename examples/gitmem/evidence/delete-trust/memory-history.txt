@@ -1,0 +1,319 @@
+commit d040d58  2026-01-01 00:00:00 +0000
+memory: empty store
+
+
+diff --git a/README.md b/README.md
+new file mode 100644
+index 0000000..2577e15
+--- /dev/null
++++ b/README.md
+@@ -0,0 +1,5 @@
++# agent memory
++
++One file per fact. History is the point:
++`git log`, `git diff` and `git blame` answer what changed,
++when, who asserted it and on what evidence.
+commit 7f46c3a  2026-01-01 00:16:40 +0000
+memory: +3 added, ~0 updated, -0 invalidated (applied q-1)
+
++ f-0001 [seller/self] quote.q-1.reply: "{\"body\": {\"quantity\": 2, \"request_id\": \"q-1\", \"sku\": \"widget\", \"total_cents\": 3990}, \"kind\": \"quote_response\", \"message_id\": \"r-1\", \"to\": \"buyer\"}"
+    asserted by: seller
++ f-0002 [seller/self] quote.q-1.total_cents: 3990
+    asserted by: seller
++ f-0003 [seller/self] quote.q-1.reported: false
+    asserted by: seller
+
+Source: run-3a484ad939a5#q-1@attempt1
+Logical time: t=1.00
+
+
+diff --git a/facts/seller/self/f-0001.md b/facts/seller/self/f-0001.md
+new file mode 100644
+index 0000000..c00cf99
+--- /dev/null
++++ b/facts/seller/self/f-0001.md
+@@ -0,0 +1,19 @@
++---
++id: "f-0001"
++holder: "seller"
++lane: "self"
++key: "quote.q-1.reply"
++subject: ""
++asserter: "seller"
++type: "string"
++scope: "private"
++status: "active"
++confidence: 1.0
++supersedes: null
++superseded_by: null
++valid_from: "1.00"
++invalid_at: null
++source: "run-3a484ad939a5#q-1@attempt1"
++evidence: ""
++---
++"{\"body\": {\"quantity\": 2, \"request_id\": \"q-1\", \"sku\": \"widget\", \"total_cents\": 3990}, \"kind\": \"quote_response\", \"message_id\": \"r-1\", \"to\": \"buyer\"}"
+diff --git a/facts/seller/self/f-0002.md b/facts/seller/self/f-0002.md
+new file mode 100644
+index 0000000..5236a3e
+--- /dev/null
++++ b/facts/seller/self/f-0002.md
+@@ -0,0 +1,19 @@
++---
++id: "f-0002"
++holder: "seller"
++lane: "self"
++key: "quote.q-1.total_cents"
++subject: ""
++asserter: "seller"
++type: "integer"
++scope: "private"
++status: "active"
++confidence: 1.0
++supersedes: null
++superseded_by: null
++valid_from: "1.00"
++invalid_at: null
++source: "run-3a484ad939a5#q-1@attempt1"
++evidence: ""
++---
++3990
+diff --git a/facts/seller/self/f-0003.md b/facts/seller/self/f-0003.md
+new file mode 100644
+index 0000000..8604c85
+--- /dev/null
++++ b/facts/seller/self/f-0003.md
+@@ -0,0 +1,19 @@
++---
++id: "f-0003"
++holder: "seller"
++lane: "self"
++key: "quote.q-1.reported"
++subject: ""
++asserter: "seller"
++type: "boolean"
++scope: "private"
++status: "active"
++confidence: 1.0
++supersedes: null
++superseded_by: null
++valid_from: "1.00"
++invalid_at: null
++source: "run-3a484ad939a5#q-1@attempt1"
++evidence: ""
++---
++false
+commit ea3b33a  2026-01-01 00:33:20 +0000
+memory: +2 added, ~0 updated, -0 invalidated (applied q-1)
+
++ f-0004 [seller/self] quote.q-1.reply: "{\"body\": {\"quantity\": 2, \"request_id\": \"q-1\", \"sku\": \"widget\", \"total_cents\": 3990}, \"kind\": \"quote_response\", \"message_id\": \"r-1\", \"to\": \"buyer\"}"
+    asserted by: seller
++ f-0005 [seller/self] quote.q-1.total_cents: 3990
+    asserted by: seller
+
+Source: run-3a484ad939a5#q-1@attempt2
+Logical time: t=2.00
+
+
+diff --git a/facts/seller/self/f-0004.md b/facts/seller/self/f-0004.md
+new file mode 100644
+index 0000000..5dca6a8
+--- /dev/null
++++ b/facts/seller/self/f-0004.md
+@@ -0,0 +1,19 @@
++---
++id: "f-0004"
++holder: "seller"
++lane: "self"
++key: "quote.q-1.reply"
++subject: ""
++asserter: "seller"
++type: "string"
++scope: "private"
++status: "active"
++confidence: 1.0
++supersedes: null
++superseded_by: null
++valid_from: "2.00"
++invalid_at: null
++source: "run-3a484ad939a5#q-1@attempt2"
++evidence: ""
++---
++"{\"body\": {\"quantity\": 2, \"request_id\": \"q-1\", \"sku\": \"widget\", \"total_cents\": 3990}, \"kind\": \"quote_response\", \"message_id\": \"r-1\", \"to\": \"buyer\"}"
+diff --git a/facts/seller/self/f-0005.md b/facts/seller/self/f-0005.md
+new file mode 100644
+index 0000000..72945b6
+--- /dev/null
++++ b/facts/seller/self/f-0005.md
+@@ -0,0 +1,19 @@
++---
++id: "f-0005"
++holder: "seller"
++lane: "self"
++key: "quote.q-1.total_cents"
++subject: ""
++asserter: "seller"
++type: "integer"
++scope: "private"
++status: "active"
++confidence: 1.0
++supersedes: null
++superseded_by: null
++valid_from: "2.00"
++invalid_at: null
++source: "run-3a484ad939a5#q-1@attempt2"
++evidence: ""
++---
++3990
+commit 7eacab8  2026-01-01 00:41:40 +0000
+memory: +0 added, ~1 updated, -0 invalidated (town recorded q-1)
+
+~ f-0003 -> f-0006 [seller/self] quote.q-1.reported
+    was: false
+    now: true
+    asserted by: seller
+
+Source: run-3a484ad939a5#q-1@attempt2
+Logical time: t=2.50
+
+
+diff --git a/facts/seller/self/f-0003.md b/facts/seller/self/f-0003.md
+index 8604c85..f220b26 100644
+--- a/facts/seller/self/f-0003.md
++++ b/facts/seller/self/f-0003.md
+@@ -7,12 +7,12 @@ subject: ""
+ asserter: "seller"
+ type: "boolean"
+ scope: "private"
+-status: "active"
++status: "superseded"
+ confidence: 1.0
+ supersedes: null
+-superseded_by: null
++superseded_by: "f-0006"
+ valid_from: "1.00"
+-invalid_at: null
++invalid_at: "2.50"
+ source: "run-3a484ad939a5#q-1@attempt1"
+ evidence: ""
+ ---
+diff --git a/facts/seller/self/f-0006.md b/facts/seller/self/f-0006.md
+new file mode 100644
+index 0000000..fb4d1c8
+--- /dev/null
++++ b/facts/seller/self/f-0006.md
+@@ -0,0 +1,19 @@
++---
++id: "f-0006"
++holder: "seller"
++lane: "self"
++key: "quote.q-1.reported"
++subject: ""
++asserter: "seller"
++type: "boolean"
++scope: "private"
++status: "active"
++confidence: 1.0
++supersedes: "f-0003"
++superseded_by: null
++valid_from: "2.50"
++invalid_at: null
++source: "run-3a484ad939a5#q-1@attempt2"
++evidence: ""
++---
++true
+commit a90142e  2026-01-01 02:30:00 +0000
+memory: +3 added, ~0 updated, -0 invalidated (observer: derived from Town's events)
+
++ f-0007 [seller/observed] quote.q-1.reply_id: "r-1"
+    evidence: {"detail": {"content_fingerprint": "sha256:174cc1a85e695923fbbdbc95ebec0a8219019977e3593090c8131aef0d7d8b38", "kind": "quote_response", "request_id": "q-1", "se
+    asserted by: observer
++ f-0008 [seller/observed] quote.q-1.reply_fingerprint: "sha256:174cc1a85e695923fbbdbc95ebec0a8219019977e3593090c8131aef0d7d8b38"
+    evidence: {"detail": {"content_fingerprint": "sha256:174cc1a85e695923fbbdbc95ebec0a8219019977e3593090c8131aef0d7d8b38", "kind": "quote_response", "request_id": "q-1", "se
+    asserted by: observer
++ f-0009 [seller/observed] quote.q-1.total_cents: 3990
+    evidence: {"detail": {"attempt": 1, "fence": "fence-195fb1ae05b1483280663c379cc11eaf", "note": {"correct": true, "expected_total_cents": 3990, "total_cents": 3990}, "stat
+    asserted by: observer
+
+Source: run-3a484ad939a5#events.jsonl
+Logical time: t=9.00
+
+
+diff --git a/facts/seller/observed/f-0007.md b/facts/seller/observed/f-0007.md
+new file mode 100644
+index 0000000..fb99d6c
+--- /dev/null
++++ b/facts/seller/observed/f-0007.md
+@@ -0,0 +1,19 @@
++---
++id: "f-0007"
++holder: "seller"
++lane: "observed"
++key: "quote.q-1.reply_id"
++subject: "q-1"
++asserter: "observer"
++type: "string"
++scope: "project"
++status: "active"
++confidence: 1.0
++supersedes: null
++superseded_by: null
++valid_from: "9.00"
++invalid_at: null
++source: "run-3a484ad939a5#events.jsonl"
++evidence: "{\"detail\": {\"content_fingerprint\": \"sha256:174cc1a85e695923fbbdbc95ebec0a8219019977e3593090c8131aef0d7d8b38\", \"kind\": \"quote_response\", \"request_id\": \"q-1\", \"sender\": \"seller\", \"to\": \"buyer\"}, \"event_id\": \"ev-6\", \"kind\": \"message_accepted\", \"observer\": \"town\", \"subject\": \"r-1\"}"
++---
++"r-1"
+diff --git a/facts/seller/observed/f-0008.md b/facts/seller/observed/f-0008.md
+new file mode 100644
+index 0000000..7914191
+--- /dev/null
++++ b/facts/seller/observed/f-0008.md
+@@ -0,0 +1,19 @@
++---
++id: "f-0008"
++holder: "seller"
++lane: "observed"
++key: "quote.q-1.reply_fingerprint"
++subject: "q-1"
++asserter: "observer"
++type: "string"
++scope: "project"
++status: "active"
++confidence: 1.0
++supersedes: null
++superseded_by: null
++valid_from: "9.00"
++invalid_at: null
++source: "run-3a484ad939a5#events.jsonl"
++evidence: "{\"detail\": {\"content_fingerprint\": \"sha256:174cc1a85e695923fbbdbc95ebec0a8219019977e3593090c8131aef0d7d8b38\", \"kind\": \"quote_response\", \"request_id\": \"q-1\", \"sender\": \"seller\", \"to\": \"buyer\"}, \"event_id\": \"ev-6\", \"kind\": \"message_accepted\", \"observer\": \"town\", \"subject\": \"r-1\"}"
++---
++"sha256:174cc1a85e695923fbbdbc95ebec0a8219019977e3593090c8131aef0d7d8b38"
+diff --git a/facts/seller/observed/f-0009.md b/facts/seller/observed/f-0009.md
+new file mode 100644
+index 0000000..0856ed7
+--- /dev/null
++++ b/facts/seller/observed/f-0009.md
+@@ -0,0 +1,19 @@
++---
++id: "f-0009"
++holder: "seller"
++lane: "observed"
++key: "quote.q-1.total_cents"
++subject: "q-1"
++asserter: "observer"
++type: "integer"
++scope: "project"
++status: "active"
++confidence: 1.0
++supersedes: null
++superseded_by: null
++valid_from: "9.00"
++invalid_at: null
++source: "run-3a484ad939a5#events.jsonl"
++evidence: "{\"detail\": {\"attempt\": 1, \"fence\": \"fence-195fb1ae05b1483280663c379cc11eaf\", \"note\": {\"correct\": true, \"expected_total_cents\": 3990, \"total_cents\": 3990}, \"status\": \"processed\"}, \"event_id\": \"ev-8\", \"kind\": \"ack_recorded\", \"observer\": \"buyer\", \"subject\": \"r-1\"}"
++---
++3990
+
+# git status at the end of the run
+ D facts/seller/self/f-0001.md
+ D facts/seller/self/f-0002.md

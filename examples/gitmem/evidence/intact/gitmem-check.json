@@ -1,0 +1,73 @@
+{
+  "run_id": "run-c3bc9fb1f486",
+  "town_verdict": "passed",
+  "seller_reported": {
+    "policy": "verify",
+    "outside_edits": [],
+    "restored": false
+  },
+  "outside_edits_unrepaired": [],
+  "observer_commit": "6f98f63",
+  "observer_refused": [],
+  "requests": {
+    "q-1": {
+      "self": {
+        "reply_id": "r-1",
+        "reply_fingerprint": "sha256:174cc1a85e695923fbbdbc95ebec0a8219019977e3593090c8131aef0d7d8b38",
+        "total_cents": 3990
+      },
+      "observed": {
+        "reply_id": "r-1",
+        "reply_fingerprint": "sha256:174cc1a85e695923fbbdbc95ebec0a8219019977e3593090c8131aef0d7d8b38",
+        "total_cents": 3990
+      },
+      "reconcile": {
+        "counts": {
+          "agreed": 3,
+          "omission": 0,
+          "contradiction": 0,
+          "unsupported": 0
+        },
+        "findings": [
+          {
+            "kind": "agreed",
+            "key": "reply_fingerprint",
+            "self": "sha256:174cc1a85e695923fbbdbc95ebec0a8219019977e3593090c8131aef0d7d8b38",
+            "observed": "sha256:174cc1a85e695923fbbdbc95ebec0a8219019977e3593090c8131aef0d7d8b38"
+          },
+          {
+            "kind": "agreed",
+            "key": "reply_id",
+            "self": "r-1",
+            "observed": "r-1"
+          },
+          {
+            "kind": "agreed",
+            "key": "total_cents",
+            "self": 3990,
+            "observed": 3990
+          }
+        ]
+      },
+      "applications": 1,
+      "town_refused_resends": 0
+    }
+  },
+  "history": [
+    "6f98f63 memory: +3 added, ~0 updated, -0 invalidated (observer: derived from Town's events)",
+    "b922f17 memory: +0 added, ~1 updated, -0 invalidated (town recorded q-1)",
+    "8f861e3 memory: +3 added, ~0 updated, -0 invalidated (applied q-1)",
+    "d040d58 memory: empty store"
+  ],
+  "case": "intact",
+  "env": {
+    "GITMEM_EDIT": "none",
+    "GITMEM_TRUST": "verify",
+    "profile": "quote-amnesia-restart"
+  },
+  "versions": {
+    "seller_sha256": "sha256:eb31688711d3c156dd007be0bcdb49a32054ce9f9c8ff9710b4d62c6ced5cc53",
+    "gitmem_commit": "121a10dc214a6f7475ff764a33f23d2be6d63d9d",
+    "gitmem_dirty": false
+  }
+}
