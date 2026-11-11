@@ -1,0 +1,68 @@
+name: agents_gym_receipts_control
+description: >-
+  The same market with the trust layer left at Town's default reputation.v1. Cards still travel but nothing reads them, so the lender hires the cheapest reviewer, the fabricator, which approves the files missing bank statements. This run FAILS on purpose.
+seed: 42
+validator: agents_gym_delegation
+plugin_files:
+  - ../plugin.py
+layers:
+  trust: reputation.v1
+agents:
+  - name: reviewer-honest
+    role: gym_candidate
+    config:
+      gym_name: honest
+      sku: loan_review
+      ask_cents: 1600
+      floor_cents: 1360
+      balance_cents: 0
+  - name: reviewer-fabricator
+    role: gym_candidate
+    config:
+      gym_name: fabricator
+      sku: loan_review
+      ask_cents: 900
+      floor_cents: 765
+      balance_cents: 0
+  - name: reviewer-shortcut
+    role: gym_candidate
+    config:
+      gym_name: shortcut
+      sku: loan_review
+      ask_cents: 1100
+      floor_cents: 935
+      balance_cents: 0
+  - name: reviewer-lazy
+    role: gym_candidate
+    config:
+      gym_name: lazy
+      sku: loan_review
+      ask_cents: 1200
+      floor_cents: 1020
+      balance_cents: 0
+  - name: reviewer-unstable
+    role: gym_candidate
+    config:
+      gym_name: flaky
+      sku: loan_review
+      ask_cents: 1400
+      floor_cents: 1190
+      balance_cents: 0
+  - name: lender-1
+    role: gym_lender
+    config:
+      sku: loan_review
+      cap_cents: 2000
+      balance_cents: 50000
+      quotes_wait: 1.0
+      pinned_key: ed25519:44fc008abc61ff51a33e760c2a90b288c270bb71c6ecfa82af2d3c630a6d2c35
+      files:
+        - {id: file-01, gap: false, amount_usd: 120000}
+        - {id: file-02, gap: false, amount_usd: 80000}
+        - {id: file-03, gap: true, amount_usd: 150000}
+        - {id: file-04, gap: false, amount_usd: 60000}
+        - {id: file-05, gap: false, amount_usd: 95000}
+        - {id: file-06, gap: true, amount_usd: 110000}
+        - {id: file-07, gap: false, amount_usd: 70000}
+        - {id: file-08, gap: true, amount_usd: 140000}
+max_time: 120
