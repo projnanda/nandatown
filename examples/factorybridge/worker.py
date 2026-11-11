@@ -16,7 +16,7 @@ from simulator import World
 from tests.simulator_fixture import config
 
 
-def execute(request):
+def execute(request, *, live=False):
     request_id = request.get("request_id")
     if not isinstance(request_id, str) or not request_id:
         return {"status": "rejected", "reason": "request_id required"}
@@ -24,13 +24,13 @@ def execute(request):
         order = parse_order(request.get("order"))
     except (ValueError, TypeError) as exc:
         return {"request_id": request_id, "status": "rejected",
-                "reason": str(exc), "simulation_started": False}
+                "reason": str(exc), "simulation_started": False, "llm_usage": {"llm_calls": 0}}
 
     world = World.from_config(order, config(), seed=1, unreliability=0)
     marketplace = Marketplace(world, allow_broadcast=True)
     # Explicit deterministic test double. This is not an LLM or production run.
     original = llm.call_llm
-    llm.call_llm = lambda *args: {
+    if not live:llm.call_llm = lambda *args: {
         "role": "assistant",
         "content": '{"plan_id":"plan-0","reason":"SCRIPTED TEST REVIEWER"}',
     }
@@ -42,11 +42,11 @@ def execute(request):
     if result["execution_failed"] or result.get("checker_error"):
         return {"request_id": request_id, "status": "error",
                 "error": result.get("error") or result.get("checker_error"),
-                "simulation_started": True}
+                "simulation_started": True, "llm_usage": result["llm_usage"]}
     return {"request_id": request_id,
             "status": "completed" if result["success"] else "not_fulfilled",
             "simulation_started": True, "simulation_only": True,
-            "scripted_reviewer": True, "verdict": result["independent_verdict"],
+            "scripted_reviewer": not live, "llm_usage": result["llm_usage"], "model": result["model"], "verdict": result["independent_verdict"],
             "truth": result["truth"], "tool_usage": result["tool_usage"],
             "trace": result["trace"]}
 
