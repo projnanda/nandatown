@@ -29,6 +29,11 @@ from .records import (
     TownEvent,
     fingerprint,
 )
+from .research import (
+    RESEARCH_EVALUATOR_VERSION,
+    contract_for_profile,
+    evaluate_profile,
+)
 
 RECORD_FILES = ["profile.json", "run.json", "intents.jsonl", "events.jsonl",
                 "result.json"]
@@ -203,7 +208,8 @@ def load_bundle(directory: str) -> dict[str, Any]:
 # for a receipt without replay, and the receipt says so; any other
 # version is refused.
 SHIPPED_EVALUATOR_VERSIONS: dict[str, frozenset[str]] = {
-    "track": frozenset({"0.2.0", "0.3.0", "0.4.0", "0.5.0"}),
+    "track": frozenset({"0.2.0", "0.3.0", "0.4.0", "0.5.0",
+                         RESEARCH_EVALUATOR_VERSION}),
     "lab": frozenset({"lab-0.2.0", "lab-0.2.1", "lab-0.2.2", "lab-0.2.3",
                       "lab-0.2.4", "lab-0.2.5", "lab-0.2.6"}),
     "path": frozenset({"path-0.1", "path-0.2", "path-0.3",
@@ -405,13 +411,19 @@ def verify_bundle(directory: str) -> list[str]:
             expected_version = path_evaluator_version(bundle["profile"])
             replay_fn = evaluate_path
         else:
-            # A recorded Track version replays under its own rules; any
-            # other version is reported as a difference below.
-            expected_version = (
-                recorded.evaluator_version
-                if recorded.evaluator_version in EVALUATOR_VERSIONS
-                else EVALUATOR_VERSION)
-            replay_fn = functools.partial(evaluate, version=expected_version)
+            contract = contract_for_profile(bundle["profile"])
+            if contract.evaluator_version == RESEARCH_EVALUATOR_VERSION:
+                expected_version = contract.evaluator_version
+                replay_fn = evaluate_profile
+            else:
+                # A recorded quote Track version replays under its own rules;
+                # any other version is reported as a difference below.
+                expected_version = (
+                    recorded.evaluator_version
+                    if recorded.evaluator_version in EVALUATOR_VERSIONS
+                    else EVALUATOR_VERSION)
+                replay_fn = functools.partial(evaluate,
+                                              version=expected_version)
     except (KeyError, ValueError) as exc:
         expected_version = None
         replay_fn = None

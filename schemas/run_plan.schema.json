@@ -33,6 +33,198 @@
       ],
       "title": "QuoteTask",
       "type": "object"
+    },
+    "ResearchCandidate": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_id": {
+          "pattern": "^[a-z][a-z0-9-]{0,63}$",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "strategy_spec": {
+          "$ref": "#/$defs/ResearchStrategySpec"
+        }
+      },
+      "required": [
+        "candidate_id",
+        "strategy_spec"
+      ],
+      "title": "ResearchCandidate",
+      "type": "object"
+    },
+    "ResearchIdea": {
+      "additionalProperties": false,
+      "properties": {
+        "hypothesis": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Hypothesis",
+          "type": "string"
+        },
+        "rationale": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/ResearchSource"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Sources",
+          "type": "array"
+        },
+        "title": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "hypothesis",
+        "rationale",
+        "sources"
+      ],
+      "title": "ResearchIdea",
+      "type": "object"
+    },
+    "ResearchSource": {
+      "additionalProperties": false,
+      "properties": {
+        "accessed_on": {
+          "title": "Accessed On",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "uri": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "uri",
+        "label",
+        "accessed_on"
+      ],
+      "title": "ResearchSource",
+      "type": "object"
+    },
+    "ResearchStrategySpec": {
+      "additionalProperties": false,
+      "properties": {
+        "entry_rule": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Entry Rule",
+          "type": "string"
+        },
+        "exit_rule": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Exit Rule",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": true,
+          "title": "Parameters",
+          "type": "object"
+        },
+        "position_sizing": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Position Sizing",
+          "type": "string"
+        },
+        "rebalance": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Rebalance",
+          "type": "string"
+        },
+        "signal": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Signal",
+          "type": "string"
+        },
+        "universe": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Universe",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "universe",
+        "signal",
+        "entry_rule",
+        "exit_rule",
+        "position_sizing",
+        "rebalance",
+        "parameters"
+      ],
+      "title": "ResearchStrategySpec",
+      "type": "object"
+    },
+    "ResearchTask": {
+      "additionalProperties": false,
+      "properties": {
+        "candidates": {
+          "items": {
+            "$ref": "#/$defs/ResearchCandidate"
+          },
+          "maxItems": 8,
+          "minItems": 2,
+          "title": "Candidates",
+          "type": "array"
+        },
+        "client_task_id": {
+          "pattern": "^[a-z][a-z0-9-]{0,63}$",
+          "title": "Client Task Id",
+          "type": "string"
+        },
+        "idea": {
+          "$ref": "#/$defs/ResearchIdea"
+        },
+        "schema_version": {
+          "const": "sharpeshooter.research-task.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "selected_candidate_id": {
+          "pattern": "^[a-z][a-z0-9-]{0,63}$",
+          "title": "Selected Candidate Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "client_task_id",
+        "idea",
+        "candidates",
+        "selected_candidate_id"
+      ],
+      "title": "ResearchTask",
+      "type": "object"
     }
   },
   "$id": "https://nandatown.local/schemas/run_plan.schema.json",
@@ -91,7 +283,15 @@
       "type": "object"
     },
     "task": {
-      "$ref": "#/$defs/QuoteTask"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/QuoteTask"
+        },
+        {
+          "$ref": "#/$defs/ResearchTask"
+        }
+      ],
+      "title": "Task"
     }
   },
   "required": [

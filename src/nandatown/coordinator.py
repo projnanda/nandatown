@@ -29,9 +29,9 @@ from pydantic import BaseModel
 
 from .db import IdentityReuse, RunFinished, StaleFence, TownDB
 from .records import TestProfile, fingerprint
+from .research import contract_for_profile
 
 ACK_STATUSES = {"received", "processed", "rejected", "retryable", "failed"}
-FAULT_TARGET_KIND = "quote_request"
 
 
 class InvalidJSONValue(HTTPException):
@@ -221,10 +221,12 @@ def build_app(db_path: str, admin_token: str) -> FastAPI:
 
     def fault_state(run_id: str) -> dict[str, Any]:
         if run_id not in faults:
-            profile = db.run_profile(run_id) or {}
-            faults[run_id] = {"fault": profile.get("fault", "none"),
+            profile = TestProfile.model_validate(db.run_profile(run_id) or {})
+            contract = contract_for_profile(profile)
+            faults[run_id] = {"fault": profile.fault,
                               "fired": False,
-                              "lease": profile.get("lease_seconds", 5.0)}
+                              "lease": profile.lease_seconds,
+                              "target_kind": contract.request_kind}
         return faults[run_id]
 
     def require_admin(x_town_admin: str = Header(default="")):
@@ -245,6 +247,10 @@ def build_app(db_path: str, admin_token: str) -> FastAPI:
     def create_run(body: CreateRun):
         now = time.time()
         profile = body.profile
+        try:
+            contract_for_profile(profile)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from None
         run_id = db.create_run(profile.model_dump_json(), now=now)
         join_tokens = {}
         for name, role in profile.roles.items():
@@ -336,7 +342,7 @@ def build_app(db_path: str, admin_token: str) -> FastAPI:
         state = fault_state(run_id)
         suppress = False
         if (state["fault"] == "drop_wakeup" and not state["fired"]
-                and body.kind == FAULT_TARGET_KIND):
+                and body.kind == state["target_kind"]):
             suppress = True
             state["fired"] = True
         try:
@@ -419,7 +425,7 @@ def build_app(db_path: str, admin_token: str) -> FastAPI:
         if (body.status == "processed"
                 and state["fault"] == "duplicate_delivery"
                 and db.message_kind(run_id, body.message_id)
-                == FAULT_TARGET_KIND):
+                == state["target_kind"]):
             state.setdefault("done_target", body.message_id)
         return {"recorded": True}
 
