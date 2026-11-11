@@ -1,0 +1,13 @@
+run,memory,profile,rep,town_run_id,verdict,stages_passed,stages_failed,wall_seconds,mindvault_calls,deal_notes,note_levels,note_statuses,intern_level_too_low,intern_not_found,intern_leaked
+mindvault-quote-clean-1,mindvault,quote-clean,1,run-aa226c69493a,passed,6,0,2.64,2,1,2,unverified,1,0,0
+mindvault-quote-clean-2,mindvault,quote-clean,2,run-7472a733a300,passed,6,0,1.79,2,1,2,unverified,1,0,0
+mindvault-quote-clean-3,mindvault,quote-clean,3,run-50e5ab427c39,passed,6,0,1.58,2,1,2,unverified,1,0,0
+mindvault-quote-crash-restart-1,mindvault,quote-crash-restart,1,run-360c2aca36da,passed,8,0,6.76,4,2,2|2,unverified|quarantined,1,1,0
+mindvault-quote-crash-restart-2,mindvault,quote-crash-restart,2,run-a3ac89705be8,passed,8,0,6.7,4,2,2|2,unverified|quarantined,1,1,0
+mindvault-quote-crash-restart-3,mindvault,quote-crash-restart,3,run-018e59d715f6,passed,8,0,6.56,4,2,2|2,unverified|quarantined,1,1,0
+off-quote-clean-1,off,quote-clean,1,run-e7c0504be0d8,passed,6,0,0.35,0,0,,,,,
+off-quote-clean-2,off,quote-clean,2,run-e4237a49a76e,passed,6,0,0.35,0,0,,,,,
+off-quote-clean-3,off,quote-clean,3,run-d10f38ad111f,passed,6,0,0.34,0,0,,,,,
+off-quote-crash-restart-1,off,quote-crash-restart,1,run-d2bd344ebc13,passed,8,0,3.07,0,0,,,,,
+off-quote-crash-restart-2,off,quote-crash-restart,2,run-88bf5eafc685,passed,8,0,2.95,0,0,,,,,
+off-quote-crash-restart-3,off,quote-crash-restart,3,run-1bdd145f0b28,passed,8,0,2.73,0,0,,,,,

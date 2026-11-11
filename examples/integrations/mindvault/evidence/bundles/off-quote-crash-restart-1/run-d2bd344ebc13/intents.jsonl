@@ -1,0 +1,16 @@
+{"intent_id": "in-1", "run_id": "run-d2bd344ebc13", "at": 1794420204.817678, "actor": "buyer", "action": "send", "payload": {"message_id": "q-1", "to": "seller", "kind": "quote_request", "body": {"sku": "widget", "quantity": 2, "unit_price_cents": 1995}}}
+{"intent_id": "in-2", "run_id": "run-d2bd344ebc13", "at": 1794420204.8613892, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-3", "run_id": "run-d2bd344ebc13", "at": 1794420205.142743, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-4", "run_id": "run-d2bd344ebc13", "at": 1794420205.4616241, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-5", "run_id": "run-d2bd344ebc13", "at": 1794420205.788625, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-6", "run_id": "run-d2bd344ebc13", "at": 1794420206.1408188, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-7", "run_id": "run-d2bd344ebc13", "at": 1794420206.4746199, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-8", "run_id": "run-d2bd344ebc13", "at": 1794420206.826394, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-9", "run_id": "run-d2bd344ebc13", "at": 1794420206.874272, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-88a32ce09ca74688ba28000c43dd9d84", "status": "processed", "note": {"applied": true, "memory": "off", "price_source": "PRICE_CENTS", "total_cents": 3990, "after_crash_stall": true}}}
+{"intent_id": "in-10", "run_id": "run-d2bd344ebc13", "at": 1794420207.182372, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-11", "run_id": "run-d2bd344ebc13", "at": 1794420207.529502, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-12", "run_id": "run-d2bd344ebc13", "at": 1794420207.52837, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-13", "run_id": "run-d2bd344ebc13", "at": 1794420207.549936, "actor": "seller", "action": "send", "payload": {"message_id": "r-1", "to": "buyer", "kind": "quote_response", "body": {"request_id": "q-1", "sku": "widget", "quantity": 2, "total_cents": 3990}}}
+{"intent_id": "in-14", "run_id": "run-d2bd344ebc13", "at": 1794420207.55694, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-5ec8a669c9ab42bbb30d9b3d35b84852", "status": "processed", "note": {"applied": true, "memory": "off", "price_source": "PRICE_CENTS", "total_cents": 3990}}}
+{"intent_id": "in-15", "run_id": "run-d2bd344ebc13", "at": 1794420207.610237, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-16", "run_id": "run-d2bd344ebc13", "at": 1794420207.620708, "actor": "buyer", "action": "ack", "payload": {"message_id": "r-1", "fence": "fence-43ce30fda7bd487782f9ff82dbae1c19", "status": "processed", "note": {"correct": true, "total_cents": 3990, "expected_total_cents": 3990}}}

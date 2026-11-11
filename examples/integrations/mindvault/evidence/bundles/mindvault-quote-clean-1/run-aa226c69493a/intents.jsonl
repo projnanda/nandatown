@@ -1,0 +1,13 @@
+{"intent_id": "in-1", "run_id": "run-aa226c69493a", "at": 1794420216.099217, "actor": "buyer", "action": "send", "payload": {"message_id": "q-1", "to": "seller", "kind": "quote_request", "body": {"sku": "widget", "quantity": 2, "unit_price_cents": 1995}}}
+{"intent_id": "in-2", "run_id": "run-aa226c69493a", "at": 1794420216.145463, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-3", "run_id": "run-aa226c69493a", "at": 1794420216.413169, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-4", "run_id": "run-aa226c69493a", "at": 1794420216.726825, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-5", "run_id": "run-aa226c69493a", "at": 1794420217.039914, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-6", "run_id": "run-aa226c69493a", "at": 1794420217.3531892, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-7", "run_id": "run-aa226c69493a", "at": 1794420217.6665149, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-8", "run_id": "run-aa226c69493a", "at": 1794420217.976924, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-9", "run_id": "run-aa226c69493a", "at": 1794420218.288814, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-10", "run_id": "run-aa226c69493a", "at": 1794420218.4742131, "actor": "seller", "action": "send", "payload": {"message_id": "r-1", "to": "buyer", "kind": "quote_response", "body": {"request_id": "q-1", "sku": "widget", "quantity": 2, "total_cents": 3990}}}
+{"intent_id": "in-11", "run_id": "run-aa226c69493a", "at": 1794420218.4782422, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-150ef322c5674ed7b2558836e97279c3", "status": "processed", "note": {"applied": true, "memory": "mindvault", "price_source": "b-701", "mindvault_write": {"block_id": "w-0001", "level": 2, "status": "unverified", "level_basis": "session_max_read"}, "total_cents": 3990}}}
+{"intent_id": "in-12", "run_id": "run-aa226c69493a", "at": 1794420218.498662, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-13", "run_id": "run-aa226c69493a", "at": 1794420218.501864, "actor": "buyer", "action": "ack", "payload": {"message_id": "r-1", "fence": "fence-65f9feb3ab0e4439a23648f4eb49d1ee", "status": "processed", "note": {"correct": true, "total_cents": 3990, "expected_total_cents": 3990}}}
