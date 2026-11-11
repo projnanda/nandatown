@@ -1,0 +1,53 @@
+name: cg_meetup_duplicate
+description: "The same meetup with the last post_scores call delivered twice: the room must not change the plan and every agent must keep one plan."
+seed: 42
+plugin_files:
+  - cg_plugin.py
+validator: common_ground
+# Each person's home (neighborhood level), travel mode and travel limit stay
+# inside their agent.
+redact_fields: [home, travel_mode, max_travel_min]
+agents:
+  - name: common-ground-room
+    role: cg_room_adapter
+    config:
+      seats: {jack-agent: jack, javier-agent: javier, sergio-agent: sergio}
+  - name: jack-agent
+    role: cg_person
+    config:
+      person: jack
+      organizer: true
+      brief:
+        title: MIT work session
+        duration_min: 120
+        date_from: "2026-11-04"
+        date_to: "2026-11-04"
+        must_haves: [open_full_session, laptop_friendly, wifi, outlets, table_for_group]
+        timezone: America/New_York
+        format: in_person
+      home: {lat: 42.37, lon: -71.11}
+      travel_mode: transit
+      max_travel_min: 30
+      tags: [natural light, calm, pastries, bakery]
+      windows: [["2026-11-04T14:00", "2026-11-04T20:00"]]
+  - name: javier-agent
+    role: cg_person
+    config:
+      person: javier
+      home: {lat: 42.36, lon: -71.09}
+      travel_mode: walk
+      max_travel_min: 25
+      tags: [independent, quiet, specialty coffee]
+      windows: [["2026-11-04T08:00", "2026-11-04T13:00"], ["2026-11-04T16:30", "2026-11-04T20:00"]]
+  - name: sergio-agent
+    role: cg_person
+    config:
+      person: sergio
+      home: {lat: 42.36, lon: -71.09}
+      travel_mode: bike
+      max_travel_min: 20
+      tags: [spacious, food, lively]
+      windows: [["2026-11-04T16:30", "2026-11-04T20:00"]]
+faults:
+  - {action: duplicate, kind: cg_post_scores, nth: 3}
+max_time: 60

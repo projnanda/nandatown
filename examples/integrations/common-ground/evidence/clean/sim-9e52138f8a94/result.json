@@ -1,0 +1,117 @@
+{
+  "run_id": "sim-9e52138f8a94",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "room_interface",
+      "status": "passed",
+      "evidence": [
+        "ev-7"
+      ],
+      "note": ""
+    },
+    {
+      "name": "live_room",
+      "status": "passed",
+      "evidence": [
+        "ev-7"
+      ],
+      "note": "calls answered by a running Common Ground room"
+    },
+    {
+      "name": "discovery",
+      "status": "passed",
+      "evidence": [
+        "ev-19"
+      ],
+      "note": ""
+    },
+    {
+      "name": "plan_created",
+      "status": "passed",
+      "evidence": [
+        "ev-22"
+      ],
+      "note": ""
+    },
+    {
+      "name": "all_joined",
+      "status": "passed",
+      "evidence": [
+        "ev-33",
+        "ev-36",
+        "ev-39"
+      ],
+      "note": ""
+    },
+    {
+      "name": "posts_accepted",
+      "status": "passed",
+      "evidence": [
+        "ev-48",
+        "ev-51",
+        "ev-54",
+        "ev-63",
+        "ev-66",
+        "ev-69"
+      ],
+      "note": ""
+    },
+    {
+      "name": "same_plan_for_everyone",
+      "status": "passed",
+      "evidence": [
+        "ev-88",
+        "ev-91",
+        "ev-94"
+      ],
+      "note": ""
+    },
+    {
+      "name": "slot_in_every_window",
+      "status": "passed",
+      "evidence": [
+        "ev-88",
+        "ev-48",
+        "ev-51",
+        "ev-54"
+      ],
+      "note": ""
+    },
+    {
+      "name": "fairness_consistent",
+      "status": "passed",
+      "evidence": [
+        "ev-88",
+        "ev-63",
+        "ev-66",
+        "ev-69"
+      ],
+      "note": "nobody vetoed the place; each agent's total and the lowest score match the posted scores"
+    },
+    {
+      "name": "fairest_option",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "the trace has no opening hours, so Town cannot redo the room's search; Common Ground's verify.py does that check"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-95"
+      ],
+      "note": "complete run recorded no money moved"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-95"
+      ],
+      "note": "fields ['home', 'max_travel_min', 'travel_mode'] never left the run"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794423628.490207
+}

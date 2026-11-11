@@ -1,0 +1,1313 @@
+{
+ "scenario": "cg_meetup_dropout",
+ "server": {
+  "name": "Common Ground",
+  "version": "1.30.0"
+ },
+ "tools": [
+  "create_plan",
+  "get_plan",
+  "join_plan",
+  "post_availability",
+  "post_scores",
+  "wait_for_invite",
+  "wait_for_result"
+ ],
+ "calls": [
+  {
+   "person": "jack",
+   "tool": "create_plan",
+   "args_digest": "sha256:080963776d36f84f",
+   "ok": true,
+   "out": {
+    "plan_id": "cg-9a579b",
+    "brief": {
+     "title": "MIT work session",
+     "duration_min": 120,
+     "dates": "2026-11-04 to 2026-11-04, weekdays",
+     "group_size": 3,
+     "format": "in person",
+     "must_haves": [
+      "open for the whole session",
+      "laptop-friendly",
+      "wifi",
+      "outlets",
+      "a table for the whole group"
+     ]
+    },
+    "invited": [
+     "Javier",
+     "Sergio"
+    ],
+    "venues_passing_must_haves": 14,
+    "next": "Call join_plan with this plan_id to get the candidate venues, then post_availability and post_scores."
+   }
+  },
+  {
+   "person": "jack",
+   "tool": "join_plan",
+   "args_digest": "sha256:e1ba7043717dbf52",
+   "ok": true,
+   "out": {
+    "plan_id": "cg-9a579b",
+    "brief": {
+     "title": "MIT work session",
+     "duration_min": 120,
+     "dates": "2026-11-04 to 2026-11-04, weekdays",
+     "group_size": 3,
+     "format": "in person",
+     "must_haves": [
+      "open for the whole session",
+      "laptop-friendly",
+      "wifi",
+      "outlets",
+      "a table for the whole group"
+     ]
+    },
+    "participants": [
+     "Jack",
+     "Javier",
+     "Sergio"
+    ],
+    "candidate_venues": [
+     {
+      "venue_id": "osm-417080191",
+      "name": "Andala Coffee House",
+      "area": "Central Square",
+      "address": "286 Franklin Street",
+      "lat": 42.36477,
+      "lon": -71.10577,
+      "opening_hours": "Mo-Fr 09:00-23:00, Sa-Su 08:00-23:00",
+      "vibe": [
+       "independent",
+       "cozy",
+       "lively",
+       "middle-eastern food"
+      ],
+      "about": "Family-run caf\u00e9 with long tables, mint tea, a full kitchen and an evening crowd.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-1437162941",
+      "name": "1369 Coffee House (Inman)",
+      "area": "Inman Square",
+      "address": "1369 Cambridge Street",
+      "lat": 42.37379,
+      "lon": -71.1004,
+      "opening_hours": "Mo-Fr 07:00-15:00; Sa-Su 08:00-16:00",
+      "vibe": [
+       "independent",
+       "quiet",
+       "specialty coffee"
+      ],
+      "about": "Quiet sister shop of the Central one, wall outlets along the bench.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 4
+      }
+     },
+     {
+      "venue_id": "osm-530790467",
+      "name": "Bloc",
+      "area": "Union Square",
+      "address": "11 Bow Street",
+      "lat": 42.38083,
+      "lon": -71.09684,
+      "opening_hours": "Mo-Su 07:00-18:00",
+      "vibe": [
+       "independent",
+       "spacious",
+       "natural light",
+       "food"
+      ],
+      "about": "Big bright room with communal tables and a lunch menu.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 8
+      }
+     },
+     {
+      "venue_id": "osm-1914291499",
+      "name": "Tatte Bakery & Cafe",
+      "area": "Kendall Square",
+      "address": "318 Third Street",
+      "lat": 42.36494,
+      "lon": -71.08269,
+      "opening_hours": "Mo-Sa 07:00-20:00; Su 08:00-19:00",
+      "vibe": [
+       "chain",
+       "bright",
+       "pastries",
+       "busy"
+      ],
+      "about": "Large bakery caf\u00e9, big windows, very busy at lunch, good pastries.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-1907895893",
+      "name": "Starbucks",
+      "area": "Kendall Square",
+      "address": "120 Broadway",
+      "lat": 42.36385,
+      "lon": -71.08782,
+      "opening_hours": "Mo-Fr 04:30-21:00; Sa,Su 05:00-20:30",
+      "vibe": [
+       "chain",
+       "predictable",
+       "noisy"
+      ],
+      "about": "Standard chain store, reliable wifi, queue at peak hours.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 4
+      }
+     },
+     {
+      "venue_id": "osm-2449738479",
+      "name": "Flour Bakery + Cafe",
+      "area": "MIT / Mass Ave",
+      "address": "190 Massachusetts Avenue",
+      "lat": 42.36104,
+      "lon": -71.09668,
+      "opening_hours": "Sa,Su 08:00-18:00; Mo-Fr 07:00-19:00",
+      "vibe": [
+       "local chain",
+       "bakery",
+       "busy",
+       "food"
+      ],
+      "about": "Bakery caf\u00e9 next to campus, sandwiches and pastries, loud at noon.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-4483943925",
+      "name": "Caff\u00e8 Nero",
+      "area": "Central Square",
+      "address": "589 Massachusetts Avenue",
+      "lat": 42.36506,
+      "lon": -71.10279,
+      "opening_hours": "Mo-Fr 06:30-21:00; Sa-Su 07:00-21:00",
+      "vibe": [
+       "chain",
+       "calm",
+       "comfortable",
+       "study crowd"
+      ],
+      "about": "Two floors of armchairs and study tables, quiet upstairs.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-4190132060",
+      "name": "Forge Baking Company",
+      "area": "Somerville",
+      "address": "626 Somerville Avenue",
+      "lat": 42.38386,
+      "lon": -71.11071,
+      "opening_hours": "Mo-Su 07:00-19:00",
+      "vibe": [
+       "independent",
+       "bakery",
+       "natural light",
+       "calm"
+      ],
+      "about": "Bakery with a sunny front room and garden seating.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-6117463842",
+      "name": "Life Alive Organic Cafe",
+      "area": "Kendall Square",
+      "address": "415 Main Street",
+      "lat": 42.36293,
+      "lon": -71.0884,
+      "opening_hours": "07:00-21:00",
+      "vibe": [
+       "local chain",
+       "healthy food",
+       "spacious",
+       "lively"
+      ],
+      "about": "Plant-based bowls and smoothies, large seating area, upbeat music.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 8
+      }
+     },
+     {
+      "venue_id": "osm-11433391477",
+      "name": "Cicada Coffee Bar",
+      "area": "Inman / Central",
+      "address": "106 Prospect Street",
+      "lat": 42.36768,
+      "lon": -71.10199,
+      "opening_hours": "Tu-Fr 08:00-15:00; Sa-Su 09:00-15:00",
+      "vibe": [
+       "independent",
+       "quiet",
+       "specialty coffee",
+       "tiny"
+      ],
+      "about": "Tiny specialty bar, a handful of seats, very calm.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 3
+      }
+     },
+     {
+      "venue_id": "osm-11117788901",
+      "name": "Third Time Together",
+      "area": "Kendall Square",
+      "address": "399 Binney Street",
+      "lat": 42.36766,
+      "lon": -71.09012,
+      "opening_hours": "Mo-Fr 07:00-21:00; Sa 09:00-21:00; Su 10:00-21:00",
+      "vibe": [
+       "independent",
+       "spacious",
+       "natural light",
+       "food"
+      ],
+      "about": "Roomy caf\u00e9 in a lab building lobby, tall windows, Middle Eastern food.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-4888182876",
+      "name": "Jaho Coffee Roaster & Wine Bar",
+      "area": "Central Square",
+      "address": "425 Massachusetts Avenue",
+      "lat": 42.36377,
+      "lon": -71.1006,
+      "opening_hours": "Mo-Fr 06:30-23:00",
+      "vibe": [
+       "local chain",
+       "roastery",
+       "open late",
+       "lively"
+      ],
+      "about": "Roaster's caf\u00e9 that turns into a wine bar at night.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "home-js",
+      "name": "Javier and Sergio's place",
+      "area": "The Port, Cambridge",
+      "address": "The Port, Cambridge (neighborhood level)",
+      "lat": 42.36,
+      "lon": -71.09,
+      "opening_hours": "Mo-Su 07:00-23:00",
+      "vibe": [
+       "home",
+       "quiet",
+       "kitchen table"
+      ],
+      "about": "Two of the three live here; a big table and good wifi.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "home-jack",
+      "name": "Jack's place",
+      "area": "Mid-Cambridge",
+      "address": "Mid-Cambridge (neighborhood level)",
+      "lat": 42.37,
+      "lon": -71.11,
+      "opening_hours": "Mo-Su 07:00-23:00",
+      "vibe": [
+       "home",
+       "calm"
+      ],
+      "about": "Jack's apartment; a table for four.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 4
+      }
+     }
+    ],
+    "filtered_out_by_must_haves": [
+     {
+      "venue": "1369 Coffee House (Central)",
+      "fails": [
+       "outlets"
+      ]
+     },
+     {
+      "venue": "Blue Bottle",
+      "fails": [
+       "laptop-friendly",
+       "outlets"
+      ]
+     },
+     {
+      "venue": "Mariposa Bakery",
+      "fails": [
+       "laptop-friendly",
+       "outlets"
+      ]
+     }
+    ],
+    "rules": {
+     "time_zones": "The plan runs in America/New_York. Post each window exactly as find_free_blocks returns it, with its UTC offset (e.g. 2026-10-26T08:00-08:00); the room converts it. Results come back in the plan's time zone.",
+     "post_availability": "Up to 5 free windows, each at least 120 min, weekdays in range, on a 30-minute grid ('YYYY-MM-DDTHH:MM'). Only share what your owner allows; never share titles or reasons.",
+     "video_call": "If the brief's format is a video call, skip post_scores: there are no venues.",
+     "post_scores": "3-4 short tags for your owner's taste, and for EVERY candidate venue: travel_minutes, travel_score (1-5 vs. their maximum; 0 = beyond it, a veto) and fit_score (1-5, how well the venue matches the tags).",
+     "fairness": "The room picks the venue and slot whose lowest-scoring person (travel + fit, out of 10) scores highest; ties go to the higher total, then the earlier slot."
+    }
+   }
+  },
+  {
+   "person": "javier",
+   "tool": "join_plan",
+   "args_digest": "sha256:e1ba7043717dbf52",
+   "ok": true,
+   "out": {
+    "plan_id": "cg-9a579b",
+    "brief": {
+     "title": "MIT work session",
+     "duration_min": 120,
+     "dates": "2026-11-04 to 2026-11-04, weekdays",
+     "group_size": 3,
+     "format": "in person",
+     "must_haves": [
+      "open for the whole session",
+      "laptop-friendly",
+      "wifi",
+      "outlets",
+      "a table for the whole group"
+     ]
+    },
+    "participants": [
+     "Jack",
+     "Javier",
+     "Sergio"
+    ],
+    "candidate_venues": [
+     {
+      "venue_id": "osm-417080191",
+      "name": "Andala Coffee House",
+      "area": "Central Square",
+      "address": "286 Franklin Street",
+      "lat": 42.36477,
+      "lon": -71.10577,
+      "opening_hours": "Mo-Fr 09:00-23:00, Sa-Su 08:00-23:00",
+      "vibe": [
+       "independent",
+       "cozy",
+       "lively",
+       "middle-eastern food"
+      ],
+      "about": "Family-run caf\u00e9 with long tables, mint tea, a full kitchen and an evening crowd.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-1437162941",
+      "name": "1369 Coffee House (Inman)",
+      "area": "Inman Square",
+      "address": "1369 Cambridge Street",
+      "lat": 42.37379,
+      "lon": -71.1004,
+      "opening_hours": "Mo-Fr 07:00-15:00; Sa-Su 08:00-16:00",
+      "vibe": [
+       "independent",
+       "quiet",
+       "specialty coffee"
+      ],
+      "about": "Quiet sister shop of the Central one, wall outlets along the bench.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 4
+      }
+     },
+     {
+      "venue_id": "osm-530790467",
+      "name": "Bloc",
+      "area": "Union Square",
+      "address": "11 Bow Street",
+      "lat": 42.38083,
+      "lon": -71.09684,
+      "opening_hours": "Mo-Su 07:00-18:00",
+      "vibe": [
+       "independent",
+       "spacious",
+       "natural light",
+       "food"
+      ],
+      "about": "Big bright room with communal tables and a lunch menu.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 8
+      }
+     },
+     {
+      "venue_id": "osm-1914291499",
+      "name": "Tatte Bakery & Cafe",
+      "area": "Kendall Square",
+      "address": "318 Third Street",
+      "lat": 42.36494,
+      "lon": -71.08269,
+      "opening_hours": "Mo-Sa 07:00-20:00; Su 08:00-19:00",
+      "vibe": [
+       "chain",
+       "bright",
+       "pastries",
+       "busy"
+      ],
+      "about": "Large bakery caf\u00e9, big windows, very busy at lunch, good pastries.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-1907895893",
+      "name": "Starbucks",
+      "area": "Kendall Square",
+      "address": "120 Broadway",
+      "lat": 42.36385,
+      "lon": -71.08782,
+      "opening_hours": "Mo-Fr 04:30-21:00; Sa,Su 05:00-20:30",
+      "vibe": [
+       "chain",
+       "predictable",
+       "noisy"
+      ],
+      "about": "Standard chain store, reliable wifi, queue at peak hours.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 4
+      }
+     },
+     {
+      "venue_id": "osm-2449738479",
+      "name": "Flour Bakery + Cafe",
+      "area": "MIT / Mass Ave",
+      "address": "190 Massachusetts Avenue",
+      "lat": 42.36104,
+      "lon": -71.09668,
+      "opening_hours": "Sa,Su 08:00-18:00; Mo-Fr 07:00-19:00",
+      "vibe": [
+       "local chain",
+       "bakery",
+       "busy",
+       "food"
+      ],
+      "about": "Bakery caf\u00e9 next to campus, sandwiches and pastries, loud at noon.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-4483943925",
+      "name": "Caff\u00e8 Nero",
+      "area": "Central Square",
+      "address": "589 Massachusetts Avenue",
+      "lat": 42.36506,
+      "lon": -71.10279,
+      "opening_hours": "Mo-Fr 06:30-21:00; Sa-Su 07:00-21:00",
+      "vibe": [
+       "chain",
+       "calm",
+       "comfortable",
+       "study crowd"
+      ],
+      "about": "Two floors of armchairs and study tables, quiet upstairs.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-4190132060",
+      "name": "Forge Baking Company",
+      "area": "Somerville",
+      "address": "626 Somerville Avenue",
+      "lat": 42.38386,
+      "lon": -71.11071,
+      "opening_hours": "Mo-Su 07:00-19:00",
+      "vibe": [
+       "independent",
+       "bakery",
+       "natural light",
+       "calm"
+      ],
+      "about": "Bakery with a sunny front room and garden seating.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-6117463842",
+      "name": "Life Alive Organic Cafe",
+      "area": "Kendall Square",
+      "address": "415 Main Street",
+      "lat": 42.36293,
+      "lon": -71.0884,
+      "opening_hours": "07:00-21:00",
+      "vibe": [
+       "local chain",
+       "healthy food",
+       "spacious",
+       "lively"
+      ],
+      "about": "Plant-based bowls and smoothies, large seating area, upbeat music.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 8
+      }
+     },
+     {
+      "venue_id": "osm-11433391477",
+      "name": "Cicada Coffee Bar",
+      "area": "Inman / Central",
+      "address": "106 Prospect Street",
+      "lat": 42.36768,
+      "lon": -71.10199,
+      "opening_hours": "Tu-Fr 08:00-15:00; Sa-Su 09:00-15:00",
+      "vibe": [
+       "independent",
+       "quiet",
+       "specialty coffee",
+       "tiny"
+      ],
+      "about": "Tiny specialty bar, a handful of seats, very calm.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 3
+      }
+     },
+     {
+      "venue_id": "osm-11117788901",
+      "name": "Third Time Together",
+      "area": "Kendall Square",
+      "address": "399 Binney Street",
+      "lat": 42.36766,
+      "lon": -71.09012,
+      "opening_hours": "Mo-Fr 07:00-21:00; Sa 09:00-21:00; Su 10:00-21:00",
+      "vibe": [
+       "independent",
+       "spacious",
+       "natural light",
+       "food"
+      ],
+      "about": "Roomy caf\u00e9 in a lab building lobby, tall windows, Middle Eastern food.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-4888182876",
+      "name": "Jaho Coffee Roaster & Wine Bar",
+      "area": "Central Square",
+      "address": "425 Massachusetts Avenue",
+      "lat": 42.36377,
+      "lon": -71.1006,
+      "opening_hours": "Mo-Fr 06:30-23:00",
+      "vibe": [
+       "local chain",
+       "roastery",
+       "open late",
+       "lively"
+      ],
+      "about": "Roaster's caf\u00e9 that turns into a wine bar at night.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "home-js",
+      "name": "Javier and Sergio's place",
+      "area": "The Port, Cambridge",
+      "address": "The Port, Cambridge (neighborhood level)",
+      "lat": 42.36,
+      "lon": -71.09,
+      "opening_hours": "Mo-Su 07:00-23:00",
+      "vibe": [
+       "home",
+       "quiet",
+       "kitchen table"
+      ],
+      "about": "Two of the three live here; a big table and good wifi.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "home-jack",
+      "name": "Jack's place",
+      "area": "Mid-Cambridge",
+      "address": "Mid-Cambridge (neighborhood level)",
+      "lat": 42.37,
+      "lon": -71.11,
+      "opening_hours": "Mo-Su 07:00-23:00",
+      "vibe": [
+       "home",
+       "calm"
+      ],
+      "about": "Jack's apartment; a table for four.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 4
+      }
+     }
+    ],
+    "filtered_out_by_must_haves": [
+     {
+      "venue": "1369 Coffee House (Central)",
+      "fails": [
+       "outlets"
+      ]
+     },
+     {
+      "venue": "Blue Bottle",
+      "fails": [
+       "laptop-friendly",
+       "outlets"
+      ]
+     },
+     {
+      "venue": "Mariposa Bakery",
+      "fails": [
+       "laptop-friendly",
+       "outlets"
+      ]
+     }
+    ],
+    "rules": {
+     "time_zones": "The plan runs in America/New_York. Post each window exactly as find_free_blocks returns it, with its UTC offset (e.g. 2026-10-26T08:00-08:00); the room converts it. Results come back in the plan's time zone.",
+     "post_availability": "Up to 5 free windows, each at least 120 min, weekdays in range, on a 30-minute grid ('YYYY-MM-DDTHH:MM'). Only share what your owner allows; never share titles or reasons.",
+     "video_call": "If the brief's format is a video call, skip post_scores: there are no venues.",
+     "post_scores": "3-4 short tags for your owner's taste, and for EVERY candidate venue: travel_minutes, travel_score (1-5 vs. their maximum; 0 = beyond it, a veto) and fit_score (1-5, how well the venue matches the tags).",
+     "fairness": "The room picks the venue and slot whose lowest-scoring person (travel + fit, out of 10) scores highest; ties go to the higher total, then the earlier slot."
+    }
+   }
+  },
+  {
+   "person": "sergio",
+   "tool": "join_plan",
+   "args_digest": "sha256:e1ba7043717dbf52",
+   "ok": true,
+   "out": {
+    "plan_id": "cg-9a579b",
+    "brief": {
+     "title": "MIT work session",
+     "duration_min": 120,
+     "dates": "2026-11-04 to 2026-11-04, weekdays",
+     "group_size": 3,
+     "format": "in person",
+     "must_haves": [
+      "open for the whole session",
+      "laptop-friendly",
+      "wifi",
+      "outlets",
+      "a table for the whole group"
+     ]
+    },
+    "participants": [
+     "Jack",
+     "Javier",
+     "Sergio"
+    ],
+    "candidate_venues": [
+     {
+      "venue_id": "osm-417080191",
+      "name": "Andala Coffee House",
+      "area": "Central Square",
+      "address": "286 Franklin Street",
+      "lat": 42.36477,
+      "lon": -71.10577,
+      "opening_hours": "Mo-Fr 09:00-23:00, Sa-Su 08:00-23:00",
+      "vibe": [
+       "independent",
+       "cozy",
+       "lively",
+       "middle-eastern food"
+      ],
+      "about": "Family-run caf\u00e9 with long tables, mint tea, a full kitchen and an evening crowd.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-1437162941",
+      "name": "1369 Coffee House (Inman)",
+      "area": "Inman Square",
+      "address": "1369 Cambridge Street",
+      "lat": 42.37379,
+      "lon": -71.1004,
+      "opening_hours": "Mo-Fr 07:00-15:00; Sa-Su 08:00-16:00",
+      "vibe": [
+       "independent",
+       "quiet",
+       "specialty coffee"
+      ],
+      "about": "Quiet sister shop of the Central one, wall outlets along the bench.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 4
+      }
+     },
+     {
+      "venue_id": "osm-530790467",
+      "name": "Bloc",
+      "area": "Union Square",
+      "address": "11 Bow Street",
+      "lat": 42.38083,
+      "lon": -71.09684,
+      "opening_hours": "Mo-Su 07:00-18:00",
+      "vibe": [
+       "independent",
+       "spacious",
+       "natural light",
+       "food"
+      ],
+      "about": "Big bright room with communal tables and a lunch menu.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 8
+      }
+     },
+     {
+      "venue_id": "osm-1914291499",
+      "name": "Tatte Bakery & Cafe",
+      "area": "Kendall Square",
+      "address": "318 Third Street",
+      "lat": 42.36494,
+      "lon": -71.08269,
+      "opening_hours": "Mo-Sa 07:00-20:00; Su 08:00-19:00",
+      "vibe": [
+       "chain",
+       "bright",
+       "pastries",
+       "busy"
+      ],
+      "about": "Large bakery caf\u00e9, big windows, very busy at lunch, good pastries.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-1907895893",
+      "name": "Starbucks",
+      "area": "Kendall Square",
+      "address": "120 Broadway",
+      "lat": 42.36385,
+      "lon": -71.08782,
+      "opening_hours": "Mo-Fr 04:30-21:00; Sa,Su 05:00-20:30",
+      "vibe": [
+       "chain",
+       "predictable",
+       "noisy"
+      ],
+      "about": "Standard chain store, reliable wifi, queue at peak hours.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 4
+      }
+     },
+     {
+      "venue_id": "osm-2449738479",
+      "name": "Flour Bakery + Cafe",
+      "area": "MIT / Mass Ave",
+      "address": "190 Massachusetts Avenue",
+      "lat": 42.36104,
+      "lon": -71.09668,
+      "opening_hours": "Sa,Su 08:00-18:00; Mo-Fr 07:00-19:00",
+      "vibe": [
+       "local chain",
+       "bakery",
+       "busy",
+       "food"
+      ],
+      "about": "Bakery caf\u00e9 next to campus, sandwiches and pastries, loud at noon.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-4483943925",
+      "name": "Caff\u00e8 Nero",
+      "area": "Central Square",
+      "address": "589 Massachusetts Avenue",
+      "lat": 42.36506,
+      "lon": -71.10279,
+      "opening_hours": "Mo-Fr 06:30-21:00; Sa-Su 07:00-21:00",
+      "vibe": [
+       "chain",
+       "calm",
+       "comfortable",
+       "study crowd"
+      ],
+      "about": "Two floors of armchairs and study tables, quiet upstairs.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-4190132060",
+      "name": "Forge Baking Company",
+      "area": "Somerville",
+      "address": "626 Somerville Avenue",
+      "lat": 42.38386,
+      "lon": -71.11071,
+      "opening_hours": "Mo-Su 07:00-19:00",
+      "vibe": [
+       "independent",
+       "bakery",
+       "natural light",
+       "calm"
+      ],
+      "about": "Bakery with a sunny front room and garden seating.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-6117463842",
+      "name": "Life Alive Organic Cafe",
+      "area": "Kendall Square",
+      "address": "415 Main Street",
+      "lat": 42.36293,
+      "lon": -71.0884,
+      "opening_hours": "07:00-21:00",
+      "vibe": [
+       "local chain",
+       "healthy food",
+       "spacious",
+       "lively"
+      ],
+      "about": "Plant-based bowls and smoothies, large seating area, upbeat music.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 8
+      }
+     },
+     {
+      "venue_id": "osm-11433391477",
+      "name": "Cicada Coffee Bar",
+      "area": "Inman / Central",
+      "address": "106 Prospect Street",
+      "lat": 42.36768,
+      "lon": -71.10199,
+      "opening_hours": "Tu-Fr 08:00-15:00; Sa-Su 09:00-15:00",
+      "vibe": [
+       "independent",
+       "quiet",
+       "specialty coffee",
+       "tiny"
+      ],
+      "about": "Tiny specialty bar, a handful of seats, very calm.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 3
+      }
+     },
+     {
+      "venue_id": "osm-11117788901",
+      "name": "Third Time Together",
+      "area": "Kendall Square",
+      "address": "399 Binney Street",
+      "lat": 42.36766,
+      "lon": -71.09012,
+      "opening_hours": "Mo-Fr 07:00-21:00; Sa 09:00-21:00; Su 10:00-21:00",
+      "vibe": [
+       "independent",
+       "spacious",
+       "natural light",
+       "food"
+      ],
+      "about": "Roomy caf\u00e9 in a lab building lobby, tall windows, Middle Eastern food.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "osm-4888182876",
+      "name": "Jaho Coffee Roaster & Wine Bar",
+      "area": "Central Square",
+      "address": "425 Massachusetts Avenue",
+      "lat": 42.36377,
+      "lon": -71.1006,
+      "opening_hours": "Mo-Fr 06:30-23:00",
+      "vibe": [
+       "local chain",
+       "roastery",
+       "open late",
+       "lively"
+      ],
+      "about": "Roaster's caf\u00e9 that turns into a wine bar at night.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "home-js",
+      "name": "Javier and Sergio's place",
+      "area": "The Port, Cambridge",
+      "address": "The Port, Cambridge (neighborhood level)",
+      "lat": 42.36,
+      "lon": -71.09,
+      "opening_hours": "Mo-Su 07:00-23:00",
+      "vibe": [
+       "home",
+       "quiet",
+       "kitchen table"
+      ],
+      "about": "Two of the three live here; a big table and good wifi.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 6
+      }
+     },
+     {
+      "venue_id": "home-jack",
+      "name": "Jack's place",
+      "area": "Mid-Cambridge",
+      "address": "Mid-Cambridge (neighborhood level)",
+      "lat": 42.37,
+      "lon": -71.11,
+      "opening_hours": "Mo-Su 07:00-23:00",
+      "vibe": [
+       "home",
+       "calm"
+      ],
+      "about": "Jack's apartment; a table for four.",
+      "attributes": {
+       "wifi": true,
+       "laptop_friendly": true,
+       "outlets": true,
+       "max_group": 4
+      }
+     }
+    ],
+    "filtered_out_by_must_haves": [
+     {
+      "venue": "1369 Coffee House (Central)",
+      "fails": [
+       "outlets"
+      ]
+     },
+     {
+      "venue": "Blue Bottle",
+      "fails": [
+       "laptop-friendly",
+       "outlets"
+      ]
+     },
+     {
+      "venue": "Mariposa Bakery",
+      "fails": [
+       "laptop-friendly",
+       "outlets"
+      ]
+     }
+    ],
+    "rules": {
+     "time_zones": "The plan runs in America/New_York. Post each window exactly as find_free_blocks returns it, with its UTC offset (e.g. 2026-10-26T08:00-08:00); the room converts it. Results come back in the plan's time zone.",
+     "post_availability": "Up to 5 free windows, each at least 120 min, weekdays in range, on a 30-minute grid ('YYYY-MM-DDTHH:MM'). Only share what your owner allows; never share titles or reasons.",
+     "video_call": "If the brief's format is a video call, skip post_scores: there are no venues.",
+     "post_scores": "3-4 short tags for your owner's taste, and for EVERY candidate venue: travel_minutes, travel_score (1-5 vs. their maximum; 0 = beyond it, a veto) and fit_score (1-5, how well the venue matches the tags).",
+     "fairness": "The room picks the venue and slot whose lowest-scoring person (travel + fit, out of 10) scores highest; ties go to the higher total, then the earlier slot."
+    }
+   }
+  },
+  {
+   "person": "jack",
+   "tool": "post_availability",
+   "args_digest": "sha256:d194e64e2cd2297c",
+   "ok": true,
+   "out": {
+    "accepted": 1,
+    "next": "post_scores if you have not yet, then wait_for_result."
+   }
+  },
+  {
+   "person": "javier",
+   "tool": "post_availability",
+   "args_digest": "sha256:b49baf18520c79a5",
+   "ok": true,
+   "out": {
+    "accepted": 2,
+    "next": "post_scores if you have not yet, then wait_for_result."
+   }
+  },
+  {
+   "person": "sergio",
+   "tool": "post_availability",
+   "args_digest": "sha256:73b6aaf50b44af8f",
+   "ok": true,
+   "out": {
+    "accepted": 1,
+    "next": "post_scores if you have not yet, then wait_for_result."
+   }
+  },
+  {
+   "person": "jack",
+   "tool": "post_scores",
+   "args_digest": "sha256:b4c0a18c1520c64b",
+   "ok": true,
+   "out": {
+    "accepted": 14,
+    "next": "Call wait_for_result."
+   }
+  },
+  {
+   "person": "javier",
+   "tool": "post_scores",
+   "args_digest": "sha256:7f5fd6b058dea2ef",
+   "ok": true,
+   "out": {
+    "accepted": 14,
+    "next": "Call wait_for_result."
+   }
+  },
+  {
+   "person": "jack",
+   "tool": "wait_for_result",
+   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "ok": true,
+   "out": {
+    "status": "waiting",
+    "waiting_for": [
+     "Sergio"
+    ],
+    "note": "Call wait_for_result again."
+   }
+  },
+  {
+   "person": "javier",
+   "tool": "wait_for_result",
+   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "ok": true,
+   "out": {
+    "status": "waiting",
+    "waiting_for": [
+     "Sergio"
+    ],
+    "note": "Call wait_for_result again."
+   }
+  },
+  {
+   "person": "jack",
+   "tool": "wait_for_result",
+   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "ok": true,
+   "out": {
+    "status": "waiting",
+    "waiting_for": [
+     "Sergio"
+    ],
+    "note": "Call wait_for_result again."
+   }
+  },
+  {
+   "person": "javier",
+   "tool": "wait_for_result",
+   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "ok": true,
+   "out": {
+    "status": "waiting",
+    "waiting_for": [
+     "Sergio"
+    ],
+    "note": "Call wait_for_result again."
+   }
+  },
+  {
+   "person": "jack",
+   "tool": "wait_for_result",
+   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "ok": true,
+   "out": {
+    "status": "waiting",
+    "waiting_for": [
+     "Sergio"
+    ],
+    "note": "Call wait_for_result again."
+   }
+  },
+  {
+   "person": "javier",
+   "tool": "wait_for_result",
+   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "ok": true,
+   "out": {
+    "status": "waiting",
+    "waiting_for": [
+     "Sergio"
+    ],
+    "note": "Call wait_for_result again."
+   }
+  },
+  {
+   "person": "jack",
+   "tool": "wait_for_result",
+   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "ok": true,
+   "out": {
+    "status": "waiting",
+    "waiting_for": [
+     "Sergio"
+    ],
+    "note": "Call wait_for_result again."
+   }
+  },
+  {
+   "person": "javier",
+   "tool": "wait_for_result",
+   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "ok": true,
+   "out": {
+    "status": "waiting",
+    "waiting_for": [
+     "Sergio"
+    ],
+    "note": "Call wait_for_result again."
+   }
+  },
+  {
+   "person": "jack",
+   "tool": "wait_for_result",
+   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "ok": true,
+   "out": {
+    "status": "waiting",
+    "waiting_for": [
+     "Sergio"
+    ],
+    "note": "Call wait_for_result again."
+   }
+  },
+  {
+   "person": "javier",
+   "tool": "wait_for_result",
+   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "ok": true,
+   "out": {
+    "status": "waiting",
+    "waiting_for": [
+     "Sergio"
+    ],
+    "note": "Call wait_for_result again."
+   }
+  }
+ ]
+}

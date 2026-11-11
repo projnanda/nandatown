@@ -1,0 +1,430 @@
+{
+  "cg-f5752a": {
+    "id": "cg-f5752a",
+    "title": "MIT work session",
+    "organizer": "jack",
+    "participants": [
+      "jack",
+      "javier",
+      "sergio"
+    ],
+    "tz": "America/New_York",
+    "format": "in_person",
+    "duration_min": 120,
+    "date_from": "2026-11-04",
+    "date_to": "2026-11-04",
+    "must_haves": [
+      "open_full_session",
+      "laptop_friendly",
+      "wifi",
+      "outlets",
+      "table_for_group"
+    ],
+    "stage": "agreed",
+    "round": 1,
+    "joined": [
+      "jack",
+      "javier",
+      "sergio"
+    ],
+    "availability": {
+      "jack": [
+        {
+          "start": "2026-11-04T14:00",
+          "end": "2026-11-04T20:00"
+        }
+      ],
+      "javier": [
+        {
+          "start": "2026-11-04T08:00",
+          "end": "2026-11-04T13:00"
+        },
+        {
+          "start": "2026-11-04T16:30",
+          "end": "2026-11-04T20:00"
+        }
+      ],
+      "sergio": [
+        {
+          "start": "2026-11-04T16:30",
+          "end": "2026-11-04T20:00"
+        }
+      ]
+    },
+    "scores": {
+      "jack": [
+        {
+          "venue_id": "osm-417080191",
+          "travel_minutes": 12,
+          "travel_score": 4,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "osm-1437162941",
+          "travel_minutes": 12,
+          "travel_score": 4,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "osm-530790467",
+          "travel_minutes": 15,
+          "travel_score": 3,
+          "fit_score": 2
+        },
+        {
+          "venue_id": "osm-1914291499",
+          "travel_minutes": 18,
+          "travel_score": 3,
+          "fit_score": 2
+        },
+        {
+          "venue_id": "osm-1907895893",
+          "travel_minutes": 17,
+          "travel_score": 3,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "osm-2449738479",
+          "travel_minutes": 15,
+          "travel_score": 3,
+          "fit_score": 2
+        },
+        {
+          "venue_id": "osm-4483943925",
+          "travel_minutes": 12,
+          "travel_score": 4,
+          "fit_score": 2
+        },
+        {
+          "venue_id": "osm-4190132060",
+          "travel_minutes": 15,
+          "travel_score": 3,
+          "fit_score": 4
+        },
+        {
+          "venue_id": "osm-6117463842",
+          "travel_minutes": 17,
+          "travel_score": 3,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "osm-11433391477",
+          "travel_minutes": 12,
+          "travel_score": 4,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "osm-11117788901",
+          "travel_minutes": 15,
+          "travel_score": 3,
+          "fit_score": 2
+        },
+        {
+          "venue_id": "osm-4888182876",
+          "travel_minutes": 13,
+          "travel_score": 3,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "home-js",
+          "travel_minutes": 17,
+          "travel_score": 3,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "home-jack",
+          "travel_minutes": 9,
+          "travel_score": 4,
+          "fit_score": 2
+        }
+      ],
+      "javier": [
+        {
+          "venue_id": "osm-417080191",
+          "travel_minutes": 23,
+          "travel_score": 1,
+          "fit_score": 2
+        },
+        {
+          "venue_id": "osm-1437162941",
+          "travel_minutes": 29,
+          "travel_score": 0,
+          "fit_score": 4
+        },
+        {
+          "venue_id": "osm-530790467",
+          "travel_minutes": 39,
+          "travel_score": 0,
+          "fit_score": 2
+        },
+        {
+          "venue_id": "osm-1914291499",
+          "travel_minutes": 13,
+          "travel_score": 3,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "osm-1907895893",
+          "travel_minutes": 8,
+          "travel_score": 4,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "osm-2449738479",
+          "travel_minutes": 9,
+          "travel_score": 4,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "osm-4483943925",
+          "travel_minutes": 19,
+          "travel_score": 2,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "osm-4190132060",
+          "travel_minutes": 51,
+          "travel_score": 0,
+          "fit_score": 2
+        },
+        {
+          "venue_id": "osm-6117463842",
+          "travel_minutes": 6,
+          "travel_score": 4,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "osm-11433391477",
+          "travel_minutes": 21,
+          "travel_score": 1,
+          "fit_score": 4
+        },
+        {
+          "venue_id": "osm-11117788901",
+          "travel_minutes": 14,
+          "travel_score": 3,
+          "fit_score": 2
+        },
+        {
+          "venue_id": "osm-4888182876",
+          "travel_minutes": 16,
+          "travel_score": 2,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "home-js",
+          "travel_minutes": 0,
+          "travel_score": 5,
+          "fit_score": 2
+        },
+        {
+          "venue_id": "home-jack",
+          "travel_minutes": 32,
+          "travel_score": 0,
+          "fit_score": 1
+        }
+      ],
+      "sergio": [
+        {
+          "venue_id": "osm-417080191",
+          "travel_minutes": 11,
+          "travel_score": 3,
+          "fit_score": 2
+        },
+        {
+          "venue_id": "osm-1437162941",
+          "travel_minutes": 13,
+          "travel_score": 2,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "osm-530790467",
+          "travel_minutes": 16,
+          "travel_score": 2,
+          "fit_score": 3
+        },
+        {
+          "venue_id": "osm-1914291499",
+          "travel_minutes": 8,
+          "travel_score": 4,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "osm-1907895893",
+          "travel_minutes": 6,
+          "travel_score": 4,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "osm-2449738479",
+          "travel_minutes": 6,
+          "travel_score": 4,
+          "fit_score": 2
+        },
+        {
+          "venue_id": "osm-4483943925",
+          "travel_minutes": 10,
+          "travel_score": 3,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "osm-4190132060",
+          "travel_minutes": 21,
+          "travel_score": 0,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "osm-6117463842",
+          "travel_minutes": 5,
+          "travel_score": 4,
+          "fit_score": 3
+        },
+        {
+          "venue_id": "osm-11433391477",
+          "travel_minutes": 10,
+          "travel_score": 3,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "osm-11117788901",
+          "travel_minutes": 8,
+          "travel_score": 4,
+          "fit_score": 3
+        },
+        {
+          "venue_id": "osm-4888182876",
+          "travel_minutes": 8,
+          "travel_score": 4,
+          "fit_score": 2
+        },
+        {
+          "venue_id": "home-js",
+          "travel_minutes": 3,
+          "travel_score": 5,
+          "fit_score": 1
+        },
+        {
+          "venue_id": "home-jack",
+          "travel_minutes": 14,
+          "travel_score": 2,
+          "fit_score": 1
+        }
+      ]
+    },
+    "tags": {
+      "jack": [
+        "natural light",
+        "calm",
+        "pastries",
+        "bakery"
+      ],
+      "javier": [
+        "independent",
+        "quiet",
+        "specialty coffee"
+      ],
+      "sergio": [
+        "spacious",
+        "food",
+        "lively"
+      ]
+    },
+    "result": {
+      "status": "agreed",
+      "venue_id": "osm-11117788901",
+      "start": "2026-11-04T16:30",
+      "end": "2026-11-04T18:30",
+      "totals": {
+        "jack": 5,
+        "javier": 5,
+        "sergio": 7
+      },
+      "lowest_person_score": 5,
+      "total": 17,
+      "alternatives": [
+        {
+          "venue": "Flour Bakery + Cafe",
+          "lowest_person_score": 5,
+          "total": 16
+        },
+        {
+          "venue": "Javier and Sergio's place",
+          "lowest_person_score": 4,
+          "total": 17
+        }
+      ],
+      "considered": {
+        "shared_slots": [
+          "Wed Nov 4, 16:30\u201318:30",
+          "Wed Nov 4, 17:00\u201319:00",
+          "Wed Nov 4, 17:30\u201319:30",
+          "Wed Nov 4, 18:00\u201320:00"
+        ],
+        "candidates": 14,
+        "vetoed_by_travel": {
+          "1369 Coffee House (Inman)": [
+            "Javier"
+          ],
+          "Bloc": [
+            "Javier"
+          ],
+          "Forge Baking Company": [
+            "Javier",
+            "Sergio"
+          ],
+          "Jack's place": [
+            "Javier"
+          ]
+        },
+        "closed_during_shared_slots": [
+          "Cicada Coffee Bar"
+        ],
+        "options_ranked": 34
+      }
+    },
+    "created": "2026-11-11T14:00:29",
+    "candidates": [
+      "osm-417080191",
+      "osm-1437162941",
+      "osm-530790467",
+      "osm-1914291499",
+      "osm-1907895893",
+      "osm-2449738479",
+      "osm-4483943925",
+      "osm-4190132060",
+      "osm-6117463842",
+      "osm-11433391477",
+      "osm-11117788901",
+      "osm-4888182876",
+      "home-js",
+      "home-jack"
+    ],
+    "filtered_out": [
+      {
+        "venue": "1369 Coffee House (Central)",
+        "fails": [
+          "outlets"
+        ]
+      },
+      {
+        "venue": "Blue Bottle",
+        "fails": [
+          "laptop-friendly",
+          "outlets"
+        ]
+      },
+      {
+        "venue": "Mariposa Bakery",
+        "fails": [
+          "laptop-friendly",
+          "outlets"
+        ]
+      }
+    ],
+    "availability_round": {
+      "jack": 1,
+      "javier": 1,
+      "sergio": 1
+    }
+  }
+}
