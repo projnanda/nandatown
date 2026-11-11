@@ -4,8 +4,8 @@ ATL is a payment guard for AI agents (MIT AI Studio Fall 2026 project). An agent
 credentials. It submits each payment to ATL's `pay_check`, and ATL checks it against a mandate the owner
 signed: registered payees and keys, categories, per-payment, daily and hard caps, duplicates, split orders and
 instruction-like memo text. ATL answers approve, escalate or refuse. ATL executes approved payments itself and
-returns an Ed25519-signed receipt. ATL runs as its own service, an MCP server over stdio. Its code lives in the
-project repository, not here.
+returns an Ed25519-signed receipt. ATL runs as its own service, an MCP server over stdio. Its code lives in
+[`jgreismit/agent-trust-layer`](https://github.com/jgreismit/agent-trust-layer), not here.
 
 This folder connects ATL to Town in two places:
 
@@ -36,16 +36,18 @@ This folder connects ATL to Town in two places:
 
 ## Reproduce
 
-Versions tested: Nanda Town `6f9a7c064486c4a0ae9242f1ff341b8a4aad0244` (`nandatown 0.2.0`), ATL project commit
-`402861c` (branch `atl-v2`), Python 3.12, `uv` 0.12, Claude Code 2.1 for the agent part. No payment credentials
+Versions tested: Nanda Town `6f9a7c064486c4a0ae9242f1ff341b8a4aad0244` (`nandatown 0.2.0`), ATL
+[`jgreismit/agent-trust-layer`](https://github.com/jgreismit/agent-trust-layer) tag `hw8` (commit `158b3fe`), Python 3.12, `uv` 0.12, Claude Code 2.1 for the agent part. No payment credentials
 are needed. ATL always runs on its simulated rail here, and each Town run works on a fresh copy of ATL's state.
+The campaign evidence below was recorded with the same ATL code at the team project's commit `402861c`; tag `hw8`
+is an export of that `atl/` package, and the six pytest checks pass against it.
 
 ```bash
 # Town (this repository)
 python3 -m venv .venv && source .venv/bin/activate && pip install -e '.[dev]'
 
 # ATL (the project, checked out elsewhere)
-git clone <ATL repository> /path/to/atl && (cd /path/to/atl && git checkout 402861c && uv sync)
+git clone --branch hw8 https://github.com/jgreismit/agent-trust-layer /path/to/atl && (cd /path/to/atl && uv sync)
 export ATL_REPO=/path/to/atl ATL_VAR_DIR=/tmp/atl-town
 mkdir -p "$ATL_VAR_DIR" && python integrations/atl-payments/setup_atl.py   # owner registers the mandates
 
