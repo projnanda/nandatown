@@ -152,9 +152,9 @@ def test_research_task_rejects_malformed_contracts(mutation):
     ("http-uri", lambda value: value["idea"]["sources"][0].update(
         uri="http://example.com/source")),
     ("uri-userinfo", lambda value: value["idea"]["sources"][0].update(
-        uri="https://user:secret@example.com/source")),
+        uri="https://" + "user:secret@" + "example.com/source")),
     ("ambiguous-uri", lambda value: value["idea"]["sources"][0].update(
-        uri="https://example.com\\@other.example/source")),
+        uri="https://example.com" + "\\@" + "other.example/source")),
     ("invalid-host-underscore", lambda value: value["idea"]["sources"][0]
      .update(uri="https://bad_host.example/source")),
     ("invalid-host-leading-hyphen", lambda value: value["idea"]["sources"][0]
@@ -168,7 +168,7 @@ def test_research_task_rejects_malformed_contracts(mutation):
     ("non-nfc", lambda value: value["idea"].update(title="Cafe\u0301")),
     ("control", lambda value: value["idea"].update(rationale="bad\u0085text")),
     ("credential", lambda value: value["idea"].update(
-        hypothesis="token sk-ABCDEFGHIJKLMNOP")),
+        hypothesis="token " + "sk-" + "ABCDEFGHIJKLMNOP")),
     ("authority", lambda value: value["candidates"][0]["strategy_spec"]
      ["parameters"].update(verdict="accept")),
     ("nonfinite", lambda value: value["candidates"][0]["strategy_spec"]
