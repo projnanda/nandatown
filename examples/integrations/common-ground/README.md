@@ -51,7 +51,7 @@ Three scenarios, all on the team's real Wednesday Nov 4 case (15 OpenStreetMap c
 ## Reproduce
 
 Nanda Town `6f9a7c064486c4a0ae9242f1ff341b8a4aad0244`, Python 3.12. Common Ground
-`9fdee5c1efcdc09fefa84b2367c7ed03b8bcbdf8` (branch `hw7-benchmark`). The evidence was recorded on
+`9fdee5c1efcdc09fefa84b2367c7ed03b8bcbdf8` (tag `hw7`, on `main`). The evidence was recorded on
 2026-11-11.
 
 ```bash
