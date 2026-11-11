@@ -1,0 +1,10 @@
+{"intent_id": "in-1", "run_id": "run-e2d1614fabdb", "at": 1794422174.073855, "actor": "buyer", "action": "send", "payload": {"message_id": "q-1", "to": "seller", "kind": "quote_request", "body": {"sku": "widget", "quantity": 2, "unit_price_cents": 1995}}}
+{"intent_id": "in-2", "run_id": "run-e2d1614fabdb", "at": 1794422174.089934, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-3", "run_id": "run-e2d1614fabdb", "at": 1794422174.397581, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-4", "run_id": "run-e2d1614fabdb", "at": 1794422174.735852, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-5", "run_id": "run-e2d1614fabdb", "at": 1794422175.087595, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-6", "run_id": "run-e2d1614fabdb", "at": 1794422175.423658, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-7", "run_id": "run-e2d1614fabdb", "at": 1794422175.55093, "actor": "seller", "action": "send", "payload": {"message_id": "r-1", "to": "buyer", "kind": "quote_response", "body": {"request_id": "q-1", "sku": "widget", "quantity": 2, "total_cents": 3990}}}
+{"intent_id": "in-8", "run_id": "run-e2d1614fabdb", "at": 1794422175.5583959, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-953fc93c09e246a786cee2a951bfd06b", "status": "processed", "note": {"applied": true, "memory": "mindvault", "price_source": "b-701", "mindvault_write": {"block_id": "w-0001", "level": 0, "status": "unverified", "level_basis": "agent_declared"}, "total_cents": 3990}}}
+{"intent_id": "in-9", "run_id": "run-e2d1614fabdb", "at": 1794422175.5958421, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-10", "run_id": "run-e2d1614fabdb", "at": 1794422175.601388, "actor": "buyer", "action": "ack", "payload": {"message_id": "r-1", "fence": "fence-9b8127874e354d3982303cd1b6b940eb", "status": "processed", "note": {"correct": true, "total_cents": 3990, "expected_total_cents": 3990}}}

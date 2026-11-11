@@ -1,0 +1,36 @@
+{
+  "reads_by_id": [
+    {
+      "block_id": "w-0001",
+      "level": 2,
+      "status": "unverified",
+      "intern": "LEVEL_TOO_LOW",
+      "response": {
+        "denied": true,
+        "reason_code": "LEVEL_TOO_LOW",
+        "required_level": 2,
+        "block_id": "w-0001"
+      }
+    }
+  ],
+  "searches": [
+    {
+      "query": "widget deal note",
+      "hits": [],
+      "deal_note_hits": []
+    },
+    {
+      "query": "quote widget total cents",
+      "hits": [],
+      "deal_note_hits": []
+    },
+    {
+      "query": "finance price list widget",
+      "hits": [],
+      "deal_note_hits": []
+    }
+  ],
+  "notes": 1,
+  "protected": 1,
+  "leaked": 0
+}

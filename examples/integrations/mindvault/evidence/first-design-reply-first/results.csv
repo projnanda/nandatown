@@ -1,0 +1,13 @@
+run,memory,profile,rep,town_run_id,verdict,stages_passed,stages_failed,wall_seconds,mindvault_calls,deal_notes,note_levels,note_statuses,intern_level_too_low,intern_not_found,intern_leaked
+mindvault-quote-clean-1,mindvault,quote-clean,1,run-9332ff909898,passed,6,0,2.69,2,1,2,unverified,1,0,0
+mindvault-quote-clean-2,mindvault,quote-clean,2,run-0d2a2cdc6283,passed,6,0,5.94,2,1,2,unverified,1,0,0
+mindvault-quote-clean-3,mindvault,quote-clean,3,run-4063c88d4150,passed,6,0,3.98,2,1,2,unverified,1,0,0
+mindvault-quote-crash-restart-1,mindvault,quote-crash-restart,1,run-59840223c5e7,incomplete,4,0,8.43,1,0,,,0,0,0
+mindvault-quote-crash-restart-2,mindvault,quote-crash-restart,2,run-398f322f8c3b,incomplete,6,0,8.42,3,1,2,unverified,1,0,0
+mindvault-quote-crash-restart-3,mindvault,quote-crash-restart,3,run-f19a8f45c696,incomplete,6,0,8.41,3,1,2,unverified,1,0,0
+off-quote-clean-1,off,quote-clean,1,run-c7d35f20caef,passed,6,0,0.35,0,0,,,,,
+off-quote-clean-2,off,quote-clean,2,run-233fa35ed593,passed,6,0,0.34,0,0,,,,,
+off-quote-clean-3,off,quote-clean,3,run-510a74dd6f2d,passed,6,0,0.34,0,0,,,,,
+off-quote-crash-restart-1,off,quote-crash-restart,1,run-66f137226ebc,passed,8,0,3.15,0,0,,,,,
+off-quote-crash-restart-2,off,quote-crash-restart,2,run-9c32d9535092,passed,8,0,2.91,0,0,,,,,
+off-quote-crash-restart-3,off,quote-crash-restart,3,run-d648503e57cd,passed,8,0,2.94,0,0,,,,,
