@@ -223,7 +223,7 @@ The same sweep, with `drop_rate` limited to one message set at a time (`fault_sw
 | award and meter_request only | 5% | 4/20 (20%) | 20/20 (100%) | 20/20 (100%) |
 | award and meter_request only | 10% | 8/20 (40%) | 20/20 (100%) | 20/20 (100%) |
 
-Lost readings alone harm honest providers at least as often as dropping every message kind (25%, 60% and 55% above). So the main driver is Pearl Street's settlement rule, not this example's metering chain. The ±11-point noise caveat applies to each cell.
+The fair comparison is between the two isolated sets. Losing only readings harmed an honest provider in 15%, 65% and 85% of runs, against 0%, 20% and 40% for losing only the award and meter-request chain. So Pearl Street's missing-reading rule is the larger source of harm. The 1% cells are within noise (about ±11 points). The all-messages rows above are not directly comparable: dropping every kind also takes some providers out of the market before they can be harmed.
 
 | Fault | Question | Observed | Honest agent harmed? |
 |---|---|---|---|
@@ -235,11 +235,11 @@ Two back-to-back evenings (Jul 25 and 26, 17:00 to 20:00 CT), with the same rost
 
 | Arm | Overpromiser wins again on day two? | Day-two peak shortfall | Notes |
 |---|---|---|---|
-| (a) No feedback | **Yes**, 18,000 kW again | **9,298 kW** (20,702 of 30,000 delivered) | Day two repeats day one. pvb-35's day-two $27,894 charge **bounces**: day one's charge left it 2,523,872 cents. `ledger_mirrors_settlement` fails, and pvb-35 ends day two with more money than after day one. |
+| (a) No feedback | **Yes**, 18,000 kW again | **9,298 kW** (20,702 of 30,000 delivered) | Day two repeats day one. pvb-35 starts with $50,000 in its Town account (scenario config), and day one's charge left it 2,523,872 cents. So its day-two $27,894 charge **bounces**: Pearl Street never checks whether a provider can pay, and Town's ledger refuses the transfer. `ledger_mirrors_settlement` fails, and pvb-35 ends day two with more money than after day one. |
 | (b) Pearl Street's delivery-record limits | Not run | n/a | Not config-only. The exchange's `delivery_record` option records binding-nomination delivery and, by its own documentation, never charges or limits awards. No exchange setting turns the record into an award limit. |
 | (c) Utility skips providers with Town score < 0 | **No**: its day-two offer is refused (`town_policy_excluded`) | **6,000 kW** (24,000 of 30,000 delivered) | Enforced at the exchange's Town gateway, not by Pearl Street. dc-08 fills 15,000 kW instead, at the same $120/MWh. The utility pays $8,640 in day-two credits, with no penalty income. |
 
-This is the system-level form of the overpromiser finding. Pearl Street prices an overpromise after the fact, but nothing in the exchange stops a repeat. The penalty can become uncollectible. Wiring Town reputation into admission is what changes who wins.
+This is the system-level form of the overpromiser finding. Pearl Street prices an overpromise after the fact, but nothing in the exchange stops a repeat. With this scenario's starting balance, the second penalty was uncollectible. Wiring Town reputation into admission is what changes who wins.
 
 ## Forged registry listing
 
@@ -261,6 +261,10 @@ This matches Town's own `registry_eviction` control, here applied to market infr
   (drop, duplicate, delay, drop_rate), not crashes or partitions.
 - More than two consecutive events, providers that adapt their offers, and
   Town's capped trust plugin (only meaningful now that reputation feeds admission).
+- Short telemetry delays. The bridge stamps every message, meter readings
+  included, with its arrival time. A reading delayed a few minutes but arriving
+  before settlement would also be filed under the wrong step. Honoring the
+  meter's own timestamp would fix that in the adapter.
 - Any agent that is not a scripted Town role, and LLM-driven agents.
 - A deployed NANDA Index, and real meter data. Physics here is
   `min(award, attested power)`.
