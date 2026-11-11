@@ -9,15 +9,15 @@ Verdict:   PASSED
   descriptor_consistency  Not tested           not exercised in this run
                           note: no pinned digest to compare; observed card digest is in the evidence
   protocol_invocation     Passed               a native protocol exchange returned a task [ev-3]
-                          note: task task-e34ba1b63681 state completed
+                          note: task task-a72c4f46300d state completed
   semantic_result         Passed               the task produced the required result [ev-4]
                           note: exactly one fulfillment, total 3990
   duplicate_request       Passed               the duplicate order caused no second fulfillment [ev-6]
                           note: the same logical order was delivered twice; no second distinct fulfillment appeared
-Evidence bundle: examples/gridpact/evidence/after-honest-haiku/path-de0e280f226a
+Evidence bundle: examples/gridpact/evidence/after-honest-haiku/path-6b9c2da5076b
 -- Haiku decisions
-haiku seller {"action": "accept", "reason": "The order requires 167 kWh per 15-minute step, which fits within my declared capacity of 1364 kWh per step. The price of $19.95/MWh is positive. I accept the 60 $/MWh shortfall stake as
-haiku auditor {"challenge": false, "claim": "Declared flexible capacity of 5455 kW does not exceed the 10% tolerance above the 5000 kW nameplate battery power, so it is not a false claim under the market rule.", "evidence": "Toler
+haiku seller {"action": "accept", "reason": "Order of 167 kWh per step fits within the declared 1250 kWh per step capacity, and the $19.95/MWh price is positive. Shortfall stake of $60/MWh is locked."}
+haiku auditor {"challenge": false, "claim": "PVB_17's declared flexible capacity of 5000 kW matches its registry nameplate battery power of 5000 kW.", "evidence": "Declared 5000 kW equals nameplate 5000 kW, a 0% difference, below 
 -- what GridPact recorded
 offers: 1 | commitments: 1 | stake locked now: $120.00
 ledger: {'commit': 1, 'propose': 1, 'register': 3, 'settle': 12}
@@ -32,15 +32,15 @@ Verdict:   PASSED
   descriptor_consistency  Not tested           not exercised in this run
                           note: no pinned digest to compare; observed card digest is in the evidence
   protocol_invocation     Passed               a native protocol exchange returned a task [ev-3]
-                          note: task task-54adb017ac6e state completed
+                          note: task task-4ec10b4f1d7c state completed
   semantic_result         Passed               the task produced the required result [ev-4]
                           note: exactly one fulfillment, total 3990
   conflicting_retry       Passed               a reused order id with changed terms was refused [ev-5]
                           note: the order id was reused with changed terms {'quantity': 5} and the task ended 'rejected'; the first quote stands. Town does not check the subject's stated reason
-Evidence bundle: examples/gridpact/evidence/after-honest-haiku/path-04195f44e74e
+Evidence bundle: examples/gridpact/evidence/after-honest-haiku/path-56b4053abd3b
 -- Haiku decisions
-haiku seller {"action": "accept", "reason": "The order needs 167 kWh per 15-minute step, which fits within my declared 1364 kWh per step of flexible capacity. The price of $19.95/MWh is positive. I will lock the required $60/MWh s
-haiku auditor {"challenge": false, "claim": "PVB_17's declared flexible capacity of 5455 kW does not meet the false-claim threshold.", "evidence": "The declaration is 5455 kW against a registry nameplate of 5000 kW, which is 9.1% 
+haiku seller {"action": "accept", "reason": "167 kWh per step fits within my declared 1250 kWh per step capacity, and the $19.95/MWh price is positive. I will lock the $60/MWh shortfall stake."}
+haiku auditor {"challenge": false, "claim": "PVB_17 declared 5000 kW flexible capacity.", "evidence": "Registry nameplate battery power is 5000 kW. The declaration equals nameplate, which is below the 10% threshold, so it is not a
 -- what GridPact recorded
 offers: 1 | commitments: 1 | stake locked now: $120.00
 ledger: {'commit': 1, 'propose': 1, 'register': 3, 'settle': 12}

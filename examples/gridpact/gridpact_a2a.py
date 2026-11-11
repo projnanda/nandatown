@@ -92,8 +92,8 @@ class HaikuBrain:
     def decide(self, role: str, prompt: str) -> dict:
         r = self.http.post("https://api.anthropic.com/v1/messages",
                            headers={"x-api-key": self.key, "anthropic-version": "2023-06-01", "content-type": "application/json"},
-                           json={"model": self.model, "max_tokens": 300,
-                                 "system": f"You are the {role} agent in a peer-to-peer energy market. Answer with one JSON object and nothing else.",
+                           json={"model": self.model, "max_tokens": 1000,
+                                 "system": f"You are the {role} agent in a peer-to-peer energy market. Answer with one JSON object and nothing else; keep every text field under 30 words.",
                                  "messages": [{"role": "user", "content": prompt}]})
         r.raise_for_status()
         text = "".join(b.get("text", "") for b in r.json()["content"])
@@ -240,6 +240,7 @@ def build_app(mcp_url: str, base_url: str, **seller_opts) -> FastAPI:
                 state, body = seller.quote(json.loads(text))
                 name = "quote" if state == "completed" else "error"
             except (ValueError, KeyError, TypeError, RuntimeError, httpx.HTTPError) as exc:
+                print("adapter error", repr(exc), flush=True)
                 state, body, name = "failed", f"bad request or GridPact unavailable: {exc}", "error"
             tid = "task-" + uuid.uuid4().hex[:12]
             task = {"id": tid, "contextId": "ctx-" + tid, "status": {"state": state}, "kind": "task",

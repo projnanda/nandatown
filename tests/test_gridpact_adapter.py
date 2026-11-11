@@ -174,14 +174,20 @@ def test_llm_auditor_can_decline_to_challenge(monkeypatch):
 
 @pytest.mark.skipif(not os.environ.get("GRIDPACT_DIR") or not shutil.which("nandatown"),
                     reason="set GRIDPACT_DIR to a gridpact checkout (tag hw8-v1 or later)")
-def test_town_path_profiles_pass_against_real_gridpact(tmp_path):
-    env = {**os.environ, "GRIDPACT_PYTHON": os.environ.get("GRIDPACT_PYTHON", "python")}
+@pytest.mark.parametrize("llm", [
+    "", pytest.param("1", id="haiku", marks=pytest.mark.skipif(not os.environ.get("ANTHROPIC_API_KEY"),
+                                                              reason="set ANTHROPIC_API_KEY to run with Haiku agents"))])
+def test_town_path_profiles_pass_against_real_gridpact(tmp_path, llm):
+    env = {**os.environ, "GRIDPACT_PYTHON": os.environ.get("GRIDPACT_PYTHON", "python"), "LLM": llm}
     script = str(ROOT / "examples" / "gridpact" / "run_check.sh")
     honest = subprocess.run([script, str(tmp_path / "h")], env=env, capture_output=True, text=True, timeout=300).stdout
     assert honest.count("Verdict:   PASSED") == 2, honest
     assert "duplicate_request       Passed" in honest and "conflicting_retry       Passed" in honest
     assert "settled commitment 1: committed 2000 kWh, delivered 2000, shortfall 0" in honest
+    assert "challenge on commitment" not in honest
     liar = subprocess.run([script, str(tmp_path / "l")], env={**env, "VARIANT": "liar"}, capture_output=True,
                           text=True, timeout=300).stdout
     assert liar.count("Verdict:   PASSED") == 2, liar
     assert "challenge on commitment 1: valid" in liar and "625 kWh/step (ordered 1000), challenged" in liar
+    if llm:
+        assert honest.count("haiku seller") == 2 and liar.count("haiku auditor") == 2, (honest, liar)

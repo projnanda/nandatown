@@ -38,7 +38,7 @@ for P in a2a-capability-fulfillment@0.3 a2a-order-conflict@0.1; do
   curl -sf "http://127.0.0.1:$A2A_PORT/.well-known/agent-card.json" >/dev/null || { echo "adapter did not start:"; tail -5 "$TMP/adapter.log"; tail -5 "$TMP/gridpact.log"; }
   nandatown test-agent --url "http://127.0.0.1:$A2A_PORT" --path-profile "$P" --out "$OUT" 2>&1 \
     | grep -E "Verdict|^  [a-z_]+ +(Passed|Failed|Not tested|Inconclusive)|note:|Evidence bundle"
-  [ "${LLM:-}" = 1 ] && { echo "-- Haiku decisions"; grep "^haiku" "$TMP/adapter.log" | cut -c1-230; }
+  [ "${LLM:-}" = 1 ] && { echo "-- Haiku decisions"; grep -E "^(haiku|adapter error)" "$TMP/adapter.log" | cut -c1-230; }
   echo "-- what GridPact recorded"
   python - "$TMP/gridpact.db" <<'PY'
 import sqlite3, sys
