@@ -1,0 +1,59 @@
+{
+  "name": "lost-link-duplicate-and-misuse",
+  "description": "Duplicate the finder notification; retry application requests and refuse agent attempts to approve a pickup.",
+  "seed": 42,
+  "layers": {
+    "transport": "memory.v1",
+    "communication": "envelope.v1",
+    "identity": "keys.v1",
+    "registry": "index.v1",
+    "auth": "hmac.v1",
+    "trust": "reputation.v1",
+    "payments": "ledger.v1",
+    "coordination": "contractnet.v1",
+    "negotiation": "haggle.v1",
+    "memory": "kv.v1",
+    "privacy": "redact.v1",
+    "data_facts": "evidence.v1"
+  },
+  "agents": [
+    {
+      "name": "finder",
+      "role": "lostlink.finder",
+      "config": {}
+    },
+    {
+      "name": "owner",
+      "role": "lostlink.owner",
+      "config": {
+        "probe_permissions": true
+      }
+    },
+    {
+      "name": "operator",
+      "role": "lostlink.human_fixture",
+      "config": {}
+    }
+  ],
+  "faults": [
+    {
+      "action": "duplicate",
+      "kind": "lostlink_found_available",
+      "nth": 1,
+      "delay": 0.0,
+      "rate": 0.0
+    }
+  ],
+  "redact_fields": [
+    "private_detail",
+    "your_private_detail",
+    "Authorization",
+    "X-Human-Token"
+  ],
+  "max_time": 10.0,
+  "validator": "lost-link-lifecycle@1",
+  "plugin_files": [
+    "/Users/zhangkemeng/Documents/Codex/2026-11-04/https-github-com-cathyliu0510-lost-link/work/hw8/nandatown/examples/lost_link/adapter.py"
+  ],
+  "adaptations": []
+}

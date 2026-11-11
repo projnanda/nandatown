@@ -1,0 +1,45 @@
+{
+  "run_id": "sim-e8608b552fea",
+  "profile_name": "lost-link-clean",
+  "profile_fingerprint": "sha256:a63ce5f5793702fd2e0bb766b33415bc7c783c3f60656b5991ade3978c8cfd6c",
+  "created_at": 0.0,
+  "participants": [
+    {
+      "name": "finder",
+      "role": "lostlink.finder"
+    },
+    {
+      "name": "owner",
+      "role": "lostlink.owner"
+    },
+    {
+      "name": "operator",
+      "role": "lostlink.human_fixture"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "lab-0.2.6",
+    "python": "3.12.14"
+  },
+  "config": {
+    "mode": "lab",
+    "seed": 42,
+    "layers": {
+      "transport": "memory.v1",
+      "communication": "envelope.v1",
+      "identity": "keys.v1",
+      "registry": "index.v1",
+      "auth": "hmac.v1",
+      "trust": "reputation.v1",
+      "payments": "ledger.v1",
+      "coordination": "contractnet.v1",
+      "negotiation": "haggle.v1",
+      "memory": "kv.v1",
+      "privacy": "redact.v1",
+      "data_facts": "evidence.v1"
+    },
+    "logical_time": 0.8999999999999999,
+    "rerun_command": "nandatown run /Users/zhangkemeng/Documents/Codex/2026-11-04/https-github-com-cathyliu0510-lost-link/work/hw8/nandatown/examples/lost_link/clean.yaml --seed 42"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "run_id": "sim-453b4e162aec",
+  "profile_name": "lost-link-duplicate-and-misuse",
+  "profile_fingerprint": "sha256:e0757a889b0d6382351f15717ce551025f9e22e41719804656b271c4bcd5b627",
+  "created_at": 0.0,
+  "participants": [
+    {
+      "name": "finder",
+      "role": "lostlink.finder"
+    },
+    {
+      "name": "owner",
+      "role": "lostlink.owner"
+    },
+    {
+      "name": "operator",
+      "role": "lostlink.human_fixture"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "lab-0.2.6",
+    "python": "3.12.14"
+  },
+  "config": {
+    "mode": "lab",
+    "seed": 42,
+    "layers": {
+      "transport": "memory.v1",
+      "communication": "envelope.v1",
+      "identity": "keys.v1",
+      "registry": "index.v1",
+      "auth": "hmac.v1",
+      "trust": "reputation.v1",
+      "payments": "ledger.v1",
+      "coordination": "contractnet.v1",
+      "negotiation": "haggle.v1",
+      "memory": "kv.v1",
+      "privacy": "redact.v1",
+      "data_facts": "evidence.v1"
+    },
+    "logical_time": 0.8999999999999999,
+    "rerun_command": "nandatown run /Users/zhangkemeng/Documents/Codex/2026-11-04/https-github-com-cathyliu0510-lost-link/work/hw8/nandatown/examples/lost_link/duplicate-and-misuse.yaml --seed 42"
+  }
+}

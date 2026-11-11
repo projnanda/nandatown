@@ -1,0 +1,11 @@
+name: lost-link-clean
+description: Lost Link lifecycle via Town discovery and signed messages, real external HTTP service and a scripted human operator.
+validator: lost-link-lifecycle@1
+plugin_files: [adapter.py]
+seed: 42
+agents:
+  - {name: finder, role: lostlink.finder}
+  - {name: owner, role: lostlink.owner}
+  - {name: operator, role: lostlink.human_fixture}
+redact_fields: [private_detail, your_private_detail, Authorization, X-Human-Token]
+max_time: 10

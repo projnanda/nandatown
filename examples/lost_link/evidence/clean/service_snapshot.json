@@ -1,0 +1,135 @@
+{
+  "audit": [
+    {
+      "at": "2026-11-11T16:39:06+00:00",
+      "method": "GET",
+      "path": "/openapi.json",
+      "principal": "anonymous",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:06+00:00",
+      "method": "POST",
+      "path": "/v1/reports",
+      "principal": "finder",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:06+00:00",
+      "method": "POST",
+      "path": "/v1/reports",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:06+00:00",
+      "method": "GET",
+      "path": "/v1/reports/L-356809/matches",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:06+00:00",
+      "method": "POST",
+      "path": "/v1/claims",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:06+00:00",
+      "method": "GET",
+      "path": "/v1/cases/C-05E1B0",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:06+00:00",
+      "method": "GET",
+      "path": "/v1/human/inbox",
+      "principal": "human:scripted-holder",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:06+00:00",
+      "method": "POST",
+      "path": "/v1/human/cases/C-05E1B0/decision",
+      "principal": "human:scripted-holder",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:06+00:00",
+      "method": "GET",
+      "path": "/v1/cases/C-05E1B0",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:06+00:00",
+      "method": "POST",
+      "path": "/v1/cases/C-05E1B0/info",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:06+00:00",
+      "method": "GET",
+      "path": "/v1/human/inbox",
+      "principal": "human:scripted-holder",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:06+00:00",
+      "method": "POST",
+      "path": "/v1/human/cases/C-05E1B0/decision",
+      "principal": "human:scripted-holder",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:06+00:00",
+      "method": "GET",
+      "path": "/v1/cases/C-05E1B0",
+      "principal": "owner",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:06+00:00",
+      "method": "POST",
+      "path": "/v1/human/cases/C-05E1B0/returned",
+      "principal": "human:scripted-holder",
+      "status": 200
+    },
+    {
+      "at": "2026-11-11T16:39:06+00:00",
+      "method": "GET",
+      "path": "/v1/cases/C-05E1B0",
+      "principal": "owner",
+      "status": 200
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "C-05E1B0",
+      "pickup_instructions": "Synthetic Hayden front desk, 09:00-17:00",
+      "status": "returned"
+    }
+  ],
+  "human_actions": [
+    "need_info",
+    "approve",
+    "returned"
+  ],
+  "reports": [
+    {
+      "kind": "found",
+      "owner_agent": "finder",
+      "report_id": "F-811C9F",
+      "status": "closed"
+    },
+    {
+      "kind": "lost",
+      "owner_agent": "owner",
+      "report_id": "L-356809",
+      "status": "closed"
+    }
+  ]
+}
