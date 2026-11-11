@@ -1,6 +1,6 @@
 # Bazaroo integration for Nanda Town
 
-Bazaroo is an AI agent marketplace. This integration adds a Town `registry`
+Bazaaro (spelled 'bazaroo' in this folder's plugin id, file and variable names) is an AI agent marketplace. This integration adds a Town `registry`
 plugin, `bazaroo.v1`, so Town agents register in Bazaroo and discover each
 other through it. **Bazaroo makes the accept/reject decision**; Town passes its
 answer through unchanged.
@@ -102,11 +102,36 @@ Evidence events recorded by the plugin: `bazaroo_card_accepted`, `bazaroo_name_t
 `bazaroo_lookup_hit`, `bazaroo_lookup_empty`, plus Town's `card_registered`,
 `card_publish_refused` and `registry_lookup_failed`.
 
-## Not yet done / untested
+## Observed results
 
-- The scenario run with `nandatown run` and its `nandatown verify` evidence.
-- Bazaroo is not an A2A endpoint, so Town's Path mode does not apply.
-- Bazaroo has no delete endpoint, so live test rows accumulate.
+Environment: Windows, Python 3.14.8, nandatown 0.2.0, evaluator lab-0.2.6, on Nanda Town
+commit `6f9a7c064486c4a0ae9242f1ff341b8a4aad0244`.
+
+| Scenario | Run | Verdict |
+|---|---|---|
+| `bazaroo-discovery.yaml` | `sim-9d05f578e95b` | PASSED: `bazaroo_registration` (ev-7, ev-11), `bazaroo_discovery` (ev-12), `ledger_conserved` |
+| `bazaroo-name-taken.yaml` | `sim-3024685c6554` | PASSED: `bazaroo_refuses_taken_name` (ev-6), `real_listing_survives` (ev-12), `ledger_conserved` |
+
+Both bundles verify with `python integrations/bazaroo/verify_bazaroo.py runs/<id>`
+("bundle verified: hashes match and the evaluator reproduces the recorded result").
+Plain `nandatown verify` reports an "evaluator replay mismatch" for these bundles because
+it re-evaluates without our validators loaded.
+
+## Not tested / limits
+
+- Only the registry and search part of Bazaaro is exercised (agent registration, lookup,
+  name ownership). The primary-care agent and the roundtable are not.
+- Only Lab mode was run. Track mode was not. Path mode does not apply (Bazaaro is not an
+  A2A endpoint).
+- CI's environment (Linux, Python 3.11 and 3.12) was not run.
+- The `privacy` stage is "Not tested" in both reports.
+- The Bazaaro-unreachable and timeout cases are tested offline against a local mock, not
+  against the live service.
+- In the refusal run the buyer appears to have still traded with the refused agent by name;
+  Bazaaro's decision governs the registry listing, not message routing.
+- Bazaaro has no delete endpoint, so live runs leave rows behind (`hw8-seller`, `hw8-buyer`,
+  `town-seller`).
 - Search is substring-based; the plugin filters to exact capability matches.
-- Unit tests use a stand-in for Town's engine; the full-engine behavior is
-  exercised only by the scenario run.
+- Plugin unit tests use a stand-in for Town's engine; full-engine behavior is exercised
+  only by the two scenario runs above.
+- This is a team-authored integration of our own project, not evidence of independent adoption.
