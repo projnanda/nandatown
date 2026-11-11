@@ -1,0 +1,25 @@
+{"intent_id": "in-1", "run_id": "run-1894de8a7ee5", "at": 1794364772.553358, "actor": "buyer", "action": "send", "payload": {"message_id": "q-1", "to": "seller", "kind": "quote_request", "body": {"sku": "widget", "quantity": 2, "unit_price_cents": 1995}}}
+{"intent_id": "in-2", "run_id": "run-1894de8a7ee5", "at": 1794364772.874122, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-3", "run_id": "run-1894de8a7ee5", "at": 1794364773.1933131, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-4", "run_id": "run-1894de8a7ee5", "at": 1794364773.47052, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-5", "run_id": "run-1894de8a7ee5", "at": 1794364773.511856, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-6", "run_id": "run-1894de8a7ee5", "at": 1794364773.842278, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-7", "run_id": "run-1894de8a7ee5", "at": 1794364774.1813052, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-8", "run_id": "run-1894de8a7ee5", "at": 1794364774.543823, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-9", "run_id": "run-1894de8a7ee5", "at": 1794364774.890272, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-10", "run_id": "run-1894de8a7ee5", "at": 1794364775.2369878, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-11", "run_id": "run-1894de8a7ee5", "at": 1794364775.595881, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-12", "run_id": "run-1894de8a7ee5", "at": 1794364775.928517, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-13", "run_id": "run-1894de8a7ee5", "at": 1794364776.253044, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-14", "run_id": "run-1894de8a7ee5", "at": 1794364776.6020281, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-15", "run_id": "run-1894de8a7ee5", "at": 1794364776.9664361, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-16", "run_id": "run-1894de8a7ee5", "at": 1794364777.323513, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-17", "run_id": "run-1894de8a7ee5", "at": 1794364777.675147, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-18", "run_id": "run-1894de8a7ee5", "at": 1794364778.039493, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-19", "run_id": "run-1894de8a7ee5", "at": 1794364778.263733, "actor": "seller", "action": "send", "payload": {"message_id": "q-1-response", "to": "buyer", "kind": "quote_response", "body": {"request_id": "q-1", "sku": "widget", "quantity": 2, "total_cents": 3990}}}
+{"intent_id": "in-20", "run_id": "run-1894de8a7ee5", "at": 1794364778.3128269, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-21", "run_id": "run-1894de8a7ee5", "at": 1794364778.322453, "actor": "buyer", "action": "ack", "payload": {"message_id": "q-1-response", "fence": "fence-65da37020c704a0985513f88aca94b97", "status": "processed", "note": {"correct": true, "total_cents": 3990, "expected_total_cents": 3990}}}
+{"intent_id": "in-22", "run_id": "run-1894de8a7ee5", "at": 1794364780.713728, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-c376e30d75c84eae9392bb729f886b65", "status": "processed", "note": {"applied": true, "duplicate": false, "total_cents": 3990, "reason": "New request: hold task_1 confirmed (CONFIRMED_SUCCESS) and quote of 2 x 1995 = 3990 cents sent as q-1-response.", "path": "actionledger", "action_id": "town:run-1894de8a7ee5:q-1", "hold": "task_1", "ledger_status": "CONFIRMED_SUCCESS", "brain": "claude-opus-5-5", "harness": "v1"}}}
+{"intent_id": "in-23", "run_id": "run-1894de8a7ee5", "at": 1794364781.066893, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-24", "run_id": "run-1894de8a7ee5", "at": 1794364781.0801878, "actor": "seller", "action": "send", "payload": {"message_id": "q-1-response", "to": "buyer", "kind": "quote_response", "body": {"request_id": "q-1", "sku": "widget", "quantity": 2, "total_cents": 3990}}}
+{"intent_id": "in-25", "run_id": "run-1894de8a7ee5", "at": 1794364781.086329, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-7a2c8927738746c48811530c4e6d35c9", "status": "processed", "note": {"applied": true, "duplicate": false, "total_cents": 3990, "reason": "New request: hold task_1 confirmed (CONFIRMED_SUCCESS) and quote of 2 x 1995 = 3990 cents sent as q-1-response.", "path": "actionledger", "action_id": "town:run-1894de8a7ee5:q-1", "hold": "task_1", "ledger_status": "CONFIRMED_SUCCESS", "brain": "claude-opus-5-5", "harness": "v1", "reacked_by_harness": true}}}

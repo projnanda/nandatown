@@ -18,8 +18,16 @@ buyer, and then checks four things independently of each other:
 The tracker is the ground truth for the external side effect; neither
 Town nor the seller's own notes are trusted for the hold count.
 
---record copies each bundle's canonical files into evidence/<case>/ and
-writes evidence/summary.json. Exit status is 0 only if every check holds.
+--seller claude swaps the deterministic adapter for claude_seller.py: the
+same cases with Claude deciding (needs ANTHROPIC_API_KEY, read from the
+environment or ACTIONLEDGER_HOME/.env, and the ``anthropic`` package);
+--reps repeats each case. Its safety checks are the same; how many times
+the model called a tool, and which acknowledgement status it chose for an
+unverifiable hold, are recorded rather than checked.
+
+--record copies each bundle's canonical files into evidence/<case>/ (or
+evidence/claude/<case>-r<n>/ with the model's transcript beside it) and
+writes summary.json there. Exit status is 0 only if every check holds.
 ACTIONLEDGER_PYTHON selects the interpreter for the services (default:
 ACTIONLEDGER_HOME/.venv/bin/python, else this interpreter).
 """
@@ -52,6 +60,7 @@ from nandatown.bundle import RECORD_FILES, verify_bundle
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 SELLER = HERE / "actionledger_seller.py"
+CLAUDE_SELLER = HERE / "claude_seller.py"
 EVIDENCE = HERE / "evidence"
 AGENT_KEY = os.environ.get("AGENT_KEY", "local-demo-agent")
 TRACKER_KEY = os.environ.get("TRACKER_KEY", "local-demo-tracker")
@@ -168,17 +177,56 @@ def actionledger(home: Path, python: str, data: Path, log: Path):
                     p.kill()
 
 
-def run_town(case: Case, out: Path, env: dict[str, str]) -> tuple[Path, str]:
-    seller = shlex.join([sys.executable, str(SELLER), "--path", case.path])
+def seller_command(case: Case, brain: dict[str, str] | None) -> str:
+    if brain is None:
+        return shlex.join([sys.executable, str(SELLER), "--path", case.path])
+    return shlex.join([sys.executable, str(CLAUDE_SELLER), "--path",
+                       case.path, "--model", brain["model"], "--effort",
+                       brain["effort"], "--harness", brain["harness"]])
+
+
+def run_town(case: Case, out: Path, env: dict[str, str],
+             brain: dict[str, str] | None = None) -> tuple[Path, str]:
+    """One Track run. With a model as the seller, Town's stock buyer joins
+    as ``external``: the runner then waits for the seller to settle (up to
+    its 45 s run timeout) instead of stopping the seller 8 s after a
+    spawned buyer exits, which is shorter than a hosted model needs to
+    recover from a restart. The buyer is the same module, started here
+    with the join environment Town prints."""
+    seller = seller_command(case, brain)
     cmd = [sys.executable, "-m", "nandatown.cli", "run", case.profile,
            "--agent", f"seller=cmd:{seller}", "--out", str(out)]
-    done = subprocess.run(cmd, env=env, capture_output=True, text=True,
-                          timeout=180)
+    if brain is None:
+        done = subprocess.run(cmd, env=env, capture_output=True, text=True,
+                              timeout=180)
+        stdout, stderr = done.stdout, done.stderr
+    else:
+        cmd += ["--agent", "buyer=external"]
+        town = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, text=True)
+        lines, join_env = [], {}
+        for line in town.stdout:
+            lines.append(line)
+            if line.strip().startswith("export "):
+                key, _, value = line.strip()[7:].partition("=")
+                join_env[key] = shlex.split(value)[0] if value else ""
+            if line.startswith("then join"):
+                break
+        buyer = subprocess.Popen(
+            [sys.executable, "-m", "nandatown.participants.buyer"],
+            env={**env, **join_env}, stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL)
+        rest, _ = town.communicate(timeout=180)
+        stdout, stderr = "".join(lines) + rest, ""
+        try:
+            buyer.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            buyer.kill()
     bundles = glob.glob(str(out / "run-*" / "manifest.json"))
     if len(bundles) != 1:
         raise RuntimeError(f"expected one bundle, found {len(bundles)}:\n"
-                           f"{done.stdout}\n{done.stderr}")
-    return Path(bundles[0]).parent, done.stdout
+                           f"{stdout}\n{stderr}")
+    return Path(bundles[0]).parent, stdout
 
 
 # -- observations -----------------------------------------------------------
@@ -224,6 +272,10 @@ def observe(bundle: Path, data: Path) -> dict[str, Any]:
     if log.exists():
         applications = [{k: v for k, v in a.items() if k != "at"}
                         for a in read_jsonl(log)]
+    transcript = []
+    path = bundle / "state" / "seller" / "claude_transcript.jsonl"
+    if path.exists():
+        transcript = read_jsonl(path)
     obs = {"run_id": run_id, "action_id": aid,
            "verdict": result["verdict"],
            "stages": {s["name"]: s["status"] for s in result["stages"]},
@@ -233,6 +285,30 @@ def observe(bundle: Path, data: Path) -> dict[str, Any]:
            "seller_applications": applications,
            "tracker_holds": holds,
            "ledger_actions": ledger}
+    if transcript:
+        # Usage is cumulative per process: take each session's last count.
+        last: dict[str, dict[str, Any]] = {}
+        for t in transcript:
+            if "usage" in t:
+                last[t["session"]] = t
+        obs["model"] = {
+            "sessions": len({t["session"] for t in transcript}),
+            "calls": sum(t["usage"]["calls"] for t in last.values()),
+            "cost_usd": round(sum(t["cost_usd"] for t in last.values()), 5),
+            "served_by": sorted({t["served_by"] for t in transcript
+                                 if t.get("event") == "turn"}),
+            "turn_seconds": [t["seconds"] for t in transcript
+                             if t.get("event") == "turn"
+                             and "seconds" in t],
+            "harness_reacks": sum(t.get("event") == "reack"
+                                  for t in transcript),
+            "tool_calls": [{"tool": t["tool"], "input": t["input"],
+                            "output": t["output"]}
+                           for t in transcript if "tool" in t],
+            "acks": [{"status": t["input"]["status"],
+                      "note": t["input"]["note"]}
+                     for t in transcript if t.get("tool") == "ack_work"]}
+        obs["transcript"] = transcript
     return obs
 
 
@@ -246,7 +322,12 @@ def recover(tracker_url: str, ledger_url: str, aid: str) -> dict[str, Any]:
     return r.json()
 
 
-def checks(case: Case, obs: dict[str, Any]) -> list[dict[str, Any]]:
+def checks(case: Case, obs: dict[str, Any], scripted: bool = True
+           ) -> list[dict[str, Any]]:
+    """Safety and protocol checks. With a model as the seller, how often it
+    called its writer and which status it chose for an unverifiable hold
+    are its own decisions: they are recorded in the observations, not
+    checked here."""
     out = []
 
     def check(name, expected, observed):
@@ -265,9 +346,11 @@ def checks(case: Case, obs: dict[str, Any]) -> list[dict[str, Any]]:
     applied = [a for a in obs["seller_acks"] if "path" in a["note"]]
     final = applied[-1] if applied else {}
     check("seller acks reporting an application", 1, len(applied))
-    check("status of that ack", case.seller_ack, final.get("status"))
-    check("seller writer calls", case.applications,
-          len(obs["seller_applications"]))
+    if scripted or case.seller_ack == "processed":
+        check("status of that ack", case.seller_ack, final.get("status"))
+    if scripted:
+        check("seller writer calls", case.applications,
+              len(obs["seller_applications"]))
     if case.ledger_status:
         check("ledger status in that ack", case.ledger_status,
               final.get("note", {}).get("ledger_status"))
@@ -304,10 +387,18 @@ def git_version(path: Path) -> dict[str, Any]:
                               "--untracked-files=no"))}
 
 
+def town_version() -> dict[str, Any]:
+    """This checkout, plus the upstream main it branches from."""
+    base = subprocess.run(["git", "-C", str(REPO), "merge-base", "HEAD",
+                           "origin/main"], capture_output=True,
+                          text=True).stdout.strip()
+    return {**git_version(REPO), "upstream_base": base or None}
+
+
 def versions(home: Path, python: str) -> dict[str, Any]:
     al_py = subprocess.run([python, "--version"], capture_output=True,
                            text=True).stdout.strip()
-    return {"nandatown": {"version": TOWN_VERSION, **git_version(REPO)},
+    return {"nandatown": {"version": TOWN_VERSION, **town_version()},
             "actionledger": {"repository":
                              "https://github.com/Cecilia1220/actionledger",
                              **git_version(home), "python": al_py},
@@ -317,7 +408,8 @@ def versions(home: Path, python: str) -> dict[str, Any]:
 
 # -- main -------------------------------------------------------------------
 
-def run_case(case: Case, home: Path, python: str, work: Path
+def run_case(case: Case, home: Path, python: str, work: Path,
+             brain: dict[str, str] | None = None
              ) -> tuple[dict[str, Any], Path]:
     data, out = work / "data", work / "town"
     data.mkdir(parents=True)
@@ -331,7 +423,7 @@ def run_case(case: Case, home: Path, python: str, work: Path
                "TRACKER_URL": tracker_url, "AGENT_KEY": AGENT_KEY,
                "TRACKER_KEY": TRACKER_KEY,
                "NANDATOWN_HOME": str(work / "town-home")}
-        bundle, report = run_town(case, out, env)
+        bundle, report = run_town(case, out, env, brain)
         obs = observe(bundle, data)
         if case.recover_after:
             obs["recovered"] = recover(tracker_url, ledger_url,
@@ -349,8 +441,7 @@ def run_case(case: Case, home: Path, python: str, work: Path
     return obs, bundle
 
 
-def record(case: Case, bundle: Path) -> str:
-    dest = EVIDENCE / case.name
+def record(dest: Path, bundle: Path) -> str:
     if dest.exists():
         shutil.rmtree(dest)
     dest.mkdir(parents=True)
@@ -360,12 +451,40 @@ def record(case: Case, bundle: Path) -> str:
     return str(dest.relative_to(REPO))
 
 
+def load_key(home: Path) -> bool:
+    """ANTHROPIC_API_KEY from the environment, else ActionLedger's .env.
+    The value is only placed in this process's environment, which the
+    cmd: seller inherits; it is never printed or recorded."""
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        return True
+    env_file = home / ".env"
+    if env_file.exists():
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            key, _, value = line.partition("=")
+            if key.strip() == "ANTHROPIC_API_KEY" and value.strip():
+                os.environ["ANTHROPIC_API_KEY"] = value.strip()
+                return True
+    return False
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--cases", default="all",
                         help="comma-separated case names (default: all)")
+    parser.add_argument("--seller", choices=("deterministic", "claude"),
+                        default="deterministic")
+    parser.add_argument("--model", default="claude-opus-5-5",
+                        help="--seller claude: the model (default Opus 5.5)")
+    parser.add_argument("--effort", default="medium",
+                        help="--seller claude: output_config.effort")
+    parser.add_argument("--harness", choices=("v1", "v2"), default="v2",
+                        help="--seller claude: v1 lets the model pick quote"
+                             " identities (the baseline), v2 derives them")
+    parser.add_argument("--reps", type=int, default=1,
+                        help="repetitions per case")
     parser.add_argument("--record", action="store_true",
-                        help="write evidence/<case>/ and evidence/summary.json")
+                        help="write the bundles and summary.json under"
+                             " evidence/")
     parser.add_argument("--keep", action="store_true",
                         help="keep the per-case working directories")
     args = parser.parse_args()
@@ -382,6 +501,16 @@ def main() -> int:
     venv_python = home / ".venv" / "bin" / "python"
     python = os.environ.get("ACTIONLEDGER_PYTHON") or (
         str(venv_python) if venv_python.exists() else sys.executable)
+    brain = None
+    if args.seller == "claude":
+        if not load_key(home):
+            print("--seller claude needs ANTHROPIC_API_KEY (environment or"
+                  " ACTIONLEDGER_HOME/.env)", file=sys.stderr)
+            return 2
+        brain = {"model": args.model, "effort": args.effort,
+                 "harness": args.harness}
+    evidence = (EVIDENCE if brain is None
+                else EVIDENCE / f"claude-{args.harness}")
 
     wanted = (None if args.cases == "all"
               else set(args.cases.split(",")))
@@ -393,39 +522,65 @@ def main() -> int:
 
     root = Path(tempfile.mkdtemp(prefix="actionledger-town-"))
     summary = {"check": "actionledger-track-compatibility",
+               "seller": "deterministic adapter" if brain is None else
+               {"kind": "claude_seller.py", **brain},
                "versions": versions(home, python), "cases": []}
     print(f"Town {summary['versions']['nandatown']['commit'][:7]}"
           f" ({TOWN_VERSION}), ActionLedger"
-          f" {(summary['versions']['actionledger']['commit'] or '?')[:7]}")
-    failed = 0
+          f" {(summary['versions']['actionledger']['commit'] or '?')[:7]},"
+          f" seller {'deterministic' if brain is None else brain['model']}")
+    failed = runs = 0
     for case in selected:
-        started = time.time()
-        obs, bundle = run_case(case, home, python, root / case.name)
-        results = checks(case, obs)
-        bad = [c for c in results if not c["ok"]]
-        failed += bool(bad)
-        entry = {"case": case.name, "profile": case.profile,
-                 "seller_path": case.path, "what": case.what,
-                 "tracker_fault": case.tracker_fault,
-                 "seconds": round(time.time() - started, 1),
-                 "passed": not bad, "checks": results, "observed": obs}
-        if args.record:
-            entry["bundle"] = record(case, bundle)
-        summary["cases"].append(entry)
-        mine = len([h for h in obs["tracker_holds"]
-                    if h["tag"] == obs["action_id"]])
-        status = next((a["note"].get("ledger_status", "-")
-                       for a in reversed(obs["seller_acks"])
-                       if "path" in a["note"]), "-")
-        print(f"{'ok  ' if not bad else 'FAIL'} {case.name:26} town="
-              f"{obs['verdict']:7} holds={mine} ledger={status:17}"
-              f" {entry['seconds']:5.1f}s")
-        for c in bad:
-            print(f"     {c['check']}: expected {c['expected']!r},"
-                  f" observed {c['observed']!r}")
+        for rep in range(1, args.reps + 1):
+            runs += 1
+            label = case.name if args.reps == 1 and brain is None \
+                else f"{case.name}-r{rep}"
+            started = time.time()
+            obs, bundle = run_case(case, home, python, root / label, brain)
+            results = checks(case, obs, scripted=brain is None)
+            bad = [c for c in results if not c["ok"]]
+            failed += bool(bad)
+            transcript = obs.pop("transcript", None)
+            entry = {"case": case.name, "rep": rep, "label": label,
+                     "profile": case.profile, "seller_path": case.path,
+                     "what": case.what, "tracker_fault": case.tracker_fault,
+                     "seconds": round(time.time() - started, 1),
+                     "passed": not bad, "checks": results, "observed": obs}
+            if args.record:
+                entry["bundle"] = record(evidence / label, bundle)
+                if transcript is not None:
+                    with open(evidence / f"{label}.transcript.jsonl", "w",
+                              encoding="utf-8") as f:
+                        for line in transcript:
+                            f.write(json.dumps(line) + "\n")
+                    entry["transcript"] = str(
+                        (evidence / f"{label}.transcript.jsonl")
+                        .relative_to(REPO))
+            summary["cases"].append(entry)
+            mine = len([h for h in obs["tracker_holds"]
+                        if h["tag"] == obs["action_id"]])
+            status = next((a["note"].get("ledger_status", "-")
+                           for a in reversed(obs["seller_acks"])
+                           if "path" in a["note"]), "-")
+            extra = ""
+            if "model" in obs:
+                m = obs["model"]
+                acks = ",".join(a["status"] for a in m["acks"])
+                extra = (f" calls={m['calls']} ${m['cost_usd']:.3f}"
+                         f" acks={acks} reacks={m['harness_reacks']}")
+            print(f"{'ok  ' if not bad else 'FAIL'} {label:28} town="
+                  f"{obs['verdict']:10} holds={mine} ledger={status:17}"
+                  f" {entry['seconds']:5.1f}s{extra}", flush=True)
+            for c in bad:
+                print(f"     {c['check']}: expected {c['expected']!r},"
+                      f" observed {c['observed']!r}", flush=True)
+    if brain is not None:
+        summary["model_cost_usd"] = round(sum(
+            c["observed"].get("model", {}).get("cost_usd", 0)
+            for c in summary["cases"]), 4)
     if args.record:
-        EVIDENCE.mkdir(exist_ok=True)
-        with open(EVIDENCE / "summary.json", "w", encoding="utf-8") as f:
+        evidence.mkdir(parents=True, exist_ok=True)
+        with open(evidence / "summary.json", "w", encoding="utf-8") as f:
             json.dump(summary, f, indent=2, sort_keys=False)
             f.write("\n")
     if not args.keep:
@@ -433,10 +588,11 @@ def main() -> int:
     else:
         print(f"working directories kept in {root}")
     total = sum(len(c["checks"]) for c in summary["cases"])
-    print(f"{len(selected) - failed}/{len(selected)} cases, {total} checks;"
-          f" {'all hold' if not failed else f'{failed} case(s) failed'}")
+    cost = (f"; model cost ${summary['model_cost_usd']:.2f}"
+            if brain is not None else "")
+    print(f"{runs - failed}/{runs} runs, {total} checks;"
+          f" {'all hold' if not failed else f'{failed} run(s) failed'}{cost}")
     return 1 if failed else 0
-
 
 if __name__ == "__main__":
     sys.exit(main())

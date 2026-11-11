@@ -1,0 +1,14 @@
+{
+  "mode": "track",
+  "files": {
+    "profile.json": "sha256:b640ffaf267488129e06eb90a8431e23428d20ad699d35f108c4fc6feb835bf1",
+    "run.json": "sha256:9f2137bbad9033ade69b095267adb51141df97f95887cf31da6d018a69e3d3d2",
+    "intents.jsonl": "sha256:182bfdb6df007c438280fcf024bde53734f3ac1ad1b8f0154d53069dfddd2da8",
+    "events.jsonl": "sha256:1f8520e95d40382339018aff1e28414020ff4a654d8c1faaeeac9371827b5c23",
+    "result.json": "sha256:2a2068d0f700d4013f22432bd44285c056d7b94712bd0cba6e6d3fbed4d140e5"
+  },
+  "bundle_fingerprint": "sha256:fa53ad5b64eb721c2ad6c833f001c4407dce8c8b2e4a0e81bb320af51acfe3ac",
+  "created_at": 1794364932.5505621,
+  "nandatown_version": "0.2.0",
+  "evaluator_version": "0.5.0"
+}
