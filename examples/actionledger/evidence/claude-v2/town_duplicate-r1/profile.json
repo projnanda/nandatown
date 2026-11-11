@@ -1,0 +1,24 @@
+{
+  "name": "quote-duplicate-delivery",
+  "task": {
+    "kind": "quote",
+    "sku": "widget",
+    "quantity": 2,
+    "unit_price_cents": 1995,
+    "expected_total_cents": 3990
+  },
+  "roles": {
+    "buyer": "buyer",
+    "seller": "seller"
+  },
+  "capabilities": {
+    "buyer": [],
+    "seller": [
+      "quote.read"
+    ]
+  },
+  "fault": "duplicate_delivery",
+  "lease_seconds": 5.0,
+  "evaluator": "stage-evaluator",
+  "runtimes": {}
+}

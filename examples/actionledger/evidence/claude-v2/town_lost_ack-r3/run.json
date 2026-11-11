@@ -1,0 +1,80 @@
+{
+  "run_id": "run-c7d964d6d7e4",
+  "profile_name": "quote-lost-ack",
+  "profile_fingerprint": "sha256:68c9b4c2eab9177a86cc99b1e8089820c5857d78abdb0b67b6cd7ca5ec556702",
+  "created_at": 1794366253.554302,
+  "participants": [
+    {
+      "name": "buyer",
+      "role": "buyer",
+      "capabilities": [],
+      "runtime": "external",
+      "release": "external participant; immutable release not recorded"
+    },
+    {
+      "name": "seller",
+      "role": "seller",
+      "capabilities": [
+        "quote.read"
+      ],
+      "runtime": "cmd",
+      "release": "external command; immutable release not recorded"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "0.5.0",
+    "python": "3.13.15"
+  },
+  "config": {
+    "port": 49970,
+    "restarted_seller": false,
+    "runtimes": {
+      "buyer": "external",
+      "seller": "cmd"
+    },
+    "participant_provenance": {
+      "buyer": {
+        "kind": "external",
+        "identity_basis": "operator-connected participant (software identity not supplied)",
+        "release_basis": null,
+        "release_basis_note": "immutable external release not supplied"
+      },
+      "seller": {
+        "kind": "cmd",
+        "identity_basis": "operator-supplied command (command not recorded)",
+        "release_basis": null,
+        "release_basis_note": "immutable external release not supplied"
+      }
+    },
+    "skill_releases": [
+      {
+        "kind": "skill",
+        "name": "town-protocol",
+        "version": "1",
+        "content_fingerprint": "sha256:42d650f47b092ec90600dc0513c9399becc9956408162fcd629646bdafa1c42b"
+      },
+      {
+        "kind": "skill",
+        "name": "quote.read",
+        "version": "1",
+        "content_fingerprint": "sha256:c5f61b78cd6c1faa358ffa1d08d929d963c76a5e8cf5199521af4953e7d9de05"
+      },
+      {
+        "kind": "skill",
+        "name": "quote.request",
+        "version": "1",
+        "content_fingerprint": "sha256:eea11f02bb31c2d7929eaf37a249dd8c3e2b49500044b00e8b8e8e1d38e935a7"
+      }
+    ],
+    "harnesses": {
+      "buyer": "external",
+      "seller": "cmd:<operator-supplied-command>"
+    },
+    "rerun_command": "nandatown run quote-lost-ack --agent buyer=external --agent 'seller=cmd:<operator-supplied-command>'",
+    "rerun_required_inputs": {
+      "buyer": "external participant must reconnect with fresh credentials",
+      "seller": "original command (not recorded)"
+    }
+  }
+}

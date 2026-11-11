@@ -1,0 +1,77 @@
+{
+  "run_id": "run-ceb10f870c3c",
+  "evaluator_version": "0.5.0",
+  "stages": [
+    {
+      "name": "accepted",
+      "status": "passed",
+      "evidence": [
+        "ev-3"
+      ],
+      "note": ""
+    },
+    {
+      "name": "claimed",
+      "status": "passed",
+      "evidence": [
+        "ev-5",
+        "ev-13",
+        "ev-16"
+      ],
+      "note": ""
+    },
+    {
+      "name": "received",
+      "status": "passed",
+      "evidence": [
+        "ev-18"
+      ],
+      "note": ""
+    },
+    {
+      "name": "processed",
+      "status": "passed",
+      "evidence": [
+        "ev-18"
+      ],
+      "note": ""
+    },
+    {
+      "name": "response",
+      "status": "passed",
+      "evidence": [
+        "ev-7",
+        "ev-8"
+      ],
+      "note": ""
+    },
+    {
+      "name": "correct",
+      "status": "passed",
+      "evidence": [
+        "ev-9"
+      ],
+      "note": ""
+    },
+    {
+      "name": "amnesia_survived",
+      "status": "passed",
+      "evidence": [
+        "ev-7",
+        "ev-10",
+        "ev-11",
+        "ev-13",
+        "ev-14"
+      ],
+      "note": "the forgotten work was applied again, and the town returned the original acceptance for its answer"
+    },
+    {
+      "name": "portable_identity",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "this run used short-lived join tokens; rerun with --identity for grant-based portable identity"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794366524.335764
+}

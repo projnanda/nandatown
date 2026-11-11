@@ -1,0 +1,1621 @@
+{
+  "check": "actionledger-track-compatibility",
+  "versions": {
+    "nandatown": {
+      "version": "0.2.0",
+      "commit": "6f9a7c064486c4a0ae9242f1ff341b8a4aad0244",
+      "dirty": false
+    },
+    "actionledger": {
+      "repository": "https://github.com/Cecilia1220/actionledger",
+      "commit": "725ea4076c97bd3600ce3c80441fcc16bc28687a",
+      "dirty": false,
+      "python": "Python 3.13.15"
+    },
+    "python": "3.13.15",
+    "platform": "macOS-15.1"
+  },
+  "cases": [
+    {
+      "case": "clean",
+      "profile": "quote-clean",
+      "seller_path": "actionledger",
+      "what": "baseline: no fault anywhere",
+      "tracker_fault": null,
+      "seconds": 1.9,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "seller writer calls",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "CONFIRMED_SUCCESS",
+          "observed": "CONFIRMED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-8f69b992bc49",
+        "action_id": "town:run-8f69b992bc49:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "total_cents": 3990,
+              "path": "actionledger",
+              "action_id": "town:run-8f69b992bc49:q-1",
+              "ledger_status": "CONFIRMED_SUCCESS",
+              "attempts": 1,
+              "hold": "task_1"
+            },
+            "attempt": 1
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "path": "actionledger",
+            "action_id": "town:run-8f69b992bc49:q-1",
+            "ledger_status": "CONFIRMED_SUCCESS",
+            "attempts": 1,
+            "hold": "task_1"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-8f69b992bc49:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-8f69b992bc49:q-1",
+            "state": "CONFIRMED_SUCCESS",
+            "result": {
+              "action_id": "town:run-8f69b992bc49:q-1",
+              "evidence": {
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                "resource_id": "task_1",
+                "tag": "town:run-8f69b992bc49:q-1"
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "CONFIRMED_SUCCESS"
+            }
+          }
+        ],
+        "service_log": [
+          "LEDGER: town:run-8f69b992bc49:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-8f69b992bc49:q-1",
+          "LEDGER: town:run-8f69b992bc49:q-1 -> CONFIRMED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/clean"
+    },
+    {
+      "case": "town_lost_ack",
+      "profile": "quote-lost-ack",
+      "seller_path": "actionledger",
+      "what": "Town drops the seller's first processed ack (503); the client retries it",
+      "tracker_fault": null,
+      "seconds": 2.0,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "town stage ack_retry_survived",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "seller writer calls",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "CONFIRMED_SUCCESS",
+          "observed": "CONFIRMED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-45f1830ee6c0",
+        "action_id": "town:run-45f1830ee6c0:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "ack_retry_survived": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "total_cents": 3990,
+              "path": "actionledger",
+              "action_id": "town:run-45f1830ee6c0:q-1",
+              "ledger_status": "CONFIRMED_SUCCESS",
+              "attempts": 1,
+              "hold": "task_1"
+            },
+            "attempt": 1
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "path": "actionledger",
+            "action_id": "town:run-45f1830ee6c0:q-1",
+            "ledger_status": "CONFIRMED_SUCCESS",
+            "attempts": 1,
+            "hold": "task_1"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-45f1830ee6c0:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-45f1830ee6c0:q-1",
+            "state": "CONFIRMED_SUCCESS",
+            "result": {
+              "action_id": "town:run-45f1830ee6c0:q-1",
+              "evidence": {
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                "resource_id": "task_1",
+                "tag": "town:run-45f1830ee6c0:q-1"
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "CONFIRMED_SUCCESS"
+            }
+          }
+        ],
+        "service_log": [
+          "LEDGER: town:run-45f1830ee6c0:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-45f1830ee6c0:q-1",
+          "LEDGER: town:run-45f1830ee6c0:q-1 -> CONFIRMED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/town_lost_ack"
+    },
+    {
+      "case": "town_duplicate",
+      "profile": "quote-duplicate-delivery",
+      "seller_path": "actionledger",
+      "what": "Town re-offers the completed request; the seller's journal answers it without a second write",
+      "tracker_fault": null,
+      "seconds": 2.4,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "town stage duplicate_recognized",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "seller writer calls",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "CONFIRMED_SUCCESS",
+          "observed": "CONFIRMED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-74930b9f0968",
+        "action_id": "town:run-74930b9f0968:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "duplicate_recognized": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "total_cents": 3990,
+              "path": "actionledger",
+              "action_id": "town:run-74930b9f0968:q-1",
+              "ledger_status": "CONFIRMED_SUCCESS",
+              "attempts": 1,
+              "hold": "task_1"
+            },
+            "attempt": 1
+          },
+          {
+            "status": "processed",
+            "note": {
+              "duplicate": true
+            },
+            "attempt": 2
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "path": "actionledger",
+            "action_id": "town:run-74930b9f0968:q-1",
+            "ledger_status": "CONFIRMED_SUCCESS",
+            "attempts": 1,
+            "hold": "task_1"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-74930b9f0968:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-74930b9f0968:q-1",
+            "state": "CONFIRMED_SUCCESS",
+            "result": {
+              "action_id": "town:run-74930b9f0968:q-1",
+              "evidence": {
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                "resource_id": "task_1",
+                "tag": "town:run-74930b9f0968:q-1"
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "CONFIRMED_SUCCESS"
+            }
+          }
+        ],
+        "service_log": [
+          "LEDGER: town:run-74930b9f0968:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-74930b9f0968:q-1",
+          "LEDGER: town:run-74930b9f0968:q-1 -> CONFIRMED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/town_duplicate"
+    },
+    {
+      "case": "crash_restart",
+      "profile": "quote-crash-restart",
+      "seller_path": "actionledger",
+      "what": "seller stalls past its lease after claiming and exits; Town fences the stale attempt and redelivers to the restarted seller",
+      "tracker_fault": null,
+      "seconds": 4.6,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "town stage stale_fence_rejected",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "town stage recovered_after_restart",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "seller writer calls",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "CONFIRMED_SUCCESS",
+          "observed": "CONFIRMED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-f320a5ea3826",
+        "action_id": "town:run-f320a5ea3826:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "recovered_after_restart": "passed",
+          "stale_fence_rejected": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "total_cents": 3990,
+              "path": "actionledger",
+              "action_id": "town:run-f320a5ea3826:q-1",
+              "ledger_status": "CONFIRMED_SUCCESS",
+              "attempts": 1,
+              "hold": "task_1"
+            },
+            "attempt": 2
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 2,
+            "path": "actionledger",
+            "action_id": "town:run-f320a5ea3826:q-1",
+            "ledger_status": "CONFIRMED_SUCCESS",
+            "attempts": 1,
+            "hold": "task_1"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-f320a5ea3826:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-f320a5ea3826:q-1",
+            "state": "CONFIRMED_SUCCESS",
+            "result": {
+              "action_id": "town:run-f320a5ea3826:q-1",
+              "evidence": {
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                "resource_id": "task_1",
+                "tag": "town:run-f320a5ea3826:q-1"
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "CONFIRMED_SUCCESS"
+            }
+          }
+        ],
+        "service_log": [
+          "LEDGER: town:run-f320a5ea3826:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-f320a5ea3826:q-1",
+          "LEDGER: town:run-f320a5ea3826:q-1 -> CONFIRMED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/crash_restart"
+    },
+    {
+      "case": "amnesia",
+      "profile": "quote-amnesia-restart",
+      "seller_path": "actionledger",
+      "what": "seller places the hold, answers, loses its journal and dies before acking; the restarted seller applies the request again",
+      "tracker_fault": null,
+      "seconds": 3.8,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "town stage amnesia_survived",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "seller writer calls",
+          "expected": 2,
+          "observed": 2,
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "CONFIRMED_SUCCESS",
+          "observed": "CONFIRMED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-f8d57e074b56",
+        "action_id": "town:run-f8d57e074b56:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "amnesia_survived": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "total_cents": 3990,
+              "path": "actionledger",
+              "action_id": "town:run-f8d57e074b56:q-1",
+              "ledger_status": "CONFIRMED_SUCCESS",
+              "attempts": 1,
+              "hold": "task_1"
+            },
+            "attempt": 2
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "path": "actionledger",
+            "action_id": "town:run-f8d57e074b56:q-1",
+            "ledger_status": "CONFIRMED_SUCCESS",
+            "attempts": 1,
+            "hold": "task_1"
+          },
+          {
+            "message_id": "q-1",
+            "attempt": 2,
+            "path": "actionledger",
+            "action_id": "town:run-f8d57e074b56:q-1",
+            "ledger_status": "CONFIRMED_SUCCESS",
+            "attempts": 1,
+            "hold": "task_1"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-f8d57e074b56:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-f8d57e074b56:q-1",
+            "state": "CONFIRMED_SUCCESS",
+            "result": {
+              "action_id": "town:run-f8d57e074b56:q-1",
+              "evidence": {
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                "resource_id": "task_1",
+                "tag": "town:run-f8d57e074b56:q-1"
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "CONFIRMED_SUCCESS"
+            }
+          }
+        ],
+        "service_log": [
+          "LEDGER: town:run-f8d57e074b56:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-f8d57e074b56:q-1",
+          "LEDGER: town:run-f8d57e074b56:q-1 -> CONFIRMED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/amnesia"
+    },
+    {
+      "case": "amnesia_direct",
+      "profile": "quote-amnesia-restart",
+      "seller_path": "direct",
+      "what": "negative control: the same fault, the seller writes to the tracker itself with no ledger in front",
+      "tracker_fault": null,
+      "seconds": 4.1,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "town stage amnesia_survived",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 2,
+          "observed": 2,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 2,
+          "observed": 2,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "seller writer calls",
+          "expected": 2,
+          "observed": 2,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-6b4df8a9f878",
+        "action_id": "town:run-6b4df8a9f878:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "amnesia_survived": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "total_cents": 3990,
+              "path": "direct",
+              "action_id": "town:run-6b4df8a9f878:q-1",
+              "tracker_status": 200,
+              "hold": "task_2"
+            },
+            "attempt": 2
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "path": "direct",
+            "action_id": "town:run-6b4df8a9f878:q-1",
+            "tracker_status": 200,
+            "hold": "task_1"
+          },
+          {
+            "message_id": "q-1",
+            "attempt": 2,
+            "path": "direct",
+            "action_id": "town:run-6b4df8a9f878:q-1",
+            "tracker_status": 200,
+            "hold": "task_2"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-6b4df8a9f878:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          },
+          {
+            "resource_id": "task_2",
+            "tag": "town:run-6b4df8a9f878:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [],
+        "service_log": [
+          "TRACKER: committed task_1, tag=town:run-6b4df8a9f878:q-1",
+          "TRACKER: committed task_2, tag=town:run-6b4df8a9f878:q-1"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/amnesia_direct"
+    },
+    {
+      "case": "tracker_lost_ack",
+      "profile": "quote-clean",
+      "seller_path": "actionledger",
+      "what": "the tracker commits the hold and then answers 504; ActionLedger verifies by tag and payload hash",
+      "tracker_fault": {
+        "mode": "lost_ack"
+      },
+      "seconds": 1.9,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "seller writer calls",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "RECOVERED_SUCCESS",
+          "observed": "RECOVERED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-7a55c1f09f4b",
+        "action_id": "town:run-7a55c1f09f4b:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "total_cents": 3990,
+              "path": "actionledger",
+              "action_id": "town:run-7a55c1f09f4b:q-1",
+              "ledger_status": "RECOVERED_SUCCESS",
+              "attempts": 1,
+              "hold": "task_1"
+            },
+            "attempt": 1
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "path": "actionledger",
+            "action_id": "town:run-7a55c1f09f4b:q-1",
+            "ledger_status": "RECOVERED_SUCCESS",
+            "attempts": 1,
+            "hold": "task_1"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-7a55c1f09f4b:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-7a55c1f09f4b:q-1",
+            "state": "RECOVERED_SUCCESS",
+            "result": {
+              "action_id": "town:run-7a55c1f09f4b:q-1",
+              "evidence": {
+                "lookup_tag": "town:run-7a55c1f09f4b:q-1",
+                "match_count": 1,
+                "task_count": 1,
+                "tasks": [
+                  {
+                    "payload": {
+                      "quantity": 2,
+                      "sku": "widget",
+                      "title": "Hold stock for quote q-1",
+                      "total_cents": 3990
+                    },
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                    "resource_id": "task_1",
+                    "tag": "town:run-7a55c1f09f4b:q-1"
+                  }
+                ]
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "RECOVERED_SUCCESS"
+            }
+          }
+        ],
+        "service_log": [
+          "LEDGER: town:run-7a55c1f09f4b:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-7a55c1f09f4b:q-1",
+          "TRACKER: injected LOST ACK after commit (HTTP 504)",
+          "LEDGER: town:run-7a55c1f09f4b:q-1 -> UNKNOWN",
+          "LEDGER: town:run-7a55c1f09f4b:q-1 -> RECOVERED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/tracker_lost_ack"
+    },
+    {
+      "case": "amnesia_tracker_lost_ack",
+      "profile": "quote-amnesia-restart",
+      "seller_path": "actionledger",
+      "what": "both faults: tracker loses the ack on the first application, the seller then forgets everything and applies again",
+      "tracker_fault": {
+        "mode": "lost_ack"
+      },
+      "seconds": 3.6,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "town stage amnesia_survived",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "seller writer calls",
+          "expected": 2,
+          "observed": 2,
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "RECOVERED_SUCCESS",
+          "observed": "RECOVERED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-116f01ec54b0",
+        "action_id": "town:run-116f01ec54b0:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "amnesia_survived": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "total_cents": 3990,
+              "path": "actionledger",
+              "action_id": "town:run-116f01ec54b0:q-1",
+              "ledger_status": "RECOVERED_SUCCESS",
+              "attempts": 1,
+              "hold": "task_1"
+            },
+            "attempt": 2
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "path": "actionledger",
+            "action_id": "town:run-116f01ec54b0:q-1",
+            "ledger_status": "RECOVERED_SUCCESS",
+            "attempts": 1,
+            "hold": "task_1"
+          },
+          {
+            "message_id": "q-1",
+            "attempt": 2,
+            "path": "actionledger",
+            "action_id": "town:run-116f01ec54b0:q-1",
+            "ledger_status": "RECOVERED_SUCCESS",
+            "attempts": 1,
+            "hold": "task_1"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-116f01ec54b0:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-116f01ec54b0:q-1",
+            "state": "RECOVERED_SUCCESS",
+            "result": {
+              "action_id": "town:run-116f01ec54b0:q-1",
+              "evidence": {
+                "lookup_tag": "town:run-116f01ec54b0:q-1",
+                "match_count": 1,
+                "task_count": 1,
+                "tasks": [
+                  {
+                    "payload": {
+                      "quantity": 2,
+                      "sku": "widget",
+                      "title": "Hold stock for quote q-1",
+                      "total_cents": 3990
+                    },
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                    "resource_id": "task_1",
+                    "tag": "town:run-116f01ec54b0:q-1"
+                  }
+                ]
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "RECOVERED_SUCCESS"
+            }
+          }
+        ],
+        "service_log": [
+          "LEDGER: town:run-116f01ec54b0:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-116f01ec54b0:q-1",
+          "TRACKER: injected LOST ACK after commit (HTTP 504)",
+          "LEDGER: town:run-116f01ec54b0:q-1 -> UNKNOWN",
+          "LEDGER: town:run-116f01ec54b0:q-1 -> RECOVERED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/amnesia_tracker_lost_ack"
+    },
+    {
+      "case": "lookup_down",
+      "profile": "quote-clean",
+      "seller_path": "actionledger",
+      "what": "boundary: the tracker commits, loses the ack, and lookup is down; the outcome cannot be verified, so the seller escalates",
+      "tracker_fault": {
+        "mode": "lost_ack",
+        "break_lookup": true
+      },
+      "seconds": 40.3,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "incomplete",
+          "observed": "incomplete",
+          "ok": true
+        },
+        {
+          "check": "town stage response",
+          "expected": "not_enough_evidence",
+          "observed": "not_enough_evidence",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "failed",
+          "observed": "failed",
+          "ok": true
+        },
+        {
+          "check": "seller writer calls",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "AMBIGUOUS",
+          "observed": "AMBIGUOUS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 0,
+          "observed": 0,
+          "ok": true
+        },
+        {
+          "check": "status after lookup returns",
+          "expected": "RECOVERED_SUCCESS",
+          "observed": "RECOVERED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "recovered hold is the committed one",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-a2822f750fa2",
+        "action_id": "town:run-a2822f750fa2:q-1",
+        "verdict": "incomplete",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "not_enough_evidence",
+          "processed": "not_enough_evidence",
+          "response": "not_enough_evidence",
+          "correct": "not_enough_evidence",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "failed",
+            "note": {
+              "applied": false,
+              "path": "actionledger",
+              "action_id": "town:run-a2822f750fa2:q-1",
+              "ledger_status": "AMBIGUOUS",
+              "attempts": 1,
+              "ledger_reason": "Verification unavailable"
+            },
+            "attempt": 1
+          }
+        ],
+        "quote_responses": 0,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "path": "actionledger",
+            "action_id": "town:run-a2822f750fa2:q-1",
+            "ledger_status": "AMBIGUOUS",
+            "attempts": 1,
+            "ledger_reason": "Verification unavailable"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-a2822f750fa2:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-a2822f750fa2:q-1",
+            "state": "AMBIGUOUS",
+            "result": {
+              "action_id": "town:run-a2822f750fa2:q-1",
+              "evidence": {
+                "error_type": "HTTPStatusError",
+                "reason": "Verification unavailable"
+              },
+              "resource_id": null,
+              "safe_to_retry": false,
+              "status": "AMBIGUOUS"
+            }
+          }
+        ],
+        "recovered": {
+          "action_id": "town:run-a2822f750fa2:q-1",
+          "status": "RECOVERED_SUCCESS",
+          "safe_to_retry": false,
+          "resource_id": "task_1",
+          "evidence": {
+            "lookup_tag": "town:run-a2822f750fa2:q-1",
+            "match_count": 1,
+            "task_count": 1,
+            "tasks": [
+              {
+                "resource_id": "task_1",
+                "tag": "town:run-a2822f750fa2:q-1",
+                "payload": {
+                  "title": "Hold stock for quote q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                },
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+              }
+            ]
+          }
+        },
+        "ledger_actions_after_recovery": [
+          {
+            "action_id": "town:run-a2822f750fa2:q-1",
+            "state": "RECOVERED_SUCCESS"
+          }
+        ],
+        "service_log": [
+          "LEDGER: town:run-a2822f750fa2:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-a2822f750fa2:q-1",
+          "TRACKER: injected LOST ACK after commit (HTTP 504)",
+          "LEDGER: town:run-a2822f750fa2:q-1 -> UNKNOWN",
+          "LEDGER: town:run-a2822f750fa2:q-1 -> AMBIGUOUS",
+          "LEDGER: town:run-a2822f750fa2:q-1 -> RECOVERED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/lookup_down"
+    }
+  ]
+}

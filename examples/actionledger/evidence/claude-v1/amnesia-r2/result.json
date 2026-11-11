@@ -1,0 +1,74 @@
+{
+  "run_id": "run-547a9866c868",
+  "evaluator_version": "0.5.0",
+  "stages": [
+    {
+      "name": "accepted",
+      "status": "passed",
+      "evidence": [
+        "ev-3"
+      ],
+      "note": ""
+    },
+    {
+      "name": "claimed",
+      "status": "passed",
+      "evidence": [
+        "ev-5",
+        "ev-13",
+        "ev-16"
+      ],
+      "note": ""
+    },
+    {
+      "name": "received",
+      "status": "passed",
+      "evidence": [
+        "ev-18"
+      ],
+      "note": ""
+    },
+    {
+      "name": "processed",
+      "status": "passed",
+      "evidence": [
+        "ev-18"
+      ],
+      "note": ""
+    },
+    {
+      "name": "response",
+      "status": "failed",
+      "evidence": [
+        "ev-7",
+        "ev-14"
+      ],
+      "note": "2 distinct quote responses were accepted, expected one (an idempotent resend of one identity is not counted)"
+    },
+    {
+      "name": "correct",
+      "status": "failed",
+      "evidence": [
+        "ev-9"
+      ],
+      "note": "the buyer's assertion cannot establish the answer to the accepted request: 2 distinct quote responses were accepted, expected one (an idempotent resend of one identity is not counted)"
+    },
+    {
+      "name": "amnesia_survived",
+      "status": "failed",
+      "evidence": [
+        "ev-7",
+        "ev-14"
+      ],
+      "note": "the forgotten work answered again under a new identity: 2 distinct responses accepted"
+    },
+    {
+      "name": "portable_identity",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "this run used short-lived join tokens; rerun with --identity for grant-based portable identity"
+    }
+  ],
+  "verdict": "failed",
+  "evaluated_at": 1794364932.549503
+}

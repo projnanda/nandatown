@@ -1,0 +1,5140 @@
+{
+  "check": "actionledger-track-compatibility",
+  "seller": {
+    "kind": "claude_seller.py",
+    "model": "claude-opus-5-5",
+    "effort": "medium",
+    "harness": "v1"
+  },
+  "versions": {
+    "nandatown": {
+      "version": "0.2.0",
+      "commit": "23ec5afc5f36d22ac977dc14015e11abadee7c6c",
+      "dirty": true
+    },
+    "actionledger": {
+      "repository": "https://github.com/Cecilia1220/actionledger",
+      "commit": "725ea4076c97bd3600ce3c80441fcc16bc28687a",
+      "dirty": false,
+      "python": "Python 3.13.15"
+    },
+    "python": "3.13.15",
+    "platform": "macOS-15.1"
+  },
+  "cases": [
+    {
+      "case": "clean",
+      "rep": 1,
+      "label": "clean-r1",
+      "profile": "quote-clean",
+      "seller_path": "actionledger",
+      "what": "baseline: no fault anywhere",
+      "tracker_fault": null,
+      "seconds": 10.7,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "CONFIRMED_SUCCESS",
+          "observed": "CONFIRMED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-1894de8a7ee5",
+        "action_id": "town:run-1894de8a7ee5:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "duplicate": false,
+              "total_cents": 3990,
+              "reason": "New request: hold task_1 confirmed (CONFIRMED_SUCCESS) and quote of 2 x 1995 = 3990 cents sent as q-1-response.",
+              "path": "actionledger",
+              "action_id": "town:run-1894de8a7ee5:q-1",
+              "hold": "task_1",
+              "ledger_status": "CONFIRMED_SUCCESS",
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 2
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-1894de8a7ee5:q-1",
+            "hold": "task_1",
+            "ledger_status": "CONFIRMED_SUCCESS"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-1894de8a7ee5:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-1894de8a7ee5:q-1",
+            "state": "CONFIRMED_SUCCESS",
+            "result": {
+              "action_id": "town:run-1894de8a7ee5:q-1",
+              "evidence": {
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                "resource_id": "task_1",
+                "tag": "town:run-1894de8a7ee5:q-1"
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "CONFIRMED_SUCCESS"
+            }
+          }
+        ],
+        "model": {
+          "sessions": 1,
+          "calls": 3,
+          "cost_usd": 0.01639,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            2.43,
+            2.32,
+            2.43
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-1894de8a7ee5:q-1",
+                  "status": "CONFIRMED_SUCCESS",
+                  "safe_to_retry": false,
+                  "resource_id": "task_1",
+                  "evidence": {
+                    "resource_id": "task_1",
+                    "tag": "town:run-1894de8a7ee5:q-1",
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                  }
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794364778.263733,
+                "replay": false
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": true,
+                  "duplicate": false,
+                  "total_cents": 3990,
+                  "reason": "New request: hold task_1 confirmed (CONFIRMED_SUCCESS) and quote of 2 x 1995 = 3990 cents sent as q-1-response."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "processed",
+              "note": {
+                "applied": true,
+                "duplicate": false,
+                "total_cents": 3990,
+                "reason": "New request: hold task_1 confirmed (CONFIRMED_SUCCESS) and quote of 2 x 1995 = 3990 cents sent as q-1-response."
+              }
+            }
+          ]
+        },
+        "service_log": [
+          "LEDGER: town:run-1894de8a7ee5:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-1894de8a7ee5:q-1",
+          "LEDGER: town:run-1894de8a7ee5:q-1 -> CONFIRMED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/clean-r1",
+      "transcript": "examples/actionledger/evidence/claude-v1/clean-r1.transcript.jsonl"
+    },
+    {
+      "case": "clean",
+      "rep": 2,
+      "label": "clean-r2",
+      "profile": "quote-clean",
+      "seller_path": "actionledger",
+      "what": "baseline: no fault anywhere",
+      "tracker_fault": null,
+      "seconds": 11.1,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "CONFIRMED_SUCCESS",
+          "observed": "CONFIRMED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-28c69551ccdf",
+        "action_id": "town:run-28c69551ccdf:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "duplicate": false,
+              "total_cents": 3990,
+              "reason": "New request: hold task_1 confirmed (CONFIRMED_SUCCESS) and quote q-1-response for 3990 cents sent to buyer.",
+              "path": "actionledger",
+              "action_id": "town:run-28c69551ccdf:q-1",
+              "hold": "task_1",
+              "ledger_status": "CONFIRMED_SUCCESS",
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 2
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-28c69551ccdf:q-1",
+            "hold": "task_1",
+            "ledger_status": "CONFIRMED_SUCCESS"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-28c69551ccdf:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-28c69551ccdf:q-1",
+            "state": "CONFIRMED_SUCCESS",
+            "result": {
+              "action_id": "town:run-28c69551ccdf:q-1",
+              "evidence": {
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                "resource_id": "task_1",
+                "tag": "town:run-28c69551ccdf:q-1"
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "CONFIRMED_SUCCESS"
+            }
+          }
+        ],
+        "model": {
+          "sessions": 1,
+          "calls": 3,
+          "cost_usd": 0.01628,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            2.81,
+            2.67,
+            2.5
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-28c69551ccdf:q-1",
+                  "status": "CONFIRMED_SUCCESS",
+                  "safe_to_retry": false,
+                  "resource_id": "task_1",
+                  "evidence": {
+                    "resource_id": "task_1",
+                    "tag": "town:run-28c69551ccdf:q-1",
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                  }
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794364789.33569,
+                "replay": false
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": true,
+                  "duplicate": false,
+                  "total_cents": 3990,
+                  "reason": "New request: hold task_1 confirmed (CONFIRMED_SUCCESS) and quote q-1-response for 3990 cents sent to buyer."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "processed",
+              "note": {
+                "applied": true,
+                "duplicate": false,
+                "total_cents": 3990,
+                "reason": "New request: hold task_1 confirmed (CONFIRMED_SUCCESS) and quote q-1-response for 3990 cents sent to buyer."
+              }
+            }
+          ]
+        },
+        "service_log": [
+          "LEDGER: town:run-28c69551ccdf:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-28c69551ccdf:q-1",
+          "LEDGER: town:run-28c69551ccdf:q-1 -> CONFIRMED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/clean-r2",
+      "transcript": "examples/actionledger/evidence/claude-v1/clean-r2.transcript.jsonl"
+    },
+    {
+      "case": "town_lost_ack",
+      "rep": 1,
+      "label": "town_lost_ack-r1",
+      "profile": "quote-lost-ack",
+      "seller_path": "actionledger",
+      "what": "Town drops the seller's first processed ack (503); the client retries it",
+      "tracker_fault": null,
+      "seconds": 10.8,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "town stage ack_retry_survived",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "CONFIRMED_SUCCESS",
+          "observed": "CONFIRMED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-02feac2f2f02",
+        "action_id": "town:run-02feac2f2f02:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "ack_retry_survived": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "duplicate": false,
+              "total_cents": 3990,
+              "reason": "New request: hold task_1 confirmed (CONFIRMED_SUCCESS) and quote q-1-response for 3990 cents sent to buyer.",
+              "path": "actionledger",
+              "action_id": "town:run-02feac2f2f02:q-1",
+              "hold": "task_1",
+              "ledger_status": "CONFIRMED_SUCCESS",
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 2
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-02feac2f2f02:q-1",
+            "hold": "task_1",
+            "ledger_status": "CONFIRMED_SUCCESS"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-02feac2f2f02:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-02feac2f2f02:q-1",
+            "state": "CONFIRMED_SUCCESS",
+            "result": {
+              "action_id": "town:run-02feac2f2f02:q-1",
+              "evidence": {
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                "resource_id": "task_1",
+                "tag": "town:run-02feac2f2f02:q-1"
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "CONFIRMED_SUCCESS"
+            }
+          }
+        ],
+        "model": {
+          "sessions": 1,
+          "calls": 3,
+          "cost_usd": 0.01631,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            2.52,
+            2.29,
+            2.68
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-02feac2f2f02:q-1",
+                  "status": "CONFIRMED_SUCCESS",
+                  "safe_to_retry": false,
+                  "resource_id": "task_1",
+                  "evidence": {
+                    "resource_id": "task_1",
+                    "tag": "town:run-02feac2f2f02:q-1",
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                  }
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794364799.904804,
+                "replay": false
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": true,
+                  "duplicate": false,
+                  "total_cents": 3990,
+                  "reason": "New request: hold task_1 confirmed (CONFIRMED_SUCCESS) and quote q-1-response for 3990 cents sent to buyer."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "processed",
+              "note": {
+                "applied": true,
+                "duplicate": false,
+                "total_cents": 3990,
+                "reason": "New request: hold task_1 confirmed (CONFIRMED_SUCCESS) and quote q-1-response for 3990 cents sent to buyer."
+              }
+            }
+          ]
+        },
+        "service_log": [
+          "LEDGER: town:run-02feac2f2f02:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-02feac2f2f02:q-1",
+          "LEDGER: town:run-02feac2f2f02:q-1 -> CONFIRMED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/town_lost_ack-r1",
+      "transcript": "examples/actionledger/evidence/claude-v1/town_lost_ack-r1.transcript.jsonl"
+    },
+    {
+      "case": "town_lost_ack",
+      "rep": 2,
+      "label": "town_lost_ack-r2",
+      "profile": "quote-lost-ack",
+      "seller_path": "actionledger",
+      "what": "Town drops the seller's first processed ack (503); the client retries it",
+      "tracker_fault": null,
+      "seconds": 10.5,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "town stage ack_retry_survived",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "CONFIRMED_SUCCESS",
+          "observed": "CONFIRMED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-2e51b1be9681",
+        "action_id": "town:run-2e51b1be9681:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "ack_retry_survived": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "duplicate": false,
+              "total_cents": 3990,
+              "reason": "New request: hold task_1 confirmed (CONFIRMED_SUCCESS) and quote of 2 x 1995 = 3990 cents sent as q-1-response.",
+              "path": "actionledger",
+              "action_id": "town:run-2e51b1be9681:q-1",
+              "hold": "task_1",
+              "ledger_status": "CONFIRMED_SUCCESS",
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 2
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-2e51b1be9681:q-1",
+            "hold": "task_1",
+            "ledger_status": "CONFIRMED_SUCCESS"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-2e51b1be9681:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-2e51b1be9681:q-1",
+            "state": "CONFIRMED_SUCCESS",
+            "result": {
+              "action_id": "town:run-2e51b1be9681:q-1",
+              "evidence": {
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                "resource_id": "task_1",
+                "tag": "town:run-2e51b1be9681:q-1"
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "CONFIRMED_SUCCESS"
+            }
+          }
+        ],
+        "model": {
+          "sessions": 1,
+          "calls": 3,
+          "cost_usd": 0.0164,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            2.41,
+            2.16,
+            2.49
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-2e51b1be9681:q-1",
+                  "status": "CONFIRMED_SUCCESS",
+                  "safe_to_retry": false,
+                  "resource_id": "task_1",
+                  "evidence": {
+                    "resource_id": "task_1",
+                    "tag": "town:run-2e51b1be9681:q-1",
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                  }
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794364810.472329,
+                "replay": false
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": true,
+                  "duplicate": false,
+                  "total_cents": 3990,
+                  "reason": "New request: hold task_1 confirmed (CONFIRMED_SUCCESS) and quote of 2 x 1995 = 3990 cents sent as q-1-response."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "processed",
+              "note": {
+                "applied": true,
+                "duplicate": false,
+                "total_cents": 3990,
+                "reason": "New request: hold task_1 confirmed (CONFIRMED_SUCCESS) and quote of 2 x 1995 = 3990 cents sent as q-1-response."
+              }
+            }
+          ]
+        },
+        "service_log": [
+          "LEDGER: town:run-2e51b1be9681:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-2e51b1be9681:q-1",
+          "LEDGER: town:run-2e51b1be9681:q-1 -> CONFIRMED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/town_lost_ack-r2",
+      "transcript": "examples/actionledger/evidence/claude-v1/town_lost_ack-r2.transcript.jsonl"
+    },
+    {
+      "case": "town_duplicate",
+      "rep": 1,
+      "label": "town_duplicate-r1",
+      "profile": "quote-duplicate-delivery",
+      "seller_path": "actionledger",
+      "what": "Town re-offers the completed request; the seller's journal answers it without a second write",
+      "tracker_fault": null,
+      "seconds": 17.9,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "town stage duplicate_recognized",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "CONFIRMED_SUCCESS",
+          "observed": "CONFIRMED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-94bdb7de381c",
+        "action_id": "town:run-94bdb7de381c:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "duplicate_recognized": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "duplicate": false,
+              "total_cents": 3990,
+              "reason": "New request: hold task_1 confirmed (CONFIRMED_SUCCESS) and quote q-1-response for 2 x 1995 = 3990 cents sent to buyer.",
+              "path": "actionledger",
+              "action_id": "town:run-94bdb7de381c:q-1",
+              "hold": "task_1",
+              "ledger_status": "CONFIRMED_SUCCESS",
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 2
+          },
+          {
+            "status": "processed",
+            "note": {
+              "applied": false,
+              "duplicate": true,
+              "total_cents": 3990,
+              "reason": "Redelivery of q-1, already processed earlier (hold task_1 confirmed, quote q-1-response for 3990 cents sent), so no new hold or quote was made.",
+              "brain": "claude-opus-5-5",
+              "harness": "v1"
+            },
+            "attempt": 3
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-94bdb7de381c:q-1",
+            "hold": "task_1",
+            "ledger_status": "CONFIRMED_SUCCESS"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-94bdb7de381c:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-94bdb7de381c:q-1",
+            "state": "CONFIRMED_SUCCESS",
+            "result": {
+              "action_id": "town:run-94bdb7de381c:q-1",
+              "evidence": {
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                "resource_id": "task_1",
+                "tag": "town:run-94bdb7de381c:q-1"
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "CONFIRMED_SUCCESS"
+            }
+          }
+        ],
+        "model": {
+          "sessions": 1,
+          "calls": 4,
+          "cost_usd": 0.02681,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            2.67,
+            2.33,
+            5.45,
+            3.47
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-94bdb7de381c:q-1",
+                  "status": "CONFIRMED_SUCCESS",
+                  "safe_to_retry": false,
+                  "resource_id": "task_1",
+                  "evidence": {
+                    "resource_id": "task_1",
+                    "tag": "town:run-94bdb7de381c:q-1",
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                  }
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794364821.441043,
+                "replay": false
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": true,
+                  "duplicate": false,
+                  "total_cents": 3990,
+                  "reason": "New request: hold task_1 confirmed (CONFIRMED_SUCCESS) and quote q-1-response for 2 x 1995 = 3990 cents sent to buyer."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": false,
+                  "duplicate": true,
+                  "total_cents": 3990,
+                  "reason": "Redelivery of q-1, already processed earlier (hold task_1 confirmed, quote q-1-response for 3990 cents sent), so no new hold or quote was made."
+                }
+              },
+              "output": {
+                "recorded": true
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "processed",
+              "note": {
+                "applied": true,
+                "duplicate": false,
+                "total_cents": 3990,
+                "reason": "New request: hold task_1 confirmed (CONFIRMED_SUCCESS) and quote q-1-response for 2 x 1995 = 3990 cents sent to buyer."
+              }
+            },
+            {
+              "status": "processed",
+              "note": {
+                "applied": false,
+                "duplicate": true,
+                "total_cents": 3990,
+                "reason": "Redelivery of q-1, already processed earlier (hold task_1 confirmed, quote q-1-response for 3990 cents sent), so no new hold or quote was made."
+              }
+            }
+          ]
+        },
+        "service_log": [
+          "LEDGER: town:run-94bdb7de381c:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-94bdb7de381c:q-1",
+          "LEDGER: town:run-94bdb7de381c:q-1 -> CONFIRMED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/town_duplicate-r1",
+      "transcript": "examples/actionledger/evidence/claude-v1/town_duplicate-r1.transcript.jsonl"
+    },
+    {
+      "case": "town_duplicate",
+      "rep": 2,
+      "label": "town_duplicate-r2",
+      "profile": "quote-duplicate-delivery",
+      "seller_path": "actionledger",
+      "what": "Town re-offers the completed request; the seller's journal answers it without a second write",
+      "tracker_fault": null,
+      "seconds": 32.6,
+      "passed": false,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "incomplete",
+          "ok": false
+        },
+        {
+          "check": "town stage duplicate_recognized",
+          "expected": "passed",
+          "observed": "not_enough_evidence",
+          "ok": false
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "CONFIRMED_SUCCESS",
+          "observed": "CONFIRMED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-ee23b8116288",
+        "action_id": "town:run-ee23b8116288:q-1",
+        "verdict": "incomplete",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "duplicate_recognized": "not_enough_evidence",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "duplicate": false,
+              "total_cents": 3990,
+              "reason": "New request: stock hold task_1 confirmed (CONFIRMED_SUCCESS) and quote q-1-response sent for 2 x 1995 = 3990 cents.",
+              "path": "actionledger",
+              "action_id": "town:run-ee23b8116288:q-1",
+              "hold": "task_1",
+              "ledger_status": "CONFIRMED_SUCCESS",
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 2
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-ee23b8116288:q-1",
+            "hold": "task_1",
+            "ledger_status": "CONFIRMED_SUCCESS"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-ee23b8116288:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-ee23b8116288:q-1",
+            "state": "CONFIRMED_SUCCESS",
+            "result": {
+              "action_id": "town:run-ee23b8116288:q-1",
+              "evidence": {
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                "resource_id": "task_1",
+                "tag": "town:run-ee23b8116288:q-1"
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "CONFIRMED_SUCCESS"
+            }
+          }
+        ],
+        "model": {
+          "sessions": 1,
+          "calls": 4,
+          "cost_usd": 0.02708,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            2.44,
+            3.59,
+            4.28,
+            4.99
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-ee23b8116288:q-1",
+                  "status": "CONFIRMED_SUCCESS",
+                  "safe_to_retry": false,
+                  "resource_id": "task_1",
+                  "evidence": {
+                    "resource_id": "task_1",
+                    "tag": "town:run-ee23b8116288:q-1",
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                  }
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794364840.287381,
+                "replay": false
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": true,
+                  "duplicate": false,
+                  "total_cents": 3990,
+                  "reason": "New request: stock hold task_1 confirmed (CONFIRMED_SUCCESS) and quote q-1-response sent for 2 x 1995 = 3990 cents."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": false,
+                  "duplicate": true,
+                  "total_cents": 3990,
+                  "reason": "Redelivery of q-1, which my journal already shows as processed (hold task_1 confirmed, quote q-1-response accepted), so I placed no new hold and sent no new quote."
+                }
+              },
+              "output": {
+                "recorded": false,
+                "error": "stale fence; the work will be redelivered"
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "processed",
+              "note": {
+                "applied": true,
+                "duplicate": false,
+                "total_cents": 3990,
+                "reason": "New request: stock hold task_1 confirmed (CONFIRMED_SUCCESS) and quote q-1-response sent for 2 x 1995 = 3990 cents."
+              }
+            },
+            {
+              "status": "processed",
+              "note": {
+                "applied": false,
+                "duplicate": true,
+                "total_cents": 3990,
+                "reason": "Redelivery of q-1, which my journal already shows as processed (hold task_1 confirmed, quote q-1-response accepted), so I placed no new hold and sent no new quote."
+              }
+            }
+          ]
+        },
+        "service_log": [
+          "LEDGER: town:run-ee23b8116288:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-ee23b8116288:q-1",
+          "LEDGER: town:run-ee23b8116288:q-1 -> CONFIRMED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/town_duplicate-r2",
+      "transcript": "examples/actionledger/evidence/claude-v1/town_duplicate-r2.transcript.jsonl"
+    },
+    {
+      "case": "crash_restart",
+      "rep": 1,
+      "label": "crash_restart-r1",
+      "profile": "quote-crash-restart",
+      "seller_path": "actionledger",
+      "what": "seller stalls past its lease after claiming and exits; Town fences the stale attempt and redelivers to the restarted seller",
+      "tracker_fault": null,
+      "seconds": 13.8,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "town stage stale_fence_rejected",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "town stage recovered_after_restart",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "CONFIRMED_SUCCESS",
+          "observed": "CONFIRMED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-bbff3e6801cd",
+        "action_id": "town:run-bbff3e6801cd:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "recovered_after_restart": "passed",
+          "stale_fence_rejected": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "duplicate": false,
+              "total_cents": 3990,
+              "reason": "Placed a confirmed stock hold (task_1) and sent quote_response q-1:response with total 2 x 1995 = 3990 cents.",
+              "path": "actionledger",
+              "action_id": "town:run-bbff3e6801cd:q-1",
+              "hold": "task_1",
+              "ledger_status": "CONFIRMED_SUCCESS",
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 3
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 2,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-bbff3e6801cd:q-1",
+            "hold": "task_1",
+            "ledger_status": "CONFIRMED_SUCCESS"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-bbff3e6801cd:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-bbff3e6801cd:q-1",
+            "state": "CONFIRMED_SUCCESS",
+            "result": {
+              "action_id": "town:run-bbff3e6801cd:q-1",
+              "evidence": {
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                "resource_id": "task_1",
+                "tag": "town:run-bbff3e6801cd:q-1"
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "CONFIRMED_SUCCESS"
+            }
+          }
+        ],
+        "model": {
+          "sessions": 2,
+          "calls": 3,
+          "cost_usd": 0.01798,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            3.55,
+            1.62,
+            1.92
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-bbff3e6801cd:q-1",
+                  "status": "CONFIRMED_SUCCESS",
+                  "safe_to_retry": false,
+                  "resource_id": "task_1",
+                  "evidence": {
+                    "resource_id": "task_1",
+                    "tag": "town:run-bbff3e6801cd:q-1",
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                  }
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1:response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1:response",
+                "accepted_at": 1794364875.506641,
+                "replay": false
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": true,
+                  "duplicate": false,
+                  "total_cents": 3990,
+                  "reason": "Placed a confirmed stock hold (task_1) and sent quote_response q-1:response with total 2 x 1995 = 3990 cents."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "processed",
+              "note": {
+                "applied": true,
+                "duplicate": false,
+                "total_cents": 3990,
+                "reason": "Placed a confirmed stock hold (task_1) and sent quote_response q-1:response with total 2 x 1995 = 3990 cents."
+              }
+            }
+          ]
+        },
+        "service_log": [
+          "LEDGER: town:run-bbff3e6801cd:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-bbff3e6801cd:q-1",
+          "LEDGER: town:run-bbff3e6801cd:q-1 -> CONFIRMED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/crash_restart-r1",
+      "transcript": "examples/actionledger/evidence/claude-v1/crash_restart-r1.transcript.jsonl"
+    },
+    {
+      "case": "crash_restart",
+      "rep": 2,
+      "label": "crash_restart-r2",
+      "profile": "quote-crash-restart",
+      "seller_path": "actionledger",
+      "what": "seller stalls past its lease after claiming and exits; Town fences the stale attempt and redelivers to the restarted seller",
+      "tracker_fault": null,
+      "seconds": 14.0,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "town stage stale_fence_rejected",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "town stage recovered_after_restart",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "CONFIRMED_SUCCESS",
+          "observed": "CONFIRMED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-3fb1f80fdb75",
+        "action_id": "town:run-3fb1f80fdb75:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "recovered_after_restart": "passed",
+          "stale_fence_rejected": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "duplicate": false,
+              "total_cents": 3990,
+              "reason": "Placed confirmed stock hold task_1 and sent quote q-1-response for 2 x 1995 = 3990 cents; journal showed no prior processing.",
+              "path": "actionledger",
+              "action_id": "town:run-3fb1f80fdb75:q-1",
+              "hold": "task_1",
+              "ledger_status": "CONFIRMED_SUCCESS",
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 3
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 2,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-3fb1f80fdb75:q-1",
+            "hold": "task_1",
+            "ledger_status": "CONFIRMED_SUCCESS"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-3fb1f80fdb75:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-3fb1f80fdb75:q-1",
+            "state": "CONFIRMED_SUCCESS",
+            "result": {
+              "action_id": "town:run-3fb1f80fdb75:q-1",
+              "evidence": {
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                "resource_id": "task_1",
+                "tag": "town:run-3fb1f80fdb75:q-1"
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "CONFIRMED_SUCCESS"
+            }
+          }
+        ],
+        "model": {
+          "sessions": 2,
+          "calls": 3,
+          "cost_usd": 0.01785,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            3.45,
+            1.67,
+            2.69
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-3fb1f80fdb75:q-1",
+                  "status": "CONFIRMED_SUCCESS",
+                  "safe_to_retry": false,
+                  "resource_id": "task_1",
+                  "evidence": {
+                    "resource_id": "task_1",
+                    "tag": "town:run-3fb1f80fdb75:q-1",
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                  }
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794364888.7123609,
+                "replay": false
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": true,
+                  "duplicate": false,
+                  "total_cents": 3990,
+                  "reason": "Placed confirmed stock hold task_1 and sent quote q-1-response for 2 x 1995 = 3990 cents; journal showed no prior processing."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "processed",
+              "note": {
+                "applied": true,
+                "duplicate": false,
+                "total_cents": 3990,
+                "reason": "Placed confirmed stock hold task_1 and sent quote q-1-response for 2 x 1995 = 3990 cents; journal showed no prior processing."
+              }
+            }
+          ]
+        },
+        "service_log": [
+          "LEDGER: town:run-3fb1f80fdb75:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-3fb1f80fdb75:q-1",
+          "LEDGER: town:run-3fb1f80fdb75:q-1 -> CONFIRMED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/crash_restart-r2",
+      "transcript": "examples/actionledger/evidence/claude-v1/crash_restart-r2.transcript.jsonl"
+    },
+    {
+      "case": "amnesia",
+      "rep": 1,
+      "label": "amnesia-r1",
+      "profile": "quote-amnesia-restart",
+      "seller_path": "actionledger",
+      "what": "seller places the hold, answers, loses its journal and dies before acking; the restarted seller applies the request again",
+      "tracker_fault": null,
+      "seconds": 20.5,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "town stage amnesia_survived",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "CONFIRMED_SUCCESS",
+          "observed": "CONFIRMED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-f558b8c375fc",
+        "action_id": "town:run-f558b8c375fc:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "amnesia_survived": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "duplicate": false,
+              "total_cents": 3990,
+              "reason": "Placed hold task_1 (CONFIRMED_SUCCESS) and sent quote q-1-response for 2 x 1995 = 3990 cents; the coordinator marked the send as a replay, so an identical response from an earlier attempt had already been accepted, though the journal showed no processed ack.",
+              "path": "actionledger",
+              "action_id": "town:run-f558b8c375fc:q-1",
+              "hold": "task_1",
+              "ledger_status": "CONFIRMED_SUCCESS",
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 3
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-f558b8c375fc:q-1",
+            "hold": "task_1",
+            "ledger_status": "CONFIRMED_SUCCESS"
+          },
+          {
+            "message_id": "q-1",
+            "attempt": 2,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-f558b8c375fc:q-1",
+            "hold": "task_1",
+            "ledger_status": "CONFIRMED_SUCCESS"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-f558b8c375fc:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-f558b8c375fc:q-1",
+            "state": "CONFIRMED_SUCCESS",
+            "result": {
+              "action_id": "town:run-f558b8c375fc:q-1",
+              "evidence": {
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                "resource_id": "task_1",
+                "tag": "town:run-f558b8c375fc:q-1"
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "CONFIRMED_SUCCESS"
+            }
+          }
+        ],
+        "model": {
+          "sessions": 2,
+          "calls": 6,
+          "cost_usd": 0.03986,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            2.64,
+            2.33,
+            2.48,
+            1.67,
+            4.54
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-f558b8c375fc:q-1",
+                  "status": "CONFIRMED_SUCCESS",
+                  "safe_to_retry": false,
+                  "resource_id": "task_1",
+                  "evidence": {
+                    "resource_id": "task_1",
+                    "tag": "town:run-f558b8c375fc:q-1",
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                  }
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794364899.2352881,
+                "replay": false
+              }
+            },
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-f558b8c375fc:q-1",
+                  "evidence": {
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                    "resource_id": "task_1",
+                    "tag": "town:run-f558b8c375fc:q-1"
+                  },
+                  "resource_id": "task_1",
+                  "safe_to_retry": false,
+                  "status": "CONFIRMED_SUCCESS"
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794364899.2352881,
+                "replay": true
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": true,
+                  "duplicate": false,
+                  "total_cents": 3990,
+                  "reason": "Placed hold task_1 (CONFIRMED_SUCCESS) and sent quote q-1-response for 2 x 1995 = 3990 cents; the coordinator marked the send as a replay, so an identical response from an earlier attempt had already been accepted, though the journal showed no processed ack."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "processed",
+              "note": {
+                "applied": true,
+                "duplicate": false,
+                "total_cents": 3990,
+                "reason": "Placed hold task_1 (CONFIRMED_SUCCESS) and sent quote q-1-response for 2 x 1995 = 3990 cents; the coordinator marked the send as a replay, so an identical response from an earlier attempt had already been accepted, though the journal showed no processed ack."
+              }
+            }
+          ]
+        },
+        "service_log": [
+          "LEDGER: town:run-f558b8c375fc:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-f558b8c375fc:q-1",
+          "LEDGER: town:run-f558b8c375fc:q-1 -> CONFIRMED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/amnesia-r1",
+      "transcript": "examples/actionledger/evidence/claude-v1/amnesia-r1.transcript.jsonl"
+    },
+    {
+      "case": "amnesia",
+      "rep": 2,
+      "label": "amnesia-r2",
+      "profile": "quote-amnesia-restart",
+      "seller_path": "actionledger",
+      "what": "seller places the hold, answers, loses its journal and dies before acking; the restarted seller applies the request again",
+      "tracker_fault": null,
+      "seconds": 20.0,
+      "passed": false,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "failed",
+          "ok": false
+        },
+        {
+          "check": "town stage amnesia_survived",
+          "expected": "passed",
+          "observed": "failed",
+          "ok": false
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "CONFIRMED_SUCCESS",
+          "observed": "CONFIRMED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 2,
+          "ok": false
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-547a9866c868",
+        "action_id": "town:run-547a9866c868:q-1",
+        "verdict": "failed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "failed",
+          "correct": "failed",
+          "amnesia_survived": "failed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "duplicate": false,
+              "total_cents": 3990,
+              "reason": "Placed confirmed hold task_1 (CONFIRMED_SUCCESS) and sent quote q-1-response for 2 x 1995 = 3990 cents; journal had no prior processed record.",
+              "path": "actionledger",
+              "action_id": "town:run-547a9866c868:q-1",
+              "hold": "task_1",
+              "ledger_status": "CONFIRMED_SUCCESS",
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 3
+          }
+        ],
+        "quote_responses": 2,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-547a9866c868:q-1",
+            "hold": "task_1",
+            "ledger_status": "CONFIRMED_SUCCESS"
+          },
+          {
+            "message_id": "q-1",
+            "attempt": 2,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-547a9866c868:q-1",
+            "hold": "task_1",
+            "ledger_status": "CONFIRMED_SUCCESS"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-547a9866c868:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-547a9866c868:q-1",
+            "state": "CONFIRMED_SUCCESS",
+            "result": {
+              "action_id": "town:run-547a9866c868:q-1",
+              "evidence": {
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                "resource_id": "task_1",
+                "tag": "town:run-547a9866c868:q-1"
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "CONFIRMED_SUCCESS"
+            }
+          }
+        ],
+        "model": {
+          "sessions": 2,
+          "calls": 6,
+          "cost_usd": 0.03393,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            2.54,
+            4.51,
+            2.36,
+            1.6,
+            2.04
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-547a9866c868:q-1",
+                  "status": "CONFIRMED_SUCCESS",
+                  "safe_to_retry": false,
+                  "resource_id": "task_1",
+                  "evidence": {
+                    "resource_id": "task_1",
+                    "tag": "town:run-547a9866c868:q-1",
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                  }
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1:quote_response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1:quote_response",
+                "accepted_at": 1794364921.816683,
+                "replay": false
+              }
+            },
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-547a9866c868:q-1",
+                  "evidence": {
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                    "resource_id": "task_1",
+                    "tag": "town:run-547a9866c868:q-1"
+                  },
+                  "resource_id": "task_1",
+                  "safe_to_retry": false,
+                  "status": "CONFIRMED_SUCCESS"
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794364929.814019,
+                "replay": false
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": true,
+                  "duplicate": false,
+                  "total_cents": 3990,
+                  "reason": "Placed confirmed hold task_1 (CONFIRMED_SUCCESS) and sent quote q-1-response for 2 x 1995 = 3990 cents; journal had no prior processed record."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "processed",
+              "note": {
+                "applied": true,
+                "duplicate": false,
+                "total_cents": 3990,
+                "reason": "Placed confirmed hold task_1 (CONFIRMED_SUCCESS) and sent quote q-1-response for 2 x 1995 = 3990 cents; journal had no prior processed record."
+              }
+            }
+          ]
+        },
+        "service_log": [
+          "LEDGER: town:run-547a9866c868:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-547a9866c868:q-1",
+          "LEDGER: town:run-547a9866c868:q-1 -> CONFIRMED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/amnesia-r2",
+      "transcript": "examples/actionledger/evidence/claude-v1/amnesia-r2.transcript.jsonl"
+    },
+    {
+      "case": "amnesia_direct",
+      "rep": 1,
+      "label": "amnesia_direct-r1",
+      "profile": "quote-amnesia-restart",
+      "seller_path": "direct",
+      "what": "negative control: the same fault, the seller writes to the tracker itself with no ledger in front",
+      "tracker_fault": null,
+      "seconds": 29.9,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "town stage amnesia_survived",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 2,
+          "observed": 2,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 2,
+          "observed": 2,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-97fcb73f224d",
+        "action_id": "town:run-97fcb73f224d:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "amnesia_survived": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "duplicate": true,
+              "total_cents": 3990,
+              "reason": "I placed a confirmed hold (task_2, tag town:run-97fcb73f224d:q-1) for 2 widgets and sent quote q-1-response at 3990 cents, but the send came back as replay=true, so an earlier attempt had already sent this quote and probably placed a hold too, which means task_2 may be a duplicate hold that needs checking and possibly releasing.",
+              "path": "direct",
+              "action_id": "town:run-97fcb73f224d:q-1",
+              "hold": "task_2",
+              "tracker_status": 200,
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 3
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "brain": "claude-opus-5-5",
+            "path": "direct",
+            "action_id": "town:run-97fcb73f224d:q-1",
+            "hold": "task_1",
+            "tracker_status": 200
+          },
+          {
+            "message_id": "q-1",
+            "attempt": 2,
+            "brain": "claude-opus-5-5",
+            "path": "direct",
+            "action_id": "town:run-97fcb73f224d:q-1",
+            "hold": "task_2",
+            "tracker_status": 200
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-97fcb73f224d:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          },
+          {
+            "resource_id": "task_2",
+            "tag": "town:run-97fcb73f224d:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [],
+        "model": {
+          "sessions": 2,
+          "calls": 6,
+          "cost_usd": 0.05966,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            2.99,
+            2.51,
+            5.91,
+            2.48,
+            8.75
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "resource_id": "task_1",
+                  "tag": "town:run-97fcb73f224d:q-1",
+                  "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794364940.43227,
+                "replay": false
+              }
+            },
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "resource_id": "task_2",
+                  "tag": "town:run-97fcb73f224d:q-1",
+                  "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794364940.43227,
+                "replay": true
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": true,
+                  "duplicate": true,
+                  "total_cents": 3990,
+                  "reason": "I placed a confirmed hold (task_2, tag town:run-97fcb73f224d:q-1) for 2 widgets and sent quote q-1-response at 3990 cents, but the send came back as replay=true, so an earlier attempt had already sent this quote and probably placed a hold too, which means task_2 may be a duplicate hold that needs checking and possibly releasing."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "processed",
+              "note": {
+                "applied": true,
+                "duplicate": true,
+                "total_cents": 3990,
+                "reason": "I placed a confirmed hold (task_2, tag town:run-97fcb73f224d:q-1) for 2 widgets and sent quote q-1-response at 3990 cents, but the send came back as replay=true, so an earlier attempt had already sent this quote and probably placed a hold too, which means task_2 may be a duplicate hold that needs checking and possibly releasing."
+              }
+            }
+          ]
+        },
+        "service_log": [
+          "TRACKER: committed task_1, tag=town:run-97fcb73f224d:q-1",
+          "TRACKER: committed task_2, tag=town:run-97fcb73f224d:q-1"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/amnesia_direct-r1",
+      "transcript": "examples/actionledger/evidence/claude-v1/amnesia_direct-r1.transcript.jsonl"
+    },
+    {
+      "case": "amnesia_direct",
+      "rep": 2,
+      "label": "amnesia_direct-r2",
+      "profile": "quote-amnesia-restart",
+      "seller_path": "direct",
+      "what": "negative control: the same fault, the seller writes to the tracker itself with no ledger in front",
+      "tracker_fault": null,
+      "seconds": 31.0,
+      "passed": false,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "incomplete",
+          "ok": false
+        },
+        {
+          "check": "town stage amnesia_survived",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 2,
+          "observed": 2,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 2,
+          "observed": 2,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-f8cbecf52848",
+        "action_id": "town:run-f8cbecf52848:q-1",
+        "verdict": "incomplete",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "not_enough_evidence",
+          "response": "passed",
+          "correct": "passed",
+          "amnesia_survived": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": false,
+              "duplicate": true,
+              "total_cents": 3990,
+              "reason": "The coordinator returned replay=true for quote response q-1-response, so an earlier attempt had already sent this quote. That means hold task_2 (tag town:run-f8cbecf52848:q-1), which I placed during this delivery, may duplicate a hold from attempt 1 and needs a check in the tracker.",
+              "path": "direct",
+              "action_id": "town:run-f8cbecf52848:q-1",
+              "hold": "task_2",
+              "tracker_status": 200,
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 3
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "brain": "claude-opus-5-5",
+            "path": "direct",
+            "action_id": "town:run-f8cbecf52848:q-1",
+            "hold": "task_1",
+            "tracker_status": 200
+          },
+          {
+            "message_id": "q-1",
+            "attempt": 2,
+            "brain": "claude-opus-5-5",
+            "path": "direct",
+            "action_id": "town:run-f8cbecf52848:q-1",
+            "hold": "task_2",
+            "tracker_status": 200
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-f8cbecf52848:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          },
+          {
+            "resource_id": "task_2",
+            "tag": "town:run-f8cbecf52848:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [],
+        "model": {
+          "sessions": 2,
+          "calls": 6,
+          "cost_usd": 0.04506,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            2.69,
+            2.72,
+            5.67,
+            2.22,
+            5.91
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "resource_id": "task_1",
+                  "tag": "town:run-f8cbecf52848:q-1",
+                  "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794364970.4980962,
+                "replay": false
+              }
+            },
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "resource_id": "task_2",
+                  "tag": "town:run-f8cbecf52848:q-1",
+                  "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794364970.4980962,
+                "replay": true
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": false,
+                  "duplicate": true,
+                  "total_cents": 3990,
+                  "reason": "The coordinator returned replay=true for quote response q-1-response, so an earlier attempt had already sent this quote. That means hold task_2 (tag town:run-f8cbecf52848:q-1), which I placed during this delivery, may duplicate a hold from attempt 1 and needs a check in the tracker."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "processed",
+              "note": {
+                "applied": false,
+                "duplicate": true,
+                "total_cents": 3990,
+                "reason": "The coordinator returned replay=true for quote response q-1-response, so an earlier attempt had already sent this quote. That means hold task_2 (tag town:run-f8cbecf52848:q-1), which I placed during this delivery, may duplicate a hold from attempt 1 and needs a check in the tracker."
+              }
+            }
+          ]
+        },
+        "service_log": [
+          "TRACKER: committed task_1, tag=town:run-f8cbecf52848:q-1",
+          "TRACKER: committed task_2, tag=town:run-f8cbecf52848:q-1"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/amnesia_direct-r2",
+      "transcript": "examples/actionledger/evidence/claude-v1/amnesia_direct-r2.transcript.jsonl"
+    },
+    {
+      "case": "tracker_lost_ack",
+      "rep": 1,
+      "label": "tracker_lost_ack-r1",
+      "profile": "quote-clean",
+      "seller_path": "actionledger",
+      "what": "the tracker commits the hold and then answers 504; ActionLedger verifies by tag and payload hash",
+      "tracker_fault": {
+        "mode": "lost_ack"
+      },
+      "seconds": 17.1,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "RECOVERED_SUCCESS",
+          "observed": "RECOVERED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-3d2f9594dfbf",
+        "action_id": "town:run-3d2f9594dfbf:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "duplicate": false,
+              "total_cents": 3990,
+              "reason": "The hold for q-1 was confirmed in this delivery as RECOVERED_SUCCESS (task_1, an existing hold with matching details, so no second hold was made), and the quote of 3990 cents was sent as q-1-response.",
+              "path": "actionledger",
+              "action_id": "town:run-3d2f9594dfbf:q-1",
+              "hold": "task_1",
+              "ledger_status": "RECOVERED_SUCCESS",
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 2
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-3d2f9594dfbf:q-1",
+            "hold": "task_1",
+            "ledger_status": "RECOVERED_SUCCESS"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-3d2f9594dfbf:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-3d2f9594dfbf:q-1",
+            "state": "RECOVERED_SUCCESS",
+            "result": {
+              "action_id": "town:run-3d2f9594dfbf:q-1",
+              "evidence": {
+                "lookup_tag": "town:run-3d2f9594dfbf:q-1",
+                "match_count": 1,
+                "task_count": 1,
+                "tasks": [
+                  {
+                    "payload": {
+                      "quantity": 2,
+                      "sku": "widget",
+                      "title": "Hold stock for quote q-1",
+                      "total_cents": 3990
+                    },
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                    "resource_id": "task_1",
+                    "tag": "town:run-3d2f9594dfbf:q-1"
+                  }
+                ]
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "RECOVERED_SUCCESS"
+            }
+          }
+        ],
+        "model": {
+          "sessions": 1,
+          "calls": 3,
+          "cost_usd": 0.02954,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            2.99,
+            7.02,
+            4.03
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-3d2f9594dfbf:q-1",
+                  "status": "RECOVERED_SUCCESS",
+                  "safe_to_retry": false,
+                  "resource_id": "task_1",
+                  "evidence": {
+                    "lookup_tag": "town:run-3d2f9594dfbf:q-1",
+                    "match_count": 1,
+                    "task_count": 1,
+                    "tasks": [
+                      {
+                        "resource_id": "task_1",
+                        "tag": "town:run-3d2f9594dfbf:q-1",
+                        "payload": {
+                          "title": "Hold stock for quote q-1",
+                          "sku": "widget",
+                          "quantity": 2,
+                          "total_cents": 3990
+                        },
+                        "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794365006.006003,
+                "replay": false
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": true,
+                  "duplicate": false,
+                  "total_cents": 3990,
+                  "reason": "The hold for q-1 was confirmed in this delivery as RECOVERED_SUCCESS (task_1, an existing hold with matching details, so no second hold was made), and the quote of 3990 cents was sent as q-1-response."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "processed",
+              "note": {
+                "applied": true,
+                "duplicate": false,
+                "total_cents": 3990,
+                "reason": "The hold for q-1 was confirmed in this delivery as RECOVERED_SUCCESS (task_1, an existing hold with matching details, so no second hold was made), and the quote of 3990 cents was sent as q-1-response."
+              }
+            }
+          ]
+        },
+        "service_log": [
+          "LEDGER: town:run-3d2f9594dfbf:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-3d2f9594dfbf:q-1",
+          "TRACKER: injected LOST ACK after commit (HTTP 504)",
+          "LEDGER: town:run-3d2f9594dfbf:q-1 -> UNKNOWN",
+          "LEDGER: town:run-3d2f9594dfbf:q-1 -> RECOVERED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/tracker_lost_ack-r1",
+      "transcript": "examples/actionledger/evidence/claude-v1/tracker_lost_ack-r1.transcript.jsonl"
+    },
+    {
+      "case": "tracker_lost_ack",
+      "rep": 2,
+      "label": "tracker_lost_ack-r2",
+      "profile": "quote-clean",
+      "seller_path": "actionledger",
+      "what": "the tracker commits the hold and then answers 504; ActionLedger verifies by tag and payload hash",
+      "tracker_fault": {
+        "mode": "lost_ack"
+      },
+      "seconds": 18.1,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "RECOVERED_SUCCESS",
+          "observed": "RECOVERED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-0a5233a4247e",
+        "action_id": "town:run-0a5233a4247e:q-1",
+        "verdict": "passed",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "passed",
+          "response": "passed",
+          "correct": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": true,
+              "duplicate": false,
+              "total_cents": 3990,
+              "reason": "The quote was sent for 3990 cents (2 x 1995); place_hold returned RECOVERED_SUCCESS, meaning hold task_1 for q-1 already existed and was confirmed, not newly created by this call.",
+              "path": "actionledger",
+              "action_id": "town:run-0a5233a4247e:q-1",
+              "hold": "task_1",
+              "ledger_status": "RECOVERED_SUCCESS",
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 2
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-0a5233a4247e:q-1",
+            "hold": "task_1",
+            "ledger_status": "RECOVERED_SUCCESS"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-0a5233a4247e:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-0a5233a4247e:q-1",
+            "state": "RECOVERED_SUCCESS",
+            "result": {
+              "action_id": "town:run-0a5233a4247e:q-1",
+              "evidence": {
+                "lookup_tag": "town:run-0a5233a4247e:q-1",
+                "match_count": 1,
+                "task_count": 1,
+                "tasks": [
+                  {
+                    "payload": {
+                      "quantity": 2,
+                      "sku": "widget",
+                      "title": "Hold stock for quote q-1",
+                      "total_cents": 3990
+                    },
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                    "resource_id": "task_1",
+                    "tag": "town:run-0a5233a4247e:q-1"
+                  }
+                ]
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "RECOVERED_SUCCESS"
+            }
+          }
+        ],
+        "model": {
+          "sessions": 1,
+          "calls": 3,
+          "cost_usd": 0.02971,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            4.22,
+            7.36,
+            3.2
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-0a5233a4247e:q-1",
+                  "status": "RECOVERED_SUCCESS",
+                  "safe_to_retry": false,
+                  "resource_id": "task_1",
+                  "evidence": {
+                    "lookup_tag": "town:run-0a5233a4247e:q-1",
+                    "match_count": 1,
+                    "task_count": 1,
+                    "tasks": [
+                      {
+                        "resource_id": "task_1",
+                        "tag": "town:run-0a5233a4247e:q-1",
+                        "payload": {
+                          "title": "Hold stock for quote q-1",
+                          "sku": "widget",
+                          "quantity": 2,
+                          "total_cents": 3990
+                        },
+                        "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1:quote_response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1:quote_response",
+                "accepted_at": 1794365024.914863,
+                "replay": false
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": true,
+                  "duplicate": false,
+                  "total_cents": 3990,
+                  "reason": "The quote was sent for 3990 cents (2 x 1995); place_hold returned RECOVERED_SUCCESS, meaning hold task_1 for q-1 already existed and was confirmed, not newly created by this call."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "processed",
+              "note": {
+                "applied": true,
+                "duplicate": false,
+                "total_cents": 3990,
+                "reason": "The quote was sent for 3990 cents (2 x 1995); place_hold returned RECOVERED_SUCCESS, meaning hold task_1 for q-1 already existed and was confirmed, not newly created by this call."
+              }
+            }
+          ]
+        },
+        "service_log": [
+          "LEDGER: town:run-0a5233a4247e:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-0a5233a4247e:q-1",
+          "TRACKER: injected LOST ACK after commit (HTTP 504)",
+          "LEDGER: town:run-0a5233a4247e:q-1 -> UNKNOWN",
+          "LEDGER: town:run-0a5233a4247e:q-1 -> RECOVERED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/tracker_lost_ack-r2",
+      "transcript": "examples/actionledger/evidence/claude-v1/tracker_lost_ack-r2.transcript.jsonl"
+    },
+    {
+      "case": "amnesia_tracker_lost_ack",
+      "rep": 1,
+      "label": "amnesia_tracker_lost_ack-r1",
+      "profile": "quote-amnesia-restart",
+      "seller_path": "actionledger",
+      "what": "both faults: tracker loses the ack on the first application, the seller then forgets everything and applies again",
+      "tracker_fault": {
+        "mode": "lost_ack"
+      },
+      "seconds": 33.8,
+      "passed": false,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "incomplete",
+          "ok": false
+        },
+        {
+          "check": "town stage amnesia_survived",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "RECOVERED_SUCCESS",
+          "observed": "RECOVERED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-beb8e157a593",
+        "action_id": "town:run-beb8e157a593:q-1",
+        "verdict": "incomplete",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "not_enough_evidence",
+          "response": "passed",
+          "correct": "passed",
+          "amnesia_survived": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": false,
+              "duplicate": true,
+              "total_cents": 3990,
+              "reason": "An earlier attempt had already created the hold (ActionLedger returned RECOVERED_SUCCESS for task_1) and sent the quote (resending q-1-response was a replay), so nothing new was applied on this redelivery.",
+              "path": "actionledger",
+              "action_id": "town:run-beb8e157a593:q-1",
+              "hold": "task_1",
+              "ledger_status": "RECOVERED_SUCCESS",
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 3
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-beb8e157a593:q-1",
+            "hold": "task_1",
+            "ledger_status": "RECOVERED_SUCCESS"
+          },
+          {
+            "message_id": "q-1",
+            "attempt": 2,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-beb8e157a593:q-1",
+            "hold": "task_1",
+            "ledger_status": "RECOVERED_SUCCESS"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-beb8e157a593:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-beb8e157a593:q-1",
+            "state": "RECOVERED_SUCCESS",
+            "result": {
+              "action_id": "town:run-beb8e157a593:q-1",
+              "evidence": {
+                "lookup_tag": "town:run-beb8e157a593:q-1",
+                "match_count": 1,
+                "task_count": 1,
+                "tasks": [
+                  {
+                    "payload": {
+                      "quantity": 2,
+                      "sku": "widget",
+                      "title": "Hold stock for quote q-1",
+                      "total_cents": 3990
+                    },
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                    "resource_id": "task_1",
+                    "tag": "town:run-beb8e157a593:q-1"
+                  }
+                ]
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "RECOVERED_SUCCESS"
+            }
+          }
+        ],
+        "model": {
+          "sessions": 2,
+          "calls": 6,
+          "cost_usd": 0.05839,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            2.65,
+            8.43,
+            3.47,
+            4.71,
+            3.38
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-beb8e157a593:q-1",
+                  "status": "RECOVERED_SUCCESS",
+                  "safe_to_retry": false,
+                  "resource_id": "task_1",
+                  "evidence": {
+                    "lookup_tag": "town:run-beb8e157a593:q-1",
+                    "match_count": 1,
+                    "task_count": 1,
+                    "tasks": [
+                      {
+                        "resource_id": "task_1",
+                        "tag": "town:run-beb8e157a593:q-1",
+                        "payload": {
+                          "title": "Hold stock for quote q-1",
+                          "sku": "widget",
+                          "quantity": 2,
+                          "total_cents": 3990
+                        },
+                        "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794365042.210803,
+                "replay": false
+              }
+            },
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-beb8e157a593:q-1",
+                  "evidence": {
+                    "lookup_tag": "town:run-beb8e157a593:q-1",
+                    "match_count": 1,
+                    "task_count": 1,
+                    "tasks": [
+                      {
+                        "payload": {
+                          "quantity": 2,
+                          "sku": "widget",
+                          "title": "Hold stock for quote q-1",
+                          "total_cents": 3990
+                        },
+                        "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                        "resource_id": "task_1",
+                        "tag": "town:run-beb8e157a593:q-1"
+                      }
+                    ]
+                  },
+                  "resource_id": "task_1",
+                  "safe_to_retry": false,
+                  "status": "RECOVERED_SUCCESS"
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794365042.210803,
+                "replay": true
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": false,
+                  "duplicate": true,
+                  "total_cents": 3990,
+                  "reason": "An earlier attempt had already created the hold (ActionLedger returned RECOVERED_SUCCESS for task_1) and sent the quote (resending q-1-response was a replay), so nothing new was applied on this redelivery."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "processed",
+              "note": {
+                "applied": false,
+                "duplicate": true,
+                "total_cents": 3990,
+                "reason": "An earlier attempt had already created the hold (ActionLedger returned RECOVERED_SUCCESS for task_1) and sent the quote (resending q-1-response was a replay), so nothing new was applied on this redelivery."
+              }
+            }
+          ]
+        },
+        "service_log": [
+          "LEDGER: town:run-beb8e157a593:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-beb8e157a593:q-1",
+          "TRACKER: injected LOST ACK after commit (HTTP 504)",
+          "LEDGER: town:run-beb8e157a593:q-1 -> UNKNOWN",
+          "LEDGER: town:run-beb8e157a593:q-1 -> RECOVERED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/amnesia_tracker_lost_ack-r1",
+      "transcript": "examples/actionledger/evidence/claude-v1/amnesia_tracker_lost_ack-r1.transcript.jsonl"
+    },
+    {
+      "case": "amnesia_tracker_lost_ack",
+      "rep": 2,
+      "label": "amnesia_tracker_lost_ack-r2",
+      "profile": "quote-amnesia-restart",
+      "seller_path": "actionledger",
+      "what": "both faults: tracker loses the ack on the first application, the seller then forgets everything and applies again",
+      "tracker_fault": {
+        "mode": "lost_ack"
+      },
+      "seconds": 29.0,
+      "passed": false,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "passed",
+          "observed": "incomplete",
+          "ok": false
+        },
+        {
+          "check": "town stage amnesia_survived",
+          "expected": "passed",
+          "observed": "passed",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "status of that ack",
+          "expected": "processed",
+          "observed": "processed",
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "RECOVERED_SUCCESS",
+          "observed": "RECOVERED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "every application names the one tracker hold",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-a5582372d9d4",
+        "action_id": "town:run-a5582372d9d4:q-1",
+        "verdict": "incomplete",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "passed",
+          "processed": "not_enough_evidence",
+          "response": "passed",
+          "correct": "passed",
+          "amnesia_survived": "passed",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "processed",
+            "note": {
+              "applied": false,
+              "duplicate": true,
+              "total_cents": 3990,
+              "reason": "An earlier attempt had already placed hold task_1 for q-1 (ActionLedger returned RECOVERED_SUCCESS) and sent quote q-1-response for 3990 cents (send returned replay=true), so this delivery recognized and completed prior work without applying it again.",
+              "path": "actionledger",
+              "action_id": "town:run-a5582372d9d4:q-1",
+              "hold": "task_1",
+              "ledger_status": "RECOVERED_SUCCESS",
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 3
+          }
+        ],
+        "quote_responses": 1,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-a5582372d9d4:q-1",
+            "hold": "task_1",
+            "ledger_status": "RECOVERED_SUCCESS"
+          },
+          {
+            "message_id": "q-1",
+            "attempt": 2,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-a5582372d9d4:q-1",
+            "hold": "task_1",
+            "ledger_status": "RECOVERED_SUCCESS"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-a5582372d9d4:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-a5582372d9d4:q-1",
+            "state": "RECOVERED_SUCCESS",
+            "result": {
+              "action_id": "town:run-a5582372d9d4:q-1",
+              "evidence": {
+                "lookup_tag": "town:run-a5582372d9d4:q-1",
+                "match_count": 1,
+                "task_count": 1,
+                "tasks": [
+                  {
+                    "payload": {
+                      "quantity": 2,
+                      "sku": "widget",
+                      "title": "Hold stock for quote q-1",
+                      "total_cents": 3990
+                    },
+                    "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                    "resource_id": "task_1",
+                    "tag": "town:run-a5582372d9d4:q-1"
+                  }
+                ]
+              },
+              "resource_id": "task_1",
+              "safe_to_retry": false,
+              "status": "RECOVERED_SUCCESS"
+            }
+          }
+        ],
+        "model": {
+          "sessions": 2,
+          "calls": 6,
+          "cost_usd": 0.0477,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            2.46,
+            2.85,
+            3.6,
+            5.07,
+            3.81
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-a5582372d9d4:q-1",
+                  "status": "RECOVERED_SUCCESS",
+                  "safe_to_retry": false,
+                  "resource_id": "task_1",
+                  "evidence": {
+                    "lookup_tag": "town:run-a5582372d9d4:q-1",
+                    "match_count": 1,
+                    "task_count": 1,
+                    "tasks": [
+                      {
+                        "resource_id": "task_1",
+                        "tag": "town:run-a5582372d9d4:q-1",
+                        "payload": {
+                          "title": "Hold stock for quote q-1",
+                          "sku": "widget",
+                          "quantity": 2,
+                          "total_cents": 3990
+                        },
+                        "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794365070.716334,
+                "replay": false
+              }
+            },
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-a5582372d9d4:q-1",
+                  "evidence": {
+                    "lookup_tag": "town:run-a5582372d9d4:q-1",
+                    "match_count": 1,
+                    "task_count": 1,
+                    "tasks": [
+                      {
+                        "payload": {
+                          "quantity": 2,
+                          "sku": "widget",
+                          "title": "Hold stock for quote q-1",
+                          "total_cents": 3990
+                        },
+                        "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12",
+                        "resource_id": "task_1",
+                        "tag": "town:run-a5582372d9d4:q-1"
+                      }
+                    ]
+                  },
+                  "resource_id": "task_1",
+                  "safe_to_retry": false,
+                  "status": "RECOVERED_SUCCESS"
+                }
+              }
+            },
+            {
+              "tool": "send_work",
+              "input": {
+                "message_id": "q-1-response",
+                "to": "buyer",
+                "kind": "quote_response",
+                "body": {
+                  "request_id": "q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                }
+              },
+              "output": {
+                "accepted": true,
+                "message_id": "q-1-response",
+                "accepted_at": 1794365070.716334,
+                "replay": true
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "processed",
+                "note": {
+                  "applied": false,
+                  "duplicate": true,
+                  "total_cents": 3990,
+                  "reason": "An earlier attempt had already placed hold task_1 for q-1 (ActionLedger returned RECOVERED_SUCCESS) and sent quote q-1-response for 3990 cents (send returned replay=true), so this delivery recognized and completed prior work without applying it again."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "processed",
+              "note": {
+                "applied": false,
+                "duplicate": true,
+                "total_cents": 3990,
+                "reason": "An earlier attempt had already placed hold task_1 for q-1 (ActionLedger returned RECOVERED_SUCCESS) and sent quote q-1-response for 3990 cents (send returned replay=true), so this delivery recognized and completed prior work without applying it again."
+              }
+            }
+          ]
+        },
+        "service_log": [
+          "LEDGER: town:run-a5582372d9d4:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-a5582372d9d4:q-1",
+          "TRACKER: injected LOST ACK after commit (HTTP 504)",
+          "LEDGER: town:run-a5582372d9d4:q-1 -> UNKNOWN",
+          "LEDGER: town:run-a5582372d9d4:q-1 -> RECOVERED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/amnesia_tracker_lost_ack-r2",
+      "transcript": "examples/actionledger/evidence/claude-v1/amnesia_tracker_lost_ack-r2.transcript.jsonl"
+    },
+    {
+      "case": "lookup_down",
+      "rep": 1,
+      "label": "lookup_down-r1",
+      "profile": "quote-clean",
+      "seller_path": "actionledger",
+      "what": "boundary: the tracker commits, loses the ack, and lookup is down; the outcome cannot be verified, so the seller escalates",
+      "tracker_fault": {
+        "mode": "lost_ack",
+        "break_lookup": true
+      },
+      "seconds": 21.7,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "incomplete",
+          "observed": "incomplete",
+          "ok": true
+        },
+        {
+          "check": "town stage response",
+          "expected": "not_enough_evidence",
+          "observed": "not_enough_evidence",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "AMBIGUOUS",
+          "observed": "AMBIGUOUS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 0,
+          "observed": 0,
+          "ok": true
+        },
+        {
+          "check": "status after lookup returns",
+          "expected": "RECOVERED_SUCCESS",
+          "observed": "RECOVERED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "recovered hold is the committed one",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-518d54ba2f53",
+        "action_id": "town:run-518d54ba2f53:q-1",
+        "verdict": "incomplete",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "not_enough_evidence",
+          "processed": "not_enough_evidence",
+          "response": "not_enough_evidence",
+          "correct": "not_enough_evidence",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "failed",
+            "note": {
+              "applied": false,
+              "duplicate": false,
+              "total_cents": 3990,
+              "reason": "place_hold returned AMBIGUOUS (verification unavailable, action_id town:run-518d54ba2f53:q-1), so the hold cannot be confirmed and no quote was sent; not retried to avoid a duplicate hold.",
+              "path": "actionledger",
+              "action_id": "town:run-518d54ba2f53:q-1",
+              "hold": null,
+              "ledger_status": "AMBIGUOUS",
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 2
+          }
+        ],
+        "quote_responses": 0,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-518d54ba2f53:q-1",
+            "hold": null,
+            "ledger_status": "AMBIGUOUS"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-518d54ba2f53:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-518d54ba2f53:q-1",
+            "state": "AMBIGUOUS",
+            "result": {
+              "action_id": "town:run-518d54ba2f53:q-1",
+              "evidence": {
+                "error_type": "HTTPStatusError",
+                "reason": "Verification unavailable"
+              },
+              "resource_id": null,
+              "safe_to_retry": false,
+              "status": "AMBIGUOUS"
+            }
+          }
+        ],
+        "model": {
+          "sessions": 1,
+          "calls": 2,
+          "cost_usd": 0.01298,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            2.4,
+            4.49
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-518d54ba2f53:q-1",
+                  "status": "AMBIGUOUS",
+                  "safe_to_retry": false,
+                  "resource_id": null,
+                  "evidence": {
+                    "reason": "Verification unavailable",
+                    "error_type": "HTTPStatusError"
+                  }
+                }
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "failed",
+                "note": {
+                  "applied": false,
+                  "duplicate": false,
+                  "total_cents": 3990,
+                  "reason": "place_hold returned AMBIGUOUS (verification unavailable, action_id town:run-518d54ba2f53:q-1), so the hold cannot be confirmed and no quote was sent; not retried to avoid a duplicate hold."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "failed",
+              "note": {
+                "applied": false,
+                "duplicate": false,
+                "total_cents": 3990,
+                "reason": "place_hold returned AMBIGUOUS (verification unavailable, action_id town:run-518d54ba2f53:q-1), so the hold cannot be confirmed and no quote was sent; not retried to avoid a duplicate hold."
+              }
+            }
+          ]
+        },
+        "recovered": {
+          "action_id": "town:run-518d54ba2f53:q-1",
+          "status": "RECOVERED_SUCCESS",
+          "safe_to_retry": false,
+          "resource_id": "task_1",
+          "evidence": {
+            "lookup_tag": "town:run-518d54ba2f53:q-1",
+            "match_count": 1,
+            "task_count": 1,
+            "tasks": [
+              {
+                "resource_id": "task_1",
+                "tag": "town:run-518d54ba2f53:q-1",
+                "payload": {
+                  "title": "Hold stock for quote q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                },
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+              }
+            ]
+          }
+        },
+        "ledger_actions_after_recovery": [
+          {
+            "action_id": "town:run-518d54ba2f53:q-1",
+            "state": "RECOVERED_SUCCESS"
+          }
+        ],
+        "service_log": [
+          "LEDGER: town:run-518d54ba2f53:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-518d54ba2f53:q-1",
+          "TRACKER: injected LOST ACK after commit (HTTP 504)",
+          "LEDGER: town:run-518d54ba2f53:q-1 -> UNKNOWN",
+          "LEDGER: town:run-518d54ba2f53:q-1 -> AMBIGUOUS",
+          "LEDGER: town:run-518d54ba2f53:q-1 -> RECOVERED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/lookup_down-r1",
+      "transcript": "examples/actionledger/evidence/claude-v1/lookup_down-r1.transcript.jsonl"
+    },
+    {
+      "case": "lookup_down",
+      "rep": 2,
+      "label": "lookup_down-r2",
+      "profile": "quote-clean",
+      "seller_path": "actionledger",
+      "what": "boundary: the tracker commits, loses the ack, and lookup is down; the outcome cannot be verified, so the seller escalates",
+      "tracker_fault": {
+        "mode": "lost_ack",
+        "break_lookup": true
+      },
+      "seconds": 20.7,
+      "passed": true,
+      "checks": [
+        {
+          "check": "town verdict",
+          "expected": "incomplete",
+          "observed": "incomplete",
+          "ok": true
+        },
+        {
+          "check": "town stage response",
+          "expected": "not_enough_evidence",
+          "observed": "not_enough_evidence",
+          "ok": true
+        },
+        {
+          "check": "bundle verifies",
+          "expected": [],
+          "observed": [],
+          "ok": true
+        },
+        {
+          "check": "tracker holds for this request",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker holds in total",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "seller acks reporting an application",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "ledger status in that ack",
+          "expected": "AMBIGUOUS",
+          "observed": "AMBIGUOUS",
+          "ok": true
+        },
+        {
+          "check": "ledger action rows",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "tracker commits seen by the service",
+          "expected": 1,
+          "observed": 1,
+          "ok": true
+        },
+        {
+          "check": "quote responses accepted by Town",
+          "expected": 0,
+          "observed": 0,
+          "ok": true
+        },
+        {
+          "check": "status after lookup returns",
+          "expected": "RECOVERED_SUCCESS",
+          "observed": "RECOVERED_SUCCESS",
+          "ok": true
+        },
+        {
+          "check": "recovered hold is the committed one",
+          "expected": [
+            "task_1"
+          ],
+          "observed": [
+            "task_1"
+          ],
+          "ok": true
+        }
+      ],
+      "observed": {
+        "run_id": "run-6cbcf031fcd2",
+        "action_id": "town:run-6cbcf031fcd2:q-1",
+        "verdict": "incomplete",
+        "stages": {
+          "accepted": "passed",
+          "claimed": "passed",
+          "received": "not_enough_evidence",
+          "processed": "not_enough_evidence",
+          "response": "not_enough_evidence",
+          "correct": "not_enough_evidence",
+          "portable_identity": "not_tested"
+        },
+        "bundle_problems": [],
+        "seller_acks": [
+          {
+            "status": "failed",
+            "note": {
+              "applied": false,
+              "duplicate": false,
+              "total_cents": 3990,
+              "reason": "place_hold returned AMBIGUOUS (verification unavailable), so the hold cannot be confirmed; per policy I did not retry and did not send a quote to avoid a duplicate hold.",
+              "path": "actionledger",
+              "action_id": "town:run-6cbcf031fcd2:q-1",
+              "hold": null,
+              "ledger_status": "AMBIGUOUS",
+              "brain": "claude-opus-5-5",
+              "harness": "v1",
+              "reacked_by_harness": true
+            },
+            "attempt": 2
+          }
+        ],
+        "quote_responses": 0,
+        "seller_applications": [
+          {
+            "message_id": "q-1",
+            "attempt": 1,
+            "brain": "claude-opus-5-5",
+            "path": "actionledger",
+            "action_id": "town:run-6cbcf031fcd2:q-1",
+            "hold": null,
+            "ledger_status": "AMBIGUOUS"
+          }
+        ],
+        "tracker_holds": [
+          {
+            "resource_id": "task_1",
+            "tag": "town:run-6cbcf031fcd2:q-1",
+            "payload": {
+              "title": "Hold stock for quote q-1",
+              "sku": "widget",
+              "quantity": 2,
+              "total_cents": 3990
+            }
+          }
+        ],
+        "ledger_actions": [
+          {
+            "action_id": "town:run-6cbcf031fcd2:q-1",
+            "state": "AMBIGUOUS",
+            "result": {
+              "action_id": "town:run-6cbcf031fcd2:q-1",
+              "evidence": {
+                "error_type": "HTTPStatusError",
+                "reason": "Verification unavailable"
+              },
+              "resource_id": null,
+              "safe_to_retry": false,
+              "status": "AMBIGUOUS"
+            }
+          }
+        ],
+        "model": {
+          "sessions": 1,
+          "calls": 2,
+          "cost_usd": 0.01241,
+          "served_by": [
+            "claude-opus-5-5"
+          ],
+          "turn_seconds": [
+            2.53,
+            3.73
+          ],
+          "harness_reacks": 1,
+          "tool_calls": [
+            {
+              "tool": "place_hold",
+              "input": {
+                "request_id": "q-1",
+                "sku": "widget",
+                "quantity": 2,
+                "total_cents": 3990
+              },
+              "output": {
+                "http_status": 200,
+                "body": {
+                  "action_id": "town:run-6cbcf031fcd2:q-1",
+                  "status": "AMBIGUOUS",
+                  "safe_to_retry": false,
+                  "resource_id": null,
+                  "evidence": {
+                    "reason": "Verification unavailable",
+                    "error_type": "HTTPStatusError"
+                  }
+                }
+              }
+            },
+            {
+              "tool": "ack_work",
+              "input": {
+                "message_id": "q-1",
+                "status": "failed",
+                "note": {
+                  "applied": false,
+                  "duplicate": false,
+                  "total_cents": 3990,
+                  "reason": "place_hold returned AMBIGUOUS (verification unavailable), so the hold cannot be confirmed; per policy I did not retry and did not send a quote to avoid a duplicate hold."
+                }
+              },
+              "output": {
+                "recorded": true,
+                "harness": "your fence expired while you worked; the harness re-claimed the redelivered work and recorded this acknowledgement"
+              }
+            }
+          ],
+          "acks": [
+            {
+              "status": "failed",
+              "note": {
+                "applied": false,
+                "duplicate": false,
+                "total_cents": 3990,
+                "reason": "place_hold returned AMBIGUOUS (verification unavailable), so the hold cannot be confirmed; per policy I did not retry and did not send a quote to avoid a duplicate hold."
+              }
+            }
+          ]
+        },
+        "recovered": {
+          "action_id": "town:run-6cbcf031fcd2:q-1",
+          "status": "RECOVERED_SUCCESS",
+          "safe_to_retry": false,
+          "resource_id": "task_1",
+          "evidence": {
+            "lookup_tag": "town:run-6cbcf031fcd2:q-1",
+            "match_count": 1,
+            "task_count": 1,
+            "tasks": [
+              {
+                "resource_id": "task_1",
+                "tag": "town:run-6cbcf031fcd2:q-1",
+                "payload": {
+                  "title": "Hold stock for quote q-1",
+                  "sku": "widget",
+                  "quantity": 2,
+                  "total_cents": 3990
+                },
+                "payload_hash": "6d7eeda17e0fe35209ac20d08f10666460cc8e04a6c09d98d39dcda7ef469a12"
+              }
+            ]
+          }
+        },
+        "ledger_actions_after_recovery": [
+          {
+            "action_id": "town:run-6cbcf031fcd2:q-1",
+            "state": "RECOVERED_SUCCESS"
+          }
+        ],
+        "service_log": [
+          "LEDGER: town:run-6cbcf031fcd2:q-1 -> EXECUTING",
+          "TRACKER: committed task_1, tag=town:run-6cbcf031fcd2:q-1",
+          "TRACKER: injected LOST ACK after commit (HTTP 504)",
+          "LEDGER: town:run-6cbcf031fcd2:q-1 -> UNKNOWN",
+          "LEDGER: town:run-6cbcf031fcd2:q-1 -> AMBIGUOUS",
+          "LEDGER: town:run-6cbcf031fcd2:q-1 -> RECOVERED_SUCCESS"
+        ]
+      },
+      "bundle": "examples/actionledger/evidence/claude-v1/lookup_down-r2",
+      "transcript": "examples/actionledger/evidence/claude-v1/lookup_down-r2.transcript.jsonl"
+    }
+  ],
+  "model_cost_usd": 0.5243
+}
