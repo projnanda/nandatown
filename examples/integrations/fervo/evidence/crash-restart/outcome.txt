@@ -1,0 +1,5 @@
+row=crash-restart
+profile=quote-crash-restart
+keys=derived
+town_exit=0
+check_exit=0

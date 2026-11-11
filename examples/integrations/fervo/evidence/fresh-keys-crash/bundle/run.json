@@ -1,0 +1,77 @@
+{
+  "run_id": "run-50ac8051ba77",
+  "profile_name": "quote-crash-restart",
+  "profile_fingerprint": "sha256:a788b2fab17b08a8f6b6ba8d72a433861d5a88d2aee3713b598a747d0628ae36",
+  "created_at": 1794357574.3881311,
+  "participants": [
+    {
+      "name": "buyer",
+      "role": "buyer",
+      "capabilities": [],
+      "runtime": "scripted",
+      "release": "nandatown.participants.buyer 0.2.0"
+    },
+    {
+      "name": "seller",
+      "role": "seller",
+      "capabilities": [
+        "quote.read"
+      ],
+      "runtime": "cmd",
+      "release": "external command; immutable release not recorded"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "0.5.0",
+    "python": "3.11.4"
+  },
+  "config": {
+    "port": 53434,
+    "restarted_seller": true,
+    "runtimes": {
+      "buyer": "scripted",
+      "seller": "cmd"
+    },
+    "participant_provenance": {
+      "buyer": {
+        "kind": "scripted",
+        "identity_basis": "bundled NANDA Town harness",
+        "release_basis": "nandatown.participants.buyer 0.2.0"
+      },
+      "seller": {
+        "kind": "cmd",
+        "identity_basis": "operator-supplied command (command not recorded)",
+        "release_basis": null,
+        "release_basis_note": "immutable external release not supplied"
+      }
+    },
+    "skill_releases": [
+      {
+        "kind": "skill",
+        "name": "town-protocol",
+        "version": "1",
+        "content_fingerprint": "sha256:42d650f47b092ec90600dc0513c9399becc9956408162fcd629646bdafa1c42b"
+      },
+      {
+        "kind": "skill",
+        "name": "quote.read",
+        "version": "1",
+        "content_fingerprint": "sha256:c5f61b78cd6c1faa358ffa1d08d929d963c76a5e8cf5199521af4953e7d9de05"
+      },
+      {
+        "kind": "skill",
+        "name": "quote.request",
+        "version": "1",
+        "content_fingerprint": "sha256:eea11f02bb31c2d7929eaf37a249dd8c3e2b49500044b00e8b8e8e1d38e935a7"
+      }
+    ],
+    "harnesses": {
+      "seller": "cmd:<operator-supplied-command>"
+    },
+    "rerun_command": "nandatown test-agent --profile quote-crash-restart --role seller --cmd '<operator-supplied-command>'",
+    "rerun_required_inputs": {
+      "seller": "original command (not recorded)"
+    }
+  }
+}

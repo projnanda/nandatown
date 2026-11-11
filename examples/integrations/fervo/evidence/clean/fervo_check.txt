@@ -1,0 +1,10 @@
+Town run run-ab6defa203ce (quote-clean): verdict passed, 1 deliveries, 0 stale fences, 0 restarts
+  PASS  one quote request in the bundle: 1 accepted
+  PASS  exactly one Fervo claim: 1 claims for 1 Town deliveries
+  PASS  exactly one Fervo node: 1 nodes
+  PASS  exactly one merge: 1 merges
+  PASS  no rebase cycle: needs_rebase on none
+  PASS  main score rose once: score.txt 10 -> 20, expected +10
+  PASS  postmerge check passed, not reverted: postmerge done 1, reverted none
+  PASS  Town's reported node is the merged node: reported ['n_2c89cdf31f'], merged ['n_2c89cdf31f']
+Fervo applied the contribution exactly once

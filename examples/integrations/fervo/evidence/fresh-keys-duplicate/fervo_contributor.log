@@ -1,0 +1,13 @@
+1794357582.691 pid=91136 joined run-46479a1406c7 fault=duplicate_delivery keys=fresh
+1794357582.748 pid=91136 town claim q-1 attempt=1 duplicate=False
+1794357583.016 pid=91136 fervo claim 0.26s ok
+1794357583.454 pid=91136 fervo submit 0.41s ok
+1794357583.658 pid=91136 fervo done q-1 {"merged_commit": "f276473e850c84208605fe1b5cbef45b16812b1e", "next_action": "stop", "node": "n_f86049592d", "outcome": "improved", "reason": null, "rounds": [{"commit": "f276473e850c84208605fe1b5cbef45b16812b1e", "lease": "l_32e445bba6", "node": "n_f86049592d", "parent": "n_0"}], "state": "merged"}
+1794357583.668 pid=91136 town ack q-1 recorded
+1794357584.105 pid=91136 town claim q-1 attempt=2 duplicate=True
+1794357584.388 pid=91136 fervo claim 0.28s ok
+1794357584.826 pid=91136 fervo submit 0.41s ok
+1794357585.528 pid=91136 fervo claim 0.28s ok
+1794357585.962 pid=91136 fervo submit 0.40s ok
+1794357586.166 pid=91136 fervo done q-1 {"merged_commit": "dbb602f6dc316c25a0aad9d13c3e35d1c5acfbfd", "next_action": "stop", "node": "n_5a0db9ebac", "outcome": "improved", "reason": null, "rounds": [{"commit": "f276473e850c84208605fe1b5cbef45b16812b1e", "lease": "l_65a638555d", "node": "n_5c26b9775f", "parent": "n_0"}, {"commit": "dbb602f6dc316c25a0aad9d13c3e35d1c5acfbfd", "lease": "l_5b1128b321", "node": "n_5a0db9ebac", "parent": "n_f86049592d"}], "state": "merged"}
+1794357586.170 pid=91136 town refused the response as identity reuse q-1 n_5a0db9ebac

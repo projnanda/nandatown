@@ -1,0 +1,17 @@
+{"actor": "operator", "at": "2026-11-11T00:39:32.739Z", "data": {}, "seq": 1, "subject": "n_0", "type": "initialized"}
+{"actor": "operator", "at": "2026-11-11T00:39:33.389Z", "data": {}, "seq": 2, "subject": "town-seller", "type": "actor_created"}
+{"actor": "operator", "at": "2026-11-11T00:39:33.577Z", "data": {}, "seq": 3, "subject": "town-runner", "type": "actor_created"}
+{"actor": "town-runner", "at": "2026-11-11T00:39:33.847Z", "data": {}, "seq": 4, "subject": "j_73bf376d5a", "type": "job_leased"}
+{"actor": "town-runner", "at": "2026-11-11T00:39:33.937Z", "data": {}, "seq": 5, "subject": "j_73bf376d5a", "type": "job_done"}
+{"actor": "town-seller", "at": "2026-11-11T00:39:34.733Z", "data": {"overlaps": []}, "seq": 6, "subject": "l_a83a8fd746", "type": "claim_created"}
+{"actor": "town-seller", "at": "2026-11-11T00:39:37.629Z", "data": {"overlaps": [{"by": "town-seller", "id": "l_a83a8fd746", "intent": "Town request q-1: raise score by 10", "kind": "claim", "scope": ["score.txt"]}]}, "seq": 7, "subject": "l_26973723c1", "type": "claim_created"}
+{"actor": "town-seller", "at": "2026-11-11T00:39:38.122Z", "data": {"paths": ["score.txt"], "reason": null, "state": "submitted"}, "seq": 8, "subject": "n_658c1b344d", "type": "node_submitted"}
+{"actor": "system", "at": "2026-11-11T00:39:38.122Z", "data": {"claim": null, "kind": "eval", "node": "n_658c1b344d"}, "seq": 9, "subject": "j_65a8aa25b5", "type": "job_queued"}
+{"actor": "town-runner", "at": "2026-11-11T00:39:38.126Z", "data": {}, "seq": 10, "subject": "j_65a8aa25b5", "type": "job_leased"}
+{"actor": "town-runner", "at": "2026-11-11T00:39:38.242Z", "data": {}, "seq": 11, "subject": "j_65a8aa25b5", "type": "job_done"}
+{"actor": "system", "at": "2026-11-11T00:39:38.246Z", "data": {"commit": "f276473e850c84208605fe1b5cbef45b16812b1e"}, "seq": 12, "subject": "n_658c1b344d", "type": "node_merged"}
+{"actor": "system", "at": "2026-11-11T00:39:38.246Z", "data": {"claim": null, "kind": "postmerge", "node": "n_658c1b344d"}, "seq": 13, "subject": "j_12e79d54c7", "type": "job_queued"}
+{"actor": "town-runner", "at": "2026-11-11T00:39:38.246Z", "data": {"state": "merged"}, "seq": 14, "subject": "n_658c1b344d", "type": "node_state"}
+{"actor": "town-runner", "at": "2026-11-11T00:39:38.248Z", "data": {}, "seq": 15, "subject": "j_12e79d54c7", "type": "job_leased"}
+{"actor": "town-runner", "at": "2026-11-11T00:39:38.344Z", "data": {}, "seq": 16, "subject": "j_12e79d54c7", "type": "job_done"}
+{"actor": "town-runner", "at": "2026-11-11T00:39:38.344Z", "data": {"state": "merged"}, "seq": 17, "subject": "n_658c1b344d", "type": "node_state"}

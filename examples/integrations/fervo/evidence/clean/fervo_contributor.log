@@ -1,0 +1,6 @@
+1794357548.632 pid=87198 joined run-ab6defa203ce fault=none keys=derived
+1794357548.690 pid=87198 town claim q-1 attempt=1 duplicate=False
+1794357548.974 pid=87198 fervo claim 0.28s ok
+1794357549.437 pid=87198 fervo submit 0.43s ok
+1794357549.645 pid=87198 fervo done q-1 {"merged_commit": "f276473e850c84208605fe1b5cbef45b16812b1e", "next_action": "stop", "node": "n_2c89cdf31f", "outcome": "improved", "reason": null, "rounds": [{"commit": "f276473e850c84208605fe1b5cbef45b16812b1e", "lease": "l_2a3c555d1d", "node": "n_2c89cdf31f", "parent": "n_0"}], "state": "merged"}
+1794357549.653 pid=87198 town ack q-1 recorded

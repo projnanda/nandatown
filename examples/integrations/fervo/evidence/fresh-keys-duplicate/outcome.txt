@@ -1,0 +1,5 @@
+row=fresh-keys-duplicate
+profile=quote-duplicate-delivery
+keys=fresh
+town_exit=1
+check_exit=1

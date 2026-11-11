@@ -1,0 +1,12 @@
+mode=lima
+fervo_ref=cafaa82
+fervo_tgz_sha256=2d0a828db2f96c38091fed547be1230c8cf5cbdac20a6444742e0b77b9c25f6e
+fervo_package=0.1.0
+fixture_main_commit=0b41af0a21e18195c8d7432b48fb8a730796f716
+host_os=Darwin arm64 14.4.1
+host_node=v26.10.0
+host_git=2.39.2
+guest_node=v24.22.1
+guest_os=Ubuntu 26.04.1 LTS aarch64
+lima=limactl version 2.2.1
+image_digest_aarch64=sha256:63a93bd5a8d76e33b15ceb5daa3657bd79be804748051ab178e643b0f5da22e7

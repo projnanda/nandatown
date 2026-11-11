@@ -1,0 +1,10 @@
+Town run run-46479a1406c7 (quote-duplicate-delivery): verdict incomplete, 2 deliveries, 0 stale fences, 0 restarts
+  PASS  one quote request in the bundle: 1 accepted
+  FAIL  exactly one Fervo claim: 3 claims for 2 Town deliveries
+  FAIL  exactly one Fervo node: 3 nodes
+  FAIL  exactly one merge: 2 merges
+  FAIL  no rebase cycle: needs_rebase on ['n_5c26b9775f']
+  FAIL  main score rose once: score.txt 10 -> 30, expected +10
+  PASS  postmerge check passed, not reverted: postmerge done 2, reverted none
+  FAIL  Town's reported node is the merged node: reported ['n_f86049592d'], merged ['n_f86049592d', 'n_5a0db9ebac']
+Fervo did NOT apply the contribution exactly once

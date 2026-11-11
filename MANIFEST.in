@@ -5,3 +5,6 @@ recursive-include tests/fixtures *.jsonl
 recursive-include examples *.py
 include scripts/check_distributions.py
 include tests/fixtures/invalid_json_seller.py
+# The Fervo integration example: its fixture, VM definition, scripts and
+# committed evidence bundles, which tests/test_fervo_example.py verifies.
+recursive-include examples/integrations *.json *.jsonl *.toml *.txt *.sh *.yaml *.md *.log

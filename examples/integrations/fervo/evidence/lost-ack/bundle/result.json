@@ -1,0 +1,72 @@
+{
+  "run_id": "run-8608e4a8b95a",
+  "evaluator_version": "0.5.0",
+  "stages": [
+    {
+      "name": "accepted",
+      "status": "passed",
+      "evidence": [
+        "ev-4"
+      ],
+      "note": ""
+    },
+    {
+      "name": "claimed",
+      "status": "passed",
+      "evidence": [
+        "ev-5"
+      ],
+      "note": ""
+    },
+    {
+      "name": "received",
+      "status": "passed",
+      "evidence": [
+        "ev-11"
+      ],
+      "note": ""
+    },
+    {
+      "name": "processed",
+      "status": "passed",
+      "evidence": [
+        "ev-11"
+      ],
+      "note": ""
+    },
+    {
+      "name": "response",
+      "status": "passed",
+      "evidence": [
+        "ev-6",
+        "ev-8"
+      ],
+      "note": ""
+    },
+    {
+      "name": "correct",
+      "status": "passed",
+      "evidence": [
+        "ev-9"
+      ],
+      "note": ""
+    },
+    {
+      "name": "ack_retry_survived",
+      "status": "passed",
+      "evidence": [
+        "ev-7",
+        "ev-11"
+      ],
+      "note": ""
+    },
+    {
+      "name": "portable_identity",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "this run used short-lived join tokens; rerun with --identity for grant-based portable identity"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794357562.03442
+}

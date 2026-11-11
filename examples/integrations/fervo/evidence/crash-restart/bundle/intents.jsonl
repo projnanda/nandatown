@@ -1,0 +1,19 @@
+{"intent_id": "in-1", "run_id": "run-73fbd9fac429", "at": 1794357566.3795462, "actor": "buyer", "action": "send", "payload": {"message_id": "q-1", "to": "seller", "kind": "quote_request", "body": {"sku": "widget", "quantity": 2, "unit_price_cents": 1995}}}
+{"intent_id": "in-2", "run_id": "run-73fbd9fac429", "at": 1794357566.412232, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-3", "run_id": "run-73fbd9fac429", "at": 1794357566.6955001, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-4", "run_id": "run-73fbd9fac429", "at": 1794357567.024023, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-5", "run_id": "run-73fbd9fac429", "at": 1794357567.3648992, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-6", "run_id": "run-73fbd9fac429", "at": 1794357567.6986759, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-7", "run_id": "run-73fbd9fac429", "at": 1794357568.033679, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-8", "run_id": "run-73fbd9fac429", "at": 1794357568.374701, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-9", "run_id": "run-73fbd9fac429", "at": 1794357568.697231, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-1690dd53c890480488b453d547581de1", "status": "processed", "note": {"applied": true, "after_crash_stall": true}}}
+{"intent_id": "in-10", "run_id": "run-73fbd9fac429", "at": 1794357568.708214, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-11", "run_id": "run-73fbd9fac429", "at": 1794357569.027644, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-12", "run_id": "run-73fbd9fac429", "at": 1794357569.282388, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-13", "run_id": "run-73fbd9fac429", "at": 1794357569.354771, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-14", "run_id": "run-73fbd9fac429", "at": 1794357569.669312, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-15", "run_id": "run-73fbd9fac429", "at": 1794357569.984234, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-16", "run_id": "run-73fbd9fac429", "at": 1794357570.183996, "actor": "seller", "action": "send", "payload": {"message_id": "r-1", "to": "buyer", "kind": "quote_response", "body": {"request_id": "q-1", "sku": "widget", "quantity": 2, "total_cents": 3990, "fervo": {"node": "n_7df4c4b7c2", "state": "merged", "merged_commit": "f276473e850c84208605fe1b5cbef45b16812b1e"}}}}
+{"intent_id": "in-17", "run_id": "run-73fbd9fac429", "at": 1794357570.187826, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-2663e890cb4e4e64af4eaf58ccd951e0", "status": "processed", "note": {"applied": true, "total_cents": 3990, "runtime": "fervo-contributor", "fervo": {"node": "n_7df4c4b7c2", "state": "merged", "outcome": "improved", "merged_commit": "f276473e850c84208605fe1b5cbef45b16812b1e", "rounds": [{"lease": "l_4c1297e5d7", "parent": "n_0", "commit": "f276473e850c84208605fe1b5cbef45b16812b1e", "node": "n_7df4c4b7c2"}], "keys": "derived"}}}}
+{"intent_id": "in-18", "run_id": "run-73fbd9fac429", "at": 1794357570.194071, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-19", "run_id": "run-73fbd9fac429", "at": 1794357570.198099, "actor": "buyer", "action": "ack", "payload": {"message_id": "r-1", "fence": "fence-bed5e4344af740b48e08307978adb362", "status": "processed", "note": {"correct": true, "total_cents": 3990, "expected_total_cents": 3990}}}
