@@ -46,7 +46,8 @@ You need Python 3.11 or newer and [uv](https://docs.astral.sh/uv/) (Porch's
 start script uses it).
 
 **1. Start Porch** from a checkout of
-<https://github.com/yooncham/porch-device-hub-yc>:
+<https://github.com/yooncham/porch-device-hub-yc> (a private repository;
+ask the team for read access):
 
 ```bash
 porch_gateway/start.sh        # hub on :8100, gateway on :8000, devices simulated
@@ -129,11 +130,12 @@ of the hub, and the count of executions from Porch's own audit log.
 | | |
 |---|---|
 | Town | `main` at `6f9a7c064486c4a0ae9242f1ff341b8a4aad0244`, nandatown 0.2.0, evaluator `lab-0.2.6`, Python 3.12.3 |
-| Porch | `yooncham/porch-device-hub-yc` at `834f441a2eba6dce2c8f1b7c6b25cb9001afa0c6` (gateway and Device Hub 0.1.0 in one tree), fastmcp 4.1.4, simulated devices |
+| Porch | `yooncham/porch-device-hub-yc` at `834f441a2eba6dce2c8f1b7c6b25cb9001afa0c6` (gateway and Device Hub 0.1.0 in one tree), fastmcp 4.1.4, simulated devices. Its `main`, `64a9a4ab84d484f1e5e0523b3120d9e352c88b76`, is the merge of that commit and has the same tree |
 | Adapter | `porch-town-adapter/0.1.0` (this folder) |
 | Run | `sim-a5abadb5758a`, 2026-11-11 00:31 UTC, 178 events, 65 intents |
 | Bundle | `evidence/sim-a5abadb5758a`, fingerprint `sha256:e3b272a089821f838ccfabf663489444e76059267bee1f2b43075c3020a58f37` |
 | Verdict | PASSED |
+| Repeated | 2026-11-11, from fresh clones of this branch and of Porch `main`, on macOS with Python 3.13.15 and 3.11.15: PASSED, with the same step outcomes, 178 events and 65 intents |
 
 | Agent | Step | Expected | Observed | Hub state expected | Hub state observed |
 |---|---|---|---|---|---|
@@ -205,7 +207,7 @@ All four were run against the same live Porch.
   so the same request can arrive twice, and Porch then executes it twice.
   The adapter absorbs duplicates by Town message id; the control shows
   what happens without that. A request id in Porch itself is the proper
-  fix and is not done.
+  fix; it is not in the version tested here.
 - An unknown key is refused per tool call, not at connection: `initialize`
   and `tools/list` still answer it with the tool names.
 - `nandatown verify` cannot replay a validator that lives in a plugin file,
@@ -217,8 +219,8 @@ All four were run against the same live Porch.
 
 - Physical devices and the vendor clouds. The hub simulated all 8 devices.
 - A model-driven agent. The Town agents here are scripted. Porch's own
-  demos drive it from Hermes and Claude directly over MCP; that path does
-  not go through Town.
+  demos drive it from Hermes agents running Claude, directly over MCP;
+  that path does not go through Town.
 - Track and Path. Track's task is fixed to the quote, and Porch is not an
   A2A agent, so neither mode fits without a new task type.
 - Porch's water-leak emergency rule, approval expiry (10 minutes), and the
