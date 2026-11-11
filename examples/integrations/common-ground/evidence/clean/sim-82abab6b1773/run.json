@@ -1,7 +1,7 @@
 {
-  "run_id": "sim-cb220c1265e2",
-  "profile_name": "cg_meetup_dropout",
-  "profile_fingerprint": "sha256:1344994c2660fbd412968e4ecb7146ebd8dc4db38fda1164c147732579f32984",
+  "run_id": "sim-82abab6b1773",
+  "profile_name": "cg_meetup",
+  "profile_fingerprint": "sha256:9b3f8fd8c686c6733ecdb0cb4054a5501d94835722fe9a49d8af63579b410fd6",
   "created_at": 0.0,
   "participants": [
     {
@@ -43,7 +43,7 @@
       "privacy": "redact.v1",
       "data_facts": "evidence.v1"
     },
-    "logical_time": 11.2,
-    "rerun_command": "nandatown run examples/integrations/common-ground/cg_meetup_dropout.yaml --seed 42"
+    "logical_time": 6.4,
+    "rerun_command": "nandatown run examples/integrations/common-ground/cg_meetup.yaml --seed 42"
   }
 }

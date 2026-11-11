@@ -1,5 +1,5 @@
 {
-  "run_id": "sim-9e52138f8a94",
+  "run_id": "sim-d40b24873700",
   "evaluator_version": "lab-0.2.6",
   "stages": [
     {
@@ -17,6 +17,16 @@
         "ev-7"
       ],
       "note": "calls answered by a running Common Ground room"
+    },
+    {
+      "name": "live_agents",
+      "status": "passed",
+      "evidence": [
+        "ev-42",
+        "ev-45",
+        "ev-48"
+      ],
+      "note": "each person's windows, tags and scores came from a Claude Code agent using only that person's private MCP server"
     },
     {
       "name": "discovery",
@@ -48,22 +58,22 @@
       "name": "posts_accepted",
       "status": "passed",
       "evidence": [
-        "ev-48",
         "ev-51",
         "ev-54",
-        "ev-63",
-        "ev-66",
-        "ev-69"
+        "ev-57",
+        "ev-67",
+        "ev-70",
+        "ev-73"
       ],
-      "note": ""
+      "note": "accepted from every agent"
     },
     {
       "name": "same_plan_for_everyone",
       "status": "passed",
       "evidence": [
-        "ev-88",
-        "ev-91",
-        "ev-94"
+        "ev-97",
+        "ev-100",
+        "ev-103"
       ],
       "note": ""
     },
@@ -71,10 +81,10 @@
       "name": "slot_in_every_window",
       "status": "passed",
       "evidence": [
-        "ev-88",
-        "ev-48",
+        "ev-97",
         "ev-51",
-        "ev-54"
+        "ev-54",
+        "ev-57"
       ],
       "note": ""
     },
@@ -82,10 +92,10 @@
       "name": "fairness_consistent",
       "status": "passed",
       "evidence": [
-        "ev-88",
-        "ev-63",
-        "ev-66",
-        "ev-69"
+        "ev-97",
+        "ev-67",
+        "ev-70",
+        "ev-73"
       ],
       "note": "nobody vetoed the place; each agent's total and the lowest score match the posted scores"
     },
@@ -96,10 +106,20 @@
       "note": "the trace has no opening hours, so Town cannot redo the room's search; Common Ground's verify.py does that check"
     },
     {
+      "name": "duplicate_contained",
+      "status": "passed",
+      "evidence": [
+        "ev-65",
+        "ev-78",
+        "ev-88"
+      ],
+      "note": "the room answered the repeated call with an error; the agent ignored the stale answer and kept one plan"
+    },
+    {
       "name": "ledger_conserved",
       "status": "passed",
       "evidence": [
-        "ev-95"
+        "ev-104"
       ],
       "note": "complete run recorded no money moved"
     },
@@ -107,11 +127,11 @@
       "name": "privacy",
       "status": "passed",
       "evidence": [
-        "ev-95"
+        "ev-104"
       ],
-      "note": "fields ['home', 'max_travel_min', 'travel_mode'] never left the run"
+      "note": "fields ['home_area', 'notes_from_owner', 'preferences_in_their_words', 'title'] never left the run"
     }
   ],
   "verdict": "passed",
-  "evaluated_at": 1794423628.490207
+  "evaluated_at": 1794428429.511606
 }

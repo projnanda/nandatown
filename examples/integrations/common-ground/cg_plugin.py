@@ -1,38 +1,46 @@
-"""Common Ground in NANDA Town: three people's agents plan a meetup through
-the real Common Ground room.
+"""Common Ground in NANDA Town: three people's real agents plan a meetup
+through the real Common Ground room.
 
 Common Ground (https://github.com/javiersgp/common-ground-mvp) is a neutral
 MCP server where each person's agent posts only typed fields (free windows,
 per-venue travel and fit scores). The room filters venues against the brief's
-must-haves and picks the option whose worst-off person scores highest.
+must-haves and picks the option whose worst-off person scores highest. Each
+person also has a private MCP server (calendar, profile, travel estimate).
 
 Roles in this file:
 
 - ``cg_room_adapter`` publishes a signed ``meetup.plan`` card and turns Town
   messages into MCP calls on the room. It maps the (signed) Town sender to
   that person's room token, so no agent ever holds another person's token.
-- ``cg_person`` acts for one person. It finds the room and the other members
-  through the registry, keeps its person's home, travel limit and taste
-  private (declared in ``redact_fields``), and posts only what the room asks.
+- ``cg_person`` is one person's agent inside Town. Its decisions (which free
+  windows to share, 3-4 taste tags, a travel and fit score for every venue)
+  come from a real Claude Code agent (``claude -p``, no built-in tools)
+  connected only to that person's private Common Ground MCP server. The Town
+  side handles discovery, invitations, every message to the room, and polling.
 
 Modes (``CG_MODE``):
 
 - ``live`` calls the room at ``CG_ROOM_URL`` with tokens from
-  ``CG_ROOM_AGENTS`` (the room's agents.json). ``run_check.py`` starts the
-  room and sets these. With ``CG_RECORD=path`` it also writes every call and
-  answer to a fixture.
-- ``replay`` (the default) answers from ``fixtures/<scenario>.json``,
-  recorded from the live room, so reviewers need no Common Ground checkout.
-  Replay reports ``live_room`` as not_tested: it is not live evidence.
+  ``CG_ROOM_AGENTS``, and runs Claude Code against the private server given by
+  ``CG_ME_PYTHON``, ``CG_ME_SERVER`` and ``CG_PEOPLE_RUN``. ``run_check.py``
+  sets all of these. With ``CG_RECORD=path`` every room call and every agent
+  decision is written to a fixture.
+- ``replay`` (the default) answers both from ``fixtures/<scenario>.json``,
+  recorded from a live run, so reviewers need no checkout, model or login.
+  Replay reports ``live_room`` and ``live_agents`` as not_tested.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
-import math
 import os
+import re
+import subprocess
+import tempfile
+from datetime import datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -44,16 +52,63 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOM_TOOLS = ["create_plan", "join_plan", "post_availability",
               "post_scores", "wait_for_result"]
 CALL_KINDS = {f"cg_{t}": t for t in ROOM_TOOLS}
-
-# Travel estimate, as in Common Ground's private tools: straight line x 1.3,
-# a speed per mode, plus fixed minutes (locking a bike, waiting for transit).
-SPEED_KMH = {"walk": 4.8, "bike": 14.0, "transit": 20.0}
-FIXED_MIN = {"walk": 0, "bike": 3, "transit": 9}
+AGENT_MODEL = "sonnet"
+AGENT_TIMEOUT = 420
 
 
 def _digest(obj: Any) -> str:
     raw = json.dumps(obj, sort_keys=True, separators=(",", ":")).encode()
     return "sha256:" + hashlib.sha256(raw).hexdigest()[:16]
+
+
+# -- live calls are recorded; replay answers from the recording -----------
+
+_RUNS: dict[str, dict[str, Any]] = {}
+
+
+def _state(engine) -> dict[str, Any]:
+    st = _RUNS.get(engine.run_id)
+    if st is None:
+        mode = os.environ.get("CG_MODE", "replay")
+        st = {"mode": mode, "scenario": engine.spec.name, "calls": [],
+              "server": {}, "tools": []}
+        if mode != "live":
+            path = os.environ.get("CG_FIXTURE") or os.path.join(
+                HERE, "fixtures", f"{engine.spec.name}.json")
+            with open(path) as f:
+                fixture = json.load(f)
+            st.update(replay=list(fixture["calls"]),
+                      server=fixture["server"], tools=fixture["tools"])
+        _RUNS[engine.run_id] = st
+    return st
+
+
+def _save(st: dict[str, Any]) -> None:
+    path = os.environ.get("CG_RECORD")
+    if path:
+        with open(path, "w") as f:
+            json.dump({"scenario": st["scenario"], "server": st["server"],
+                       "tools": st["tools"], "calls": st["calls"]}, f,
+                      indent=1)
+
+
+def _live_or_replay(engine, person: str, tool: str, args: dict[str, Any],
+                    live) -> tuple[bool, Any, dict[str, Any]]:
+    """Run ``live()`` and record it, or answer from the recording."""
+    st = _state(engine)
+    want = {"person": person, "tool": tool, "args_digest": _digest(args)}
+    if st["mode"] == "live":
+        ok, out, meta = live()
+        st["calls"].append(dict(want, ok=ok, out=out, meta=meta))
+        _save(st)
+        return ok, out, meta
+    if not st["replay"]:
+        return False, "replay: no recorded answer left for this call", {}
+    rec = st["replay"].pop(0)
+    got = {k: rec[k] for k in want}
+    if got != want:
+        return False, f"replay mismatch: expected {got}, got {want}", {}
+    return rec["ok"], rec["out"], rec.get("meta", {})
 
 
 # -- a minimal MCP client (streamable HTTP, JSON-RPC 2.0) ---------------
@@ -104,7 +159,7 @@ class RoomClient:
         result = self._request("initialize", {
             "protocolVersion": self.PROTOCOL, "capabilities": {},
             "clientInfo": {"name": "nandatown-common-ground-adapter",
-                           "version": "0.1.0"}})
+                           "version": "0.2.0"}})
         self.server_info = result.get("serverInfo", {})
         self._post({"jsonrpc": "2.0",
                     "method": "notifications/initialized"})
@@ -126,60 +181,29 @@ class RoomClient:
 
 @role("cg_room_adapter")
 class RoomAdapter(SimAgent):
-    """The only role that talks to Common Ground."""
+    """The only role that talks to Common Ground's room."""
 
     def on_start(self):
-        self.mode = os.environ.get("CG_MODE", "replay")
-        self.scenario = self.api._engine.spec.name
+        engine = self.api._engine
+        st = _state(engine)
         self.seats: dict[str, str] = self.config["seats"]  # Town agent -> person
-        self.recorded: list[dict[str, Any]] = []
         self.calls_seen: set[str] = set()
-        if self.mode == "live":
-            agents = json.load(open(os.environ["CG_ROOM_AGENTS"]))
+        if st["mode"] == "live":
+            with open(os.environ["CG_ROOM_AGENTS"]) as f:
+                agents = json.load(f)
             self.tokens = {pid: tok for tok, pid in agents["tokens"].items()}
             self.client = RoomClient(os.environ["CG_ROOM_URL"])
-            tools = self.client.initialize()
-            server = self.client.server_info
-        else:
-            path = os.environ.get("CG_FIXTURE") or os.path.join(
-                HERE, "fixtures", f"{self.scenario}.json")
-            fixture = json.load(open(path))
-            self.replay = list(fixture["calls"])
-            tools, server = fixture["tools"], fixture["server"]
-            self.fixture_meta = {"tools": tools, "server": server}
-        self.tools = tools
-        self.server = server
+            st["tools"] = self.client.initialize()
+            st["server"] = self.client.server_info
         self.api.observe("cg_room_interface", "common-ground", {
-            "mode": self.mode, "server": server.get("name", ""),
-            "server_version": server.get("version", ""), "tools": tools})
+            "mode": st["mode"], "server": st["server"].get("name", ""),
+            "server_version": st["server"].get("version", ""),
+            "tools": st["tools"]})
         self.api.register(["meetup.plan"],
                           {"service": "Common Ground room",
                            "interface": "mcp.streamable-http",
-                           "tools": [t for t in tools if t in ROOM_TOOLS]})
-
-    def _call_room(self, person: str, tool: str,
-                   args: dict[str, Any]) -> tuple[bool, Any]:
-        if self.mode == "live":
-            ok, out = self.client.call(
-                tool, dict(args, agent_token=self.tokens[person]))
-            self.recorded.append({"person": person, "tool": tool,
-                                  "args_digest": _digest(args),
-                                  "ok": ok, "out": out})
-            record = os.environ.get("CG_RECORD")
-            if record:
-                with open(record, "w") as f:
-                    json.dump({"scenario": self.scenario,
-                               "server": self.server, "tools": self.tools,
-                               "calls": self.recorded}, f, indent=1)
-            return ok, out
-        want = {"person": person, "tool": tool, "args_digest": _digest(args)}
-        if not self.replay:
-            return False, "replay: no recorded answer left for this call"
-        rec = self.replay.pop(0)
-        got = {k: rec[k] for k in want}
-        if got != want:
-            return False, f"replay mismatch: expected {got}, got {want}"
-        return rec["ok"], rec["out"]
+                           "tools": [t for t in st["tools"]
+                                     if t in ROOM_TOOLS]})
 
     def on_message(self, msg):
         tool = CALL_KINDS.get(msg["kind"])
@@ -198,10 +222,17 @@ class RoomAdapter(SimAgent):
         args = body.get("args", {})
         repeat = call_id in self.calls_seen
         self.calls_seen.add(call_id)
-        try:
-            ok, out = self._call_room(person, tool, args)
-        except Exception as exc:  # the room is down or unreachable
-            ok, out = False, f"room unreachable: {type(exc).__name__}"
+
+        def live():
+            try:
+                ok, out = self.client.call(
+                    tool, dict(args, agent_token=self.tokens[person]))
+            except Exception as exc:  # the room is down or unreachable
+                ok, out = False, f"room unreachable: {type(exc).__name__}"
+            return ok, out, {}
+
+        ok, out, _ = _live_or_replay(self.api._engine, person, tool, args,
+                                     live)
         detail: dict[str, Any] = {"tool": tool, "person": person,
                                   "call_id": call_id, "repeat": repeat,
                                   "ok": ok}
@@ -225,31 +256,95 @@ class RoomAdapter(SimAgent):
         self.api.reply(msg, "cg_result", reply)
 
 
-# -- a person's agent ------------------------------------------------------
+# -- the real agent behind each person ------------------------------------
+
+PROMPT = """You are {name}'s personal AI agent, running on Claude Code. {name}, \
+Javier, Sergio and Jack are an MIT team, and each has their own agent.
+
+{name}'s agent is planning this meetup in a shared room with the other \
+agents (you do not talk to the room yourself; your answer is posted for you):
+
+Brief: {brief}
+
+Room rules: {rules}
+
+Candidate venues (public): {venues}
+
+You have one MCP server, `me`, private to {name}: profile, calendar, free \
+blocks, travel estimates. Never include {name}'s home, calendar titles, notes \
+or reasons in your answer: it is shared with the room.
+
+Work on your own, with no questions to {name}:
+1. Availability: read {name}'s profile (`get_my_profile`) and free blocks \
+(`find_free_blocks` for the brief's dates, min_minutes = the duration; it \
+knows only the calendar). Apply the notes {name} gave you; they override the \
+calendar. Pick at most 5 windows that suit {name}, each exactly in the form \
+`find_free_blocks` gives (with its UTC offset), each at least the duration \
+and on the 30-minute grid.
+2. Taste and venues: turn {name}'s preferences into 3-4 short tags (each at \
+most 30 characters). Get travel for every candidate with `estimate_travel` \
+and use its travel_minutes and travel_score unchanged. Judge a fit_score \
+(1-5) for every candidate against the tags, using its vibe, description and \
+attributes.
+
+Answer with ONLY this JSON, no other text:
+{{"windows": [{{"start": "...", "end": "..."}}], "tags": ["..."], \
+"scores": [{{"venue_id": "...", "travel_minutes": 0, "travel_score": 0, \
+"fit_score": 1}}]}}"""
 
 
-def _km(lat1, lon1, lat2, lon2):
-    p1, p2 = math.radians(lat1), math.radians(lat2)
-    dp, dl = p2 - p1, math.radians(lon2 - lon1)
-    h = (math.sin(dp / 2) ** 2
-         + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2)
-    return 2 * 6371.0 * math.asin(math.sqrt(h))
+def _parse_decision(text: str) -> dict[str, Any]:
+    match = re.search(r"\{.*\}", text, re.S)
+    if not match:
+        raise ValueError("no JSON object in the agent's answer")
+    data = json.loads(match.group(0))
+    if not {"windows", "tags", "scores"} <= set(data):
+        raise ValueError("the answer lacks windows, tags or scores")
+    return {"windows": data["windows"], "tags": data["tags"],
+            "scores": data["scores"]}
 
 
-def _travel_score(minutes: int, limit: int) -> int:
-    r = minutes / limit
-    if r > 1:
-        return 0
-    for cap, s in ((0.2, 5), (0.4, 4), (0.6, 3), (0.8, 2)):
-        if r <= cap:
-            return s
-    return 1
+def _run_claude(person: str, name: str, prompt: str
+                ) -> tuple[bool, Any, dict[str, Any]]:
+    """One Claude Code run with only this person's private MCP server."""
+    work = tempfile.mkdtemp(prefix=f"cg-agent-{person}-")
+    cfg = os.path.join(work, "mcp.json")
+    with open(cfg, "w") as f:
+        json.dump({"mcpServers": {"me": {
+            "type": "stdio", "command": os.environ["CG_ME_PYTHON"],
+            "args": [os.environ["CG_ME_SERVER"], "--person", person,
+                     "--run", os.environ["CG_PEOPLE_RUN"]]}}}, f)
+    cmd = ["claude", "-p", prompt, "--model", AGENT_MODEL,
+           "--mcp-config", cfg, "--strict-mcp-config", "--tools", "",
+           "--allowedTools", "mcp__me", "--setting-sources", "",
+           "--no-session-persistence", "--output-format", "json"]
+    env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+    started = datetime.now()
+    try:
+        proc = subprocess.run(cmd, cwd=work, env=env, capture_output=True,
+                              text=True, timeout=AGENT_TIMEOUT)
+    except subprocess.TimeoutExpired:
+        return False, f"agent timed out after {AGENT_TIMEOUT} s", {}
+    seconds = round((datetime.now() - started).total_seconds(), 1)
+    try:
+        out = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return False, f"agent exited {proc.returncode} without JSON", {
+            "seconds": seconds}
+    meta = {"harness": "Claude Code", "model": AGENT_MODEL,
+            "seconds": seconds, "turns": out.get("num_turns"),
+            "cost_usd": round(out.get("total_cost_usd") or 0, 4)}
+    if out.get("is_error"):
+        return False, str(out.get("result"))[:300], meta
+    try:
+        return True, _parse_decision(out.get("result", "")), meta
+    except (ValueError, json.JSONDecodeError) as exc:
+        return False, f"unusable answer: {exc}", meta
 
 
 @role("cg_person")
 class Person(SimAgent):
-    """A scripted stand-in for one person's agent (Claude Code, Codex or
-    Hermes in the real project). Deterministic, so runs repeat."""
+    """One person's agent in Town; a real Claude Code agent decides."""
 
     def on_start(self):
         c = self.config
@@ -260,6 +355,9 @@ class Person(SimAgent):
         self.plan_id: str | None = None
         self.room: str | None = None
         self.candidates: dict[str, dict[str, Any]] = {}
+        self.decision: dict[str, Any] = {}
+        self.prompt = ""
+        self.repairs = 0
         self.api.register(["meetup.member"], {"person": self.person})
         if c.get("organizer"):
             self.api.later(0.5, self.organize)
@@ -271,9 +369,9 @@ class Person(SimAgent):
         self.pending = f"{self.name}-{self.seq}"
         self.api.send(self.room, f"cg_{tool}",
                       {"call_id": self.pending, "args": args})
-        timeout = self.config.get("reply_timeout", 5.0)
         call_id = self.pending
-        self.api.later(timeout, lambda: self._check_reply(call_id, tool))
+        self.api.later(self.config.get("reply_timeout", 5.0),
+                       lambda: self._check_reply(call_id, tool))
 
     def _check_reply(self, call_id: str, tool: str) -> None:
         if self.pending == call_id:
@@ -292,9 +390,13 @@ class Person(SimAgent):
             return
         self.pending = None
         if not body["ok"]:
+            error = str(body.get("error"))
+            if (body["tool"] in ("post_availability", "post_scores")
+                    and self.repairs < self.config.get("max_repairs", 1)):
+                self.repair(body["tool"], error)
+                return
             self.api.observe("cg_call_failed", self.person,
-                             {"tool": body["tool"],
-                              "error": str(body.get("error"))[:200]})
+                             {"tool": body["tool"], "error": error[:200]})
             return
         getattr(self, "after_" + body["tool"])(body["result"])
 
@@ -334,31 +436,64 @@ class Person(SimAgent):
     def after_join_plan(self, result):
         self.candidates = {v["venue_id"]: v
                            for v in result["candidate_venues"]}
-        self.call("post_availability", {
-            "plan_id": self.plan_id,
-            "windows": [{"start": s, "end": e}
-                        for s, e in self.config["windows"]]})
+        venues = [{k: v[k] for k in ("venue_id", "name", "lat", "lon",
+                                     "opening_hours", "vibe", "about",
+                                     "attributes")}
+                  for v in result["candidate_venues"]]
+        self.prompt = PROMPT.format(name=self.person.capitalize(),
+                                    brief=json.dumps(result["brief"]),
+                                    rules=json.dumps(result["rules"]),
+                                    venues=json.dumps(venues))
+        self.decide("agent_decide", self.prompt,
+                    {"brief": result["brief"],
+                     "venues": sorted(self.candidates)})
+        if self.decision:
+            self.call("post_availability", {"plan_id": self.plan_id,
+                                            "windows": self.decision["windows"]})
+
+    def decide(self, step: str, prompt: str, key: dict[str, Any]) -> None:
+        """Ask this person's Claude Code agent (or its recorded answer)."""
+        ok, out, meta = _live_or_replay(
+            self.api._engine, self.person, step, key,
+            lambda: _run_claude(self.person, self.person.capitalize(),
+                                prompt))
+        mode = _state(self.api._engine)["mode"]
+        self.decision = {}
+        if not ok:
+            self.api.observe("cg_agent_failed", self.person,
+                             dict(meta, mode=mode, step=step,
+                                  error=str(out)[:300]))
+            return
+        self.decision = out
+        self.api.observe("cg_agent_decided", self.person, dict(
+            meta, mode=mode, step=step, windows=len(out["windows"]),
+            tags=out["tags"], scored=len(out["scores"])))
+
+    def repair(self, tool: str, error: str) -> None:
+        """The room refused a post: show the agent the error, once, as the
+        project's agents see room errors, and post its corrected answer."""
+        self.repairs += 1
+        self.api.observe("cg_agent_repair", self.person,
+                         {"tool": tool, "room_error": error[:200]})
+        prompt = (self.prompt + "\n\nYour previous answer was:\n"
+                  + json.dumps(self.decision) + "\n\nThe room refused your "
+                  + tool + " with: " + error + "\nAnswer again with the"
+                  " corrected JSON only.")
+        self.decide("agent_repair", prompt,
+                    {"tool": tool, "error": error,
+                     "previous": _digest(self.decision)})
+        if not self.decision:
+            return
+        if tool == "post_availability":
+            self.call("post_availability", {"plan_id": self.plan_id,
+                                            "windows": self.decision["windows"]})
+        else:
+            self.after_post_availability({})
 
     def after_post_availability(self, result):
-        if result.get("format") == "video":
-            self.call("wait_for_result", {"plan_id": self.plan_id,
-                                          "wait_seconds": 1})
-            return
-        c = self.config
-        home, mode, limit = c["home"], c["travel_mode"], c["max_travel_min"]
-        tags = c["tags"]
-        scores = []
-        for vid in sorted(self.candidates):
-            v = self.candidates[vid]
-            minutes = round(_km(home["lat"], home["lon"], v["lat"], v["lon"])
-                            * 1.3 / SPEED_KMH[mode] * 60 + FIXED_MIN[mode])
-            fit = min(5, 1 + len(set(tags) & set(v["vibe"])))
-            scores.append({"venue_id": vid, "travel_minutes": minutes,
-                           "travel_score": _travel_score(minutes, limit),
-                           "fit_score": fit})
-        self.my_scores = {s["venue_id"]: s for s in scores}
-        self.call("post_scores", {"plan_id": self.plan_id, "tags": tags,
-                                  "scores": scores})
+        self.call("post_scores", {"plan_id": self.plan_id,
+                                  "tags": self.decision["tags"],
+                                  "scores": self.decision["scores"]})
 
     def after_post_scores(self, result):
         self.call("wait_for_result", {"plan_id": self.plan_id,
@@ -399,16 +534,27 @@ class Person(SimAgent):
 # -- the check -----------------------------------------------------------
 
 
-def _inside(start: str, end: str, windows: list[dict[str, str]]) -> bool:
-    # Windows here are as the agent posted them: same date, plan time zone,
-    # 'YYYY-MM-DDTHH:MM' (this scenario posts no UTC offsets).
-    return any(w["start"] <= start and end <= w["end"] for w in windows)
+def _local(s: str, tz: str) -> datetime:
+    """A posted time in the plan's time zone, without offset."""
+    dt = datetime.fromisoformat(s)
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(ZoneInfo(tz)).replace(tzinfo=None)
+    return dt
+
+
+def _inside(start: str, end: str, windows: list[dict[str, str]],
+            tz: str) -> bool:
+    s, e = _local(start, tz), _local(end, tz)
+    return any(_local(w["start"], tz) <= s and e <= _local(w["end"], tz)
+               for w in windows)
 
 
 @validator("common_ground")
 def common_ground(spec, trace: Trace) -> list[StageResult]:
-    people = sorted(a.config["person"] for a in spec.agents
-                    if a.role == "cg_person")
+    persons = [a for a in spec.agents if a.role == "cg_person"]
+    people = sorted(a.config["person"] for a in persons)
+    tz = next((a.config["brief"].get("timezone") for a in persons
+               if a.config.get("brief")), None) or "America/New_York"
     faults = {f.action for f in spec.faults}
     stages = []
 
@@ -424,6 +570,23 @@ def common_ground(spec, trace: Trace) -> list[StageResult]:
         evidence=[e.event_id for e in iface][:1] if live else [],
         note=("calls answered by a running Common Ground room" if live else
               "replayed from a recorded fixture; not live evidence")))
+
+    decided = trace.find("cg_agent_decided")
+    failed_agents = trace.find("cg_agent_failed")
+    by_agent = sorted({e.subject for e in decided
+                       if e.detail.get("step") == "agent_decide"})
+    if decided and all(e.detail.get("mode") == "live" for e in decided):
+        stages.append(_check(
+            "live_agents", by_agent == people and not failed_agents,
+            [e.event_id for e in decided + failed_agents],
+            "every person's windows and scores must come from its own"
+            " Claude Code agent",
+            "each person's windows, tags and scores came from a Claude Code"
+            " agent using only that person's private MCP server"))
+    else:
+        stages.append(StageResult(
+            name="live_agents", status="not_tested",
+            note="agent answers replayed from a recorded live run"))
 
     found = trace.find("cg_room_found")
     stages.append(_check(
@@ -447,11 +610,18 @@ def common_ground(spec, trace: Trace) -> list[StageResult]:
         [e.event_id for e in joined], "every person's agent must join"))
     avail = {e.subject: e for e in ok_calls("post_availability")}
     scores = {e.subject: e for e in ok_calls("post_scores")}
+    rejected = [e for e in trace.find("cg_room_call", ok=False)
+                if not e.detail.get("repeat")]
+    repairs = trace.find("cg_agent_repair")
     stages.append(_check(
         "posts_accepted",
         sorted(avail) == people and sorted(scores) == people,
-        [e.event_id for e in list(avail.values()) + list(scores.values())],
-        f"the room must accept windows and scores from all of {people}"))
+        [e.event_id for e in list(avail.values()) + list(scores.values())
+         + rejected + repairs],
+        f"the room must accept windows and scores from all of {people}",
+        "accepted from every agent"
+        + (f"; {len(repairs)} refused post(s) fixed by the agent after"
+           " seeing the room's error" if repairs else "")))
 
     got = trace.find("cg_plan_received")
     keys = {(e.detail["plan_id"], e.detail["venue_id"], e.detail["start"],
@@ -465,7 +635,8 @@ def common_ground(spec, trace: Trace) -> list[StageResult]:
     if got and sorted(avail) == people and sorted(scores) == people:
         plan = got[0].detail
         in_windows = all(_inside(plan["start"], plan["end"],
-                                 avail[p].detail["windows"]) for p in people)
+                                 avail[p].detail["windows"], tz)
+                         for p in people)
         stages.append(_check(
             "slot_in_every_window", in_windows,
             [got[0].event_id] + [avail[p].event_id for p in people],

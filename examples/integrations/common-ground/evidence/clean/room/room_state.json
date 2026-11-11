@@ -1,6 +1,6 @@
 {
-  "cg-1e6aa0": {
-    "id": "cg-1e6aa0",
+  "cg-952b12": {
+    "id": "cg-952b12",
     "title": "MIT work session",
     "organizer": "jack",
     "participants": [
@@ -57,25 +57,25 @@
           "venue_id": "osm-417080191",
           "travel_minutes": 12,
           "travel_score": 4,
-          "fit_score": 1
+          "fit_score": 2
         },
         {
           "venue_id": "osm-1437162941",
           "travel_minutes": 12,
           "travel_score": 4,
-          "fit_score": 1
+          "fit_score": 2
         },
         {
           "venue_id": "osm-530790467",
           "travel_minutes": 15,
           "travel_score": 3,
-          "fit_score": 2
+          "fit_score": 4
         },
         {
           "venue_id": "osm-1914291499",
           "travel_minutes": 18,
           "travel_score": 3,
-          "fit_score": 2
+          "fit_score": 3
         },
         {
           "venue_id": "osm-1907895893",
@@ -87,25 +87,25 @@
           "venue_id": "osm-2449738479",
           "travel_minutes": 15,
           "travel_score": 3,
-          "fit_score": 2
+          "fit_score": 3
         },
         {
           "venue_id": "osm-4483943925",
           "travel_minutes": 12,
           "travel_score": 4,
-          "fit_score": 2
+          "fit_score": 4
         },
         {
           "venue_id": "osm-4190132060",
           "travel_minutes": 15,
           "travel_score": 3,
-          "fit_score": 4
+          "fit_score": 5
         },
         {
           "venue_id": "osm-6117463842",
           "travel_minutes": 17,
           "travel_score": 3,
-          "fit_score": 1
+          "fit_score": 2
         },
         {
           "venue_id": "osm-11433391477",
@@ -117,25 +117,25 @@
           "venue_id": "osm-11117788901",
           "travel_minutes": 15,
           "travel_score": 3,
-          "fit_score": 2
+          "fit_score": 4
         },
         {
           "venue_id": "osm-4888182876",
           "travel_minutes": 13,
           "travel_score": 3,
-          "fit_score": 1
+          "fit_score": 2
         },
         {
           "venue_id": "home-js",
           "travel_minutes": 17,
           "travel_score": 3,
-          "fit_score": 1
+          "fit_score": 2
         },
         {
           "venue_id": "home-jack",
           "travel_minutes": 9,
           "travel_score": 4,
-          "fit_score": 2
+          "fit_score": 3
         }
       ],
       "javier": [
@@ -143,25 +143,25 @@
           "venue_id": "osm-417080191",
           "travel_minutes": 23,
           "travel_score": 1,
-          "fit_score": 2
+          "fit_score": 3
         },
         {
           "venue_id": "osm-1437162941",
           "travel_minutes": 29,
           "travel_score": 0,
-          "fit_score": 4
+          "fit_score": 5
         },
         {
           "venue_id": "osm-530790467",
           "travel_minutes": 39,
           "travel_score": 0,
-          "fit_score": 2
+          "fit_score": 3
         },
         {
           "venue_id": "osm-1914291499",
           "travel_minutes": 13,
           "travel_score": 3,
-          "fit_score": 1
+          "fit_score": 2
         },
         {
           "venue_id": "osm-1907895893",
@@ -173,55 +173,55 @@
           "venue_id": "osm-2449738479",
           "travel_minutes": 9,
           "travel_score": 4,
-          "fit_score": 1
+          "fit_score": 2
         },
         {
           "venue_id": "osm-4483943925",
           "travel_minutes": 19,
           "travel_score": 2,
-          "fit_score": 1
+          "fit_score": 3
         },
         {
           "venue_id": "osm-4190132060",
           "travel_minutes": 51,
           "travel_score": 0,
-          "fit_score": 2
+          "fit_score": 4
         },
         {
           "venue_id": "osm-6117463842",
           "travel_minutes": 6,
           "travel_score": 4,
-          "fit_score": 1
+          "fit_score": 2
         },
         {
           "venue_id": "osm-11433391477",
           "travel_minutes": 21,
           "travel_score": 1,
-          "fit_score": 4
+          "fit_score": 3
         },
         {
           "venue_id": "osm-11117788901",
           "travel_minutes": 14,
           "travel_score": 3,
-          "fit_score": 2
+          "fit_score": 3
         },
         {
           "venue_id": "osm-4888182876",
           "travel_minutes": 16,
           "travel_score": 2,
-          "fit_score": 1
+          "fit_score": 3
         },
         {
           "venue_id": "home-js",
           "travel_minutes": 0,
           "travel_score": 5,
-          "fit_score": 2
+          "fit_score": 4
         },
         {
           "venue_id": "home-jack",
           "travel_minutes": 32,
           "travel_score": 0,
-          "fit_score": 1
+          "fit_score": 3
         }
       ],
       "sergio": [
@@ -229,7 +229,7 @@
           "venue_id": "osm-417080191",
           "travel_minutes": 11,
           "travel_score": 3,
-          "fit_score": 2
+          "fit_score": 4
         },
         {
           "venue_id": "osm-1437162941",
@@ -241,31 +241,31 @@
           "venue_id": "osm-530790467",
           "travel_minutes": 16,
           "travel_score": 2,
-          "fit_score": 3
+          "fit_score": 2
         },
         {
           "venue_id": "osm-1914291499",
           "travel_minutes": 8,
           "travel_score": 4,
-          "fit_score": 1
+          "fit_score": 4
         },
         {
           "venue_id": "osm-1907895893",
           "travel_minutes": 6,
           "travel_score": 4,
-          "fit_score": 1
+          "fit_score": 2
         },
         {
           "venue_id": "osm-2449738479",
           "travel_minutes": 6,
           "travel_score": 4,
-          "fit_score": 2
+          "fit_score": 3
         },
         {
           "venue_id": "osm-4483943925",
           "travel_minutes": 10,
           "travel_score": 3,
-          "fit_score": 1
+          "fit_score": 3
         },
         {
           "venue_id": "osm-4190132060",
@@ -277,7 +277,7 @@
           "venue_id": "osm-6117463842",
           "travel_minutes": 5,
           "travel_score": 4,
-          "fit_score": 3
+          "fit_score": 5
         },
         {
           "venue_id": "osm-11433391477",
@@ -289,44 +289,46 @@
           "venue_id": "osm-11117788901",
           "travel_minutes": 8,
           "travel_score": 4,
-          "fit_score": 3
+          "fit_score": 5
         },
         {
           "venue_id": "osm-4888182876",
           "travel_minutes": 8,
           "travel_score": 4,
-          "fit_score": 2
+          "fit_score": 4
         },
         {
           "venue_id": "home-js",
           "travel_minutes": 3,
           "travel_score": 5,
-          "fit_score": 1
+          "fit_score": 3
         },
         {
           "venue_id": "home-jack",
           "travel_minutes": 14,
           "travel_score": 2,
-          "fit_score": 1
+          "fit_score": 2
         }
       ]
     },
     "tags": {
       "jack": [
-        "natural light",
+        "bright natural light",
         "calm",
-        "pastries",
-        "bakery"
+        "good pastries",
+        "comfortable, chains ok"
       ],
       "javier": [
-        "independent",
-        "quiet",
-        "specialty coffee"
+        "independent coffee shops",
+        "great espresso",
+        "quiet focus corner",
+        "not a big chain"
       ],
       "sergio": [
         "spacious",
-        "food",
-        "lively"
+        "reliable wifi, many outlets",
+        "background noise ok",
+        "real food options"
       ]
     },
     "result": {
@@ -335,22 +337,22 @@
       "start": "2026-11-04T16:30",
       "end": "2026-11-04T18:30",
       "totals": {
-        "jack": 5,
-        "javier": 5,
-        "sergio": 7
+        "jack": 7,
+        "javier": 6,
+        "sergio": 9
       },
-      "lowest_person_score": 5,
-      "total": 17,
+      "lowest_person_score": 6,
+      "total": 22,
       "alternatives": [
         {
           "venue": "Flour Bakery + Cafe",
-          "lowest_person_score": 5,
-          "total": 16
+          "lowest_person_score": 6,
+          "total": 19
         },
         {
           "venue": "Javier and Sergio's place",
-          "lowest_person_score": 4,
-          "total": 17
+          "lowest_person_score": 5,
+          "total": 22
         }
       ],
       "considered": {
@@ -382,7 +384,7 @@
         "options_ranked": 34
       }
     },
-    "created": "2026-11-11T14:00:28",
+    "created": "2026-11-11T15:19:07",
     "candidates": [
       "osm-417080191",
       "osm-1437162941",

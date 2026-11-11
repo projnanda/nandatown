@@ -1,5 +1,5 @@
 {
-  "run_id": "sim-cb220c1265e2",
+  "run_id": "sim-4e8f00c15547",
   "evaluator_version": "lab-0.2.6",
   "stages": [
     {
@@ -17,6 +17,17 @@
         "ev-7"
       ],
       "note": "calls answered by a running Common Ground room"
+    },
+    {
+      "name": "live_agents",
+      "status": "passed",
+      "evidence": [
+        "ev-42",
+        "ev-45",
+        "ev-48",
+        "ev-65"
+      ],
+      "note": "each person's windows, tags and scores came from a Claude Code agent using only that person's private MCP server"
     },
     {
       "name": "discovery",
@@ -48,11 +59,13 @@
       "name": "posts_accepted",
       "status": "failed",
       "evidence": [
-        "ev-48",
         "ev-51",
         "ev-54",
-        "ev-64",
-        "ev-67"
+        "ev-74",
+        "ev-68",
+        "ev-71",
+        "ev-57",
+        "ev-64"
       ],
       "note": "the room must accept windows and scores from all of ['jack', 'javier', 'sergio']"
     },
@@ -84,10 +97,10 @@
       "name": "dropout_reported",
       "status": "passed",
       "evidence": [
-        "ev-62",
-        "ev-115",
-        "ev-118",
-        "ev-123"
+        "ev-82",
+        "ev-133",
+        "ev-127",
+        "ev-132"
       ],
       "note": "the room kept the plan open with no deadline; the other agents stopped on their own limit and named the missing person"
     },
@@ -95,7 +108,7 @@
       "name": "ledger_conserved",
       "status": "passed",
       "evidence": [
-        "ev-124"
+        "ev-134"
       ],
       "note": "complete run recorded no money moved"
     },
@@ -103,11 +116,11 @@
       "name": "privacy",
       "status": "passed",
       "evidence": [
-        "ev-124"
+        "ev-134"
       ],
-      "note": "fields ['home', 'max_travel_min', 'travel_mode'] never left the run"
+      "note": "fields ['home_area', 'notes_from_owner', 'preferences_in_their_words', 'title'] never left the run"
     }
   ],
   "verdict": "failed",
-  "evaluated_at": 1794423640.362326
+  "evaluated_at": 1794428490.6782131
 }

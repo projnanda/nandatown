@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Run, record and verify the Common Ground compatibility check.
 
-Live (starts the real Common Ground room from a checkout, one per case):
+Live (starts the real Common Ground room from a checkout, one per case, and
+runs each person's decisions through a real Claude Code agent; needs `claude`
+installed and logged in):
 
     python examples/integrations/common-ground/run_check.py \\
         --project ../common-ground-mvp --out runs/cg-live
@@ -35,7 +37,9 @@ CASES = {"clean": "cg_meetup", "duplicate": "cg_meetup_duplicate",
          "dropout": "cg_meetup_dropout"}
 # The HW7 "nov4" case: 15 OpenStreetMap cafes plus two homes.
 VENUES = "evidence/hw7/20261104-185511-nov4-v2-r3/venues.json"
-PEOPLE = {"jack": "Hermes", "javier": "Claude Code", "sergio": "Codex"}
+PEOPLE_DIR = "evidence/hw7/20261104-185511-nov4-v2-r3/people"
+PEOPLE = {"jack": "Claude Code", "javier": "Claude Code",
+          "sergio": "Claude Code"}
 # The two homes in that case are blurred to neighborhood level (coordinates
 # rounded to two decimals, no street) before the room sees them, so no
 # street-level home location reaches this public evidence.
@@ -45,6 +49,51 @@ BLURRED_HOMES = {
     "home-jack": {"lat": 42.37, "lon": -71.11, "area": "Mid-Cambridge",
                   "address": "Mid-Cambridge (neighborhood level)"},
 }
+
+
+BLURRED_PROFILE_HOMES = {
+    "javier": {"label": "The Port, Cambridge (neighborhood level)",
+               "lat": 42.36, "lon": -71.09},
+    "sergio": {"label": "The Port, Cambridge (neighborhood level)",
+               "lat": 42.36, "lon": -71.09},
+    "jack": {"label": "Mid-Cambridge (neighborhood level)",
+             "lat": 42.37, "lon": -71.11},
+}
+
+
+def _write_people(project: str, run_dir: str) -> list[str]:
+    """Each person's private data for their own MCP server, homes blurred.
+    Returns the private strings that must never appear in the evidence."""
+    secret: list[str] = []
+    for p in PEOPLE:
+        src = os.path.join(project, PEOPLE_DIR, p)
+        dst = os.path.join(run_dir, "people", p)
+        os.makedirs(dst, exist_ok=True)
+        with open(os.path.join(src, "profile.json")) as f:
+            profile = json.load(f)
+        home = profile["home"]
+        secret += [home["label"], profile["preferences"], *profile["notes"],
+                   f"{home['lat']}", f"{home['lon']}"]
+        profile["home"] = BLURRED_PROFILE_HOMES[p]
+        with open(os.path.join(dst, "profile.json"), "w") as f:
+            json.dump(profile, f, indent=1)
+        shutil.copy(os.path.join(src, "calendar.ics"), dst)
+        with open(os.path.join(src, "calendar.ics")) as f:
+            secret += [line.split(":", 1)[1].strip() for line in f
+                       if line.startswith("SUMMARY:")]
+    return sorted({s for s in secret if len(s) >= 6})
+
+
+def _leaks(folder: str, secret: list[str]) -> list[str]:
+    found = []
+    for root, _, files in os.walk(folder):
+        for name in files:
+            path = os.path.join(root, name)
+            with open(path, errors="replace") as f:
+                text = f.read()
+            found += [f"{os.path.relpath(path, folder)}: {s[:40]!r}"
+                      for s in secret if s in text]
+    return found
 
 
 def _write_venues(src: str, dst: str) -> None:
@@ -109,15 +158,17 @@ def _run_lab_portable(scenario_rel: str, out: str):
 
 
 def run_case(case: str, out: str, project: str | None, python: str,
-             record: bool) -> tuple[str, object]:
+             record: bool) -> tuple[str, object, list[str]]:
     scenario = os.path.relpath(os.path.join(HERE, CASES[case] + ".yaml"),
                                REPO)
     out = os.path.abspath(out)
     case_out = os.path.join(out, case)
     os.makedirs(case_out, exist_ok=True)
-    env_keys = ("CG_MODE", "CG_ROOM_URL", "CG_ROOM_AGENTS", "CG_RECORD")
+    env_keys = ("CG_MODE", "CG_ROOM_URL", "CG_ROOM_AGENTS", "CG_RECORD",
+                "CG_ME_PYTHON", "CG_ME_SERVER", "CG_PEOPLE_RUN")
     saved = {k: os.environ.get(k) for k in env_keys}
     room = None
+    leaks: list[str] = []
     try:
         if project:
             room_dir = tempfile.mkdtemp(prefix=f"cg-room-{case}-")
@@ -128,6 +179,7 @@ def run_case(case: str, out: str, project: str | None, python: str,
                     for p, h in PEOPLE.items()}}, f)
             _write_venues(os.path.join(project, VENUES),
                           os.path.join(room_dir, "venues.json"))
+            secret = _write_people(project, room_dir)
             port = _free_port()
             room = subprocess.Popen(
                 [python, os.path.join(project, "room", "server.py"),
@@ -138,7 +190,11 @@ def run_case(case: str, out: str, project: str | None, python: str,
             os.environ.update(CG_MODE="live",
                               CG_ROOM_URL=f"http://127.0.0.1:{port}/mcp",
                               CG_ROOM_AGENTS=os.path.join(room_dir,
-                                                          "agents.json"))
+                                                          "agents.json"),
+                              CG_ME_PYTHON=python,
+                              CG_ME_SERVER=os.path.join(project, "personal",
+                                                        "server.py"),
+                              CG_PEOPLE_RUN=room_dir)
             if record:
                 os.environ["CG_RECORD"] = os.path.join(
                     HERE, "fixtures", CASES[case] + ".json")
@@ -157,7 +213,13 @@ def run_case(case: str, out: str, project: str | None, python: str,
                     shutil.copy(src, side)
             with open(os.path.join(side, "project_version.json"), "w") as f:
                 json.dump(_project_version(project), f, indent=1)
-        return bundle, result
+            # What each private server did (summaries only, no data).
+            for p in PEOPLE:
+                src = os.path.join(room_dir, f"private_{p}.jsonl")
+                if os.path.exists(src):
+                    shutil.copy(src, side)
+            leaks = _leaks(case_out, secret)
+        return bundle, result, leaks
     finally:
         if room is not None:
             room.terminate()
@@ -188,7 +250,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawTextHelpFormatter)
     ap.add_argument("--project", help="a Common Ground checkout (live mode)")
-    ap.add_argument("--python", help="the Python that runs the room"
+    ap.add_argument("--python", help="the Python that runs the room and the"
+                    " private servers"
                     " (default: <project>/.venv/bin/python)")
     ap.add_argument("--case", choices=["all", *CASES], default="all")
     ap.add_argument("--out", default="runs/common-ground")
@@ -206,10 +269,16 @@ def main() -> int:
     cases = list(CASES) if args.case == "all" else [args.case]
     rows = []
     for case in cases:
-        bundle, result = run_case(case, args.out, project, python,
-                                  args.record)
+        bundle, result, leaks = run_case(case, args.out, project, python,
+                                         args.record)
         rows.append((case, result.verdict, bundle))
         print(f"\n== {case} ({CASES[case]}): {result.verdict}")
+        if project:
+            print("   private-data scan: " + ("clean (no calendar title,"
+                  " note, preference or home detail in the evidence)"
+                  if not leaks else f"LEAKS {leaks}"))
+            if leaks:
+                rows[-1] = (case, "leaked", bundle)
         for s in result.stages:
             print(f"   {s.name:<24} {s.status:<20} {s.note}")
     print()

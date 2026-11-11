@@ -1,14 +1,16 @@
-"""The Common Ground integration in replay mode: no room, no credentials.
+"""The Common Ground integration in replay mode: no room, no model, no login.
 
-Replay answers each MCP call from fixtures recorded from the live room, so
-these tests check the Town side (roles, faults, validator) and the committed
-evidence, not live compatibility.
+Replay answers each room call and each Claude Code agent decision from
+fixtures recorded in a live run, so these tests check the Town side (roles,
+faults, the repair step, the validator) and the committed evidence, not live
+compatibility.
 """
 
 from __future__ import annotations
 
 import glob
 import importlib.util
+import json
 import os
 
 import pytest
@@ -39,6 +41,7 @@ def test_clean_meetup_passes(tmp_path):
                  "slot_in_every_window", "fairness_consistent", "privacy"):
         assert stages[name] == "passed", name
     assert stages["live_room"] == "not_tested"
+    assert stages["live_agents"] == "not_tested"
     assert stages["fairest_option"] == "not_tested"
 
 
@@ -58,6 +61,17 @@ def test_dropout_fails_on_purpose(tmp_path):
     assert result.verdict == "failed"
     assert stages["dropout_reported"] == "passed"
     assert stages["same_plan_for_everyone"] == "not_enough_evidence"
+
+
+def test_refused_post_is_repaired_by_the_agent(tmp_path):
+    # In the recorded dropout run, Sergio's agent first posted overlapping
+    # windows; the room refused them and the agent fixed them once.
+    bundle, _ = run_lab(os.path.join(DIR, "cg_meetup_dropout.yaml"),
+                        str(tmp_path))
+    with open(os.path.join(bundle, "events.jsonl")) as f:
+        kinds = [json.loads(line)["kind"] for line in f]
+    assert "cg_agent_repair" in kinds
+    assert kinds.count("cg_agent_decided") == 4  # three agents + one repair
 
 
 def test_replay_refuses_a_changed_call(tmp_path, monkeypatch):

@@ -35,7 +35,7 @@
         "person": "jack",
         "organizer": true,
         "brief": {
-          "title": "MIT work session",
+          "title": "[redacted]",
           "duration_min": 120,
           "date_from": "2026-11-04",
           "date_to": "2026-11-04",
@@ -48,68 +48,21 @@
           ],
           "timezone": "America/New_York",
           "format": "in_person"
-        },
-        "home": "[redacted]",
-        "travel_mode": "[redacted]",
-        "max_travel_min": "[redacted]",
-        "tags": [
-          "natural light",
-          "calm",
-          "pastries",
-          "bakery"
-        ],
-        "windows": [
-          [
-            "2026-11-04T14:00",
-            "2026-11-04T20:00"
-          ]
-        ]
+        }
       }
     },
     {
       "name": "javier-agent",
       "role": "cg_person",
       "config": {
-        "person": "javier",
-        "home": "[redacted]",
-        "travel_mode": "[redacted]",
-        "max_travel_min": "[redacted]",
-        "tags": [
-          "independent",
-          "quiet",
-          "specialty coffee"
-        ],
-        "windows": [
-          [
-            "2026-11-04T08:00",
-            "2026-11-04T13:00"
-          ],
-          [
-            "2026-11-04T16:30",
-            "2026-11-04T20:00"
-          ]
-        ]
+        "person": "javier"
       }
     },
     {
       "name": "sergio-agent",
       "role": "cg_person",
       "config": {
-        "person": "sergio",
-        "home": "[redacted]",
-        "travel_mode": "[redacted]",
-        "max_travel_min": "[redacted]",
-        "tags": [
-          "spacious",
-          "food",
-          "lively"
-        ],
-        "windows": [
-          [
-            "2026-11-04T16:30",
-            "2026-11-04T20:00"
-          ]
-        ]
+        "person": "sergio"
       }
     }
   ],
@@ -123,9 +76,10 @@
     }
   ],
   "redact_fields": [
-    "home",
-    "travel_mode",
-    "max_travel_min"
+    "title",
+    "notes_from_owner",
+    "home_area",
+    "preferences_in_their_words"
   ],
   "max_time": 60.0,
   "validator": "common_ground",

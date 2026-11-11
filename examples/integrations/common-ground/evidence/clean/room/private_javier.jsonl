@@ -1,0 +1,4 @@
+{"t": "2026-11-11T15:19:20", "person": "javier", "tool": "get_my_profile", "summary": "read profile"}
+{"t": "2026-11-11T15:19:20", "person": "javier", "tool": "find_free_blocks", "summary": "2 free blocks of 120+ min from the calendar"}
+{"t": "2026-11-11T15:19:23", "person": "javier", "tool": "estimate_travel", "summary": "travel times to 14 venues by walk (home stays local)"}
+{"t": "2026-11-11T15:19:23", "person": "javier", "tool": "read_my_calendar", "summary": "1 events, 2026-11-04 to 2026-11-04"}

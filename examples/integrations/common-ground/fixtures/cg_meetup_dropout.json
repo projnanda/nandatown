@@ -20,7 +20,7 @@
    "args_digest": "sha256:080963776d36f84f",
    "ok": true,
    "out": {
-    "plan_id": "cg-9a579b",
+    "plan_id": "cg-73ba7a",
     "brief": {
      "title": "MIT work session",
      "duration_min": 120,
@@ -41,15 +41,16 @@
     ],
     "venues_passing_must_haves": 14,
     "next": "Call join_plan with this plan_id to get the candidate venues, then post_availability and post_scores."
-   }
+   },
+   "meta": {}
   },
   {
    "person": "jack",
    "tool": "join_plan",
-   "args_digest": "sha256:e1ba7043717dbf52",
+   "args_digest": "sha256:86820bd7ed6da226",
    "ok": true,
    "out": {
-    "plan_id": "cg-9a579b",
+    "plan_id": "cg-73ba7a",
     "brief": {
      "title": "MIT work session",
      "duration_min": 120,
@@ -403,15 +404,16 @@
      "post_scores": "3-4 short tags for your owner's taste, and for EVERY candidate venue: travel_minutes, travel_score (1-5 vs. their maximum; 0 = beyond it, a veto) and fit_score (1-5, how well the venue matches the tags).",
      "fairness": "The room picks the venue and slot whose lowest-scoring person (travel + fit, out of 10) scores highest; ties go to the higher total, then the earlier slot."
     }
-   }
+   },
+   "meta": {}
   },
   {
    "person": "javier",
    "tool": "join_plan",
-   "args_digest": "sha256:e1ba7043717dbf52",
+   "args_digest": "sha256:86820bd7ed6da226",
    "ok": true,
    "out": {
-    "plan_id": "cg-9a579b",
+    "plan_id": "cg-73ba7a",
     "brief": {
      "title": "MIT work session",
      "duration_min": 120,
@@ -765,15 +767,16 @@
      "post_scores": "3-4 short tags for your owner's taste, and for EVERY candidate venue: travel_minutes, travel_score (1-5 vs. their maximum; 0 = beyond it, a veto) and fit_score (1-5, how well the venue matches the tags).",
      "fairness": "The room picks the venue and slot whose lowest-scoring person (travel + fit, out of 10) scores highest; ties go to the higher total, then the earlier slot."
     }
-   }
+   },
+   "meta": {}
   },
   {
    "person": "sergio",
    "tool": "join_plan",
-   "args_digest": "sha256:e1ba7043717dbf52",
+   "args_digest": "sha256:86820bd7ed6da226",
    "ok": true,
    "out": {
-    "plan_id": "cg-9a579b",
+    "plan_id": "cg-73ba7a",
     "brief": {
      "title": "MIT work session",
      "duration_min": 120,
@@ -1127,62 +1130,544 @@
      "post_scores": "3-4 short tags for your owner's taste, and for EVERY candidate venue: travel_minutes, travel_score (1-5 vs. their maximum; 0 = beyond it, a veto) and fit_score (1-5, how well the venue matches the tags).",
      "fairness": "The room picks the venue and slot whose lowest-scoring person (travel + fit, out of 10) scores highest; ties go to the higher total, then the earlier slot."
     }
+   },
+   "meta": {}
+  },
+  {
+   "person": "jack",
+   "tool": "agent_decide",
+   "args_digest": "sha256:f1c358c95f6ca17e",
+   "ok": true,
+   "out": {
+    "windows": [
+     {
+      "start": "2026-11-04T14:00-05:00",
+      "end": "2026-11-04T20:00-05:00"
+     }
+    ],
+    "tags": [
+     "bright, natural light",
+     "calm",
+     "good pastries",
+     "chains OK if comfortable"
+    ],
+    "scores": [
+     {
+      "venue_id": "osm-417080191",
+      "travel_minutes": 12,
+      "travel_score": 4,
+      "fit_score": 3
+     },
+     {
+      "venue_id": "osm-1437162941",
+      "travel_minutes": 12,
+      "travel_score": 4,
+      "fit_score": 1
+     },
+     {
+      "venue_id": "osm-530790467",
+      "travel_minutes": 15,
+      "travel_score": 3,
+      "fit_score": 4
+     },
+     {
+      "venue_id": "osm-1914291499",
+      "travel_minutes": 18,
+      "travel_score": 3,
+      "fit_score": 4
+     },
+     {
+      "venue_id": "osm-1907895893",
+      "travel_minutes": 17,
+      "travel_score": 3,
+      "fit_score": 2
+     },
+     {
+      "venue_id": "osm-2449738479",
+      "travel_minutes": 15,
+      "travel_score": 3,
+      "fit_score": 3
+     },
+     {
+      "venue_id": "osm-4483943925",
+      "travel_minutes": 12,
+      "travel_score": 4,
+      "fit_score": 4
+     },
+     {
+      "venue_id": "osm-4190132060",
+      "travel_minutes": 15,
+      "travel_score": 3,
+      "fit_score": 5
+     },
+     {
+      "venue_id": "osm-6117463842",
+      "travel_minutes": 17,
+      "travel_score": 3,
+      "fit_score": 3
+     },
+     {
+      "venue_id": "osm-11433391477",
+      "travel_minutes": 12,
+      "travel_score": 4,
+      "fit_score": 1
+     },
+     {
+      "venue_id": "osm-11117788901",
+      "travel_minutes": 15,
+      "travel_score": 3,
+      "fit_score": 4
+     },
+     {
+      "venue_id": "osm-4888182876",
+      "travel_minutes": 13,
+      "travel_score": 3,
+      "fit_score": 3
+     },
+     {
+      "venue_id": "home-js",
+      "travel_minutes": 17,
+      "travel_score": 3,
+      "fit_score": 3
+     },
+     {
+      "venue_id": "home-jack",
+      "travel_minutes": 9,
+      "travel_score": 4,
+      "fit_score": 3
+     }
+    ]
+   },
+   "meta": {
+    "harness": "Claude Code",
+    "model": "sonnet",
+    "seconds": 13.2,
+    "turns": 5,
+    "cost_usd": 0.0498
+   }
+  },
+  {
+   "person": "javier",
+   "tool": "agent_decide",
+   "args_digest": "sha256:f1c358c95f6ca17e",
+   "ok": true,
+   "out": {
+    "windows": [
+     {
+      "start": "2026-11-04T08:00-05:00",
+      "end": "2026-11-04T13:00-05:00"
+     },
+     {
+      "start": "2026-11-04T16:30-05:00",
+      "end": "2026-11-04T20:00-05:00"
+     }
+    ],
+    "tags": [
+     "independent shops",
+     "great espresso",
+     "quiet focus corner",
+     "not a big chain"
+    ],
+    "scores": [
+     {
+      "venue_id": "osm-417080191",
+      "travel_minutes": 23,
+      "travel_score": 1,
+      "fit_score": 3
+     },
+     {
+      "venue_id": "osm-1437162941",
+      "travel_minutes": 29,
+      "travel_score": 0,
+      "fit_score": 5
+     },
+     {
+      "venue_id": "osm-530790467",
+      "travel_minutes": 39,
+      "travel_score": 0,
+      "fit_score": 3
+     },
+     {
+      "venue_id": "osm-1914291499",
+      "travel_minutes": 13,
+      "travel_score": 3,
+      "fit_score": 1
+     },
+     {
+      "venue_id": "osm-1907895893",
+      "travel_minutes": 8,
+      "travel_score": 4,
+      "fit_score": 1
+     },
+     {
+      "venue_id": "osm-2449738479",
+      "travel_minutes": 9,
+      "travel_score": 4,
+      "fit_score": 2
+     },
+     {
+      "venue_id": "osm-4483943925",
+      "travel_minutes": 19,
+      "travel_score": 2,
+      "fit_score": 3
+     },
+     {
+      "venue_id": "osm-4190132060",
+      "travel_minutes": 51,
+      "travel_score": 0,
+      "fit_score": 4
+     },
+     {
+      "venue_id": "osm-6117463842",
+      "travel_minutes": 6,
+      "travel_score": 4,
+      "fit_score": 1
+     },
+     {
+      "venue_id": "osm-11433391477",
+      "travel_minutes": 21,
+      "travel_score": 1,
+      "fit_score": 4
+     },
+     {
+      "venue_id": "osm-11117788901",
+      "travel_minutes": 14,
+      "travel_score": 3,
+      "fit_score": 3
+     },
+     {
+      "venue_id": "osm-4888182876",
+      "travel_minutes": 16,
+      "travel_score": 2,
+      "fit_score": 2
+     },
+     {
+      "venue_id": "home-js",
+      "travel_minutes": 0,
+      "travel_score": 5,
+      "fit_score": 4
+     },
+     {
+      "venue_id": "home-jack",
+      "travel_minutes": 32,
+      "travel_score": 0,
+      "fit_score": 3
+     }
+    ]
+   },
+   "meta": {
+    "harness": "Claude Code",
+    "model": "sonnet",
+    "seconds": 14.8,
+    "turns": 5,
+    "cost_usd": 0.0506
+   }
+  },
+  {
+   "person": "sergio",
+   "tool": "agent_decide",
+   "args_digest": "sha256:f1c358c95f6ca17e",
+   "ok": true,
+   "out": {
+    "windows": [
+     {
+      "start": "2026-11-04T16:30-05:00",
+      "end": "2026-11-04T18:30-05:00"
+     },
+     {
+      "start": "2026-11-04T17:00-05:00",
+      "end": "2026-11-04T19:00-05:00"
+     },
+     {
+      "start": "2026-11-04T17:30-05:00",
+      "end": "2026-11-04T19:30-05:00"
+     },
+     {
+      "start": "2026-11-04T18:00-05:00",
+      "end": "2026-11-04T20:00-05:00"
+     }
+    ],
+    "tags": [
+     "spacious",
+     "real food options",
+     "lively noise ok",
+     "wifi and outlets"
+    ],
+    "scores": [
+     {
+      "venue_id": "osm-417080191",
+      "travel_minutes": 11,
+      "travel_score": 3,
+      "fit_score": 4
+     },
+     {
+      "venue_id": "osm-1437162941",
+      "travel_minutes": 13,
+      "travel_score": 2,
+      "fit_score": 1
+     },
+     {
+      "venue_id": "osm-530790467",
+      "travel_minutes": 16,
+      "travel_score": 2,
+      "fit_score": 3
+     },
+     {
+      "venue_id": "osm-1914291499",
+      "travel_minutes": 8,
+      "travel_score": 4,
+      "fit_score": 4
+     },
+     {
+      "venue_id": "osm-1907895893",
+      "travel_minutes": 6,
+      "travel_score": 4,
+      "fit_score": 2
+     },
+     {
+      "venue_id": "osm-2449738479",
+      "travel_minutes": 6,
+      "travel_score": 4,
+      "fit_score": 4
+     },
+     {
+      "venue_id": "osm-4483943925",
+      "travel_minutes": 10,
+      "travel_score": 3,
+      "fit_score": 3
+     },
+     {
+      "venue_id": "osm-4190132060",
+      "travel_minutes": 21,
+      "travel_score": 0,
+      "fit_score": 2
+     },
+     {
+      "venue_id": "osm-6117463842",
+      "travel_minutes": 5,
+      "travel_score": 4,
+      "fit_score": 5
+     },
+     {
+      "venue_id": "osm-11433391477",
+      "travel_minutes": 10,
+      "travel_score": 3,
+      "fit_score": 1
+     },
+     {
+      "venue_id": "osm-11117788901",
+      "travel_minutes": 8,
+      "travel_score": 4,
+      "fit_score": 5
+     },
+     {
+      "venue_id": "osm-4888182876",
+      "travel_minutes": 8,
+      "travel_score": 4,
+      "fit_score": 4
+     },
+     {
+      "venue_id": "home-js",
+      "travel_minutes": 3,
+      "travel_score": 5,
+      "fit_score": 3
+     },
+     {
+      "venue_id": "home-jack",
+      "travel_minutes": 14,
+      "travel_score": 2,
+      "fit_score": 2
+     }
+    ]
+   },
+   "meta": {
+    "harness": "Claude Code",
+    "model": "sonnet",
+    "seconds": 13.7,
+    "turns": 5,
+    "cost_usd": 0.0505
    }
   },
   {
    "person": "jack",
    "tool": "post_availability",
-   "args_digest": "sha256:d194e64e2cd2297c",
+   "args_digest": "sha256:53ceb4325da1bf0e",
    "ok": true,
    "out": {
     "accepted": 1,
     "next": "post_scores if you have not yet, then wait_for_result."
-   }
+   },
+   "meta": {}
   },
   {
    "person": "javier",
    "tool": "post_availability",
-   "args_digest": "sha256:b49baf18520c79a5",
+   "args_digest": "sha256:d53bb6b647e963d5",
    "ok": true,
    "out": {
     "accepted": 2,
     "next": "post_scores if you have not yet, then wait_for_result."
-   }
+   },
+   "meta": {}
   },
   {
    "person": "sergio",
    "tool": "post_availability",
-   "args_digest": "sha256:73b6aaf50b44af8f",
+   "args_digest": "sha256:ba0a74f983c36f74",
+   "ok": false,
+   "out": "Error executing tool post_availability: Windows overlap; merge them.",
+   "meta": {}
+  },
+  {
+   "person": "sergio",
+   "tool": "agent_repair",
+   "args_digest": "sha256:fae36b8984a4ff70",
+   "ok": true,
+   "out": {
+    "windows": [
+     {
+      "start": "2026-11-04T16:30-05:00",
+      "end": "2026-11-04T20:00-05:00"
+     }
+    ],
+    "tags": [
+     "spacious",
+     "real food options",
+     "lively noise ok",
+     "wifi and outlets"
+    ],
+    "scores": [
+     {
+      "venue_id": "osm-417080191",
+      "travel_minutes": 11,
+      "travel_score": 3,
+      "fit_score": 4
+     },
+     {
+      "venue_id": "osm-1437162941",
+      "travel_minutes": 13,
+      "travel_score": 2,
+      "fit_score": 1
+     },
+     {
+      "venue_id": "osm-530790467",
+      "travel_minutes": 16,
+      "travel_score": 2,
+      "fit_score": 3
+     },
+     {
+      "venue_id": "osm-1914291499",
+      "travel_minutes": 8,
+      "travel_score": 4,
+      "fit_score": 4
+     },
+     {
+      "venue_id": "osm-1907895893",
+      "travel_minutes": 6,
+      "travel_score": 4,
+      "fit_score": 2
+     },
+     {
+      "venue_id": "osm-2449738479",
+      "travel_minutes": 6,
+      "travel_score": 4,
+      "fit_score": 4
+     },
+     {
+      "venue_id": "osm-4483943925",
+      "travel_minutes": 10,
+      "travel_score": 3,
+      "fit_score": 3
+     },
+     {
+      "venue_id": "osm-4190132060",
+      "travel_minutes": 21,
+      "travel_score": 0,
+      "fit_score": 2
+     },
+     {
+      "venue_id": "osm-6117463842",
+      "travel_minutes": 5,
+      "travel_score": 4,
+      "fit_score": 5
+     },
+     {
+      "venue_id": "osm-11433391477",
+      "travel_minutes": 10,
+      "travel_score": 3,
+      "fit_score": 1
+     },
+     {
+      "venue_id": "osm-11117788901",
+      "travel_minutes": 8,
+      "travel_score": 4,
+      "fit_score": 5
+     },
+     {
+      "venue_id": "osm-4888182876",
+      "travel_minutes": 8,
+      "travel_score": 4,
+      "fit_score": 4
+     },
+     {
+      "venue_id": "home-js",
+      "travel_minutes": 3,
+      "travel_score": 5,
+      "fit_score": 3
+     },
+     {
+      "venue_id": "home-jack",
+      "travel_minutes": 14,
+      "travel_score": 2,
+      "fit_score": 2
+     }
+    ]
+   },
+   "meta": {
+    "harness": "Claude Code",
+    "model": "sonnet",
+    "seconds": 8.6,
+    "turns": 1,
+    "cost_usd": 0.036
+   }
+  },
+  {
+   "person": "jack",
+   "tool": "post_scores",
+   "args_digest": "sha256:271d7c9a952357bc",
+   "ok": true,
+   "out": {
+    "accepted": 14,
+    "next": "Call wait_for_result."
+   },
+   "meta": {}
+  },
+  {
+   "person": "javier",
+   "tool": "post_scores",
+   "args_digest": "sha256:796dc63c2c479447",
+   "ok": true,
+   "out": {
+    "accepted": 14,
+    "next": "Call wait_for_result."
+   },
+   "meta": {}
+  },
+  {
+   "person": "sergio",
+   "tool": "post_availability",
+   "args_digest": "sha256:84eaf585fb61338b",
    "ok": true,
    "out": {
     "accepted": 1,
     "next": "post_scores if you have not yet, then wait_for_result."
-   }
-  },
-  {
-   "person": "jack",
-   "tool": "post_scores",
-   "args_digest": "sha256:b4c0a18c1520c64b",
-   "ok": true,
-   "out": {
-    "accepted": 14,
-    "next": "Call wait_for_result."
-   }
-  },
-  {
-   "person": "javier",
-   "tool": "post_scores",
-   "args_digest": "sha256:7f5fd6b058dea2ef",
-   "ok": true,
-   "out": {
-    "accepted": 14,
-    "next": "Call wait_for_result."
-   }
+   },
+   "meta": {}
   },
   {
    "person": "jack",
    "tool": "wait_for_result",
-   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "args_digest": "sha256:09db84426bb3a12d",
    "ok": true,
    "out": {
     "status": "waiting",
@@ -1190,12 +1675,13 @@
      "Sergio"
     ],
     "note": "Call wait_for_result again."
-   }
+   },
+   "meta": {}
   },
   {
    "person": "javier",
    "tool": "wait_for_result",
-   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "args_digest": "sha256:09db84426bb3a12d",
    "ok": true,
    "out": {
     "status": "waiting",
@@ -1203,12 +1689,13 @@
      "Sergio"
     ],
     "note": "Call wait_for_result again."
-   }
+   },
+   "meta": {}
   },
   {
    "person": "jack",
    "tool": "wait_for_result",
-   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "args_digest": "sha256:09db84426bb3a12d",
    "ok": true,
    "out": {
     "status": "waiting",
@@ -1216,12 +1703,13 @@
      "Sergio"
     ],
     "note": "Call wait_for_result again."
-   }
+   },
+   "meta": {}
   },
   {
    "person": "javier",
    "tool": "wait_for_result",
-   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "args_digest": "sha256:09db84426bb3a12d",
    "ok": true,
    "out": {
     "status": "waiting",
@@ -1229,12 +1717,13 @@
      "Sergio"
     ],
     "note": "Call wait_for_result again."
-   }
+   },
+   "meta": {}
   },
   {
    "person": "jack",
    "tool": "wait_for_result",
-   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "args_digest": "sha256:09db84426bb3a12d",
    "ok": true,
    "out": {
     "status": "waiting",
@@ -1242,12 +1731,13 @@
      "Sergio"
     ],
     "note": "Call wait_for_result again."
-   }
+   },
+   "meta": {}
   },
   {
    "person": "javier",
    "tool": "wait_for_result",
-   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "args_digest": "sha256:09db84426bb3a12d",
    "ok": true,
    "out": {
     "status": "waiting",
@@ -1255,12 +1745,13 @@
      "Sergio"
     ],
     "note": "Call wait_for_result again."
-   }
+   },
+   "meta": {}
   },
   {
    "person": "jack",
    "tool": "wait_for_result",
-   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "args_digest": "sha256:09db84426bb3a12d",
    "ok": true,
    "out": {
     "status": "waiting",
@@ -1268,12 +1759,13 @@
      "Sergio"
     ],
     "note": "Call wait_for_result again."
-   }
+   },
+   "meta": {}
   },
   {
    "person": "javier",
    "tool": "wait_for_result",
-   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "args_digest": "sha256:09db84426bb3a12d",
    "ok": true,
    "out": {
     "status": "waiting",
@@ -1281,12 +1773,13 @@
      "Sergio"
     ],
     "note": "Call wait_for_result again."
-   }
+   },
+   "meta": {}
   },
   {
    "person": "jack",
    "tool": "wait_for_result",
-   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "args_digest": "sha256:09db84426bb3a12d",
    "ok": true,
    "out": {
     "status": "waiting",
@@ -1294,12 +1787,13 @@
      "Sergio"
     ],
     "note": "Call wait_for_result again."
-   }
+   },
+   "meta": {}
   },
   {
    "person": "javier",
    "tool": "wait_for_result",
-   "args_digest": "sha256:3f4eff5a4ac434a4",
+   "args_digest": "sha256:09db84426bb3a12d",
    "ok": true,
    "out": {
     "status": "waiting",
@@ -1307,7 +1801,8 @@
      "Sergio"
     ],
     "note": "Call wait_for_result again."
-   }
+   },
+   "meta": {}
   }
  ]
 }
