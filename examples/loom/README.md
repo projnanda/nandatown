@@ -37,7 +37,7 @@ Town Lab (deterministic, logical time: 1 unit = 1 day)
 ## Reproduce
 
 - Nanda Town upstream base: `6f9a7c064486c4a0ae9242f1ff341b8a4aad0244`
-- LOOM integration snapshot from PR #329: `72a03e6cdbb2507288b82dc06b71bb8e3bd0aeb8`
+- LOOM integration snapshot from PR #329: `a022a831db4c4b9a4a862f652522e255e268dc0f`
 - LOOM portal: `v0.1.1`, commit `480558ee41af23a3f0937cfa207cff1e0ed43d32` (policy `loom-policy-0.1.1`)
 - Python 3.12, Town evaluator `lab-0.2.6`
 
@@ -48,7 +48,7 @@ pinned integration snapshot, which contains `examples/loom/`.
 git clone https://github.com/projnanda/nandatown
 cd nandatown
 git fetch origin refs/pull/329/head
-git checkout --detach 72a03e6cdbb2507288b82dc06b71bb8e3bd0aeb8
+git checkout --detach a022a831db4c4b9a4a862f652522e255e268dc0f
 python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[dev]'
