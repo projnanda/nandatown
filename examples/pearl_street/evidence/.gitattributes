@@ -1,0 +1,2 @@
+# Evidence bundles are hashed byte for byte by manifest.json; never convert line endings.
+* -text

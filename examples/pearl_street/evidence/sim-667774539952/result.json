@@ -1,0 +1,124 @@
+{
+  "run_id": "sim-667774539952",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "discovery_and_registration",
+      "status": "passed",
+      "evidence": [
+        "ev-12",
+        "ev-21",
+        "ev-43",
+        "ev-47",
+        "ev-51",
+        "ev-55",
+        "ev-59",
+        "ev-63"
+      ],
+      "note": "exchange, meter and 5 providers published verified cards; every provider's limits were attested and its register accepted"
+    },
+    {
+      "name": "boundary_rejections",
+      "status": "passed",
+      "evidence": [
+        "ev-151",
+        "ev-108",
+        "ev-134"
+      ],
+      "note": "pvb-35 telemetry -> unauthorized_sender; pvb-12 offer -> outside_mandate; pvb-36 offer -> after_gate_closure"
+    },
+    {
+      "name": "uniform_price_clearing",
+      "status": "passed",
+      "evidence": [
+        "ev-99",
+        "ev-102",
+        "ev-105",
+        "ev-111",
+        "ev-114",
+        "ev-117"
+      ],
+      "note": "pvb-48 9000 kW, pvb-35 18000 kW, dc-08 3000 kW; uniform price 120 $/MWh = floor of the last accepted offer"
+    },
+    {
+      "name": "settlement_matches_meter",
+      "status": "passed",
+      "evidence": [
+        "ev-286",
+        "ev-289",
+        "ev-292"
+      ],
+      "note": "pvb-48 delivered 9000 of 9000 kW, credit $3240.00, charge $0.00; pvb-35 delivered 8702 of 18000 kW, credit $3132.72, charge $27894.00; dc-08 delivered 3000 of 3000 kW, credit $1080.00, charge $0.00"
+    },
+    {
+      "name": "ledger_mirrors_settlement",
+      "status": "passed",
+      "evidence": [
+        "ev-297",
+        "ev-303",
+        "ev-301",
+        "ev-308"
+      ],
+      "note": "every credit was paid operator->provider and every shortfall charge provider->operator, in cents rounded from the settlement"
+    },
+    {
+      "name": "reputation_follows_delivery",
+      "status": "passed",
+      "evidence": [
+        "ev-299",
+        "ev-305",
+        "ev-310"
+      ],
+      "note": "pvb-48 record 1.000 -> good (score 1); pvb-35 record 0.483 -> bad (score -1); dc-08 record 1.000 -> good (score 1)"
+    },
+    {
+      "name": "settlement_coverage",
+      "status": "passed",
+      "evidence": [
+        "ev-286",
+        "ev-289",
+        "ev-292"
+      ],
+      "note": "all 5 configured providers accounted for: dc-08 settled once, pvb-48 settled once, pvb-35 settled once, pvb-12 rejected, pvb-36 rejected"
+    },
+    {
+      "name": "honest_providers_unharmed",
+      "status": "passed",
+      "evidence": [
+        "ev-286",
+        "ev-289",
+        "ev-292"
+      ],
+      "note": "no provider without planted behaviour was charged or rated down"
+    },
+    {
+      "name": "awards_within_attested_limits",
+      "status": "failed",
+      "evidence": [
+        "ev-111",
+        "ev-114",
+        "ev-117"
+      ],
+      "note": "pvb-35 awarded 18000 kW against an attested 8702 kW (declared max_kw 26000, accepted unchecked)"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-297",
+        "ev-301",
+        "ev-303",
+        "ev-308"
+      ],
+      "note": "35000000 cents conserved across every movement"
+    },
+    {
+      "name": "privacy",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no redaction declared by this scenario"
+    }
+  ],
+  "verdict": "failed",
+  "evaluated_at": 1794424694.483262
+}

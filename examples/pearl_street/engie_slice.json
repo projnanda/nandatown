@@ -1,0 +1,64 @@
+{
+  "source": {
+    "dataset": "Engie 80-prosumer synthetic dataset (2023, 15-minute)",
+    "file": "agents_metadata.parquet",
+    "sha256": "b47b3b7d3cc2ac21a792ac647ac94073ff527a5f66d35016e1afd50e4a4c01e1",
+    "columns": [
+      "entity_id",
+      "entity_type",
+      "flex_down_kw",
+      "flex_duration_h",
+      "bess_power_kw",
+      "bess_energy_kwh"
+    ],
+    "note": "Synthetic data built from public sources (NREL, EIA, Census, MISO and others; see the dataset README)."
+  },
+  "rule": "datacenter: power_kw = flex_down_kw, usable_kwh = flex_down_kw * flex_duration_h; pv_bess: power_kw = bess_power_kw, usable_kwh = bess_energy_kwh; rounded",
+  "assets": [
+    {
+      "entity_id": "DC_08",
+      "entity_type": "datacenter",
+      "asset_type": "datacenter",
+      "power_kw": 19020,
+      "usable_kwh": 92916,
+      "source_power_kw": 19019.849515427977,
+      "source_energy_kwh": 92915.61539813904
+    },
+    {
+      "entity_id": "PVB_48",
+      "entity_type": "pv_bess",
+      "asset_type": "bess",
+      "power_kw": 9779,
+      "usable_kwh": 35654,
+      "source_power_kw": 9779.138610146774,
+      "source_energy_kwh": 35654.17917369146
+    },
+    {
+      "entity_id": "PVB_35",
+      "entity_type": "pv_bess",
+      "asset_type": "bess",
+      "power_kw": 8702,
+      "usable_kwh": 22899,
+      "source_power_kw": 8701.788947374069,
+      "source_energy_kwh": 22898.507459569166
+    },
+    {
+      "entity_id": "PVB_12",
+      "entity_type": "pv_bess",
+      "asset_type": "bess",
+      "power_kw": 7170,
+      "usable_kwh": 26413,
+      "source_power_kw": 7169.9037010839265,
+      "source_energy_kwh": 26412.71407518381
+    },
+    {
+      "entity_id": "PVB_36",
+      "entity_type": "pv_bess",
+      "asset_type": "bess",
+      "power_kw": 7046,
+      "usable_kwh": 14621,
+      "source_power_kw": 7045.629784328691,
+      "source_energy_kwh": 14621.180430743387
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+# Pearl Street's flexibility exchange, pinned to one commit of its public
+# snapshot repo. That repo is a snapshot of a private development repo at
+# f7128ab5f2984874b684b1cb0ab881b8c29c152b.
+#
+# Install with --no-deps:
+#   pip install --no-deps -r examples/pearl_street/requirements.txt
+# The exchange package is standard-library only. flex-exchange's declared
+# dependencies (pandas, pandapower, scipy, ...) serve its own simulator, which
+# this example does not use. The package requires Python 3.12 or newer.
+flex-exchange @ git+https://github.com/cafetters/pearl-street-public@f839d1e2e8482152109c53f2f5234c9a40b3da27
+# zoneinfo's time zone data, needed on Windows
+tzdata
