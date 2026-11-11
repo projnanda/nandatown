@@ -186,7 +186,10 @@ nandatown visualize runs/<id>
 `verify` checks the five canonical records, their hashes and cross-record bindings,
 then replays evaluation over the recorded events with a matching local evaluator.
 This verifies integrity and reproducible judgment; it does not independently
-establish that an observer's account of the outside world was true. `report.md`,
+establish that an observer's account of the outside world was true. A Lab bundle
+whose validator comes from a plugin file needs that file to replay:
+`nandatown verify runs/<id> --plugin my_plugin.py`. `verify` never loads a file a
+bundle names, so the file is always given explicitly. `report.md`,
 receipts, attestations, viewer HTML and `state/` are not members of the five-record
 root. Existing attestations receive their own signature and claim checks.
 `visualize` writes a self-contained HTML view of a Lab, Track or Path bundle.

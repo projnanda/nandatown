@@ -575,3 +575,59 @@ def test_cli_flag_scoping(tmp_path, capsys):
     assert main(["run", "capability_spoofing", "--layer",
                  "auth=plain.v1", "--out", str(tmp_path)]) == 1
     assert "FAILED" in capsys.readouterr().out
+
+
+_VALIDATOR_PLUGIN = '''
+from nandatown.records import StageResult
+from nandatown.sim.validators import validator
+
+
+@validator("counts_votes.v1")
+def counts_votes(spec, trace):
+    return [StageResult(name="events_seen", status="passed",
+                        note=f"{len(trace.events)} events")]
+'''
+
+
+def _bundle_with_plugin_validator(tmp_path):
+    """Run the bundled voting scenario judged by a validator that only a
+    plugin file defines, then forget the validator, as a fresh process
+    verifying the bundle would start without it."""
+    import yaml
+
+    from nandatown.sim.scenario import load_bundled
+    from nandatown.sim.validators import VALIDATORS
+
+    plugin = tmp_path / "counts_votes.py"
+    plugin.write_text(_VALIDATOR_PLUGIN, encoding="utf-8")
+    doc = load_bundled("voting").model_dump(mode="json")
+    doc["validator"] = "counts_votes.v1"
+    doc["plugin_files"] = ["counts_votes.py"]
+    scenario = tmp_path / "voting_custom.yaml"
+    scenario.write_text(yaml.safe_dump(doc), encoding="utf-8")
+    bundle_dir, result = run_lab(str(scenario), str(tmp_path / "runs"))
+    assert "events_seen" in [s.name for s in result.stages]
+    VALIDATORS.pop("counts_votes.v1")
+    return bundle_dir, str(plugin)
+
+
+def test_verify_names_a_validator_it_cannot_replay(tmp_path, capsys):
+    bundle_dir, _ = _bundle_with_plugin_validator(tmp_path)
+    assert main(["verify", bundle_dir]) == 1
+    out = capsys.readouterr().out
+    assert "validator 'counts_votes.v1' is not registered here" in out
+    assert "--plugin" in out
+    assert "replay mismatch" not in out
+
+
+def test_verify_plugin_flag_replays_a_plugin_validator(tmp_path, capsys):
+    bundle_dir, plugin = _bundle_with_plugin_validator(tmp_path)
+    assert main(["verify", bundle_dir, "--plugin", plugin]) == 0
+    assert "bundle verified" in capsys.readouterr().out
+
+
+def test_verify_plugin_flag_reports_an_unloadable_file(tmp_path, capsys):
+    bundle_dir, _ = _bundle_with_plugin_validator(tmp_path)
+    missing = str(tmp_path / "absent.py")
+    assert main(["verify", bundle_dir, "--plugin", missing]) == 2
+    assert "cannot load plugin file" in capsys.readouterr().out

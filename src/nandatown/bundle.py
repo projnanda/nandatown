@@ -272,6 +272,17 @@ def verify_bundle_integrity(
     return integrity, differs
 
 
+def _unregistered_lab_validator(bundle: dict) -> str | None:
+    """The Lab validator this bundle names, if this process has none
+    registered under that name; otherwise None."""
+    if bundle["mode"] != "lab":
+        return None
+    from .sim.validators import VALIDATORS
+
+    name = getattr(bundle["profile"], "validator", "")
+    return name if name and name not in VALIDATORS else None
+
+
 def verify_bundle(directory: str) -> list[str]:
     """Check integrity and evaluator reproducibility. Returns problems."""
     problems: list[str] = []
@@ -432,9 +443,21 @@ def verify_bundle(directory: str) -> list[str]:
             recorded_result = recorded.model_dump(exclude={"evaluated_at"})
             replay_result = replay.model_dump(exclude={"evaluated_at"})
             if recorded_result != replay_result:
-                problems.append(
-                    "evaluator replay mismatch: result.json does not match a"
-                    " fresh deterministic evaluation")
+                unregistered = _unregistered_lab_validator(bundle)
+                if unregistered is not None:
+                    # A Lab scenario may take its validator from a plugin
+                    # file. Verification never loads code a bundle names, so
+                    # without that file the replay cannot agree; say so
+                    # rather than report it as a tampered result.
+                    problems.append(
+                        f"evaluator replay not possible: validator"
+                        f" {unregistered!r} is not registered here. If a"
+                        " plugin file defines it, pass that file with"
+                        " --plugin")
+                else:
+                    problems.append(
+                        "evaluator replay mismatch: result.json does not"
+                        " match a fresh deterministic evaluation")
 
     attestation_path = os.path.join(directory, "attestation.json")
     if os.path.lexists(attestation_path):
