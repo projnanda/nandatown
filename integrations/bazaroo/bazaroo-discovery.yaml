@@ -1,0 +1,24 @@
+name: bazaroo-discovery
+description: A buyer finds a seller through Bazaroo as the registry, and a seller whose name Bazaroo already assigned to another key is refused.
+seed: 42
+# Bazaroo replaces Town's built-in registry; every other layer uses its default.
+layers:
+  registry: bazaroo.v1
+# Paths are relative to this file.
+plugin_files:
+  - registry_bazaroo_v1.py
+  - validators_bazaroo.py
+validator: bazaroo-discovery
+# Bazaroo API keys come from environment variables (never from this file):
+#   hw8-seller -> BAZAROO_KEY_HW8_SELLER
+#   hw8-buyer  -> BAZAROO_KEY_HW8_BUYER
+#   lookups    -> BAZAROO_KEY_LOOKUP
+agents:
+  - name: hw8-seller
+    role: seller
+    config: {sku: widget, ask_cents: 1995, floor_cents: 1700, stock: 10, balance_cents: 0}
+  - name: hw8-buyer
+    role: buyer
+    config: {sku: widget, quantity: 2, cap_cents: 1900, balance_cents: 10000, rounds: 1}
+faults: []
+max_time: 60
