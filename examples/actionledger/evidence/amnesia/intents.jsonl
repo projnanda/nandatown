@@ -1,0 +1,11 @@
+{"intent_id": "in-1", "run_id": "run-f8d57e074b56", "at": 1794362755.604985, "actor": "buyer", "action": "send", "payload": {"message_id": "q-1", "to": "seller", "kind": "quote_request", "body": {"sku": "widget", "quantity": 2, "unit_price_cents": 1995}}}
+{"intent_id": "in-2", "run_id": "run-f8d57e074b56", "at": 1794362755.651802, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-3", "run_id": "run-f8d57e074b56", "at": 1794362755.684188, "actor": "seller", "action": "send", "payload": {"message_id": "r-1", "to": "buyer", "kind": "quote_response", "body": {"request_id": "q-1", "sku": "widget", "quantity": 2, "total_cents": 3990}}}
+{"intent_id": "in-4", "run_id": "run-f8d57e074b56", "at": 1794362755.717438, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-5", "run_id": "run-f8d57e074b56", "at": 1794362755.722524, "actor": "buyer", "action": "ack", "payload": {"message_id": "r-1", "fence": "fence-b366802729d140beb13ed45473239900", "status": "processed", "note": {"correct": true, "total_cents": 3990, "expected_total_cents": 3990}}}
+{"intent_id": "in-6", "run_id": "run-f8d57e074b56", "at": 1794362756.257864, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-7", "run_id": "run-f8d57e074b56", "at": 1794362756.605006, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-8", "run_id": "run-f8d57e074b56", "at": 1794362756.9624362, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-9", "run_id": "run-f8d57e074b56", "at": 1794362757.348269, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-10", "run_id": "run-f8d57e074b56", "at": 1794362757.459157, "actor": "seller", "action": "send", "payload": {"message_id": "r-1", "to": "buyer", "kind": "quote_response", "body": {"request_id": "q-1", "sku": "widget", "quantity": 2, "total_cents": 3990}}}
+{"intent_id": "in-11", "run_id": "run-f8d57e074b56", "at": 1794362757.5460238, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-f14b14b19bd94d48b9b12ea3e3d72200", "status": "processed", "note": {"applied": true, "total_cents": 3990, "path": "actionledger", "action_id": "town:run-f8d57e074b56:q-1", "ledger_status": "CONFIRMED_SUCCESS", "attempts": 1, "hold": "task_1"}}}

@@ -1,0 +1,11 @@
+{"intent_id": "in-1", "run_id": "run-6b4df8a9f878", "at": 1794362759.859155, "actor": "buyer", "action": "send", "payload": {"message_id": "q-1", "to": "seller", "kind": "quote_request", "body": {"sku": "widget", "quantity": 2, "unit_price_cents": 1995}}}
+{"intent_id": "in-2", "run_id": "run-6b4df8a9f878", "at": 1794362759.9068851, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-3", "run_id": "run-6b4df8a9f878", "at": 1794362759.919743, "actor": "seller", "action": "send", "payload": {"message_id": "r-1", "to": "buyer", "kind": "quote_response", "body": {"request_id": "q-1", "sku": "widget", "quantity": 2, "total_cents": 3990}}}
+{"intent_id": "in-4", "run_id": "run-6b4df8a9f878", "at": 1794362759.976637, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-5", "run_id": "run-6b4df8a9f878", "at": 1794362759.98205, "actor": "buyer", "action": "ack", "payload": {"message_id": "r-1", "fence": "fence-78c0e4f779a9435397de468ca5d7511d", "status": "processed", "note": {"correct": true, "total_cents": 3990, "expected_total_cents": 3990}}}
+{"intent_id": "in-6", "run_id": "run-6b4df8a9f878", "at": 1794362760.459615, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-7", "run_id": "run-6b4df8a9f878", "at": 1794362760.810338, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-8", "run_id": "run-6b4df8a9f878", "at": 1794362761.1703181, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-9", "run_id": "run-6b4df8a9f878", "at": 1794362761.495917, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-10", "run_id": "run-6b4df8a9f878", "at": 1794362761.51825, "actor": "seller", "action": "send", "payload": {"message_id": "r-1", "to": "buyer", "kind": "quote_response", "body": {"request_id": "q-1", "sku": "widget", "quantity": 2, "total_cents": 3990}}}
+{"intent_id": "in-11", "run_id": "run-6b4df8a9f878", "at": 1794362761.5222762, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-a834008ec50f4cc18228e80234e6cbde", "status": "processed", "note": {"applied": true, "total_cents": 3990, "path": "direct", "action_id": "town:run-6b4df8a9f878:q-1", "tracker_status": 200, "hold": "task_2"}}}
