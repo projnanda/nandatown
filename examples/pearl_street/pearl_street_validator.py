@@ -290,7 +290,11 @@ def settlement_coverage(r, trace):
             else:
                 lines.append(f"{p} rejected")
         elif p not in winners:
-            problems.append(f"{p}: configured to win but not in the recomputed award stack")
+            offers = [e.detail for e in trace.find("pearl_message", observer=r.exchange)
+                      if e.detail.get("from") == p and e.detail.get("msg_type") == "offer"]
+            seen = ", ".join(f"{d['outcome']}{' ' + d['code'] if d.get('code') else ''}"
+                             f" at {d['t_utc']}" for d in offers) or "never reached the exchange"
+            problems.append(f"{p}: no planted rejection, yet no award (offer: {seen})")
         elif count.get(p) != 1:
             problems.append(f"{p}: settled {count.get(p, 0)} times")
         else:
@@ -299,6 +303,37 @@ def settlement_coverage(r, trace):
         return _fail("settlement_coverage", [s.event_id for s in settles], "; ".join(problems))
     return _ok("settlement_coverage", [s.event_id for s in settles],
                f"all {len(r.providers)} configured providers accounted for: " + ", ".join(lines))
+
+
+def honest_harm(r, trace):
+    """Honest providers (no `planted` behaviour) that were charged a shortfall
+    or rated down: {provider: [reasons]}."""
+    honest = {p for p, c in r.providers.items() if not c.get("planted")}
+    harm: dict[str, list[str]] = {}
+    for s in trace.find("pearl_settle", observer=r.exchange):
+        if s.subject in honest and s.detail["charge_usd"] > TOL:
+            harm.setdefault(s.subject, []).append(
+                f"charged ${s.detail['charge_usd']:.2f} (record {s.detail['new_delivery_record']:.3f})")
+    for u in trace.find("reputation_updated", outcome="bad"):
+        if u.subject in honest:
+            harm.setdefault(u.subject, []).append("rated bad")
+    return harm
+
+
+def honest_providers_unharmed(r, trace):
+    """No honest provider is charged a shortfall or rated down. Under a
+    transport fault this is where a lost meter reading or award shows up as
+    harm to an agent that did nothing wrong."""
+    settles = trace.find("pearl_settle", observer=r.exchange)
+    if not settles:
+        return _missing("honest_providers_unharmed", "no settlement")
+    harm = honest_harm(r, trace)
+    ev = [s.event_id for s in settles]
+    if harm:
+        return _fail("honest_providers_unharmed", ev,
+                     "; ".join(f"{p}: {', '.join(v)}" for p, v in sorted(harm.items())))
+    return _ok("honest_providers_unharmed", ev,
+               "no provider without planted behaviour was charged or rated down")
 
 
 def awards_within_attested_limits(r, trace):
@@ -336,5 +371,6 @@ def pearl_street_peak(spec, trace):
         ledger_mirrors_settlement(r, trace),
         reputation_follows_delivery(r, trace),
         settlement_coverage(r, trace),
+        honest_providers_unharmed(r, trace),
         awards_within_attested_limits(r, trace),
     ]

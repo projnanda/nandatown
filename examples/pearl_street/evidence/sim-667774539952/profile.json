@@ -1,0 +1,222 @@
+{
+  "name": "pearl_street_peak",
+  "description": "Pearl Street's real exchange clears a 30 MW peak-reduction need from Engie dataset sites at one uniform price and settles on independent meter readings; an overpromiser that declared 3x its attested power wins, under-delivers and is caught only at settlement, so the run FAILS awards_within_attested_limits on purpose.",
+  "seed": 7,
+  "layers": {
+    "transport": "memory.v1",
+    "communication": "envelope.v1",
+    "identity": "keys.v1",
+    "registry": "index.v1",
+    "auth": "hmac.v1",
+    "trust": "reputation.v1",
+    "payments": "ledger.v1",
+    "coordination": "contractnet.v1",
+    "negotiation": "haggle.v1",
+    "memory": "kv.v1",
+    "privacy": "redact.v1",
+    "data_facts": "evidence.v1"
+  },
+  "agents": [
+    {
+      "name": "exchange",
+      "role": "pearl_exchange",
+      "config": {
+        "t0_utc": "2023-07-25T20:00:00Z",
+        "zone": "SYS",
+        "operator": "utility",
+        "metering": "meter",
+        "tick_every_min": 15,
+        "last_tick_min": 300,
+        "implementation": "flex-exchange 0.1.0, cafetters/pearl-street-public@f839d1e2e8482152109c53f2f5234c9a40b3da27",
+        "balance_cents": 0
+      }
+    },
+    {
+      "name": "utility",
+      "role": "grid_operator",
+      "config": {
+        "zone": "SYS",
+        "post_at_min": 10,
+        "kw_needed": 30000,
+        "price_cap": 1000,
+        "gate_utc": "2023-07-25T21:00:00Z",
+        "window": {
+          "start_utc": "2023-07-25T22:00:00Z",
+          "end_utc": "2023-07-26T01:00:00Z"
+        },
+        "good_record": 0.95,
+        "balance_cents": 10000000
+      }
+    },
+    {
+      "name": "meter",
+      "role": "meter",
+      "config": {
+        "t0_utc": "2023-07-25T20:00:00Z",
+        "zone": "SYS",
+        "assets": [
+          {
+            "agent": "dc-08",
+            "asset_id": "DC_08/dc",
+            "owner": "DC_08 LLC",
+            "power_kw": 19020,
+            "usable_kwh": 92916
+          },
+          {
+            "agent": "pvb-48",
+            "asset_id": "PVB_48/bess",
+            "owner": "PVB_48 LLC",
+            "power_kw": 9779,
+            "usable_kwh": 35654
+          },
+          {
+            "agent": "pvb-35",
+            "asset_id": "PVB_35/bess",
+            "owner": "PVB_35 LLC",
+            "power_kw": 8702,
+            "usable_kwh": 22899
+          },
+          {
+            "agent": "pvb-12",
+            "asset_id": "PVB_12/bess",
+            "owner": "PVB_12 LLC",
+            "power_kw": 7170,
+            "usable_kwh": 26413
+          },
+          {
+            "agent": "pvb-36",
+            "asset_id": "PVB_36/bess",
+            "owner": "PVB_36 LLC",
+            "power_kw": 7046,
+            "usable_kwh": 14621
+          }
+        ],
+        "balance_cents": 0
+      }
+    },
+    {
+      "name": "dc-08",
+      "role": "flex_provider",
+      "config": {
+        "engie_entity": "DC_08",
+        "asset_id": "DC_08/dc",
+        "asset_type": "datacenter",
+        "legal_entity": "DC_08 LLC",
+        "zone": "SYS",
+        "declared_max_kw": 19020,
+        "offer": {
+          "kw": 15000,
+          "floor_usd_mwh": 120,
+          "at_min": 20
+        },
+        "balance_cents": 5000000
+      }
+    },
+    {
+      "name": "pvb-48",
+      "role": "flex_provider",
+      "config": {
+        "engie_entity": "PVB_48",
+        "asset_id": "PVB_48/bess",
+        "asset_type": "bess",
+        "legal_entity": "PVB_48 LLC",
+        "zone": "SYS",
+        "declared_max_kw": 9779,
+        "offer": {
+          "kw": 9000,
+          "floor_usd_mwh": 90,
+          "at_min": 22
+        },
+        "balance_cents": 5000000
+      }
+    },
+    {
+      "name": "pvb-35",
+      "role": "flex_provider",
+      "config": {
+        "engie_entity": "PVB_35",
+        "asset_id": "PVB_35/bess",
+        "asset_type": "bess",
+        "legal_entity": "PVB_35 LLC",
+        "zone": "SYS",
+        "declared_max_kw": 26000,
+        "offer": {
+          "kw": 18000,
+          "floor_usd_mwh": 100,
+          "at_min": 24
+        },
+        "self_report": {
+          "at_min": 125,
+          "kw": 18000
+        },
+        "planted": {
+          "behaviour": "overpromiser: declares max_kw 26,000 against an attested 8,702 kW, offers 18,000 kW, and also self-reports full delivery",
+          "expect": {
+            "msg_type": "telemetry",
+            "code": "unauthorized_sender"
+          }
+        },
+        "balance_cents": 5000000
+      }
+    },
+    {
+      "name": "pvb-12",
+      "role": "flex_provider",
+      "config": {
+        "engie_entity": "PVB_12",
+        "asset_id": "PVB_12/bess",
+        "asset_type": "bess",
+        "legal_entity": "PVB_12 LLC",
+        "zone": "SYS",
+        "declared_max_kw": 7170,
+        "offer": {
+          "kw": 10000,
+          "floor_usd_mwh": 80,
+          "at_min": 26
+        },
+        "planted": {
+          "behaviour": "bids 10,000 kW over its own declared 7,170 kW",
+          "expect": {
+            "msg_type": "offer",
+            "code": "outside_mandate"
+          }
+        },
+        "balance_cents": 5000000
+      }
+    },
+    {
+      "name": "pvb-36",
+      "role": "flex_provider",
+      "config": {
+        "engie_entity": "PVB_36",
+        "asset_id": "PVB_36/bess",
+        "asset_type": "bess",
+        "legal_entity": "PVB_36 LLC",
+        "zone": "SYS",
+        "declared_max_kw": 7046,
+        "offer": {
+          "kw": 5000,
+          "floor_usd_mwh": 70,
+          "at_min": 65
+        },
+        "planted": {
+          "behaviour": "bids after the 16:00 Central gate",
+          "expect": {
+            "msg_type": "offer",
+            "code": "after_gate_closure"
+          }
+        },
+        "balance_cents": 5000000
+      }
+    }
+  ],
+  "faults": [],
+  "redact_fields": [],
+  "max_time": 330.0,
+  "validator": "pearl_street_peak",
+  "plugin_files": [
+    "T:\\examples\\pearl_street\\pearl_street_town.py",
+    "T:\\examples\\pearl_street\\pearl_street_validator.py"
+  ],
+  "adaptations": []
+}
