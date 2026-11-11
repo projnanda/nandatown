@@ -1,0 +1,210 @@
+{
+  "captured": "2026-11-11",
+  "leal_commit": "98e308a",
+  "public_key": "d7e1f1a7ad717a97a963e5adf0cec10b91f88ca607bcd89b11e1b9371ad8c163",
+  "recipes": {
+    "job-applications": {
+      "id": "job-applications",
+      "version": "2.0.0",
+      "name": "Job applications that sound like you and never lie",
+      "creator": "Joaquin Laria, from more than 20 real applications (Sep to Nov 2026)",
+      "price": "free",
+      "steps": [
+        {
+          "id": "screen",
+          "do": "Read the whole posting before writing anything. If it contains any of the stop phrases, stop, write nothing, and tell the candidate which phrase you found.",
+          "stop_phrases": [
+            "will not be providing visa sponsorship",
+            "unable to consider candidates that will require visa sponsorship",
+            "not eligible for any employment-based immigration sponsorship",
+            "we do not sponsor",
+            "no sponsorship available",
+            "must be authorized to work without sponsorship",
+            "must be a u.s. citizen",
+            "u.s. citizen or national",
+            "itar",
+            "export control",
+            "security clearance required"
+          ],
+          "why": "In the creator's first batch, 6 of 17 queued jobs were impossible on these rules. Reading first saves the work and keeps a rejection off the record."
+        },
+        {
+          "id": "research",
+          "do": "Find what the company sells, to whom and how it makes money, and write one real insight about why the business works."
+        },
+        {
+          "id": "tailor_resume",
+          "do": "Rewrite the resume for this posting: lead with the bullets that prove what it asks for, result first, in plain words. Use only facts and numbers the candidate confirmed. Readable beats keyword-matched. One page."
+        },
+        {
+          "id": "write_letter",
+          "do": "One page, 4 or 5 paragraphs. Open on a specific moment, not the job title. One paragraph on how the business works. Answer the obvious objection. Close with a direct ask."
+        },
+        {
+          "id": "self_check",
+          "do": "Before submitting: one page each, every number confirmed, no dashes, none of the banned phrases, no mention of AI, work authorization answers exactly as the candidate gave them.",
+          "banned_phrases": [
+            "delve",
+            "crucial",
+            "robust",
+            "seamless",
+            "cutting-edge",
+            "tapestry",
+            "testament",
+            "pivotal",
+            "spearheaded",
+            "passionate about",
+            "excited about the opportunity",
+            "utilize",
+            "furthermore",
+            "moreover",
+            "ever-evolving",
+            "deep dive",
+            "i am writing to apply",
+            "i believe i would be a great fit"
+          ]
+        },
+        {
+          "id": "submit",
+          "do": "Submit, then record the employer's confirmation word for word. A click is not a confirmation."
+        }
+      ],
+      "never": [
+        "Invent a number, title, scope or result",
+        "Change a visa, sponsorship or citizenship answer",
+        "Apply to a job that bars sponsorship or requires citizenship",
+        "Mention AI anywhere in the application"
+      ]
+    }
+  },
+  "checks": {
+    "7a0c450216e40bdc600a3fa825139ba9f0dbb4f9245fb05c8304b708a36f48aa": {
+      "packet": "clean",
+      "employer": "Acme Payments",
+      "response": {
+        "decision": {
+          "outcome": "approve",
+          "reasons": [
+            "Every check passed"
+          ],
+          "checks": [
+            {
+              "name": "eligible_posting",
+              "result": "pass",
+              "detail": "No sponsorship or citizenship bar"
+            },
+            {
+              "name": "employer_allowed",
+              "result": "pass",
+              "detail": "Not on the blocklist"
+            },
+            {
+              "name": "facts_confirmed",
+              "result": "pass",
+              "detail": "Every number is confirmed"
+            },
+            {
+              "name": "resume_one_page",
+              "result": "pass",
+              "detail": "1 page"
+            },
+            {
+              "name": "letter_one_page",
+              "result": "pass",
+              "detail": "1 page or no field"
+            },
+            {
+              "name": "reads_human",
+              "result": "pass",
+              "detail": "No banned words, dashes or AI mention"
+            },
+            {
+              "name": "work_authorization",
+              "result": "pass",
+              "detail": "Matches the confirmed answers"
+            },
+            {
+              "name": "daily_cap",
+              "result": "pass",
+              "detail": "0 so far today"
+            }
+          ],
+          "decision_id": null
+        },
+        "attestation": {
+          "outcome": "approve",
+          "packet_sha256": "f1d5692dd18004b7a11b5bbac987b2d6c273cbbfbbff058336e80303d6b4e411",
+          "employer": "Acme Payments",
+          "role": "Product Manager, Payments",
+          "key_id": "key_0567193037996d33",
+          "public_key": "d7e1f1a7ad717a97a963e5adf0cec10b91f88ca607bcd89b11e1b9371ad8c163",
+          "signature": "a337ee48381951907e5a74c80597a75a06bfb616eeedd16926c1ea6dbcc42929fe05dc48376bc8975814e3c29b9db28a49e79546ab637a6c4ff4861bc04acc0f"
+        }
+      }
+    },
+    "51bf7de8e27d582ad112a04cb04071fd098ef2f6d9cc4604d299cd94e2aa5f35": {
+      "packet": "invented_number",
+      "employer": "Acme Payments",
+      "response": {
+        "decision": {
+          "outcome": "refuse",
+          "reasons": [
+            "Not in the bullet bank: 900+"
+          ],
+          "checks": [
+            {
+              "name": "eligible_posting",
+              "result": "pass",
+              "detail": "No sponsorship or citizenship bar"
+            },
+            {
+              "name": "employer_allowed",
+              "result": "pass",
+              "detail": "Not on the blocklist"
+            },
+            {
+              "name": "facts_confirmed",
+              "result": "fail",
+              "detail": "Not in the bullet bank: 900+"
+            },
+            {
+              "name": "resume_one_page",
+              "result": "pass",
+              "detail": "1 page"
+            },
+            {
+              "name": "letter_one_page",
+              "result": "pass",
+              "detail": "1 page or no field"
+            },
+            {
+              "name": "reads_human",
+              "result": "pass",
+              "detail": "No banned words, dashes or AI mention"
+            },
+            {
+              "name": "work_authorization",
+              "result": "pass",
+              "detail": "Matches the confirmed answers"
+            },
+            {
+              "name": "daily_cap",
+              "result": "pass",
+              "detail": "0 so far today"
+            }
+          ],
+          "decision_id": null
+        },
+        "attestation": {
+          "outcome": "refuse",
+          "packet_sha256": "cd60ab78b6337462ab85e5cf03303806c4bf10499db7a83797e87adb7516e1d0",
+          "employer": "Acme Payments",
+          "role": "Product Manager, Payments",
+          "key_id": "key_0567193037996d33",
+          "public_key": "d7e1f1a7ad717a97a963e5adf0cec10b91f88ca607bcd89b11e1b9371ad8c163",
+          "signature": "84ed19d05419a28fc6e557f8924c9de531ccfe9ffa814ddabdc5a1209fe192de702c13c06a8d6676b3a7027f493697a5bc2448c2ab8e662c0b3e527568b9670c"
+        }
+      }
+    }
+  }
+}

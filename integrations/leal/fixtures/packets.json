@@ -1,0 +1,26 @@
+{
+  "clean": {
+    "about": "A tailored resume and letter for a made-up candidate, written from facts the candidate confirmed.",
+    "resume_text": "Alex Rivera | MBA Candidate, Class of 2027 | Boston, MA\nProduct Manager Intern, Northstar Pay\n- Launched a cross-border payment workflow to 700+ live transactions and 1pp higher conversion\n- Unlocked funding for a new product by diagnosing a 57% first-transfer drop-off and pricing each recovered point at about $1M a year\n- Validated a domestic transfers product with 50 users before writing code\nStrategy Consultant, Harbor Advisory\n- Moved a national bank from losses to $60M EBITDA by co-leading its turnaround\n- Delivered Day 1 of a $3B merger on schedule across 20+ business functions",
+    "letter_text": "Dear Hiring Team,\nWhen a customer told me she sends money home on the same day every month, and that one failed transfer means her mother misses rent, I understood what reliability means in payments. That is why I want to build at {employer}.\n{employer} wins when a transfer simply arrives. At Northstar Pay I took a new payment workflow to 700+ live transactions, and I found that a 57% first-transfer drop-off was the real problem to fix.\nI want ownership of a product that customers notice only when it fails. Thank you for your time and consideration.\nSincerely,\nAlex Rivera",
+    "resume_pages": 1,
+    "letter_pages": 1,
+    "answers": {
+      "authorized_to_work_us": "Yes",
+      "requires_sponsorship": "Yes"
+    },
+    "salary_answer_usd": null
+  },
+  "invented_number": {
+    "about": "The same made-up candidate's letter with one invented number: 900+ live transactions where the confirmed fact is 700+. Leal must refuse it.",
+    "resume_text": "Alex Rivera | MBA Candidate, Class of 2027 | Boston, MA\nProduct Manager Intern, Northstar Pay\n- Launched a cross-border payment workflow to 700+ live transactions and 1pp higher conversion\n- Unlocked funding for a new product by diagnosing a 57% first-transfer drop-off and pricing each recovered point at about $1M a year\n- Validated a domestic transfers product with 50 users before writing code\nStrategy Consultant, Harbor Advisory\n- Moved a national bank from losses to $60M EBITDA by co-leading its turnaround\n- Delivered Day 1 of a $3B merger on schedule across 20+ business functions",
+    "letter_text": "Dear Hiring Team,\nWhen a customer told me she sends money home on the same day every month, and that one failed transfer means her mother misses rent, I understood what reliability means in payments. That is why I want to build at {employer}.\n{employer} wins when a transfer simply arrives. At Northstar Pay I took a new payment workflow to 900+ live transactions, and I found that a 57% first-transfer drop-off was the real problem to fix.\nI want ownership of a product that customers notice only when it fails. Thank you for your time and consideration.\nSincerely,\nAlex Rivera",
+    "resume_pages": 1,
+    "letter_pages": 1,
+    "answers": {
+      "authorized_to_work_us": "Yes",
+      "requires_sponsorship": "Yes"
+    },
+    "salary_answer_usd": null
+  }
+}
