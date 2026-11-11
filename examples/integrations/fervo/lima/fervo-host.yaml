@@ -1,0 +1,27 @@
+# Throwaway Linux host for the Fervo server in the Town HW8 integration.
+# setup_fervo.sh creates it as `fervo-hw8`, installs a pinned Node and
+# Fervo over `limactl shell`, and teardown_fervo.sh deletes it.
+#
+# The image is pinned by URL and digest rather than template:_images/ubuntu,
+# which resolves to a newer image over time. No host folders are mounted:
+# the managed repository and SQLite database live on the guest disk, and
+# every Git push and API call crosses the VM boundary through the port
+# forward below.
+minimumLimaVersion: 2.0.0
+images:
+  - location: "https://cloud-images.ubuntu.com/releases/resolute/release-20260927/ubuntu-26.04-server-cloudimg-arm64.img"
+    arch: "aarch64"
+    digest: "sha256:63a93bd5a8d76e33b15ceb5daa3657bd79be804748051ab178e643b0f5da22e7"
+  - location: "https://cloud-images.ubuntu.com/releases/resolute/release-20260927/ubuntu-26.04-server-cloudimg-amd64.img"
+    arch: "x86_64"
+    digest: "sha256:8800651811af9a85465ad1d552add729947bb16488dddb4a9b5305a3d97332b2"
+cpus: 2
+memory: 2GiB
+disk: 8GiB
+plain: true
+mounts: []
+portForwards:
+  - guestPort: 8775
+    hostPort: 8775
+    hostIP: 127.0.0.1
+    static: true

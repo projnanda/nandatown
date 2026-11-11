@@ -1,0 +1,16 @@
+{"actor": "operator", "at": "2026-11-11T00:39:12.468Z", "data": {}, "seq": 1, "subject": "n_0", "type": "initialized"}
+{"actor": "operator", "at": "2026-11-11T00:39:13.124Z", "data": {}, "seq": 2, "subject": "town-seller", "type": "actor_created"}
+{"actor": "operator", "at": "2026-11-11T00:39:13.317Z", "data": {}, "seq": 3, "subject": "town-runner", "type": "actor_created"}
+{"actor": "town-runner", "at": "2026-11-11T00:39:13.594Z", "data": {}, "seq": 4, "subject": "j_1465f7dfbd", "type": "job_leased"}
+{"actor": "town-runner", "at": "2026-11-11T00:39:13.691Z", "data": {}, "seq": 5, "subject": "j_1465f7dfbd", "type": "job_done"}
+{"actor": "town-seller", "at": "2026-11-11T00:39:14.495Z", "data": {"overlaps": []}, "seq": 6, "subject": "l_33eec97257", "type": "claim_created"}
+{"actor": "town-seller", "at": "2026-11-11T00:39:15.021Z", "data": {"paths": ["score.txt"], "reason": null, "state": "submitted"}, "seq": 7, "subject": "n_b692ec263c", "type": "node_submitted"}
+{"actor": "system", "at": "2026-11-11T00:39:15.021Z", "data": {"claim": null, "kind": "eval", "node": "n_b692ec263c"}, "seq": 8, "subject": "j_f52391eb32", "type": "job_queued"}
+{"actor": "town-runner", "at": "2026-11-11T00:39:15.021Z", "data": {}, "seq": 9, "subject": "j_f52391eb32", "type": "job_leased"}
+{"actor": "town-runner", "at": "2026-11-11T00:39:15.151Z", "data": {}, "seq": 10, "subject": "j_f52391eb32", "type": "job_done"}
+{"actor": "system", "at": "2026-11-11T00:39:15.156Z", "data": {"commit": "f276473e850c84208605fe1b5cbef45b16812b1e"}, "seq": 11, "subject": "n_b692ec263c", "type": "node_merged"}
+{"actor": "system", "at": "2026-11-11T00:39:15.156Z", "data": {"claim": null, "kind": "postmerge", "node": "n_b692ec263c"}, "seq": 12, "subject": "j_0939fbe2bc", "type": "job_queued"}
+{"actor": "town-runner", "at": "2026-11-11T00:39:15.156Z", "data": {"state": "merged"}, "seq": 13, "subject": "n_b692ec263c", "type": "node_state"}
+{"actor": "town-runner", "at": "2026-11-11T00:39:15.158Z", "data": {}, "seq": 14, "subject": "j_0939fbe2bc", "type": "job_leased"}
+{"actor": "town-runner", "at": "2026-11-11T00:39:15.265Z", "data": {}, "seq": 15, "subject": "j_0939fbe2bc", "type": "job_done"}
+{"actor": "town-runner", "at": "2026-11-11T00:39:15.265Z", "data": {"state": "merged"}, "seq": 16, "subject": "n_b692ec263c", "type": "node_state"}

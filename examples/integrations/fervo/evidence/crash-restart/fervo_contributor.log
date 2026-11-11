@@ -1,0 +1,11 @@
+1794357566.357 pid=89536 joined run-73fbd9fac429 fault=crash_after_claim keys=derived
+1794357566.414 pid=89536 town claim q-1 attempt=1 duplicate=False
+1794357566.684 pid=89536 fervo claim 0.26s ok
+1794357566.684 pid=89536 crash_after_claim: stalling past the Town lease
+1794357568.706 pid=89536 crash_after_claim: stale fence refused; exiting
+1794357568.853 pid=89612 joined run-73fbd9fac429 fault=crash_after_claim keys=derived
+1794357569.289 pid=89612 town claim q-1 attempt=2 duplicate=False
+1794357569.540 pid=89612 fervo claim 0.25s ok
+1794357569.976 pid=89612 fervo submit 0.41s ok
+1794357570.182 pid=89612 fervo done q-1 {"merged_commit": "f276473e850c84208605fe1b5cbef45b16812b1e", "next_action": "stop", "node": "n_7df4c4b7c2", "outcome": "improved", "reason": null, "rounds": [{"commit": "f276473e850c84208605fe1b5cbef45b16812b1e", "lease": "l_4c1297e5d7", "node": "n_7df4c4b7c2", "parent": "n_0"}], "state": "merged"}
+1794357570.190 pid=89612 town ack q-1 recorded

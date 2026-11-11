@@ -1,0 +1,84 @@
+{
+  "town": {
+    "run_id": "run-73fbd9fac429",
+    "profile": "quote-crash-restart",
+    "verdict": "passed",
+    "requests": [
+      "q-1"
+    ],
+    "deliveries": 2,
+    "stale_fences": 1,
+    "restarts": 1,
+    "processed_acks": 1,
+    "reported_nodes": [
+      "n_7df4c4b7c2"
+    ]
+  },
+  "fervo": {
+    "claims": [
+      "l_4c1297e5d7"
+    ],
+    "nodes": [
+      "n_7df4c4b7c2"
+    ],
+    "merged": [
+      "n_7df4c4b7c2"
+    ],
+    "merged_commits": [
+      "f276473e850c84208605fe1b5cbef45b16812b1e"
+    ],
+    "needs_rebase": [],
+    "reverted": [],
+    "postmerge_done": [
+      "j_8090631bc5"
+    ],
+    "events_seen": 16
+  },
+  "score": {
+    "start": 10,
+    "end": 20
+  },
+  "checks": [
+    {
+      "name": "one quote request in the bundle",
+      "passed": true,
+      "detail": "1 accepted"
+    },
+    {
+      "name": "exactly one Fervo claim",
+      "passed": true,
+      "detail": "1 claims for 2 Town deliveries"
+    },
+    {
+      "name": "exactly one Fervo node",
+      "passed": true,
+      "detail": "1 nodes"
+    },
+    {
+      "name": "exactly one merge",
+      "passed": true,
+      "detail": "1 merges"
+    },
+    {
+      "name": "no rebase cycle",
+      "passed": true,
+      "detail": "needs_rebase on none"
+    },
+    {
+      "name": "main score rose once",
+      "passed": true,
+      "detail": "score.txt 10 -> 20, expected +10"
+    },
+    {
+      "name": "postmerge check passed, not reverted",
+      "passed": true,
+      "detail": "postmerge done 1, reverted none"
+    },
+    {
+      "name": "Town's reported node is the merged node",
+      "passed": true,
+      "detail": "reported ['n_7df4c4b7c2'], merged ['n_7df4c4b7c2']"
+    }
+  ],
+  "passed": true
+}

@@ -1,0 +1,19 @@
+[goal]
+text = "Increase the toy score while keeping the repository valid"
+
+[tests]
+cmd = "test -s score.txt"
+
+[[metrics]]
+name = "score"
+cmd = "cat score.txt"
+direction = "max"
+weight = 1.0
+
+[pinned]
+paths = ["fervo.toml"]
+
+[merge.main]
+mode = "verify_then_merge"
+require = ["tests", "frontier_gain"]
+human_override = true

@@ -1,0 +1,45 @@
+{
+  "payload": {
+    "claim": {
+      "capability": "quote",
+      "subject": "buyer, seller",
+      "release_basis": {
+        "profile_fingerprint": "sha256:a788b2fab17b08a8f6b6ba8d72a433861d5a88d2aee3713b598a747d0628ae36"
+      },
+      "profile": "quote-crash-restart",
+      "verdict": "passed"
+    },
+    "observer": "did:town:58dac75eea3778d4f2ff8f5f",
+    "window": {
+      "started": 1794357574.3881311,
+      "evaluated": 1794357578.460426
+    },
+    "coverage": {
+      "tested": [
+        "accepted",
+        "claimed",
+        "received",
+        "processed",
+        "response",
+        "correct",
+        "recovered_after_restart",
+        "stale_fence_rejected"
+      ],
+      "not_tested": [
+        "portable_identity"
+      ]
+    },
+    "limitations": [
+      "one run is one scoped observation, not a certificate",
+      "the signature proves key commitment, not truth, independence, or safety",
+      "a favorable result grants no permissions and endorses nothing"
+    ],
+    "evidence": {
+      "bundle_fingerprint": "sha256:320e24f449bb583f8e0b63b70cb0369885d702dd991e264b6b34fcefe996775c",
+      "result_digest": "sha256:c470b951ca985da5b7a537bc37f1ecbbc88f0fee4c55602bb65644d8ef9fbd58",
+      "run_id": "run-50ac8051ba77"
+    }
+  },
+  "signature": "0bdc50f364600c7fe5e7c632aba9d9a65321ca86cc601ad1c490152bd8ccce77de3c930cbf4cba4680dae37e559f22bdc57a90319136db01449be4640cda4602",
+  "controller_public": "797fe5d372712101c77da4769631b547cf9e4bdb4f4a30358eb86fa99b1d5fae"
+}

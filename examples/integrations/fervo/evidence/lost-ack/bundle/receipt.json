@@ -1,0 +1,44 @@
+{
+  "payload": {
+    "claim": {
+      "capability": "quote",
+      "subject": "buyer, seller",
+      "release_basis": {
+        "profile_fingerprint": "sha256:68c9b4c2eab9177a86cc99b1e8089820c5857d78abdb0b67b6cd7ca5ec556702"
+      },
+      "profile": "quote-lost-ack",
+      "verdict": "passed"
+    },
+    "observer": "did:town:58dac75eea3778d4f2ff8f5f",
+    "window": {
+      "started": 1794357560.656273,
+      "evaluated": 1794357562.03442
+    },
+    "coverage": {
+      "tested": [
+        "accepted",
+        "claimed",
+        "received",
+        "processed",
+        "response",
+        "correct",
+        "ack_retry_survived"
+      ],
+      "not_tested": [
+        "portable_identity"
+      ]
+    },
+    "limitations": [
+      "one run is one scoped observation, not a certificate",
+      "the signature proves key commitment, not truth, independence, or safety",
+      "a favorable result grants no permissions and endorses nothing"
+    ],
+    "evidence": {
+      "bundle_fingerprint": "sha256:6d41b0a415e8cc2b40bfbf33d43e5ae64f611ab2666a280d603bcbb9a1c35c76",
+      "result_digest": "sha256:bbb37b0afedf33e768954ff8e6450f1ca67afa963da9606b72a0247c8ce650c5",
+      "run_id": "run-8608e4a8b95a"
+    }
+  },
+  "signature": "fb45e6a48d1aae995f770f87ad5d6a42a702e2b592f084b20169f5e7e7de4c8d1d4af3ff6ae6e5aad4b85f52538090ae2d883898584e6b9c04a9bece3cb8400a",
+  "controller_public": "797fe5d372712101c77da4769631b547cf9e4bdb4f4a30358eb86fa99b1d5fae"
+}

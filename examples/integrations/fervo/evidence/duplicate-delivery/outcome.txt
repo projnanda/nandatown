@@ -1,0 +1,5 @@
+row=duplicate-delivery
+profile=quote-duplicate-delivery
+keys=derived
+town_exit=0
+check_exit=0

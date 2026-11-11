@@ -1,0 +1,93 @@
+{
+  "town": {
+    "run_id": "run-46479a1406c7",
+    "profile": "quote-duplicate-delivery",
+    "verdict": "incomplete",
+    "requests": [
+      "q-1"
+    ],
+    "deliveries": 2,
+    "stale_fences": 0,
+    "restarts": 0,
+    "processed_acks": 1,
+    "reported_nodes": [
+      "n_f86049592d"
+    ]
+  },
+  "fervo": {
+    "claims": [
+      "l_32e445bba6",
+      "l_65a638555d",
+      "l_5b1128b321"
+    ],
+    "nodes": [
+      "n_f86049592d",
+      "n_5c26b9775f",
+      "n_5a0db9ebac"
+    ],
+    "merged": [
+      "n_f86049592d",
+      "n_5a0db9ebac"
+    ],
+    "merged_commits": [
+      "f276473e850c84208605fe1b5cbef45b16812b1e",
+      "dbb602f6dc316c25a0aad9d13c3e35d1c5acfbfd"
+    ],
+    "needs_rebase": [
+      "n_5c26b9775f"
+    ],
+    "reverted": [],
+    "postmerge_done": [
+      "j_f2586a4aae",
+      "j_bffec24a2c"
+    ],
+    "events_seen": 34
+  },
+  "score": {
+    "start": 10,
+    "end": 30
+  },
+  "checks": [
+    {
+      "name": "one quote request in the bundle",
+      "passed": true,
+      "detail": "1 accepted"
+    },
+    {
+      "name": "exactly one Fervo claim",
+      "passed": false,
+      "detail": "3 claims for 2 Town deliveries"
+    },
+    {
+      "name": "exactly one Fervo node",
+      "passed": false,
+      "detail": "3 nodes"
+    },
+    {
+      "name": "exactly one merge",
+      "passed": false,
+      "detail": "2 merges"
+    },
+    {
+      "name": "no rebase cycle",
+      "passed": false,
+      "detail": "needs_rebase on ['n_5c26b9775f']"
+    },
+    {
+      "name": "main score rose once",
+      "passed": false,
+      "detail": "score.txt 10 -> 30, expected +10"
+    },
+    {
+      "name": "postmerge check passed, not reverted",
+      "passed": true,
+      "detail": "postmerge done 2, reverted none"
+    },
+    {
+      "name": "Town's reported node is the merged node",
+      "passed": false,
+      "detail": "reported ['n_f86049592d'], merged ['n_f86049592d', 'n_5a0db9ebac']"
+    }
+  ],
+  "passed": false
+}
