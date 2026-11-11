@@ -56,10 +56,13 @@ def _cents(usd: float) -> int:
     return int(round(usd * 100))
 
 
-def _find(api, capability: str) -> str:
+def _find(api, capability: str) -> str | None:
+    """The first verified card offering capability, or None (recorded as
+    discovery_failed, so the agent stops instead of crashing the run)."""
     hits = api.lookup(capability)
     if not hits:
-        raise RuntimeError(f"no verified card offers {capability!r}")
+        api.observe("discovery_failed", capability, {"reason": "no verified card"})
+        return None
     return hits[0]["name"]
 
 
@@ -75,8 +78,10 @@ class PearlStreetExchange(SimAgent):
         self.M = M
         self.t0 = _parse(c["t0_utc"])
         self.ex = Exchange(RUN_ID, c["operator"], c["metering"], CLOCK_ID,
-                           [c["zone"]], step_minutes=c.get("step_minutes", 15))
+                           [c["zone"]], step_minutes=c.get("step_minutes", 15),
+                           **c.get("exchange_options", {}))
         self.n_ticks = 0
+        self.excluded: set[str] = set()   # the operator's Town-side exclusion list
         self.api.register([EXCHANGE_CAP], {
             "zone": c["zone"], "operator": c["operator"],
             "metering": c["metering"], "implementation": c["implementation"]})
@@ -89,6 +94,21 @@ class PearlStreetExchange(SimAgent):
         msg_id = f"{sender}:{msg['message_id']}"
         t_utc = _utc(self.t0, self.api.now)
         body = msg["body"] if isinstance(msg["body"], dict) else {}
+        if kind == "operator_policy":
+            # A Town-side gate, not a Pearl Street rule: only the operator may set it.
+            if sender == self.config["operator"]:
+                self.excluded = set(body.get("exclude", []))
+                self.api.observe("town_policy", sender, {"exclude": sorted(self.excluded)})
+            return
+        if kind == "offer" and sender in self.excluded:
+            reason = "the operator excludes this provider (Town reputation below zero)"
+            self.api.observe("pearl_message", msg_id, {
+                "msg_type": kind, "from": sender, "t_utc": t_utc, "payload": body,
+                "outcome": "rejected", "code": "town_policy_excluded", "reason": reason,
+                "source": "town"})
+            self.api.send(sender, "reject", {"ref_msg_id": msg_id, "code": "town_policy_excluded",
+                                             "detail": reason, "source": "town"})
+            return
         outs = self._handle(self.M.make(kind, sender, "exchange", t_utc, body,
                                         msg_id, RUN_ID))
         rejects = [o for o in outs if o["msg_type"] == "reject"
@@ -141,19 +161,31 @@ class PearlStreetExchange(SimAgent):
 
 @role("grid_operator")
 class GridOperator(SimAgent):
-    """The utility: posts the peak need, pays credits, rates providers."""
+    """The utility: posts each peak need, pays credits, rates providers.
+
+    Config holds one need (post_at_min, window, kw_needed, price_cap,
+    gate_utc) or a list under `needs`. With skip_negative_reputation, before
+    each need it asks the exchange's Town gateway to refuse offers from
+    providers whose Town reputation is below zero."""
 
     def on_start(self):
-        self.api.later(self.config["post_at_min"], self.post_need)
+        for need in self.config.get("needs") or [self.config]:
+            self.api.later(need["post_at_min"], lambda n=need: self.post_need(n))
 
-    def post_need(self):
+    def post_need(self, n):
         c = self.config
         self.exchange = _find(self.api, EXCHANGE_CAP)
         self.meter = _find(self.api, METER_CAP)
+        if self.exchange is None or self.meter is None:
+            return
+        if c.get("skip_negative_reputation"):
+            providers = [card["name"] for card in self.api.lookup(PROVIDER_CAP)]
+            self.api.send(self.exchange, "operator_policy", {
+                "exclude": sorted(p for p in providers if self.api.reputation(p) < 0)})
         self.api.send(self.exchange, "post_need", {
-            "zone": c["zone"], "window": c["window"], "kw_needed": c["kw_needed"],
-            "mode": "scheduled", "price_cap": c["price_cap"],
-            "gate_utc": c["gate_utc"]})
+            "zone": c["zone"], "window": n["window"], "kw_needed": n["kw_needed"],
+            "mode": "scheduled", "price_cap": n["price_cap"],
+            "gate_utc": n["gate_utc"]})
 
     def handle_award(self, msg):
         b = msg["body"]
@@ -189,6 +221,8 @@ class MeteringService(SimAgent):
     def attest_limits(self):
         self.api.register([METER_CAP], {"zone": self.config["zone"]})
         self.exchange = _find(self.api, EXCHANGE_CAP)
+        if self.exchange is None:
+            return
         for agent, a in self.assets.items():
             limits = {"asset_id": a["asset_id"], "usable_kwh": a["usable_kwh"],
                       "power_kw": a["power_kw"], "pv_kwh_per_day": 0.0,
@@ -232,7 +266,16 @@ class FlexProvider(SimAgent):
     """
 
     def on_start(self):
+        self.needs_seen = 0
         self.api.later(self.config.get("join_at_min", 2), self.join)
+
+    def offer_for(self, i: int):
+        """The configured offer for the i-th need: `offers` is one per need;
+        a single `offer` applies to the first need only."""
+        c = self.config
+        if "offers" in c:
+            return c["offers"][i] if i < len(c["offers"]) else None
+        return c.get("offer") if i == 0 else None
 
     def join(self):
         c = self.config
@@ -240,6 +283,8 @@ class FlexProvider(SimAgent):
             "engie_entity": c["engie_entity"], "asset_id": c["asset_id"],
             "declared_max_kw": c["declared_max_kw"]})
         self.exchange = _find(self.api, EXCHANGE_CAP)
+        if self.exchange is None:
+            return
         self.api.send(self.exchange, "register", {
             "agent_id": self.name, "legal_entity": c["legal_entity"],
             "assets": [{"asset_id": c["asset_id"], "zone": c["zone"],
@@ -251,13 +296,13 @@ class FlexProvider(SimAgent):
                       {"signals": ["post_need"], "zones": [c["zone"]]})
 
     def handle_post_need(self, msg):
-        self.need = msg["body"]
-        offer = self.config.get("offer")
+        offer = self.offer_for(self.needs_seen)
+        self.needs_seen += 1
         if offer:
-            self.api.later(max(0.0, offer["at_min"] - self.api.now), self.make_offer)
+            self.api.later(max(0.0, offer["at_min"] - self.api.now),
+                           lambda n=msg["body"], o=offer: self.make_offer(n, o))
 
-    def make_offer(self):
-        n, o = self.need, self.config["offer"]
+    def make_offer(self, n, o):
         self.api.send(self.exchange, "offer", {
             "need_id": n["need_id"], "mode": n["mode"], "zone": n["zone"],
             "window": n["window"], "kw": o["kw"],
@@ -282,3 +327,31 @@ class FlexProvider(SimAgent):
 
     def handle_reject(self, msg):
         pass                     # recorded by the exchange as pearl_message
+
+
+@role("listing_forger")
+class ListingForger(SimAgent):
+    """A rival that republishes the exchange's Town card under the exchange's
+    name, signed with its own key, to take the market out of discovery.
+
+    Like Town's own rival_forger role, it reaches the registry directly: the
+    Town API has no call for publishing someone else's card. It sends no
+    messages and takes no part in the market."""
+
+    def on_start(self):
+        self.api.later(self.config.get("forge_at_min", 0.5), self.forge)
+
+    def forge(self):
+        victim = self.config["victim"]
+        engine = self.api._engine
+        registry = engine.layers["registry"]
+        entry = registry.cards.get(victim)
+        if entry is None:
+            self.api.observe("forgery_skipped", victim, {"reason": "victim has no listing"})
+            return
+        engine.layers["identity"].create(self.name)
+        forged = dict(entry["card"], facts={"note": "exchange closed"})
+        signature = engine.layers["auth"].sign_as(self.name, forged)
+        engine.record_intent(self.name, "register",
+                             {"forged_name": victim, "capabilities": forged["capabilities"]})
+        registry.publish(self.name, forged, signature)

@@ -150,13 +150,22 @@ def _stages_with(**changes):
 @pytest.fixture(scope="module")
 def faults(tmp_path_factory):
     out = {}
-    for key in ("drop", "duplicate", "delay"):
+    for key, file, layers in (("drop", "pearl_street_peak_drop.yaml", None),
+                              ("duplicate", "pearl_street_peak_duplicate.yaml", None),
+                              ("delay", "pearl_street_peak_delay.yaml", None),
+                              ("late", "pearl_street_peak_late.yaml", None),
+                              ("repeat", "pearl_street_repeat.yaml", None),
+                              ("repeat_policy", "pearl_street_repeat_policy.yaml", None),
+                              ("forged_v1", "pearl_street_peak_forged_listing.yaml", None),
+                              ("forged_owned", "pearl_street_peak_forged_listing.yaml",
+                               {"registry": "index.owned.v1"})):
         home = tmp_path_factory.mktemp(f"home-{key}")
         old = os.environ.get("NANDATOWN_HOME")
         os.environ["NANDATOWN_HOME"] = str(home)
         try:
-            path = os.path.join(HERE, f"pearl_street_peak_{key}.yaml")
-            bundle_dir, result = run_lab(path, str(tmp_path_factory.mktemp(f"runs-{key}")))
+            path = os.path.join(HERE, file)
+            bundle_dir, result = run_lab(path, str(tmp_path_factory.mktemp(f"runs-{key}")),
+                                         layer_overrides=layers)
         finally:
             if old is None:
                 os.environ.pop("NANDATOWN_HOME", None)
@@ -166,21 +175,37 @@ def faults(tmp_path_factory):
     return out
 
 
-def test_fault_variants_reuse_the_base_roster():
+def _module(filename):
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(f"pearl_{filename[:-3]}", os.path.join(HERE, filename))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _yaml(name):
     import yaml
 
-    def load(name):
-        with open(os.path.join(HERE, name), encoding="utf-8") as f:
-            return yaml.safe_load(f)
+    with open(os.path.join(HERE, name), encoding="utf-8") as f:
+        return yaml.safe_load(f)
 
-    base = load("pearl_street_peak.yaml")
-    keep = {k: v for k, v in base.items() if k not in ("name", "description", "faults")}
-    for key in ("drop", "duplicate", "delay"):
-        v = load(f"pearl_street_peak_{key}.yaml")
-        assert v["validator"] == base["name"] and len(v["faults"]) == 1
-        assert v["faults"][0]["action"] == key
-        assert {k: x for k, x in v.items()
-                if k not in ("name", "description", "faults", "validator")} == keep
+
+def test_generated_scenarios_are_current_and_reuse_the_base_roster():
+    """Each committed variant is exactly what its generator makes from the
+    current base, so all of them share the base roster, slice and seed."""
+    base = _yaml("pearl_street_peak.yaml")
+    faults = _module("make_fault_variants.py")
+    for key in faults.VARIANTS:
+        v = _yaml(f"pearl_street_peak_{key}.yaml")
+        assert v == faults.variant(base, key)
+        assert v["agents"] == base["agents"] and v["seed"] == base["seed"] and len(v["faults"]) == 1
+    rep = _module("make_repeat_scenarios.py")
+    for policy, name in ((False, "pearl_street_repeat.yaml"), (True, "pearl_street_repeat_policy.yaml")):
+        assert _yaml(name) == rep.repeat(base, policy)
+    forged = _yaml("pearl_street_peak_forged_listing.yaml")
+    assert forged == faults.forged_listing(base)
+    assert forged["agents"][:-1] == base["agents"] and forged["agents"][-1]["role"] == "listing_forger"
 
 
 def test_fault_drop_finding_lost_meter_reading_charges_an_honest_provider(faults):
@@ -277,6 +302,115 @@ def test_fault_delay_arrival_time_decides_and_the_offer_is_refused(faults):
     assert {d["price_usd_mwh"] for d in awards.values()} == {100}
     assert {st.name: st.status for st in result.stages} == _stages_with(
         settlement_coverage="failed")
+
+
+def test_fault_late_reading_is_treated_like_a_lost_one(faults):
+    """FINDING. pvb-48's 22:00 UTC reading is delayed 185 minutes and reaches
+    the exchange at 01:05 UTC, after the window ends and settlement runs at
+    01:00. The exchange accepts it but files it under its arrival stamp
+    (01:05), and nothing reopens the settlement: pvb-48 is settled exactly as
+    in the drop case (8,250 kW, $2,250 charge, rated bad). Late = lost."""
+    result, events = faults["late"]
+    late = [e for e in _of(events, "pearl_message")
+            if e.detail["msg_type"] == "telemetry" and e.detail["from"] == "meter"
+            and e.detail["payload"]["asset_id"] == "PVB_48/bess" and e.at > 300]
+    assert [(e.at, e.detail["t_utc"], e.detail["outcome"]) for e in late] == [
+        (pytest.approx(305.1), "2023-07-26T01:05:00Z", "accepted")]
+    settle = {e.subject: e for e in _of(events, "pearl_settle")}["pvb-48"]
+    assert settle.at == 300.0
+    drop = {e.subject: e.detail for e in _of(faults["drop"][1], "pearl_settle")}["pvb-48"]
+    for k in ("delivered_kw", "credit_usd", "charge_usd", "new_delivery_record"):
+        assert settle.detail[k] == pytest.approx(drop[k])
+    assert {st.name: st.status for st in result.stages} == _stages_with(
+        settlement_matches_meter="failed", honest_providers_unharmed="failed")
+
+
+def _by_day(events):
+    """[(awards {agent: kW}, delivered kW)] per need, in posting order."""
+    needs = [e.subject for e in _of(events, "pearl_need")]
+    award_need = {e.detail["award_id"]: e.detail["need_id"] for e in _of(events, "pearl_award")}
+    out = []
+    for nid in needs:
+        awards = {e.subject: e.detail["accredited_kw"] for e in _of(events, "pearl_award")
+                  if e.detail["need_id"] == nid}
+        delivered = sum(e.detail["delivered_kw"] for e in _of(events, "pearl_settle")
+                        if award_need[e.detail["award_id"]] == nid)
+        out.append((awards, delivered))
+    return out
+
+
+def test_repeat_without_feedback_the_overpromiser_wins_again(faults):
+    """FINDING. Two evenings, same roster, nothing feeds back. Day two
+    repeats day one: pvb-35 wins 18,000 kW again and the grid is 9,298 kW
+    short again. Its day-two shortfall charge ($27,894) bounces: day one's
+    charge left it 2,523,872 cents, so the ledger refuses the transfer and
+    ledger_mirrors_settlement fails. The overpromiser ends day two with more
+    money than it had after day one (it was still paid its credit)."""
+    result, events = faults["repeat"]
+    day1, day2 = _by_day(events)
+    assert day1[0] == day2[0] == {"pvb-48": 9000, "pvb-35": 18000, "dc-08": 3000}
+    assert 30000 - day2[1] == pytest.approx(9298)
+    bounced = _of(events, "payment_rejected")
+    assert [(e.subject, e.detail["cents"], e.detail["reason"]) for e in bounced] == [
+        ("pvb-35", 2789400, "insufficient funds")]
+    assert [e.detail["score"] for e in _of(events, "reputation_updated") if e.subject == "pvb-35"] == [-1, -2]
+    assert {st.name: st.status for st in result.stages} == _stages_with(
+        ledger_mirrors_settlement="failed")
+
+
+def test_repeat_with_reputation_policy_the_overpromiser_is_excluded(faults):
+    """Same two evenings; before each need the utility asks the exchange's
+    Town gateway to refuse providers whose Town reputation is below zero.
+    After day one pvb-35 is at -1, so its day-two offer is refused there
+    (town_policy_excluded, a Town-side gate, not a Pearl Street rule). dc-08
+    fills 15,000 kW instead and the day-two shortfall falls from 9,298 to
+    6,000 kW, at the same $120/MWh."""
+    result, events = faults["repeat_policy"]
+    day1, day2 = _by_day(events)
+    assert day1[0] == {"pvb-48": 9000, "pvb-35": 18000, "dc-08": 3000}
+    assert day2[0] == {"pvb-48": 9000, "dc-08": 15000}
+    assert 30000 - day2[1] == pytest.approx(6000)
+    policy = [e.detail["exclude"] for e in _of(events, "town_policy")]
+    assert policy == [[], ["pvb-35"]]
+    refused = [e.detail for e in _of(events, "pearl_message")
+               if e.detail["from"] == "pvb-35" and e.detail["msg_type"] == "offer"
+               and e.detail["outcome"] == "rejected"]
+    assert [(d["code"], d["source"]) for d in refused] == [("town_policy_excluded", "town")]
+    assert _of(events, "payment_rejected") == []
+    assert {st.name: st.status for st in result.stages} == EXPECTED["stages"]
+
+
+MARKET = ["meter", "utility", "dc-08", "pvb-48", "pvb-35", "pvb-12", "pvb-36"]
+
+
+def test_forged_listing_under_index_v1_takes_the_whole_market_offline(faults):
+    """FINDING (Town registry). A rival republishes the exchange's card under
+    the exchange's name with its own key at 20:00:30 UTC. Under the default
+    index.v1 the unverified card replaces the verified listing and lookup
+    hides it, so the meter, the utility and all five providers fail to find
+    the exchange: no need is posted and no market runs. One forged card is a
+    denial of service for every participant, honest or not."""
+    result, events = faults["forged_v1"]
+    assert [e.subject for e in _of(events, "card_unverified")] == ["exchange"]
+    assert sorted(e.observer for e in _of(events, "discovery_failed")) == sorted(MARKET)
+    assert _of(events, "pearl_need") == [] and _of(events, "pearl_award") == []
+    stages = {st.name: st.status for st in result.stages}
+    assert stages["discovery_and_registration"] == "failed"
+    assert stages["settlement_coverage"] == "failed"
+    assert stages["uniform_price_clearing"] == "not_enough_evidence"
+
+
+def test_forged_listing_under_index_owned_v1_is_refused_and_the_market_runs(faults):
+    """Same scenario with --swap registry=index.owned.v1 (Town's owned
+    registry, from PR #303): the forged card is refused, the exchange's
+    listing survives, every participant finds the market, and the run
+    matches the fault-free one stage for stage."""
+    result, events = faults["forged_owned"]
+    assert [e.subject for e in _of(events, "card_publish_refused")] == ["exchange"]
+    assert _of(events, "discovery_failed") == []
+    assert {e.subject: e.detail["accredited_kw"] for e in _of(events, "pearl_award")} \
+        == EXPECTED["awards_kw"]
+    assert {st.name: st.status for st in result.stages} == EXPECTED["stages"]
 
 
 def test_fault_sweep_table_is_current():
