@@ -33,8 +33,8 @@ Profiles: `a2a-capability-fulfillment@0.3` (one quote, then Town repeats the sam
 
 ## Reproduce
 
-Town needs Python 3.11+; GridPact was run on 3.14. No data files and no API key (GridPact runs on its
-synthetic fixture; the auditor is a fixed rule, no LLM).
+Town needs Python 3.11+; GridPact was run on 3.14. No data files. The default run needs no API key (the auditor is a fixed rule); `LLM=1` uses one
+(see "With Haiku agents").
 
 ```bash
 # 1. GridPact at the tested tag
@@ -84,11 +84,24 @@ the 2000 kWh it ordered (the rest is released for re-sourcing; the adapter does 
 under-delivery is visible in `run_check.txt` and the GridPact ledger, not in the Town verdict. A Town profile that
 checks delivered quantity would catch it.
 
+## With Haiku agents
+
+`LLM=1 examples/gridpact/run_check.sh ...` (or `gridpact_a2a.py --llm`, needs `ANTHROPIC_API_KEY`) makes two decisions
+by a Claude Haiku call (`claude-haiku-5-5`, about a cent per run) instead of a rule: the **seller** decides whether to accept
+the order, and the **auditor** decides whether the seller's declared capacity against its nameplate is a false claim to
+challenge. Everything else (propose, stake, ledger, adjudication, settlement, the idempotency cache) stays deterministic.
+Each Haiku answer is printed in `run_check.txt` under "Haiku decisions". Evidence: `evidence/after-honest-haiku/` and
+`evidence/after-liar-haiku/` (4 bundles, all pass `nandatown verify`). In 5 runs of each variant (2 profiles each, 20
+profile runs) every profile passed, the over-declaring seller was challenged every time, and the honest seller never.
+The honest seller PVB_17 declares 5455 kW against a 5000 kW nameplate, 9.1% over, inside GridPact's 10% tolerance; Haiku
+reasoned that correctly. Retries do not call Haiku again: the first answer is cached per commitment.
+
 ## Limits
 
-- The agents are scripted: the Town requester sends one fixed order and the auditor is a fixed rule with the
-  nameplates handed to it (as in GridPact's HW7 benchmark). GridPact's Haiku agents and their negotiation
-  (counters, several sellers, the buyer re-sourcing after a challenge) are not driven through Town.
+- By default the agents are scripted (a fixed rule for the auditor, with the nameplates handed to it, as in the HW7
+  benchmark). With `LLM=1` the seller's accept and the auditor's challenge are Haiku decisions, but they are single
+  yes/no judgements on one fixed Town order. The buyer is still scripted, and negotiation (counters, several sellers,
+  re-sourcing after a challenge) is not driven through Town. The 5 runs per variant are a reliability check, not a benchmark.
 - Adapter and GridPact are by the same team, so this is not an independent-agent result and not A2A conformance.
 - One buyer, one fixed order. Discovery, identity and payment layers are not exercised. `descriptor_consistency`
   is Not tested (no pinned card digest).

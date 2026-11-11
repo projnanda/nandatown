@@ -20,13 +20,15 @@ Run (needs a fresh GridPact server; it hands out each agent's token only once):
     python examples/gridpact/gridpact_a2a.py --port 8941                   # in this checkout
 Then:  nandatown test-agent --url http://127.0.0.1:8941 --path-profile a2a-capability-fulfillment@0.3
 
-Only httpx, fastapi and uvicorn, which Town already depends on. This is a scripted adapter: no LLM agent
-takes part, and the Track and Lab modes are not used.
+Only httpx, fastapi and uvicorn, which Town already depends on. By default this is a scripted adapter. With --llm
+(needs ANTHROPIC_API_KEY) a Claude Haiku agent decides whether the seller accepts each order and whether the auditor
+challenges; GridPact's server, stake, ledger and settlement stay deterministic. Track and Lab modes are not used.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import threading
 import uuid
 
@@ -76,11 +78,39 @@ class GridPactClient:
         return "request_id" in self.tools["propose"]["inputSchema"].get("properties", {})
 
 
+class HaikuBrain:
+    """The seller's and the auditor's judgement, made by a Claude Haiku call (--llm). One JSON answer.
+    Only httpx; ANTHROPIC_API_KEY from the environment. Every decision is kept in `log` for the evidence."""
+    MODEL = "claude-haiku-5-5"
+
+    def __init__(self, api_key: str | None = None, model: str | None = None):
+        self.key, self.model = api_key or os.environ.get("ANTHROPIC_API_KEY"), model or self.MODEL
+        if not self.key:
+            raise SystemExit("--llm needs ANTHROPIC_API_KEY in the environment")
+        self.http, self.log = httpx.Client(timeout=30.0), []
+
+    def decide(self, role: str, prompt: str) -> dict:
+        r = self.http.post("https://api.anthropic.com/v1/messages",
+                           headers={"x-api-key": self.key, "anthropic-version": "2023-06-01", "content-type": "application/json"},
+                           json={"model": self.model, "max_tokens": 300,
+                                 "system": f"You are the {role} agent in a peer-to-peer energy market. Answer with one JSON object and nothing else.",
+                                 "messages": [{"role": "user", "content": prompt}]})
+        r.raise_for_status()
+        text = "".join(b.get("text", "") for b in r.json()["content"])
+        try:
+            out = json.loads(text[text.index("{"):text.rindex("}") + 1])
+        except ValueError:
+            raise RuntimeError(f"{role} agent gave no JSON: {text[:120]!r}")
+        self.log.append({"role": role, "decision": out})
+        print("haiku", role, json.dumps(out), flush=True)
+        return out
+
+
 class GridPactSeller:
     def __init__(self, mcp_url: str, seller: str = "PVB_17", declared_flex_kw: float | None = None,
-                 operator_key: str | None = None, steps: int = 12):
+                 operator_key: str | None = None, steps: int = 12, brain=None):
         self.gp = GridPactClient(mcp_url)
-        self.seller, self.operator_key, self.steps = seller, operator_key, steps
+        self.seller, self.operator_key, self.steps, self.brain = seller, operator_key, steps, brain
         self.idempotent = self.gp.supports_request_id()
         self.can_settle = bool(operator_key) and "operator_settle" in self.gp.tools
         self.tokens = {}
@@ -93,6 +123,8 @@ class GridPactSeller:
                 raise SystemExit(f"GridPact refused to register {agent}: {r['reason']}. "
                                  "Start a fresh GridPact server (tokens are only issued once).")
             self.tokens[agent] = r["token"]
+        self.declared_flex_kw = next(c["declared_flex_kw"] for c in self.gp.call("find_counterparties", token=self.tokens[BUYER])["counterparties"]
+                                     if c["agent_id"] == seller)
         self.done: dict[int, dict] = {}        # commitment_id -> the quote already given for it
         self.lock = threading.Lock()
 
@@ -109,10 +141,20 @@ class GridPactSeller:
                         if c["agent_id"] == seller)
         nameplate = NAMEPLATES.get(seller)
         info = {"audit": "not challenged"}
-        if nameplate and declared > TOLERANCE * nameplate:
+        challenge, claim, evidence = bool(nameplate and declared > TOLERANCE * nameplate), \
+            "declared capacity exceeds nameplate", f"declared {declared:.0f} kW vs nameplate {nameplate} kW"
+        if self.brain and nameplate:                       # --llm: a Haiku auditor makes the call
+            d = self.brain.decide("auditor", (
+                f"Seller {seller} declared a flexible capacity of {declared:.0f} kW. Its public registry nameplate battery "
+                f"power is {nameplate:.0f} kW. Market rule: a declaration more than 10% above nameplate is a false claim "
+                f"worth challenging; a wrong challenge costs you a $50 bond. Reply {{\"challenge\": true|false, "
+                f"\"claim\": \"...\", \"evidence\": \"...\"}}."))
+            challenge = bool(d.get("challenge"))
+            claim, evidence = str(d.get("claim") or claim)[:300], str(d.get("evidence") or evidence)[:500]
+            info["auditor"] = "haiku"
+        if challenge:
             v = self.gp.call("challenge", token=self.tokens[AUDITOR], commitment_id=commit["commitment_id"],
-                             claim="declared capacity exceeds nameplate",
-                             evidence=f"declared {declared:.0f} kW vs nameplate {nameplate:.0f} kW")
+                             claim=claim, evidence=evidence)
             info["audit"] = f"challenge {v.get('verdict')}"
             info["bounty_usd"] = v.get("bounty_usd")
         if self.can_settle:
@@ -142,8 +184,20 @@ class GridPactSeller:
             if offer.get("duplicate") and offer.get("status") == "accepted":
                 commit = self._commitment_for_offer(offer["offer_id"])
             else:
-                r = self.gp.call("respond", token=self.tokens[self.seller], offer_id=offer["offer_id"], action="accept")
-                if not r["ok"]:
+                action = "accept"
+                if self.brain:                               # --llm: a Haiku seller decides whether to take the order
+                    d = self.brain.decide("seller", (
+                        f"You are seller {self.seller}. A buyer offers to buy {kwh_per_step:.0f} kWh per 15-minute step for "
+                        f"{n_steps} steps at ${req['unit_price_cents'] / 100:.2f}/MWh. You must lock a stake that pays "
+                        f"${PENALTY_USD_MWH:.0f}/MWh on any shortfall. You have declared {self.declared_flex_kw:.0f} kW of "
+                        f"flexible capacity ({self.declared_flex_kw * 0.25:.0f} kWh per step). Accept if the order fits "
+                        f"your declared capacity and the price is positive, otherwise reject. "
+                        f"Reply {{\"action\": \"accept\"|\"reject\", \"reason\": \"...\"}}."))
+                    action = "accept" if d.get("action") == "accept" else "reject"
+                r = self.gp.call("respond", token=self.tokens[self.seller], offer_id=offer["offer_id"], action=action)
+                if not r["ok"] or action == "reject":
+                    if action == "reject":
+                        return "rejected", {"request_id": request_id, "error": "seller declined the offer"}
                     return "failed", {"request_id": request_id, "error": r["reason"]}
                 commit = self._commitment_for_offer(offer["offer_id"])
             cid = commit["commitment_id"]
@@ -211,10 +265,10 @@ def main():
     ap.add_argument("--seller", default="PVB_17", help="GridPact seller that fills the orders (PVB_37 for the liar case)")
     ap.add_argument("--steps", type=int, default=12, help="delivery window in 15-minute steps (2 packs the order into 17:00-17:30)")
     ap.add_argument("--declared-flex-kw", type=float, default=None, help="capacity the seller declares (a lie if above nameplate)")
+    ap.add_argument("--llm", action="store_true", help="a Claude Haiku agent decides the seller's accept/reject and the auditor's challenge (needs ANTHROPIC_API_KEY)")
     a = ap.parse_args()
-    import os
     uvicorn.run(build_app(a.mcp_url, f"http://127.0.0.1:{a.port}", seller=a.seller, declared_flex_kw=a.declared_flex_kw, steps=a.steps,
-                          operator_key=os.environ.get("GRIDPACT_OPERATOR_KEY")), host="127.0.0.1", port=a.port, log_level="warning")
+                          brain=HaikuBrain() if a.llm else None, operator_key=os.environ.get("GRIDPACT_OPERATOR_KEY")), host="127.0.0.1", port=a.port, log_level="warning")
 
 
 if __name__ == "__main__":

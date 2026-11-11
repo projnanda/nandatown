@@ -43,6 +43,9 @@ class FakeGridPact:
         if name == "respond":
             oid = a["offer_id"]
             terms, rid, _ = self.offers[oid]
+            if a["action"] == "reject":
+                self.offers[oid] = (terms, rid, "rejected")
+                return {"ok": True}
             self.offers[oid] = (terms, rid, "accepted")
             self.commits[oid] = {"commitment_id": oid, "offer_id": oid, "seller": terms[0], "kwh_per_step": terms[3],
                                  "price_usd_mwh": terms[4], "stake_usd": 1.0}
@@ -128,6 +131,45 @@ def test_over_declared_seller_is_challenged_before_the_quote(monkeypatch):
 def test_a_repeat_after_the_audit_does_not_challenge_again(monkeypatch):
     client, fake = make(monkeypatch, seller="PVB_37", declared_flex_kw=5000.0, steps=2)
     assert send(client, ORDER) == send(client, ORDER) and len(fake.challenges) == 1
+
+
+class FakeBrain:
+    """Stands in for the Haiku calls: records the prompts and returns scripted decisions."""
+
+    def __init__(self, seller="accept", challenge=True):
+        self.seller, self.challenge, self.calls = seller, challenge, []
+
+    def decide(self, role, prompt):
+        self.calls.append(role)
+        if role == "seller":
+            return {"action": self.seller, "reason": "test"}
+        return {"challenge": self.challenge, "claim": "declared above nameplate", "evidence": "test"}
+
+
+def test_llm_seller_that_accepts_makes_the_commitment(monkeypatch):
+    brain = FakeBrain()
+    client, fake = make(monkeypatch, brain=brain)
+    state, quote = send(client, ORDER)
+    assert state == "completed" and len(fake.commits) == 1 and brain.calls.count("seller") == 1
+
+
+def test_llm_seller_that_declines_makes_no_commitment(monkeypatch):
+    client, fake = make(monkeypatch, brain=FakeBrain(seller="reject"))
+    state, body = send(client, ORDER)
+    assert state == "rejected" and not fake.commits
+
+
+def test_llm_retry_does_not_ask_the_agents_again(monkeypatch):
+    brain = FakeBrain()
+    client, fake = make(monkeypatch, brain=brain, seller="PVB_37", declared_flex_kw=5000.0, steps=2)
+    assert send(client, ORDER) == send(client, ORDER)
+    assert brain.calls == ["seller", "auditor"] and len(fake.commits) == 1 and len(fake.challenges) == 1
+
+
+def test_llm_auditor_can_decline_to_challenge(monkeypatch):
+    client, fake = make(monkeypatch, brain=FakeBrain(challenge=False), seller="PVB_37", declared_flex_kw=5000.0, steps=2)
+    state, quote = send(client, ORDER)
+    assert fake.challenges == [] and quote["audit"] == "not challenged"
 
 
 @pytest.mark.skipif(not os.environ.get("GRIDPACT_DIR") or not shutil.which("nandatown"),

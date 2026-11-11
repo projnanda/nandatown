@@ -7,6 +7,7 @@
 # VARIANT=liar fills the orders with PVB_37, which declares 5000 kW for a 2500 kW battery: the adapter's auditor
 # must challenge it and GridPact must settle the order from the trimmed commitment. The liar's orders are packed
 # into 2 steps (1000 kWh/step) so they exceed its real 2500 kW battery (625 kWh/step) but fit its declared cap.
+# LLM=1 adds --llm: a Claude Haiku agent decides the seller's accept and the auditor's challenge (needs ANTHROPIC_API_KEY).
 # Run it from the nandatown checkout with Town installed (nandatown on PATH).
 set -u
 : "${GRIDPACT_DIR:?set GRIDPACT_DIR to a gridpact checkout}"
@@ -17,6 +18,7 @@ VARIANT="${VARIANT:-honest}"
 MCP_PORT="${MCP_PORT:-8792}"; A2A_PORT="${A2A_PORT:-8941}"
 DATA="${GRIDPACT_DATA_DIR:-$GRIDPACT_DIR/fixtures/synthetic}"
 if [ "$VARIANT" = liar ]; then SELLER_ARGS="--seller PVB_37 --declared-flex-kw 5000 --steps 2"; else SELLER_ARGS="--seller PVB_17"; fi
+[ "${LLM:-}" = 1 ] && SELLER_ARGS="$SELLER_ARGS --llm"
 cleanup() { kill "${GP_PID:-}" "${AD_PID:-}" 2>/dev/null; wait 2>/dev/null; }
 trap cleanup EXIT
 
@@ -36,6 +38,7 @@ for P in a2a-capability-fulfillment@0.3 a2a-order-conflict@0.1; do
   curl -sf "http://127.0.0.1:$A2A_PORT/.well-known/agent-card.json" >/dev/null || { echo "adapter did not start:"; tail -5 "$TMP/adapter.log"; tail -5 "$TMP/gridpact.log"; }
   nandatown test-agent --url "http://127.0.0.1:$A2A_PORT" --path-profile "$P" --out "$OUT" 2>&1 \
     | grep -E "Verdict|^  [a-z_]+ +(Passed|Failed|Not tested|Inconclusive)|note:|Evidence bundle"
+  [ "${LLM:-}" = 1 ] && { echo "-- Haiku decisions"; grep "^haiku" "$TMP/adapter.log" | cut -c1-230; }
   echo "-- what GridPact recorded"
   python - "$TMP/gridpact.db" <<'PY'
 import sqlite3, sys
