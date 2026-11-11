@@ -18,13 +18,14 @@ the separate Milestone 6 consumer path: installed-release validation,
 deterministic fixtures, and read-only evidence verification. They do not call a
 model or repeat either project's full suite.
 
-The Nanda implementation commit is
-`195b60bbf3b3a166ba76e349ddff9fc34f537ab9`. It remains local and unpushed
-until the separately authorized Milestone 7 publication workflow, so obtain a
-fresh reviewer-accessible clone or checkout containing that commit; do not
-invent or substitute a remote ref. Public network access is required to
-download the frozen SharpeShooter release and Python dependencies, and the
-fixture checks require permission to bind loopback sockets.
+The Nanda production implementation used by the registered evidence is commit
+`195b60bbf3b3a166ba76e349ddff9fc34f537ab9`. Check out that exact commit when
+reproducing the evidence-bound behavior. The PR head may include later
+documentation-only publication updates; do not substitute a different
+production commit unless the affected compatibility gates are rerun and a
+separately named evidence generation is created. Public network access is
+required to download the frozen SharpeShooter release and Python dependencies,
+and the fixture checks require permission to bind loopback sockets.
 
 From the root of that fresh Nanda checkout, create the consumer environment:
 
