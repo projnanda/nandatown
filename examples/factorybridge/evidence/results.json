@@ -1,0 +1,911 @@
+[
+  {
+    "case": "success",
+    "response": {
+      "request_id": "factorybridge-success",
+      "status": "completed",
+      "simulation_started": true,
+      "simulation_only": true,
+      "scripted_reviewer": true,
+      "verdict": {
+        "success": true,
+        "spec_ok": true,
+        "on_time": true,
+        "in_budget": true,
+        "total_cost": 42.5,
+        "slack_days": 0,
+        "tool_calls": 25,
+        "replans": null,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "usd": 0.0,
+        "accounting_complete": true,
+        "failed_calls": 0
+      },
+      "truth": {
+        "simulation_only": true,
+        "good_units": {
+          "fixture-spacer": 2,
+          "fixture-board": 1,
+          "fixture-screw": 2
+        },
+        "arrival_day": {
+          "fixture-screw": 1,
+          "fixture-board": 2,
+          "fixture-spacer": 6
+        },
+        "ready_day": 7,
+        "final_delivery_day": 8,
+        "total_cost": 42.5,
+        "fees": 1.5,
+        "finished": true,
+        "events": [
+          {
+            "day": 1,
+            "reservation_id": "reservation:fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0",
+            "supplier_id": "fixture_purchased_cheap",
+            "status": "delivered",
+            "eta_day": 1,
+            "note": "SIMULATED arrival at hub"
+          },
+          {
+            "day": 2,
+            "reservation_id": "reservation:fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0",
+            "supplier_id": "fixture_pcb_cheap",
+            "status": "delivered",
+            "eta_day": 2,
+            "note": "SIMULATED arrival at hub"
+          },
+          {
+            "day": 3,
+            "reservation_id": "reservation:fixture_print_cheap:fixture-integration-only:planner:part-0:2:0",
+            "supplier_id": "fixture_print_cheap",
+            "status": "delayed",
+            "eta_day": 6,
+            "note": "SIMULATED scripted delay"
+          },
+          {
+            "day": 3,
+            "reservation_id": "reservation:fixture_shipping_cheap:fixture-integration-only:planner:shipping:1:0",
+            "supplier_id": "fixture_shipping_cheap",
+            "status": "cancelled",
+            "eta_day": null,
+            "note": "SIMULATED cancellation"
+          },
+          {
+            "day": 6,
+            "reservation_id": "reservation:fixture_print_cheap:fixture-integration-only:planner:part-0:2:0",
+            "supplier_id": "fixture_print_cheap",
+            "status": "delivered",
+            "eta_day": 6,
+            "note": "SIMULATED arrival at hub"
+          },
+          {
+            "day": 6,
+            "reservation_id": "reservation:fixture_shipping_fast:fixture-integration-only:planner:shipping:8:3",
+            "supplier_id": "fixture_shipping_fast",
+            "status": "on_track",
+            "eta_day": 8,
+            "note": "SIMULATED pickup aligned with actual parts readiness"
+          },
+          {
+            "day": 8,
+            "reservation_id": "reservation:fixture_shipping_fast:fixture-integration-only:planner:shipping:8:3",
+            "supplier_id": "fixture_shipping_fast",
+            "status": "delivered",
+            "eta_day": 8,
+            "note": "SIMULATED arrival at customer"
+          }
+        ],
+        "inspections": [
+          {
+            "reservation_id": "reservation:fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0",
+            "part_id": "fixture-screw",
+            "passed": true,
+            "measured": {
+              "simulation_only": true,
+              "requested_qty": 2,
+              "good_qty": 2,
+              "qty": 2,
+              "material": null,
+              "sku": "fixture-screw",
+              "declared_material": null,
+              "declared_sku": "fixture-screw",
+              "simulated_error_mm": 0,
+              "tolerance_mm": null
+            },
+            "evidence": "SIMULATION ONLY: seeded per-unit defect draw"
+          },
+          {
+            "reservation_id": "reservation:fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0",
+            "part_id": "fixture-board",
+            "passed": true,
+            "measured": {
+              "simulation_only": true,
+              "requested_qty": 1,
+              "good_qty": 1,
+              "qty": 1,
+              "material": null,
+              "sku": null,
+              "declared_material": null,
+              "declared_sku": null,
+              "simulated_error_mm": 0,
+              "tolerance_mm": null,
+              "size_mm": [
+                10,
+                10
+              ],
+              "nominal_size_mm": [
+                10,
+                10
+              ],
+              "layers": 2
+            },
+            "evidence": "SIMULATION ONLY: seeded per-unit defect draw"
+          },
+          {
+            "reservation_id": "reservation:fixture_print_cheap:fixture-integration-only:planner:part-0:2:0",
+            "part_id": "fixture-spacer",
+            "passed": true,
+            "measured": {
+              "simulation_only": true,
+              "requested_qty": 2,
+              "good_qty": 2,
+              "qty": 2,
+              "material": "PLA",
+              "sku": null,
+              "declared_material": "PLA",
+              "declared_sku": null,
+              "simulated_error_mm": 0.05,
+              "tolerance_mm": 0.2,
+              "nominal_max_dim_mm": 10,
+              "max_dim_mm": 10.05,
+              "simulated_max_dim_mm": 10.05,
+              "nominal_volume_cm3": 1
+            },
+            "evidence": "SIMULATION ONLY: seeded per-unit defect draw"
+          }
+        ],
+        "unit_deliveries": [
+          {
+            "part_id": "fixture-screw",
+            "day": 1,
+            "good_qty": 2,
+            "reservation_id": "reservation:fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0"
+          },
+          {
+            "part_id": "fixture-board",
+            "day": 2,
+            "good_qty": 1,
+            "reservation_id": "reservation:fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0"
+          },
+          {
+            "part_id": "fixture-spacer",
+            "day": 6,
+            "good_qty": 2,
+            "reservation_id": "reservation:fixture_print_cheap:fixture-integration-only:planner:part-0:2:0"
+          }
+        ],
+        "printing_schedules": {
+          "reservation:fixture_print_cheap:fixture-integration-only:planner:part-0:2:0": {
+            "arrival_hour": 96.0,
+            "arrival_day": 4,
+            "slots": [
+              {
+                "printer_id": "synthetic-printer",
+                "plate_id": "SYNTHETIC-cheap:plate",
+                "start_hour": 0.0,
+                "finish_hour": 72.0,
+                "machine_seconds": 259200,
+                "filament_g": "10",
+                "evidence_id": "SYNTHETIC-cheap:70c3aa5c11633bb9455548764b13d6daad7065b6a7da04d32884f951935b8354",
+                "estimate_origin": "synthetic_fixture",
+                "profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "settings_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              }
+            ]
+          }
+        },
+        "printing_windows": {
+          "fixture_print_cheap": {
+            "synthetic-printer": {
+              "window_start_hour": 0.0,
+              "operating_hours_per_day": 24.0
+            }
+          },
+          "fixture_print_fast": {
+            "synthetic-printer": {
+              "window_start_hour": 0.0,
+              "operating_hours_per_day": 24.0
+            }
+          }
+        },
+        "printing_bookings": {
+          "fixture_print_cheap": {
+            "synthetic-printer": [
+              {
+                "start_hour": 0.0,
+                "finish_hour": 72.0,
+                "reservation_id": "reservation:fixture_print_cheap:fixture-integration-only:planner:part-0:2:0"
+              }
+            ]
+          },
+          "fixture_print_fast": {
+            "synthetic-printer": []
+          }
+        },
+        "print_delay_scope": "post-production logistics; sampled delays do not invent additional machine runtime"
+      },
+      "tool_usage": {
+        "tool_calls": 25,
+        "attempted_calls": 25,
+        "max_tool_calls": 60
+      },
+      "trace": [
+        {
+          "day": 0,
+          "tool": "today",
+          "arguments": {},
+          "result": 0
+        },
+        {
+          "day": 0,
+          "tool": "post_rfq",
+          "arguments": {
+            "rfq": {
+              "rfq_id": "fixture-integration-only:planner:shipping:1",
+              "order_id": "fixture-integration-only",
+              "kind": "shipping",
+              "part_ids": [],
+              "specs": {
+                "parts": []
+              },
+              "need_by_day": 8
+            }
+          },
+          "result": [
+            {
+              "bid_id": "fixture_shipping_cheap:fixture-integration-only:planner:shipping:1:0",
+              "rfq_id": "fixture-integration-only:planner:shipping:1",
+              "supplier_id": "fixture_shipping_cheap",
+              "price_usd": 3.0,
+              "lead_days": 2,
+              "terms": "SIMULATION ASSUMPTIONS; paid at award; cancellation adds 50% fee",
+              "valid_until_day": 2
+            },
+            {
+              "bid_id": "fixture_shipping_fast:fixture-integration-only:planner:shipping:1:0",
+              "rfq_id": "fixture-integration-only:planner:shipping:1",
+              "supplier_id": "fixture_shipping_fast",
+              "price_usd": 13.0,
+              "lead_days": 1,
+              "terms": "SIMULATION ASSUMPTIONS; paid at award; cancellation adds 50% fee",
+              "valid_until_day": 2
+            }
+          ],
+          "supplier_refusals": {}
+        },
+        {
+          "day": 0,
+          "tool": "post_rfq",
+          "arguments": {
+            "rfq": {
+              "rfq_id": "fixture-integration-only:planner:part-0:2",
+              "order_id": "fixture-integration-only",
+              "kind": "print",
+              "part_ids": [
+                "fixture-spacer"
+              ],
+              "specs": {
+                "parts": [
+                  {
+                    "part_id": "fixture-spacer",
+                    "kind": "print",
+                    "qty": 2,
+                    "material": "PLA",
+                    "volume_cm3": 1,
+                    "max_dim_mm": 10,
+                    "tolerance_mm": 0.2,
+                    "layers": null,
+                    "size_mm": null,
+                    "sku": null
+                  }
+                ]
+              },
+              "need_by_day": 5
+            }
+          },
+          "result": [
+            {
+              "bid_id": "fixture_print_cheap:fixture-integration-only:planner:part-0:2:0",
+              "rfq_id": "fixture-integration-only:planner:part-0:2",
+              "supplier_id": "fixture_print_cheap",
+              "price_usd": 12.0,
+              "lead_days": 4,
+              "terms": "{\"plate_quantity_already_included\": true, \"pricing_mode\": \"per_cm3\", \"schedule\": {\"arrival_day\": 4, \"arrival_hour\": 96.0, \"slots\": [{\"estimate_origin\": \"synthetic_fixture\", \"evidence_id\": \"SYNTHETIC-cheap:70c3aa5c11633bb9455548764b13d6daad7065b6a7da04d32884f951935b8354\", \"filament_g\": \"10\", \"finish_hour\": 72.0, \"machine_seconds\": 259200, \"plate_id\": \"SYNTHETIC-cheap:plate\", \"printer_id\": \"synthetic-printer\", \"profile_sha256\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"settings_sha256\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"start_hour\": 0.0}]}, \"scope\": \"SIMULATION; no physical production\"}",
+              "valid_until_day": 2
+            },
+            {
+              "bid_id": "fixture_print_fast:fixture-integration-only:planner:part-0:2:0",
+              "rfq_id": "fixture-integration-only:planner:part-0:2",
+              "supplier_id": "fixture_print_fast",
+              "price_usd": 22.0,
+              "lead_days": 3,
+              "terms": "{\"plate_quantity_already_included\": true, \"pricing_mode\": \"per_cm3\", \"schedule\": {\"arrival_day\": 3, \"arrival_hour\": 72.0, \"slots\": [{\"estimate_origin\": \"synthetic_fixture\", \"evidence_id\": \"SYNTHETIC-fast:70c3aa5c11633bb9455548764b13d6daad7065b6a7da04d32884f951935b8354\", \"filament_g\": \"10\", \"finish_hour\": 48.0, \"machine_seconds\": 172800, \"plate_id\": \"SYNTHETIC-fast:plate\", \"printer_id\": \"synthetic-printer\", \"profile_sha256\": \"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\", \"settings_sha256\": \"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\", \"start_hour\": 0.0}]}, \"scope\": \"SIMULATION; no physical production\"}",
+              "valid_until_day": 2
+            }
+          ],
+          "supplier_refusals": {}
+        },
+        {
+          "day": 0,
+          "tool": "post_rfq",
+          "arguments": {
+            "rfq": {
+              "rfq_id": "fixture-integration-only:planner:part-1:3",
+              "order_id": "fixture-integration-only",
+              "kind": "pcb",
+              "part_ids": [
+                "fixture-board"
+              ],
+              "specs": {
+                "parts": [
+                  {
+                    "part_id": "fixture-board",
+                    "kind": "pcb",
+                    "qty": 1,
+                    "material": null,
+                    "volume_cm3": null,
+                    "max_dim_mm": null,
+                    "tolerance_mm": null,
+                    "layers": 2,
+                    "size_mm": [
+                      10,
+                      10
+                    ],
+                    "sku": null
+                  }
+                ]
+              },
+              "need_by_day": 5
+            }
+          },
+          "result": [
+            {
+              "bid_id": "fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0",
+              "rfq_id": "fixture-integration-only:planner:part-1:3",
+              "supplier_id": "fixture_pcb_cheap",
+              "price_usd": 8.0,
+              "lead_days": 2,
+              "terms": "SIMULATION ASSUMPTIONS; paid at award; cancellation adds 50% fee",
+              "valid_until_day": 2
+            },
+            {
+              "bid_id": "fixture_pcb_fast:fixture-integration-only:planner:part-1:3:0",
+              "rfq_id": "fixture-integration-only:planner:part-1:3",
+              "supplier_id": "fixture_pcb_fast",
+              "price_usd": 18.0,
+              "lead_days": 1,
+              "terms": "SIMULATION ASSUMPTIONS; paid at award; cancellation adds 50% fee",
+              "valid_until_day": 2
+            }
+          ],
+          "supplier_refusals": {}
+        },
+        {
+          "day": 0,
+          "tool": "post_rfq",
+          "arguments": {
+            "rfq": {
+              "rfq_id": "fixture-integration-only:planner:purchased:4",
+              "order_id": "fixture-integration-only",
+              "kind": "purchased",
+              "part_ids": [
+                "fixture-screw"
+              ],
+              "specs": {
+                "parts": [
+                  {
+                    "part_id": "fixture-screw",
+                    "kind": "purchased",
+                    "qty": 2,
+                    "material": null,
+                    "volume_cm3": null,
+                    "max_dim_mm": null,
+                    "tolerance_mm": null,
+                    "layers": null,
+                    "size_mm": null,
+                    "sku": "fixture-screw"
+                  }
+                ]
+              },
+              "need_by_day": 5
+            }
+          },
+          "result": [
+            {
+              "bid_id": "fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0",
+              "rfq_id": "fixture-integration-only:planner:purchased:4",
+              "supplier_id": "fixture_purchased_cheap",
+              "price_usd": 5.0,
+              "lead_days": 1,
+              "terms": "SIMULATION ASSUMPTIONS; paid at award; cancellation adds 50% fee",
+              "valid_until_day": 2
+            },
+            {
+              "bid_id": "fixture_purchased_fast:fixture-integration-only:planner:purchased:4:0",
+              "rfq_id": "fixture-integration-only:planner:purchased:4",
+              "supplier_id": "fixture_purchased_fast",
+              "price_usd": 15.0,
+              "lead_days": 1,
+              "terms": "SIMULATION ASSUMPTIONS; paid at award; cancellation adds 50% fee",
+              "valid_until_day": 2
+            }
+          ],
+          "supplier_refusals": {}
+        },
+        {
+          "day": 0,
+          "tool": "post_rfq",
+          "arguments": {
+            "rfq": {
+              "rfq_id": "fixture-integration-only:planner:part-0:5",
+              "order_id": "fixture-integration-only",
+              "kind": "print",
+              "part_ids": [
+                "fixture-spacer"
+              ],
+              "specs": {
+                "parts": [
+                  {
+                    "part_id": "fixture-spacer",
+                    "kind": "print",
+                    "qty": 2,
+                    "material": "PLA",
+                    "volume_cm3": 1,
+                    "max_dim_mm": 10,
+                    "tolerance_mm": 0.2,
+                    "layers": null,
+                    "size_mm": null,
+                    "sku": null
+                  }
+                ]
+              },
+              "need_by_day": 6
+            }
+          },
+          "result": [
+            {
+              "bid_id": "fixture_print_cheap:fixture-integration-only:planner:part-0:5:0",
+              "rfq_id": "fixture-integration-only:planner:part-0:5",
+              "supplier_id": "fixture_print_cheap",
+              "price_usd": 12.0,
+              "lead_days": 4,
+              "terms": "{\"plate_quantity_already_included\": true, \"pricing_mode\": \"per_cm3\", \"schedule\": {\"arrival_day\": 4, \"arrival_hour\": 96.0, \"slots\": [{\"estimate_origin\": \"synthetic_fixture\", \"evidence_id\": \"SYNTHETIC-cheap:70c3aa5c11633bb9455548764b13d6daad7065b6a7da04d32884f951935b8354\", \"filament_g\": \"10\", \"finish_hour\": 72.0, \"machine_seconds\": 259200, \"plate_id\": \"SYNTHETIC-cheap:plate\", \"printer_id\": \"synthetic-printer\", \"profile_sha256\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"settings_sha256\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"start_hour\": 0.0}]}, \"scope\": \"SIMULATION; no physical production\"}",
+              "valid_until_day": 2
+            },
+            {
+              "bid_id": "fixture_print_fast:fixture-integration-only:planner:part-0:5:0",
+              "rfq_id": "fixture-integration-only:planner:part-0:5",
+              "supplier_id": "fixture_print_fast",
+              "price_usd": 22.0,
+              "lead_days": 3,
+              "terms": "{\"plate_quantity_already_included\": true, \"pricing_mode\": \"per_cm3\", \"schedule\": {\"arrival_day\": 3, \"arrival_hour\": 72.0, \"slots\": [{\"estimate_origin\": \"synthetic_fixture\", \"evidence_id\": \"SYNTHETIC-fast:70c3aa5c11633bb9455548764b13d6daad7065b6a7da04d32884f951935b8354\", \"filament_g\": \"10\", \"finish_hour\": 48.0, \"machine_seconds\": 172800, \"plate_id\": \"SYNTHETIC-fast:plate\", \"printer_id\": \"synthetic-printer\", \"profile_sha256\": \"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\", \"settings_sha256\": \"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\", \"start_hour\": 0.0}]}, \"scope\": \"SIMULATION; no physical production\"}",
+              "valid_until_day": 2
+            }
+          ],
+          "supplier_refusals": {}
+        },
+        {
+          "day": 0,
+          "tool": "post_rfq",
+          "arguments": {
+            "rfq": {
+              "rfq_id": "fixture-integration-only:planner:part-1:6",
+              "order_id": "fixture-integration-only",
+              "kind": "pcb",
+              "part_ids": [
+                "fixture-board"
+              ],
+              "specs": {
+                "parts": [
+                  {
+                    "part_id": "fixture-board",
+                    "kind": "pcb",
+                    "qty": 1,
+                    "material": null,
+                    "volume_cm3": null,
+                    "max_dim_mm": null,
+                    "tolerance_mm": null,
+                    "layers": 2,
+                    "size_mm": [
+                      10,
+                      10
+                    ],
+                    "sku": null
+                  }
+                ]
+              },
+              "need_by_day": 6
+            }
+          },
+          "result": [
+            {
+              "bid_id": "fixture_pcb_cheap:fixture-integration-only:planner:part-1:6:0",
+              "rfq_id": "fixture-integration-only:planner:part-1:6",
+              "supplier_id": "fixture_pcb_cheap",
+              "price_usd": 8.0,
+              "lead_days": 2,
+              "terms": "SIMULATION ASSUMPTIONS; paid at award; cancellation adds 50% fee",
+              "valid_until_day": 2
+            },
+            {
+              "bid_id": "fixture_pcb_fast:fixture-integration-only:planner:part-1:6:0",
+              "rfq_id": "fixture-integration-only:planner:part-1:6",
+              "supplier_id": "fixture_pcb_fast",
+              "price_usd": 18.0,
+              "lead_days": 1,
+              "terms": "SIMULATION ASSUMPTIONS; paid at award; cancellation adds 50% fee",
+              "valid_until_day": 2
+            }
+          ],
+          "supplier_refusals": {}
+        },
+        {
+          "day": 0,
+          "tool": "post_rfq",
+          "arguments": {
+            "rfq": {
+              "rfq_id": "fixture-integration-only:planner:purchased:7",
+              "order_id": "fixture-integration-only",
+              "kind": "purchased",
+              "part_ids": [
+                "fixture-screw"
+              ],
+              "specs": {
+                "parts": [
+                  {
+                    "part_id": "fixture-screw",
+                    "kind": "purchased",
+                    "qty": 2,
+                    "material": null,
+                    "volume_cm3": null,
+                    "max_dim_mm": null,
+                    "tolerance_mm": null,
+                    "layers": null,
+                    "size_mm": null,
+                    "sku": "fixture-screw"
+                  }
+                ]
+              },
+              "need_by_day": 6
+            }
+          },
+          "result": [
+            {
+              "bid_id": "fixture_purchased_cheap:fixture-integration-only:planner:purchased:7:0",
+              "rfq_id": "fixture-integration-only:planner:purchased:7",
+              "supplier_id": "fixture_purchased_cheap",
+              "price_usd": 5.0,
+              "lead_days": 1,
+              "terms": "SIMULATION ASSUMPTIONS; paid at award; cancellation adds 50% fee",
+              "valid_until_day": 2
+            },
+            {
+              "bid_id": "fixture_purchased_fast:fixture-integration-only:planner:purchased:7:0",
+              "rfq_id": "fixture-integration-only:planner:purchased:7",
+              "supplier_id": "fixture_purchased_fast",
+              "price_usd": 15.0,
+              "lead_days": 1,
+              "terms": "SIMULATION ASSUMPTIONS; paid at award; cancellation adds 50% fee",
+              "valid_until_day": 2
+            }
+          ],
+          "supplier_refusals": {}
+        },
+        {
+          "day": 0,
+          "tool": "log",
+          "arguments": {
+            "msg": "{\"agent\": \"planner\", \"event\": \"selected_plan\", \"day\": 0, \"reason\": \"SCRIPTED TEST REVIEWER\", \"projected_total_usd\": 28.0, \"predicted_delivery_day\": 7, \"bid_ids\": {\"part-0\": \"fixture_print_cheap:fixture-integration-only:planner:part-0:2:0\", \"part-1\": \"fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0\", \"purchased\": \"fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0\", \"shipping\": \"fixture_shipping_cheap:fixture-integration-only:planner:shipping:1:0\"}}"
+          },
+          "result": null
+        },
+        {
+          "day": 0,
+          "tool": "award",
+          "arguments": {
+            "bid_id": "fixture_print_cheap:fixture-integration-only:planner:part-0:2:0"
+          },
+          "result": {
+            "reservation_id": "reservation:fixture_print_cheap:fixture-integration-only:planner:part-0:2:0",
+            "bid_id": "fixture_print_cheap:fixture-integration-only:planner:part-0:2:0",
+            "supplier_id": "fixture_print_cheap",
+            "confirmed": true,
+            "reason": "SIMULATED production only",
+            "eta_day": 4
+          }
+        },
+        {
+          "day": 0,
+          "tool": "award",
+          "arguments": {
+            "bid_id": "fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0"
+          },
+          "result": {
+            "reservation_id": "reservation:fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0",
+            "bid_id": "fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0",
+            "supplier_id": "fixture_pcb_cheap",
+            "confirmed": true,
+            "reason": "SIMULATED production only",
+            "eta_day": 2
+          }
+        },
+        {
+          "day": 0,
+          "tool": "award",
+          "arguments": {
+            "bid_id": "fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0"
+          },
+          "result": {
+            "reservation_id": "reservation:fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0",
+            "bid_id": "fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0",
+            "supplier_id": "fixture_purchased_cheap",
+            "confirmed": true,
+            "reason": "SIMULATED production only",
+            "eta_day": 1
+          }
+        },
+        {
+          "day": 0,
+          "tool": "award",
+          "arguments": {
+            "bid_id": "fixture_shipping_cheap:fixture-integration-only:planner:shipping:1:0"
+          },
+          "result": {
+            "reservation_id": "reservation:fixture_shipping_cheap:fixture-integration-only:planner:shipping:1:0",
+            "bid_id": "fixture_shipping_cheap:fixture-integration-only:planner:shipping:1:0",
+            "supplier_id": "fixture_shipping_cheap",
+            "confirmed": true,
+            "reason": "SIMULATED production only",
+            "eta_day": 2
+          }
+        },
+        {
+          "day": 1,
+          "tool": "log",
+          "arguments": {
+            "msg": "{\"agent\": \"planner\", \"event\": \"retain_plan\", \"day\": 1, \"state\": {\"order_id\": \"fixture-integration-only\", \"paid_usd\": 28.0, \"fees_usd\": 0.0, \"refusal\": null, \"customer_delivery_observed\": false, \"all_part_inspections_passed\": false, \"packages\": {\"part-0\": {\"kind\": \"print\", \"part_ids\": [\"fixture-spacer\"], \"reservation_id\": \"reservation:fixture_print_cheap:fixture-integration-only:planner:part-0:2:0\", \"bid_id\": \"fixture_print_cheap:fixture-integration-only:planner:part-0:2:0\", \"status\": \"on_track\", \"eta_day\": 4, \"inspections\": {}}, \"part-1\": {\"kind\": \"pcb\", \"part_ids\": [\"fixture-board\"], \"reservation_id\": \"reservation:fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0\", \"bid_id\": \"fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0\", \"status\": \"on_track\", \"eta_day\": 2, \"inspections\": {}}, \"purchased\": {\"kind\": \"purchased\", \"part_ids\": [\"fixture-screw\"], \"reservation_id\": \"reservation:fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0\", \"bid_id\": \"fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0\", \"status\": \"delivered\", \"eta_day\": 1, \"inspections\": {\"fixture-screw\": {\"passed\": true, \"evidence\": \"SIMULATION ONLY: seeded per-unit defect draw\"}}}, \"shipping\": {\"kind\": \"shipping\", \"part_ids\": [], \"reservation_id\": \"reservation:fixture_shipping_cheap:fixture-integration-only:planner:shipping:1:0\", \"bid_id\": \"fixture_shipping_cheap:fixture-integration-only:planner:shipping:1:0\", \"status\": \"on_track\", \"eta_day\": 2, \"inspections\": {}}}}}"
+          },
+          "result": null
+        },
+        {
+          "day": 2,
+          "tool": "log",
+          "arguments": {
+            "msg": "{\"agent\": \"planner\", \"event\": \"retain_plan\", \"day\": 2, \"state\": {\"order_id\": \"fixture-integration-only\", \"paid_usd\": 28.0, \"fees_usd\": 0.0, \"refusal\": null, \"customer_delivery_observed\": false, \"all_part_inspections_passed\": false, \"packages\": {\"part-0\": {\"kind\": \"print\", \"part_ids\": [\"fixture-spacer\"], \"reservation_id\": \"reservation:fixture_print_cheap:fixture-integration-only:planner:part-0:2:0\", \"bid_id\": \"fixture_print_cheap:fixture-integration-only:planner:part-0:2:0\", \"status\": \"on_track\", \"eta_day\": 4, \"inspections\": {}}, \"part-1\": {\"kind\": \"pcb\", \"part_ids\": [\"fixture-board\"], \"reservation_id\": \"reservation:fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0\", \"bid_id\": \"fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0\", \"status\": \"delivered\", \"eta_day\": 2, \"inspections\": {\"fixture-board\": {\"passed\": true, \"evidence\": \"SIMULATION ONLY: seeded per-unit defect draw\"}}}, \"purchased\": {\"kind\": \"purchased\", \"part_ids\": [\"fixture-screw\"], \"reservation_id\": \"reservation:fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0\", \"bid_id\": \"fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0\", \"status\": \"delivered\", \"eta_day\": 1, \"inspections\": {\"fixture-screw\": {\"passed\": true, \"evidence\": \"SIMULATION ONLY: seeded per-unit defect draw\"}}}, \"shipping\": {\"kind\": \"shipping\", \"part_ids\": [], \"reservation_id\": \"reservation:fixture_shipping_cheap:fixture-integration-only:planner:shipping:1:0\", \"bid_id\": \"fixture_shipping_cheap:fixture-integration-only:planner:shipping:1:0\", \"status\": \"on_track\", \"eta_day\": 2, \"inspections\": {}}}}}"
+          },
+          "result": null
+        },
+        {
+          "day": 3,
+          "tool": "log",
+          "arguments": {
+            "msg": "{\"agent\": \"planner\", \"event\": \"critical_path_at_risk\", \"day\": 3, \"packages\": [\"part-0\", \"shipping\"]}"
+          },
+          "result": null
+        },
+        {
+          "day": 3,
+          "tool": "post_rfq",
+          "arguments": {
+            "rfq": {
+              "rfq_id": "fixture-integration-only:planner:shipping:8",
+              "order_id": "fixture-integration-only",
+              "kind": "shipping",
+              "part_ids": [],
+              "specs": {
+                "parts": []
+              },
+              "need_by_day": 8
+            }
+          },
+          "result": [
+            {
+              "bid_id": "fixture_shipping_cheap:fixture-integration-only:planner:shipping:8:3",
+              "rfq_id": "fixture-integration-only:planner:shipping:8",
+              "supplier_id": "fixture_shipping_cheap",
+              "price_usd": 3.0,
+              "lead_days": 2,
+              "terms": "SIMULATION ASSUMPTIONS; paid at award; cancellation adds 50% fee",
+              "valid_until_day": 5
+            },
+            {
+              "bid_id": "fixture_shipping_fast:fixture-integration-only:planner:shipping:8:3",
+              "rfq_id": "fixture-integration-only:planner:shipping:8",
+              "supplier_id": "fixture_shipping_fast",
+              "price_usd": 13.0,
+              "lead_days": 1,
+              "terms": "SIMULATION ASSUMPTIONS; paid at award; cancellation adds 50% fee",
+              "valid_until_day": 5
+            }
+          ],
+          "supplier_refusals": {}
+        },
+        {
+          "day": 3,
+          "tool": "post_rfq",
+          "arguments": {
+            "rfq": {
+              "rfq_id": "fixture-integration-only:planner:part-0:9",
+              "order_id": "fixture-integration-only",
+              "kind": "print",
+              "part_ids": [
+                "fixture-spacer"
+              ],
+              "specs": {
+                "parts": [
+                  {
+                    "part_id": "fixture-spacer",
+                    "kind": "print",
+                    "qty": 2,
+                    "material": "PLA",
+                    "volume_cm3": 1,
+                    "max_dim_mm": 10,
+                    "tolerance_mm": 0.2,
+                    "layers": null,
+                    "size_mm": null,
+                    "sku": null
+                  }
+                ]
+              },
+              "need_by_day": 5
+            }
+          },
+          "result": [
+            {
+              "bid_id": "fixture_print_cheap:fixture-integration-only:planner:part-0:9:3",
+              "rfq_id": "fixture-integration-only:planner:part-0:9",
+              "supplier_id": "fixture_print_cheap",
+              "price_usd": 12.0,
+              "lead_days": 4,
+              "terms": "{\"plate_quantity_already_included\": true, \"pricing_mode\": \"per_cm3\", \"schedule\": {\"arrival_day\": 7, \"arrival_hour\": 168.0, \"slots\": [{\"estimate_origin\": \"synthetic_fixture\", \"evidence_id\": \"SYNTHETIC-cheap:70c3aa5c11633bb9455548764b13d6daad7065b6a7da04d32884f951935b8354\", \"filament_g\": \"10\", \"finish_hour\": 144.0, \"machine_seconds\": 259200, \"plate_id\": \"SYNTHETIC-cheap:plate\", \"printer_id\": \"synthetic-printer\", \"profile_sha256\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"settings_sha256\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"start_hour\": 72.0}]}, \"scope\": \"SIMULATION; no physical production\"}",
+              "valid_until_day": 5
+            },
+            {
+              "bid_id": "fixture_print_fast:fixture-integration-only:planner:part-0:9:3",
+              "rfq_id": "fixture-integration-only:planner:part-0:9",
+              "supplier_id": "fixture_print_fast",
+              "price_usd": 22.0,
+              "lead_days": 3,
+              "terms": "{\"plate_quantity_already_included\": true, \"pricing_mode\": \"per_cm3\", \"schedule\": {\"arrival_day\": 6, \"arrival_hour\": 144.0, \"slots\": [{\"estimate_origin\": \"synthetic_fixture\", \"evidence_id\": \"SYNTHETIC-fast:70c3aa5c11633bb9455548764b13d6daad7065b6a7da04d32884f951935b8354\", \"filament_g\": \"10\", \"finish_hour\": 120.0, \"machine_seconds\": 172800, \"plate_id\": \"SYNTHETIC-fast:plate\", \"printer_id\": \"synthetic-printer\", \"profile_sha256\": \"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\", \"settings_sha256\": \"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\", \"start_hour\": 72.0}]}, \"scope\": \"SIMULATION; no physical production\"}",
+              "valid_until_day": 5
+            }
+          ],
+          "supplier_refusals": {}
+        },
+        {
+          "day": 3,
+          "tool": "post_rfq",
+          "arguments": {
+            "rfq": {
+              "rfq_id": "fixture-integration-only:planner:part-0:10",
+              "order_id": "fixture-integration-only",
+              "kind": "print",
+              "part_ids": [
+                "fixture-spacer"
+              ],
+              "specs": {
+                "parts": [
+                  {
+                    "part_id": "fixture-spacer",
+                    "kind": "print",
+                    "qty": 2,
+                    "material": "PLA",
+                    "volume_cm3": 1,
+                    "max_dim_mm": 10,
+                    "tolerance_mm": 0.2,
+                    "layers": null,
+                    "size_mm": null,
+                    "sku": null
+                  }
+                ]
+              },
+              "need_by_day": 6
+            }
+          },
+          "result": [
+            {
+              "bid_id": "fixture_print_cheap:fixture-integration-only:planner:part-0:10:3",
+              "rfq_id": "fixture-integration-only:planner:part-0:10",
+              "supplier_id": "fixture_print_cheap",
+              "price_usd": 12.0,
+              "lead_days": 4,
+              "terms": "{\"plate_quantity_already_included\": true, \"pricing_mode\": \"per_cm3\", \"schedule\": {\"arrival_day\": 7, \"arrival_hour\": 168.0, \"slots\": [{\"estimate_origin\": \"synthetic_fixture\", \"evidence_id\": \"SYNTHETIC-cheap:70c3aa5c11633bb9455548764b13d6daad7065b6a7da04d32884f951935b8354\", \"filament_g\": \"10\", \"finish_hour\": 144.0, \"machine_seconds\": 259200, \"plate_id\": \"SYNTHETIC-cheap:plate\", \"printer_id\": \"synthetic-printer\", \"profile_sha256\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"settings_sha256\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"start_hour\": 72.0}]}, \"scope\": \"SIMULATION; no physical production\"}",
+              "valid_until_day": 5
+            },
+            {
+              "bid_id": "fixture_print_fast:fixture-integration-only:planner:part-0:10:3",
+              "rfq_id": "fixture-integration-only:planner:part-0:10",
+              "supplier_id": "fixture_print_fast",
+              "price_usd": 22.0,
+              "lead_days": 3,
+              "terms": "{\"plate_quantity_already_included\": true, \"pricing_mode\": \"per_cm3\", \"schedule\": {\"arrival_day\": 6, \"arrival_hour\": 144.0, \"slots\": [{\"estimate_origin\": \"synthetic_fixture\", \"evidence_id\": \"SYNTHETIC-fast:70c3aa5c11633bb9455548764b13d6daad7065b6a7da04d32884f951935b8354\", \"filament_g\": \"10\", \"finish_hour\": 120.0, \"machine_seconds\": 172800, \"plate_id\": \"SYNTHETIC-fast:plate\", \"printer_id\": \"synthetic-printer\", \"profile_sha256\": \"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\", \"settings_sha256\": \"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\", \"start_hour\": 72.0}]}, \"scope\": \"SIMULATION; no physical production\"}",
+              "valid_until_day": 5
+            }
+          ],
+          "supplier_refusals": {}
+        },
+        {
+          "day": 3,
+          "tool": "log",
+          "arguments": {
+            "msg": "{\"agent\": \"planner\", \"event\": \"selected_plan\", \"day\": 3, \"reason\": \"SCRIPTED TEST REVIEWER\", \"projected_total_usd\": 42.5, \"predicted_delivery_day\": 8, \"bid_ids\": {\"shipping\": \"fixture_shipping_fast:fixture-integration-only:planner:shipping:8:3\"}}"
+          },
+          "result": null
+        },
+        {
+          "day": 3,
+          "tool": "cancel",
+          "arguments": {
+            "reservation_id": "reservation:fixture_shipping_cheap:fixture-integration-only:planner:shipping:1:0"
+          },
+          "result": {
+            "ok": true,
+            "fee_usd": 1.5
+          }
+        },
+        {
+          "day": 3,
+          "tool": "award",
+          "arguments": {
+            "bid_id": "fixture_shipping_fast:fixture-integration-only:planner:shipping:8:3"
+          },
+          "result": {
+            "reservation_id": "reservation:fixture_shipping_fast:fixture-integration-only:planner:shipping:8:3",
+            "bid_id": "fixture_shipping_fast:fixture-integration-only:planner:shipping:8:3",
+            "supplier_id": "fixture_shipping_fast",
+            "confirmed": true,
+            "reason": "SIMULATED production only",
+            "eta_day": 4
+          }
+        },
+        {
+          "day": 4,
+          "tool": "log",
+          "arguments": {
+            "msg": "{\"agent\": \"planner\", \"event\": \"retain_plan\", \"day\": 4, \"state\": {\"order_id\": \"fixture-integration-only\", \"paid_usd\": 42.5, \"fees_usd\": 1.5, \"refusal\": null, \"customer_delivery_observed\": false, \"all_part_inspections_passed\": false, \"packages\": {\"part-0\": {\"kind\": \"print\", \"part_ids\": [\"fixture-spacer\"], \"reservation_id\": \"reservation:fixture_print_cheap:fixture-integration-only:planner:part-0:2:0\", \"bid_id\": \"fixture_print_cheap:fixture-integration-only:planner:part-0:2:0\", \"status\": \"delayed\", \"eta_day\": 6, \"inspections\": {}}, \"part-1\": {\"kind\": \"pcb\", \"part_ids\": [\"fixture-board\"], \"reservation_id\": \"reservation:fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0\", \"bid_id\": \"fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0\", \"status\": \"delivered\", \"eta_day\": 2, \"inspections\": {\"fixture-board\": {\"passed\": true, \"evidence\": \"SIMULATION ONLY: seeded per-unit defect draw\"}}}, \"purchased\": {\"kind\": \"purchased\", \"part_ids\": [\"fixture-screw\"], \"reservation_id\": \"reservation:fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0\", \"bid_id\": \"fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0\", \"status\": \"delivered\", \"eta_day\": 1, \"inspections\": {\"fixture-screw\": {\"passed\": true, \"evidence\": \"SIMULATION ONLY: seeded per-unit defect draw\"}}}, \"shipping\": {\"kind\": \"shipping\", \"part_ids\": [], \"reservation_id\": \"reservation:fixture_shipping_fast:fixture-integration-only:planner:shipping:8:3\", \"bid_id\": \"fixture_shipping_fast:fixture-integration-only:planner:shipping:8:3\", \"status\": \"on_track\", \"eta_day\": 4, \"inspections\": {}}}}}"
+          },
+          "result": null
+        },
+        {
+          "day": 6,
+          "tool": "log",
+          "arguments": {
+            "msg": "{\"agent\": \"planner\", \"event\": \"retain_plan\", \"day\": 6, \"state\": {\"order_id\": \"fixture-integration-only\", \"paid_usd\": 42.5, \"fees_usd\": 1.5, \"refusal\": null, \"customer_delivery_observed\": false, \"all_part_inspections_passed\": true, \"packages\": {\"part-0\": {\"kind\": \"print\", \"part_ids\": [\"fixture-spacer\"], \"reservation_id\": \"reservation:fixture_print_cheap:fixture-integration-only:planner:part-0:2:0\", \"bid_id\": \"fixture_print_cheap:fixture-integration-only:planner:part-0:2:0\", \"status\": \"delivered\", \"eta_day\": 6, \"inspections\": {\"fixture-spacer\": {\"passed\": true, \"evidence\": \"SIMULATION ONLY: seeded per-unit defect draw\"}}}, \"part-1\": {\"kind\": \"pcb\", \"part_ids\": [\"fixture-board\"], \"reservation_id\": \"reservation:fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0\", \"bid_id\": \"fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0\", \"status\": \"delivered\", \"eta_day\": 2, \"inspections\": {\"fixture-board\": {\"passed\": true, \"evidence\": \"SIMULATION ONLY: seeded per-unit defect draw\"}}}, \"purchased\": {\"kind\": \"purchased\", \"part_ids\": [\"fixture-screw\"], \"reservation_id\": \"reservation:fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0\", \"bid_id\": \"fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0\", \"status\": \"delivered\", \"eta_day\": 1, \"inspections\": {\"fixture-screw\": {\"passed\": true, \"evidence\": \"SIMULATION ONLY: seeded per-unit defect draw\"}}}, \"shipping\": {\"kind\": \"shipping\", \"part_ids\": [], \"reservation_id\": \"reservation:fixture_shipping_fast:fixture-integration-only:planner:shipping:8:3\", \"bid_id\": \"fixture_shipping_fast:fixture-integration-only:planner:shipping:8:3\", \"status\": \"on_track\", \"eta_day\": 8, \"inspections\": {}}}}}"
+          },
+          "result": null
+        },
+        {
+          "day": 8,
+          "tool": "log",
+          "arguments": {
+            "msg": "{\"agent\": \"planner\", \"event\": \"observed_customer_delivery\", \"day\": 8, \"state\": {\"order_id\": \"fixture-integration-only\", \"paid_usd\": 42.5, \"fees_usd\": 1.5, \"refusal\": null, \"customer_delivery_observed\": true, \"all_part_inspections_passed\": true, \"packages\": {\"part-0\": {\"kind\": \"print\", \"part_ids\": [\"fixture-spacer\"], \"reservation_id\": \"reservation:fixture_print_cheap:fixture-integration-only:planner:part-0:2:0\", \"bid_id\": \"fixture_print_cheap:fixture-integration-only:planner:part-0:2:0\", \"status\": \"delivered\", \"eta_day\": 6, \"inspections\": {\"fixture-spacer\": {\"passed\": true, \"evidence\": \"SIMULATION ONLY: seeded per-unit defect draw\"}}}, \"part-1\": {\"kind\": \"pcb\", \"part_ids\": [\"fixture-board\"], \"reservation_id\": \"reservation:fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0\", \"bid_id\": \"fixture_pcb_cheap:fixture-integration-only:planner:part-1:3:0\", \"status\": \"delivered\", \"eta_day\": 2, \"inspections\": {\"fixture-board\": {\"passed\": true, \"evidence\": \"SIMULATION ONLY: seeded per-unit defect draw\"}}}, \"purchased\": {\"kind\": \"purchased\", \"part_ids\": [\"fixture-screw\"], \"reservation_id\": \"reservation:fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0\", \"bid_id\": \"fixture_purchased_cheap:fixture-integration-only:planner:purchased:4:0\", \"status\": \"delivered\", \"eta_day\": 1, \"inspections\": {\"fixture-screw\": {\"passed\": true, \"evidence\": \"SIMULATION ONLY: seeded per-unit defect draw\"}}}, \"shipping\": {\"kind\": \"shipping\", \"part_ids\": [], \"reservation_id\": \"reservation:fixture_shipping_fast:fixture-integration-only:planner:shipping:8:3\", \"bid_id\": \"fixture_shipping_fast:fixture-integration-only:planner:shipping:8:3\", \"status\": \"delivered\", \"eta_day\": 8, \"inspections\": {}}}}}"
+          },
+          "result": null
+        }
+      ]
+    }
+  },
+  {
+    "case": "invalid_quantity",
+    "response": {
+      "request_id": "factorybridge-invalid_quantity",
+      "status": "rejected",
+      "reason": "Invalid part ID/kind/quantity",
+      "simulation_started": false
+    }
+  }
+]
+
