@@ -88,9 +88,9 @@ arrival and rates it good.
 ## Reproduce
 
 Tested with Nanda Town base commit `6f9a7c0` (`main`, 2026-11-11) plus this
-PR, nandatown 0.2.0, evaluator `lab-0.2.6`, Python 3.13.18 (Linux); Referral
+PR, nandatown 0.2.0, evaluator `lab-0.2.6`, Python 3.13.18 (Linux; the referral tests also pass on 3.11 and 3.12, the versions CI uses); Referral
 commit [`d41126c`](https://github.com/louis1mx/referral/commit/d41126c3091ebe71c87054b5eac0a94bddbbe108)
-(package `referral` 0.1.0, MCP SDK from its `requirements-lock.txt`).
+(tag `hw8-nandatown`, package `referral` 0.1.0, MCP SDK from its `requirements-lock.txt`).
 
 ```bash
 # 1. Referral, in its own checkout and virtualenv
@@ -124,6 +124,8 @@ layer, and the workers are scripted. Without `NANDATOWN_REFERRAL_CMD` (and no
 tests and the offline verification of `evidence/` still run.
 
 ## Results
+
+**Interface tested:** Referral's MCP stdio tool surface, called directly by Town agents, plus `referral.v1` as Town's trust layer, composing with Town's registry, escrow, receipts and registry ranking.
 
 | Run | Expected | Observed |
 | --- | --- | --- |
