@@ -1,0 +1,91 @@
+{
+  "run_id": "sim-0f55dd860d1c",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "rebbi_connected",
+      "status": "passed",
+      "evidence": [
+        "ev-9",
+        "ev-10",
+        "ev-11"
+      ],
+      "note": "3 live MCP sessions, one per fleet agent"
+    },
+    {
+      "name": "rebbi_version_pinned",
+      "status": "passed",
+      "evidence": [
+        "ev-8"
+      ],
+      "note": "Rebbi at 07da0565da42d74a224dcd2148c03eac0105d37a, clean tree"
+    },
+    {
+      "name": "headroom_published",
+      "status": "passed",
+      "evidence": [
+        "ev-21",
+        "ev-25"
+      ],
+      "note": "every lender's reserve is published in Rebbi"
+    },
+    {
+      "name": "cannot_move_explained",
+      "status": "passed",
+      "evidence": [
+        "ev-44"
+      ],
+      "note": "CANNOT_MOVE, with each lender's reason"
+    },
+    {
+      "name": "job_refunded",
+      "status": "passed",
+      "evidence": [
+        "ev-51",
+        "ev-50"
+      ],
+      "note": "the worker declined and the client got its escrow back"
+    },
+    {
+      "name": "nothing_spent",
+      "status": "passed",
+      "evidence": [
+        "ev-52"
+      ],
+      "note": "the worker spent nothing it did not have"
+    },
+    {
+      "name": "no_loans",
+      "status": "passed",
+      "evidence": [
+        "ev-52"
+      ],
+      "note": "no loan was booked"
+    },
+    {
+      "name": "rebbi_invariants",
+      "status": "passed",
+      "evidence": [
+        "ev-52"
+      ],
+      "note": "Rebbi's own ledger check passes"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-31",
+        "ev-50"
+      ],
+      "note": "10000 cents conserved across every movement"
+    },
+    {
+      "name": "privacy",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no redaction declared by this scenario"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794339677.6643753
+}

@@ -1,0 +1,28 @@
+# Needs the Rebbi plugin and a Rebbi checkout: run it with examples/rebbi/run.py, which passes
+# --plugin examples/rebbi/rebbi_plugin.py as a relative path so no local path enters the evidence.
+name: rebbi_lend
+description: >-
+  A Town client pays through escrow for a 25,000-token job. The worker's
+  Rebbi budget covers 7,000, so it borrows the difference through Rebbi's MCP
+  server, works in three metered steps, gets paid and settles the loan.
+  Rebbi runs from its own repository; worker, lenders and client are Town
+  scripts.
+seed: 42
+validator: rebbi_lend
+agents:
+  - name: rebbi
+    role: rebbi_adapter
+    config: {fleet: [worker-01, lender-a, lender-b], snapshot_at: 30}
+  - name: lender-a
+    role: rebbi_lender
+    config: {broker: rebbi, reserve_tokens: 80000}
+  - name: lender-b
+    role: rebbi_lender
+    config: {broker: rebbi, reserve_tokens: 70000}
+  - name: worker-01
+    role: rebbi_worker
+    config: {broker: rebbi, steps: [8000, 9000, 6000], retry_after: 2.0, max_retries: 1}
+  - name: client
+    role: rebbi_client
+    config: {worker: worker-01, job_id: job-1, est_tokens: 25000, price_cents: 5000, balance_cents: 10000, start_at: 1.0}
+max_time: 100

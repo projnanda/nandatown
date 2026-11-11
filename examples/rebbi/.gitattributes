@@ -1,0 +1,2 @@
+# Bundle manifests hash each record's exact bytes; keep git from changing line endings.
+evidence/** -text
