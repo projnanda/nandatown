@@ -1,0 +1,21 @@
+{
+  "python": "3.13.6",
+  "dependencies": {
+    "nandatown": "0.2.0",
+    "fastapi": "0.162.5",
+    "uvicorn": "0.54.0",
+    "httpx": "0.28.1",
+    "pydantic": "2.14.3"
+  },
+  "model_settings": {
+    "temperature": 0,
+    "reasoning_effort": "none",
+    "max_completion_tokens": 1400,
+    "max_calls": 6,
+    "max_total_tokens": 40000,
+    "request_timeout_s": 55
+  },
+  "observed_workspace_budget_usd": 10,
+  "reproduction_default_budget_usd": 0.25,
+  "budget_note": "Observed run reused a pre-approved cumulative workspace budget. The public command uses a fresh $0.25 guard; neither budget was binding. Accounting uses declared token prices, not a verified invoice."
+}
