@@ -12,14 +12,14 @@ The only authorized product input is the immutable allowlisted
 [SharpeShooter release `hw8-ingress-42ff7b384e92`](https://github.com/sidsanghvi/sharpeshooter-hw8-reproduction/releases/tag/hw8-ingress-42ff7b384e92).
 Do not substitute a moving branch or rebuild that release when reproducing the
 reviewed integration. Milestone 5 ran the registered `clean` and `duplicate`
-generations exactly once and promoted their sanitized evidence into the course
-SharpeShooter repository. Those evidence files are not part of the public
-ingress release or this Nanda PR. Never rerun, replace, or reinterpret those
-registered generations. The public commands below cover installed-release
-validation and deterministic fixture reproduction. The final read-only evidence
-audit additionally requires authorized access to the course SharpeShooter
-repository. None of these commands calls a model or repeats either project's
-full suite.
+generations exactly once and promoted their sanitized evidence. The four
+sanitized summaries are publicly available in the immutable
+[evidence release `hw8-evidence-2936191`](https://github.com/sidsanghvi/sharpeshooter-hw8-reproduction/releases/tag/hw8-evidence-2936191);
+they are not raw bundles, databases, captures, journals, or logs. Never rerun,
+replace, or reinterpret those registered generations. The public commands below
+cover installed-release validation, deterministic fixture reproduction, and
+read-only download/hash verification of those evidence summaries. None of these
+commands calls a model or repeats either project's full suite.
 
 The Nanda production implementation used by the registered evidence is commit
 `195b60bbf3b3a166ba76e349ddff9fc34f537ab9`. Check out that exact commit when
@@ -109,34 +109,27 @@ These tests are deterministic development fixtures. They are not the
 registered clean or duplicate cases, do not create or promote registered
 evidence, and cannot support a real compatibility claim by themselves.
 
-Finally, reviewers with authorized access to the course SharpeShooter repository
-may perform this separate read-only audit at evidence head
-`2936191ceef8a993722fff4be65a4b08b763c3a3`. These evidence files are not in
-the public ingress release or this Nanda PR. From a fresh authorized checkout,
-validate the exact evidence-only range and promoted bytes. The named range must
-add only `clean.json`, `duplicate.json`, `manifest.json`, and `comparison.md`
-below `tasks/hw8/evidence/`:
+Finally, download the four public sanitized summaries and verify their exact
+bytes. They were promoted from SharpeShooter evidence head
+`2936191ceef8a993722fff4be65a4b08b763c3a3`, whose production parent is the
+frozen implementation head `2af22d9e02752cdbf2f44d40ad0cab42e55e00cc`:
 
 ```bash
-git checkout --detach 2936191ceef8a993722fff4be65a4b08b763c3a3
-test "$(git rev-parse HEAD)" = \
-  2936191ceef8a993722fff4be65a4b08b763c3a3
-git diff --name-only \
-  2af22d9e02752cdbf2f44d40ad0cab42e55e00cc..2936191ceef8a993722fff4be65a4b08b763c3a3
-PYTHONPATH=.:src python3.12 scripts/scan_hw8_hygiene.py \
-  --repo . \
-  --base 2af22d9e02752cdbf2f44d40ad0cab42e55e00cc \
-  --head 2936191ceef8a993722fff4be65a4b08b763c3a3 \
-  --evidence-root tasks/hw8/evidence
+EVIDENCE_DIR="$(mktemp -d)"
+EVIDENCE_URL="https://github.com/sidsanghvi/sharpeshooter-hw8-reproduction/releases/download/hw8-evidence-2936191"
+curl -fL "$EVIDENCE_URL/clean.json" -o "$EVIDENCE_DIR/clean.json"
+curl -fL "$EVIDENCE_URL/duplicate.json" -o "$EVIDENCE_DIR/duplicate.json"
+curl -fL "$EVIDENCE_URL/manifest.json" -o "$EVIDENCE_DIR/manifest.json"
+curl -fL "$EVIDENCE_URL/comparison.md" -o "$EVIDENCE_DIR/comparison.md"
 printf '%s  %s\n' \
   588ad13f8de073ea3ca82aa63a40fd0258530b5cff4b1a79f2248107fd324670 \
-  tasks/hw8/evidence/clean.json \
+  "$EVIDENCE_DIR/clean.json" \
   715822db50eab09be51b8bf60c2d833a0787485770d591f7b69b1926c9213798 \
-  tasks/hw8/evidence/duplicate.json \
+  "$EVIDENCE_DIR/duplicate.json" \
   ccf392da48c92335da39011ecfdc2deb707b014cab6b9ce559a554cdf713e1c6 \
-  tasks/hw8/evidence/manifest.json \
+  "$EVIDENCE_DIR/manifest.json" \
   11e70f08eb9d97df72fb92ebf11acd24612fb17205dd39d0bcf2705e9f7fcb35 \
-  tasks/hw8/evidence/comparison.md | shasum -a 256 -c -
+  "$EVIDENCE_DIR/comparison.md" | shasum -a 256 -c -
 ```
 
 The adapter launches a configured executable directly with a fixed argument
