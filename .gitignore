@@ -3,3 +3,7 @@ __pycache__/
 *.egg-info/
 runs/
 .pytest_cache/
+
+# HW8 bona_flex: world folders hold raw test keys and must never be committed
+*_worlds/
+bona_flex_worlds_*/

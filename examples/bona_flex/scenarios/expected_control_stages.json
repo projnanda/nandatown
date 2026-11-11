@@ -1,0 +1,8 @@
+{
+ "scenario": "flex_race_naive_desk_control",
+ "frozen_before_first_recorded_run": true,
+ "frozen_by": "HW8 builder local_f0d49a06, 2026-11-05, from rev3 4.2 (set unchanged)",
+ "expected_verdict": "failed",
+ "expected_failed_stages": ["acceptance_order_respected", "no_double_sell", "receipts_verify", "retry_replays_original"],
+ "note": "Exactly these stages must have status 'failed'. Every other stage's status is recorded and reported; clock_valid is expected to be not_enough_evidence (the control has no Bona clock), which is not a failure."
+}

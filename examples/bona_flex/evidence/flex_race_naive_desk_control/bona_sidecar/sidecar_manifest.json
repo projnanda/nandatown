@@ -1,0 +1,9 @@
+{
+ "files": {
+  "mapping.json": "546c753d1c44c1206378b4be53a1c12c8accd1cbfdcb3068453608a65fc2401a",
+  "offers/o-1.json": "97728e9a0d251925e440ed8f1329a22bf46d4a9b5ee97cc5d1a73da1146420f0",
+  "offers/o-2.json": "b567a2e74acbc77a771af9e5ef992c83e30ce11110e524a4b196ac4769c8ab7c",
+  "provenance.json": "10ba0d5a6c2232ac99db8e866761c3d16acb90e8f7630938dc31921194c211b2",
+  "readings.jsonl": "3f0a22c02ac94639d45d293c7716c29a6a95090a242629d8054a8e4bf1273369"
+ }
+}

@@ -1,0 +1,30 @@
+{
+ "files": {
+  "assessments/a-1.json": "e34c324c4daf0a6fabea40aac6ae3e895cac28d803e132d76b4470cfeef06579",
+  "assessments/a-2.json": "34e03c20c0b31fd065be9f60c1dfe790eec0f22ec38e61096aee7e165abdf483",
+  "clock_checks.json": "b24d047a64773c80793f6c4318eb864dddfa731dce2353035d384895f5d44de9",
+  "ledger_snapshot.json": "fe4a275870b9431d027b7c05fa3517be97c559ee86ad25a09baa1bba3947317b",
+  "mapping.json": "7c4574305d191fd5b0e448d2dae38a5ff3bc5d1485a0657c831ae5880ab8ce44",
+  "offers/o-1.json": "30d71259b45bca2b33b5090e1804237b5e19561bcccb36bb90bb2bc48dd9c070",
+  "offers/o-2.json": "902574d08649ac5a9ffc31b77be4214752a493e5a7db36efcc105bda2b01022f",
+  "provenance.json": "3c78bd896928731a267168d8c001b30244a4a69de299057f938844f52d6ab0e7",
+  "readings.jsonl": "3f0a22c02ac94639d45d293c7716c29a6a95090a242629d8054a8e4bf1273369",
+  "receipts/1.json": "10180fb630c78e411c911c8374f8424dfc852c358a0e90e5c13f7aeb9f4e054d",
+  "receipts/2.json": "8f688059cb3694c7b1d6ebdf342a9b48cedae1e8dc585e1a60f7b2cf337bdb8d",
+  "receipts/3.json": "a3bb729660ae4b539f797a242c53db381d8390603da04b06f24e6b9e04f233f5",
+  "receipts/4.json": "05839025fb7a69edbc92dc264213a20dde03a83d3d8b2b54279d3dff2d8c5845",
+  "receipts/5.json": "73fb66a11de5a674bc312277086b408987720fe6b32719a2efe31a0848b1f02a",
+  "receipts/6.json": "ce20d1bd04fb070898d23276d13f1c227f32da9e238d2c856fa4fca46e2a8ce5",
+  "requests/r-1.json": "e51526b696b8b76a190dbadf31b0bc52521bc94a5cca0d758641be9de550b4b1",
+  "requests/r-2.json": "1edc3c8439ca7d6f89c86cd3d7b2aca2a74e466b5aff05eb312ce884db681d2d",
+  "requests/r-3.json": "81c3ffef1344f4ae18828008c2b6c87ef606ce380e37189552b0309738524db0",
+  "requests/r-4.json": "c0ce20d2e5adbddb16a6d08d747299c48ec14e3e21dd978618b242c7fb83ec51",
+  "tools.json": "83266acb70acdb27467fcfc7a99f1bd19a70317ca52a0b610acd464d8fc97757",
+  "trust/S_SYN_DC_1_post.json": "efd987c7f82502de11a9910a6c78d8f908dec7e65ec9fdfc282dfa3255c552ed",
+  "trust/S_SYN_DC_1_pre.json": "fa47f0b37ff93e539a44670aece6e554da06583e68a2d4da7d6e556d2065df94",
+  "trust/S_SYN_DC_1_repeat.json": "efd987c7f82502de11a9910a6c78d8f908dec7e65ec9fdfc282dfa3255c552ed",
+  "trust/S_SYN_PVB_1_post.json": "18cb93ee08b71a27cd5850dfb9f289ccc77e1ec56daf57ec853ed8c2576c7908",
+  "trust/S_SYN_PVB_1_pre.json": "18cb93ee08b71a27cd5850dfb9f289ccc77e1ec56daf57ec853ed8c2576c7908",
+  "trust/S_SYN_PVB_1_repeat.json": "18cb93ee08b71a27cd5850dfb9f289ccc77e1ec56daf57ec853ed8c2576c7908"
+ }
+}

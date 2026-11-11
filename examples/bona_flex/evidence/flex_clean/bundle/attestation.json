@@ -1,0 +1,12 @@
+{
+  "payload": {
+    "bundle_fingerprint": "sha256:2de8d890bc34192c71e9f05b23c8098b14839a1b7a773d69ad1e772ebdd4e488",
+    "run_id": "bona-flex-flex_clean-s7",
+    "verdict": "passed",
+    "evaluator_version": "lab-0.2.6",
+    "signer": "did:town:19a66c3d252a25b5a0694cd2",
+    "signed_at": 1793861786.9722888
+  },
+  "signature": "8cbca023c0b8d3304435b8c4c6226c4d61d7f45d6704d2f7a5c7e419a5e2c28039e792083d7600004fef56d8d6c800a430302b29418b351ecf1366f29ee7d405",
+  "controller_public": "7ad73957d1ee072a7f650e8a5d431a027de03a7369d27d0f979dceac0e7a6dfa"
+}
