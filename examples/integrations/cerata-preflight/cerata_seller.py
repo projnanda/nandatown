@@ -95,7 +95,8 @@ def preflight(post: Post, api_key: str, request: dict[str, Any],
     note = {"cerata_status": status,
             "idempotency_key_sent": key is not None,
             "idempotent_replayed": resp_headers.get("idempotent-replayed") == "true"}
-    if status != 200 or not isinstance(payload, dict) or "decision" not in payload:
+    # 200 is a decided check; 202 is a hold (a person or panel decides later; Location names it).
+    if status not in (200, 202) or not isinstance(payload, dict) or "decision" not in payload:
         code = (payload.get("error") or {}).get("code") if isinstance(payload, dict) and isinstance(payload.get("error"), dict) else None
         return ({"status": "unavailable", "cerata_status": status,
                  "error": code or (payload.get("error") if isinstance(payload, dict) else None)}, note)

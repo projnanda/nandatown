@@ -106,6 +106,13 @@ def test_failures_fail_closed(answer):
     assert "decision" not in reply["body"] and "token" not in reply["body"]
 
 
+def test_a_hold_answered_202_is_a_decision_not_a_failure():
+    held = (202, {}, {"decision": "hold", "check_id": "chk_2", "hold": {"hold_id": "hld_1", "state": "queued_for_person", "status_url": "/x"}})
+    _, _, [reply] = seller.build_handler(Canned(held), "ak_test_x", "run-a", naive=False)(_claim())
+    assert reply["body"]["status"] == "decided" and reply["body"]["decision"] == "hold"
+    assert reply["body"]["hold"] == {"hold_id": "hld_1", "state": "queued_for_person"}
+
+
 def test_in_flight_conflict_is_retried():
     post = Canned((409, {"retry-after": "0"}, {}), DECIDED)
     _, _, [reply] = seller.build_handler(post, "ak_test_x", "run-a", naive=False)(_claim())

@@ -98,9 +98,11 @@ class State:
                 stored_body, stored = self.idem[key]
                 if stored_body != canon(body):
                     return 422, {}, {"error": {"code": "idempotency_key_reused"}}
-                return 200, {"Idempotent-Replayed": "true"}, stored
+                return (202 if "hold" in stored else 200), {"Idempotent-Replayed": "true"}, stored
             status, out = self.decide(body)
-            if key is not None and status == 200:
+            if status == 200 and "hold" in out:
+                status = 202  # as Cerata answers a hold
+            if key is not None and status in (200, 202):
                 self.idem[key] = (canon(body), out)
             return status, {}, out
 
