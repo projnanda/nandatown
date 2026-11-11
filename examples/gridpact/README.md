@@ -91,7 +91,7 @@ by a Claude Haiku call (`claude-haiku-5-5`, about a cent per run) instead of a r
 the order, and the **auditor** decides whether the seller's declared capacity against its nameplate is a false claim to
 challenge. Everything else (propose, stake, ledger, adjudication, settlement, the idempotency cache) stays deterministic.
 Each Haiku answer is printed in `run_check.txt` under "Haiku decisions". Evidence: `evidence/after-honest-haiku/` and
-`evidence/after-liar-haiku/` (4 bundles, all pass `nandatown verify`). In 5 runs of each variant (2 profiles each, 20
+`evidence/after-liar-haiku/` (4 bundles, all pass `nandatown verify`). In 6 runs of each variant (2 profiles each, 24
 profile runs) every profile passed, the over-declaring seller was challenged every time, and the honest seller never.
 The honest seller PVB_17 declares 5455 kW against a 5000 kW nameplate, 9.1% over, inside GridPact's 10% tolerance; Haiku
 reasoned that correctly. Retries do not call Haiku again: the first answer is cached per commitment.
@@ -101,7 +101,7 @@ reasoned that correctly. Retries do not call Haiku again: the first answer is ca
 - By default the agents are scripted (a fixed rule for the auditor, with the nameplates handed to it, as in the HW7
   benchmark). With `LLM=1` the seller's accept and the auditor's challenge are Haiku decisions, but they are single
   yes/no judgements on one fixed Town order. The buyer is still scripted, and negotiation (counters, several sellers,
-  re-sourcing after a challenge) is not driven through Town. The 5 runs per variant are a reliability check, not a benchmark.
+  re-sourcing after a challenge) is not driven through Town. The 6 runs per variant are a reliability check, not a benchmark.
 - Adapter and GridPact are by the same team, so this is not an independent-agent result and not A2A conformance.
 - One buyer, one fixed order. Discovery, identity and payment layers are not exercised. `descriptor_consistency`
   is Not tested (no pinned card digest).
