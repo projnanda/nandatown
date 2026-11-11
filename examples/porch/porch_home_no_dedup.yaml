@@ -1,0 +1,37 @@
+name: porch_home_no_dedup
+description: Negative control for porch_home. The same duplicated request with the adapter's duplicate guard switched off; Porch has no request id, so it runs the request twice and the run FAILS on purpose at duplicate_applied_once.
+seed: 42
+validator: porch_home
+plugin_files:
+  - porch_town.py
+agents:
+  - name: owner
+    role: porch_home_owner
+    config:
+      occupied: false
+      audit_at: 10.0
+  - name: porch
+    role: porch_gateway
+    config:
+      dedup: false
+      expect_home:
+        devices: 8
+        platforms: [google_home, lg_thinq, matter]
+  - name: auditor
+    role: porch_hub_auditor
+  - name: energy-agent
+    role: porch_home_agent
+    config:
+      start_at: 1.0
+      plan:
+        - step: lamp_off
+          device: home-1/desk-lamp-plug
+          command: "Off"
+          reason: "Nobody is in the office; saving energy."
+          expect: allowed
+          expect_state: {OnOff.OnOff: false}
+faults:
+  - action: duplicate
+    kind: home_action_request
+    nth: 1
+max_time: 20
