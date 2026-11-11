@@ -1,0 +1,90 @@
+{
+  "name": "cg_meetup_duplicate",
+  "description": "The same meetup with the last post_scores call delivered twice: the room must not change the plan and every agent must keep one plan.",
+  "seed": 42,
+  "layers": {
+    "transport": "memory.v1",
+    "communication": "envelope.v1",
+    "identity": "keys.v1",
+    "registry": "index.v1",
+    "auth": "hmac.v1",
+    "trust": "reputation.v1",
+    "payments": "ledger.v1",
+    "coordination": "contractnet.v1",
+    "negotiation": "haggle.v1",
+    "memory": "kv.v1",
+    "privacy": "redact.v1",
+    "data_facts": "evidence.v1"
+  },
+  "agents": [
+    {
+      "name": "common-ground-room",
+      "role": "cg_room_adapter",
+      "config": {
+        "seats": {
+          "jack-agent": "jack",
+          "javier-agent": "javier",
+          "sergio-agent": "sergio"
+        }
+      }
+    },
+    {
+      "name": "jack-agent",
+      "role": "cg_person",
+      "config": {
+        "person": "jack",
+        "organizer": true,
+        "brief": {
+          "title": "[redacted]",
+          "duration_min": 120,
+          "date_from": "2026-11-04",
+          "date_to": "2026-11-04",
+          "must_haves": [
+            "open_full_session",
+            "laptop_friendly",
+            "wifi",
+            "outlets",
+            "table_for_group"
+          ],
+          "timezone": "America/New_York",
+          "format": "in_person"
+        }
+      }
+    },
+    {
+      "name": "javier-agent",
+      "role": "cg_person",
+      "config": {
+        "person": "javier"
+      }
+    },
+    {
+      "name": "sergio-agent",
+      "role": "cg_person",
+      "config": {
+        "person": "sergio"
+      }
+    }
+  ],
+  "faults": [
+    {
+      "action": "duplicate",
+      "kind": "cg_post_scores",
+      "nth": 3,
+      "delay": 0.0,
+      "rate": 0.0
+    }
+  ],
+  "redact_fields": [
+    "title",
+    "notes_from_owner",
+    "home_area",
+    "preferences_in_their_words"
+  ],
+  "max_time": 60.0,
+  "validator": "common_ground",
+  "plugin_files": [
+    "examples/integrations/common-ground/cg_plugin.py"
+  ],
+  "adaptations": []
+}

@@ -1,0 +1,3 @@
+# Town writes these bundles; they are hashed, so keep them byte for byte.
+evidence/** -whitespace -text
+fixtures/** -whitespace

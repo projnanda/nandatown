@@ -1,0 +1,39 @@
+name: cg_meetup_dropout
+description: "The same meetup with the last post_scores call lost and its agent gone silent: shows that the room keeps waiting with no deadline (fails on purpose)."
+seed: 42
+plugin_files:
+  - cg_plugin.py
+validator: common_ground
+# Each person's private data (profile, calendar, notes, home) lives in their own
+# Common Ground MCP server; only their Claude Code agent reads it. These keys
+# from that server must never appear in Town's records.
+redact_fields: [title, notes_from_owner, home_area, preferences_in_their_words]
+agents:
+  - name: common-ground-room
+    role: cg_room_adapter
+    config:
+      seats: {jack-agent: jack, javier-agent: javier, sergio-agent: sergio}
+  - name: jack-agent
+    role: cg_person
+    config:
+      person: jack
+      organizer: true
+      brief:
+        title: MIT work session
+        duration_min: 120
+        date_from: "2026-11-04"
+        date_to: "2026-11-04"
+        must_haves: [open_full_session, laptop_friendly, wifi, outlets, table_for_group]
+        timezone: America/New_York
+        format: in_person
+  - name: javier-agent
+    role: cg_person
+    config:
+      person: javier
+  - name: sergio-agent
+    role: cg_person
+    config:
+      person: sergio
+faults:
+  - {action: drop, kind: cg_post_scores, nth: 3}
+max_time: 60

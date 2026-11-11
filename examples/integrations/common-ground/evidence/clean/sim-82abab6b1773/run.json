@@ -1,0 +1,49 @@
+{
+  "run_id": "sim-82abab6b1773",
+  "profile_name": "cg_meetup",
+  "profile_fingerprint": "sha256:9b3f8fd8c686c6733ecdb0cb4054a5501d94835722fe9a49d8af63579b410fd6",
+  "created_at": 0.0,
+  "participants": [
+    {
+      "name": "common-ground-room",
+      "role": "cg_room_adapter"
+    },
+    {
+      "name": "jack-agent",
+      "role": "cg_person"
+    },
+    {
+      "name": "javier-agent",
+      "role": "cg_person"
+    },
+    {
+      "name": "sergio-agent",
+      "role": "cg_person"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "lab-0.2.6",
+    "python": "3.12.14"
+  },
+  "config": {
+    "mode": "lab",
+    "seed": 42,
+    "layers": {
+      "transport": "memory.v1",
+      "communication": "envelope.v1",
+      "identity": "keys.v1",
+      "registry": "index.v1",
+      "auth": "hmac.v1",
+      "trust": "reputation.v1",
+      "payments": "ledger.v1",
+      "coordination": "contractnet.v1",
+      "negotiation": "haggle.v1",
+      "memory": "kv.v1",
+      "privacy": "redact.v1",
+      "data_facts": "evidence.v1"
+    },
+    "logical_time": 6.4,
+    "rerun_command": "nandatown run examples/integrations/common-ground/cg_meetup.yaml --seed 42"
+  }
+}

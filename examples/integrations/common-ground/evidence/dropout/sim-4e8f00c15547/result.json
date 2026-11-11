@@ -1,0 +1,126 @@
+{
+  "run_id": "sim-4e8f00c15547",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "room_interface",
+      "status": "passed",
+      "evidence": [
+        "ev-7"
+      ],
+      "note": ""
+    },
+    {
+      "name": "live_room",
+      "status": "passed",
+      "evidence": [
+        "ev-7"
+      ],
+      "note": "calls answered by a running Common Ground room"
+    },
+    {
+      "name": "live_agents",
+      "status": "passed",
+      "evidence": [
+        "ev-42",
+        "ev-45",
+        "ev-48",
+        "ev-65"
+      ],
+      "note": "each person's windows, tags and scores came from a Claude Code agent using only that person's private MCP server"
+    },
+    {
+      "name": "discovery",
+      "status": "passed",
+      "evidence": [
+        "ev-19"
+      ],
+      "note": ""
+    },
+    {
+      "name": "plan_created",
+      "status": "passed",
+      "evidence": [
+        "ev-22"
+      ],
+      "note": ""
+    },
+    {
+      "name": "all_joined",
+      "status": "passed",
+      "evidence": [
+        "ev-33",
+        "ev-36",
+        "ev-39"
+      ],
+      "note": ""
+    },
+    {
+      "name": "posts_accepted",
+      "status": "failed",
+      "evidence": [
+        "ev-51",
+        "ev-54",
+        "ev-74",
+        "ev-68",
+        "ev-71",
+        "ev-57",
+        "ev-64"
+      ],
+      "note": "the room must accept windows and scores from all of ['jack', 'javier', 'sergio']"
+    },
+    {
+      "name": "same_plan_for_everyone",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "every person's agent must receive one and the same plan"
+    },
+    {
+      "name": "slot_in_every_window",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "no agreed plan to check against the windows"
+    },
+    {
+      "name": "fairness_consistent",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "no agreed plan to check against the scores"
+    },
+    {
+      "name": "fairest_option",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "the trace has no opening hours, so Town cannot redo the room's search; Common Ground's verify.py does that check"
+    },
+    {
+      "name": "dropout_reported",
+      "status": "passed",
+      "evidence": [
+        "ev-82",
+        "ev-133",
+        "ev-127",
+        "ev-132"
+      ],
+      "note": "the room kept the plan open with no deadline; the other agents stopped on their own limit and named the missing person"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-134"
+      ],
+      "note": "complete run recorded no money moved"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-134"
+      ],
+      "note": "fields ['home_area', 'notes_from_owner', 'preferences_in_their_words', 'title'] never left the run"
+    }
+  ],
+  "verdict": "failed",
+  "evaluated_at": 1794428490.6782131
+}
