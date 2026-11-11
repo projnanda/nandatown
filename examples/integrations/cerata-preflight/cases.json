@@ -1,0 +1,742 @@
+{
+ "$comment": "Cases for the Cerata x Nanda Town check. Each is an action an agent is about to take and the answer Cerata must give: an exact decision, or \"never clear\" (block, flag or hold, and no clearance token) where more than one cautious answer is acceptable. Phone numbers are 555 test numbers; addresses are public buildings.",
+ "cases": [
+  {
+   "id": "fl-call-after-8pm",
+   "agent": "sales",
+   "situation": "Sales call to Tampa at 8:15 p.m. local time: Florida allows sales calls only until 8 p.m.",
+   "request": {
+    "action": {
+     "type": "outbound_call",
+     "purpose": "telemarketing",
+     "at": "2026-10-20T20:15:00-04:00",
+     "automated": false
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "recipient": {
+     "phone": "+18135550142",
+     "address": {
+      "line1": "601 E Kennedy Blvd",
+      "city": "Tampa",
+      "state": "FL",
+      "zip": "33602"
+     },
+     "consent": {
+      "type": "prior_express_written"
+     },
+     "dnc_registered": false,
+     "prior_calls_24h": 0
+    }
+   },
+   "expect": {
+    "decision": "block"
+   }
+  },
+  {
+   "id": "call-ca-address-ny-number-early",
+   "agent": "sales",
+   "situation": "New York phone number, Los Angeles address, called early in the morning Pacific time",
+   "request": {
+    "action": {
+     "type": "outbound_call",
+     "purpose": "telemarketing",
+     "at": "2026-10-21T07:30:00-07:00",
+     "automated": false
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "recipient": {
+     "phone": "+12125550199",
+     "address": {
+      "line1": "200 N Spring St",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zip": "90012"
+     },
+     "consent": {
+      "type": "prior_express_written"
+     },
+     "dnc_registered": false
+    }
+   },
+   "expect": {
+    "decision": "block"
+   }
+  },
+  {
+   "id": "call-co-address-fl-number-late",
+   "agent": "sales",
+   "situation": "Florida phone number, Denver address, called late in the evening Mountain time",
+   "request": {
+    "action": {
+     "type": "outbound_call",
+     "purpose": "telemarketing",
+     "at": "2026-10-21T20:30:00-06:00",
+     "automated": false
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "recipient": {
+     "phone": "+18135550177",
+     "address": {
+      "line1": "1437 Bannock St",
+      "city": "Denver",
+      "state": "CO",
+      "zip": "80202"
+     },
+     "consent": {
+      "type": "prior_express_written"
+     },
+     "dnc_registered": false
+    }
+   },
+   "expect": {
+    "decision": "block"
+   }
+  },
+  {
+   "id": "call-dst-fallback-after-9pm",
+   "agent": "sales",
+   "situation": "Call on the night clocks fall back, after 9 p.m. local time",
+   "request": {
+    "action": {
+     "type": "outbound_call",
+     "purpose": "telemarketing",
+     "at": "2026-11-02T02:01:00Z",
+     "automated": false
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "recipient": {
+     "phone": "+16175550123",
+     "address": {
+      "line1": "100 Tremont St",
+      "city": "Boston",
+      "state": "MA",
+      "zip": "02108"
+     },
+     "consent": {
+      "type": "prior_express_written"
+     },
+     "dnc_registered": false
+    }
+   },
+   "expect": {
+    "decision": "block"
+   }
+  },
+  {
+   "id": "call-dst-fallback-uncovered-state",
+   "agent": "sales",
+   "situation": "Same night, before 9 p.m., in a state Cerata does not cover yet",
+   "request": {
+    "action": {
+     "type": "outbound_call",
+     "purpose": "telemarketing",
+     "at": "2026-11-02T01:59:00Z",
+     "automated": false
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "recipient": {
+     "phone": "+16175550123",
+     "address": {
+      "line1": "100 Tremont St",
+      "city": "Boston",
+      "state": "MA",
+      "zip": "02108"
+     },
+     "consent": {
+      "type": "prior_express_written"
+     },
+     "dnc_registered": false
+    }
+   },
+   "expect": {
+    "decision": "flag"
+   }
+  },
+  {
+   "id": "ai-voice-no-written-consent",
+   "agent": "sales",
+   "situation": "AI-voice sales call without written consent",
+   "request": {
+    "action": {
+     "type": "outbound_call",
+     "purpose": "telemarketing",
+     "at": "2026-10-21T11:00:00-04:00",
+     "automated": true,
+     "artificial_voice": true
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "recipient": {
+     "phone": "+18135550142",
+     "address": {
+      "line1": "601 E Kennedy Blvd",
+      "city": "Tampa",
+      "state": "FL",
+      "zip": "33602"
+     },
+     "consent": {
+      "type": "prior_express"
+     },
+     "dnc_registered": false,
+     "prior_calls_24h": 0
+    }
+   },
+   "expect": {
+    "decision": "block"
+   }
+  },
+  {
+   "id": "call-national-dnc",
+   "agent": "sales",
+   "situation": "Sales call to a number on the national Do Not Call list",
+   "request": {
+    "action": {
+     "type": "outbound_call",
+     "purpose": "telemarketing",
+     "at": "2026-10-21T11:00:00-04:00",
+     "automated": false
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "recipient": {
+     "phone": "+18135550142",
+     "address": {
+      "line1": "601 E Kennedy Blvd",
+      "city": "Tampa",
+      "state": "FL",
+      "zip": "33602"
+     },
+     "consent": {
+      "type": "none"
+     },
+     "dnc_registered": true,
+     "established_business_relationship": false,
+     "prior_calls_24h": 0
+    }
+   },
+   "expect": {
+    "decision": "block"
+   }
+  },
+  {
+   "id": "job-post-uncovered-state",
+   "agent": "recruiting",
+   "situation": "Job post in a state Cerata does not cover yet",
+   "request": {
+    "action": {
+     "type": "job_post",
+     "purpose": "advertisement",
+     "at": "2026-10-21T10:00:00-10:00"
+    },
+    "sender": {
+     "name": "Acme Multifamily",
+     "employer_size": 40
+    },
+    "job": {
+     "title": "Maintenance Tech",
+     "work_locations": [
+      {
+       "state": "HI",
+       "city": "Honolulu"
+      }
+     ],
+     "remote_eligible": false
+    },
+    "content": {
+     "text": "Maintenance Tech, $28-$34/hr, Honolulu."
+    }
+   },
+   "expect": {
+    "decision": "flag"
+   }
+  },
+  {
+   "id": "fl-fourth-call-in-24h",
+   "agent": "sales",
+   "situation": "Fourth sales call to the same Florida number in 24 hours",
+   "request": {
+    "action": {
+     "type": "outbound_call",
+     "purpose": "telemarketing",
+     "at": "2026-10-21T14:00:00-04:00",
+     "automated": false,
+     "subject": "unit-4b-tour"
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "recipient": {
+     "phone": "+18135550142",
+     "address": {
+      "line1": "601 E Kennedy Blvd",
+      "city": "Tampa",
+      "state": "FL",
+      "zip": "33602"
+     },
+     "consent": {
+      "type": "prior_express_written"
+     },
+     "dnc_registered": false,
+     "prior_calls_24h": 3
+    }
+   },
+   "expect": {
+    "decision": "block"
+   }
+  },
+  {
+   "id": "text-consent-unknown",
+   "agent": "sales",
+   "situation": "Automated sales text where consent is unknown",
+   "request": {
+    "action": {
+     "type": "outbound_text",
+     "purpose": "telemarketing",
+     "at": "2026-10-21T11:00:00-04:00",
+     "automated": true
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "recipient": {
+     "phone": "+18135550142",
+     "address": {
+      "line1": "601 E Kennedy Blvd",
+      "city": "Tampa",
+      "state": "FL",
+      "zip": "33602"
+     },
+     "consent": {
+      "type": "unknown"
+     },
+     "dnc_registered": false,
+     "prior_calls_24h": 0
+    },
+    "content": {
+     "text": "Hi! Tours open this weekend at The Kennedy. Reply STOP to opt out. -Acme Leasing"
+    }
+   },
+   "expect": {
+    "decision": "flag"
+   }
+  },
+  {
+   "id": "fl-clean-call",
+   "agent": "sales",
+   "situation": "Florida sales call inside allowed hours, with consent: clear, with a single-use clearance token",
+   "request": {
+    "action": {
+     "type": "outbound_call",
+     "purpose": "telemarketing",
+     "at": "2026-10-21T10:05:00-04:00",
+     "automated": true
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "recipient": {
+     "phone": "+18135550142",
+     "address": {
+      "line1": "601 E Kennedy Blvd",
+      "city": "Tampa",
+      "state": "FL",
+      "zip": "33602"
+     },
+     "consent": {
+      "type": "prior_express_written"
+     },
+     "dnc_registered": false,
+     "prior_calls_24h": 0
+    },
+    "token": {
+     "aud": "dialer.example"
+    }
+   },
+   "expect": {
+    "decision": "clear",
+    "token": true
+   }
+  },
+  {
+   "id": "email-no-unsubscribe",
+   "agent": "marketing",
+   "situation": "Marketing email without an unsubscribe link",
+   "request": {
+    "action": {
+     "type": "email",
+     "purpose": "commercial",
+     "at": "2026-10-21T09:00:00-04:00"
+    },
+    "sender": {
+     "name": "Acme Multifamily",
+     "postal_address": "601 E Kennedy Blvd, Tampa, FL 33602"
+    },
+    "recipient": {
+     "email": "lead@example.com"
+    },
+    "content": {
+     "subject": "Your new apartment awaits",
+     "text": "Tour The Kennedy this weekend and get one month free.",
+     "identified_as_ad": true,
+     "opt_out_mechanism": false,
+     "postal_address_present": true
+    }
+   },
+   "expect": {
+    "decision": "block"
+   }
+  },
+  {
+   "id": "email-compliant",
+   "agent": "marketing",
+   "situation": "Marketing email with unsubscribe, address and ad label",
+   "request": {
+    "action": {
+     "type": "email",
+     "purpose": "commercial",
+     "at": "2026-10-21T09:00:00-04:00"
+    },
+    "sender": {
+     "name": "Acme Multifamily",
+     "postal_address": "601 E Kennedy Blvd, Tampa, FL 33602"
+    },
+    "recipient": {
+     "email": "lead@example.com"
+    },
+    "content": {
+     "subject": "Advertisement: tours this weekend",
+     "text": "Tour The Kennedy this weekend. Unsubscribe: https://acme.example/u/123. Acme Multifamily, 601 E Kennedy Blvd, Tampa, FL 33602.",
+     "identified_as_ad": true,
+     "opt_out_mechanism": true,
+     "postal_address_present": true
+    }
+   },
+   "expect": {
+    "decision": "clear"
+   }
+  },
+  {
+   "id": "text-after-stop",
+   "agent": "sales",
+   "situation": "Sales text after the recipient replied STOP",
+   "request": {
+    "action": {
+     "type": "outbound_text",
+     "purpose": "telemarketing",
+     "at": "2026-10-21T11:00:00-04:00",
+     "automated": true,
+     "subject": "tours"
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "recipient": {
+     "phone": "+18135550142",
+     "address": {
+      "line1": "601 E Kennedy Blvd",
+      "city": "Tampa",
+      "state": "FL",
+      "zip": "33602"
+     },
+     "consent": {
+      "type": "prior_express_written",
+      "revocations": [
+       {
+        "scope": "tours",
+        "at": "2026-10-18T09:00:00-04:00"
+       }
+      ]
+     },
+     "dnc_registered": false,
+     "prior_calls_24h": 0
+    },
+    "content": {
+     "text": "Last chance to tour this weekend! Reply STOP to opt out."
+    }
+   },
+   "expect": {
+    "decision": "block"
+   }
+  },
+  {
+   "id": "rule-not-yet-in-force",
+   "agent": "sales",
+   "situation": "A federal rule that takes effect in 2027 must not be applied today",
+   "request": {
+    "action": {
+     "type": "outbound_text",
+     "purpose": "telemarketing",
+     "at": "2026-12-01T15:00:00-05:00",
+     "automated": true,
+     "subject": "renewal-offer"
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "recipient": {
+     "phone": "+18135550142",
+     "address": {
+      "line1": "601 E Kennedy Blvd",
+      "city": "Tampa",
+      "state": "FL",
+      "zip": "33602"
+     },
+     "consent": {
+      "type": "prior_express_written",
+      "revocations": [
+       {
+        "scope": "tours",
+        "at": "2026-11-20T09:00:00-05:00"
+       }
+      ]
+     },
+     "dnc_registered": false,
+     "prior_calls_24h": 0
+    },
+    "content": {
+     "text": "Your renewal offer is ready: 2% off a 13-month lease. Reply STOP to opt out."
+    }
+   },
+   "expect": {
+    "decision": "clear"
+   }
+  },
+  {
+   "id": "fl-clean-call-repeat",
+   "agent": "sales",
+   "situation": "The same facts as fl-clean-call again: the same decision digest",
+   "request": {
+    "action": {
+     "type": "outbound_call",
+     "purpose": "telemarketing",
+     "at": "2026-10-21T10:05:00-04:00",
+     "automated": true
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "recipient": {
+     "phone": "+18135550142",
+     "address": {
+      "line1": "601 E Kennedy Blvd",
+      "city": "Tampa",
+      "state": "FL",
+      "zip": "33602"
+     },
+     "consent": {
+      "type": "prior_express_written"
+     },
+     "dnc_registered": false,
+     "prior_calls_24h": 0
+    },
+    "token": {
+     "aud": "dialer.example"
+    }
+   },
+   "expect": {
+    "decision": "clear",
+    "same_digest_as": "fl-clean-call"
+   }
+  },
+  {
+   "id": "fl-call-exactly-8pm",
+   "agent": "sales",
+   "situation": "Florida sales call at exactly 8:00 p.m.",
+   "request": {
+    "action": {
+     "type": "outbound_call",
+     "purpose": "telemarketing",
+     "at": "2026-10-21T20:00:00-04:00",
+     "automated": true
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "recipient": {
+     "phone": "+18135550142",
+     "address": {
+      "line1": "601 E Kennedy Blvd",
+      "city": "Tampa",
+      "state": "FL",
+      "zip": "33602"
+     },
+     "consent": {
+      "type": "prior_express_written"
+     },
+     "dnc_registered": false,
+     "prior_calls_24h": 0
+    }
+   },
+   "expect": {
+    "never_clear": true
+   }
+  },
+  {
+   "id": "call-utc-timestamp",
+   "agent": "sales",
+   "situation": "Call time sent in UTC that is 9 p.m. at the recipient",
+   "request": {
+    "action": {
+     "type": "outbound_call",
+     "purpose": "telemarketing",
+     "at": "2026-10-22T01:00:00Z",
+     "automated": true
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "recipient": {
+     "phone": "+18135550142",
+     "address": {
+      "line1": "601 E Kennedy Blvd",
+      "city": "Tampa",
+      "state": "FL",
+      "zip": "33602"
+     },
+     "consent": {
+      "type": "prior_express_written"
+     },
+     "dnc_registered": false,
+     "prior_calls_24h": 0
+    }
+   },
+   "expect": {
+    "never_clear": true
+   }
+  },
+  {
+   "id": "call-unknown-location",
+   "agent": "sales",
+   "situation": "No address and a number with no area-code location",
+   "request": {
+    "action": {
+     "type": "outbound_call",
+     "purpose": "telemarketing",
+     "at": "2026-10-21T10:05:00-04:00",
+     "automated": true
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "recipient": {
+     "phone": "+15555550100",
+     "address": null,
+     "consent": {
+      "type": "prior_express_written"
+     },
+     "dnc_registered": false,
+     "prior_calls_24h": 0
+    }
+   },
+   "expect": {
+    "never_clear": true
+   }
+  },
+  {
+   "id": "call-uncovered-state",
+   "agent": "sales",
+   "situation": "Sales call into a state Cerata does not cover yet",
+   "request": {
+    "action": {
+     "type": "outbound_call",
+     "purpose": "telemarketing",
+     "at": "2026-10-21T10:05:00-04:00",
+     "automated": true
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "recipient": {
+     "phone": "+18085550100",
+     "address": {
+      "line1": "530 S King St",
+      "city": "Honolulu",
+      "state": "HI",
+      "zip": "96813"
+     },
+     "consent": {
+      "type": "prior_express_written"
+     },
+     "dnc_registered": false,
+     "prior_calls_24h": 0
+    }
+   },
+   "expect": {
+    "never_clear": true
+   }
+  },
+  {
+   "id": "call-uncovered-purpose",
+   "agent": "sales",
+   "situation": "A kind of call Cerata has no rules for yet",
+   "request": {
+    "action": {
+     "type": "outbound_call",
+     "purpose": "debt_collection",
+     "at": "2026-10-21T10:05:00-04:00",
+     "automated": true
+    },
+    "sender": {
+     "name": "Acme"
+    },
+    "recipient": {
+     "phone": "+18135550142",
+     "address": {
+      "line1": "601 E Kennedy Blvd",
+      "city": "Tampa",
+      "state": "FL",
+      "zip": "33602"
+     },
+     "consent": {
+      "type": "prior_express_written"
+     },
+     "dnc_registered": false
+    }
+   },
+   "expect": {
+    "never_clear": true
+   }
+  },
+  {
+   "id": "listing-no-kids",
+   "agent": "leasing",
+   "situation": "Rental listing that turns away families with children (the example on Cerata's site)",
+   "request": {
+    "action": {
+     "type": "rental_listing",
+     "purpose": "advertisement",
+     "at": "2026-10-21T09:00:00-04:00"
+    },
+    "sender": {
+     "name": "Acme Multifamily Leasing"
+    },
+    "property": {
+     "address": {
+      "line1": "601 E Kennedy Blvd",
+      "city": "Tampa",
+      "state": "FL",
+      "zip": "33602"
+     }
+    },
+    "content": {
+     "text": "Sunny two-bedroom in Seminole Heights, $1,850 a month, laundry in unit. Perfect for a working couple, no kids."
+    }
+   },
+   "expect": {
+    "never_clear": true
+   }
+  }
+ ]
+}

@@ -5,3 +5,5 @@ recursive-include tests/fixtures *.jsonl
 recursive-include examples *.py
 include scripts/check_distributions.py
 include tests/fixtures/invalid_json_seller.py
+# The Cerata integration example ships its pinned cases and scripts with the tests that read them.
+recursive-include examples/integrations/cerata-preflight *.json *.sh *.md
