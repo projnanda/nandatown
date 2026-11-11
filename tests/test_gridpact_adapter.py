@@ -1,0 +1,115 @@
+"""GridPact A2A adapter (examples/gridpact). The unit tests run anywhere; the integration test needs a
+GridPact checkout and is skipped unless GRIDPACT_DIR is set (see examples/gridpact/README.md)."""
+import importlib.util
+import os
+import shutil
+import subprocess
+from pathlib import Path
+
+import pytest
+from fastapi.testclient import TestClient
+
+ROOT = Path(__file__).resolve().parent.parent
+spec = importlib.util.spec_from_file_location("gridpact_a2a", ROOT / "examples" / "gridpact" / "gridpact_a2a.py")
+adapter = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(adapter)
+
+
+class FakeGridPact:
+    """In-memory stand-in for GridPact's MCP tools, with the request_id behaviour of tag hw8-v1."""
+
+    def __init__(self, url=None, idempotent=True):
+        self.idempotent, self.offers, self.commits, self.next = idempotent, {}, {}, 1
+        self.tools = {"propose": {"inputSchema": {"properties": {"request_id": {}} if idempotent else {}}}}
+
+    def supports_request_id(self):
+        return self.idempotent
+
+    def call(self, name, **a):
+        if name == "register_agent":
+            return {"ok": True, "token": "t-" + a["agent_id"]}
+        if name == "propose":
+            rid = a.get("request_id")
+            terms = tuple(a[k] for k in ("to", "step_from", "step_to", "kwh_per_step", "price_usd_mwh", "penalty_usd_mwh"))
+            for oid, (t, r, status) in self.offers.items():
+                if rid is not None and r == rid:
+                    if t != terms:
+                        return {"ok": False, "reason": f"request_id {rid} was already used with different terms"}
+                    return {"ok": True, "offer_id": oid, "status": status, "duplicate": True}
+            oid, self.next = self.next, self.next + 1
+            self.offers[oid] = (terms, rid, "open")
+            self.pending = a
+            return {"ok": True, "offer_id": oid}
+        if name == "respond":
+            oid = a["offer_id"]
+            terms, rid, _ = self.offers[oid]
+            self.offers[oid] = (terms, rid, "accepted")
+            self.commits[oid] = {"commitment_id": oid, "offer_id": oid, "seller": "PVB_17", "kwh_per_step": terms[3],
+                                 "price_usd_mwh": terms[4], "stake_usd": 1.0}
+            return {"ok": True, "commitment_id": oid}
+        if name == "get_ledger":
+            return {"ok": True, "entries": [{"action": "commit", "payload": p} for p in self.commits.values()]}
+        raise AssertionError(name)
+
+
+def make(monkeypatch, idempotent=True):
+    fake = FakeGridPact(idempotent=idempotent)
+    monkeypatch.setattr(adapter, "GridPactClient", lambda url: fake)
+    return TestClient(adapter.build_app("http://unused", "http://testserver")), fake
+
+
+def send(client, body):
+    import json
+    r = client.post("/", json={"jsonrpc": "2.0", "id": 1, "method": "message/send", "params": {"message": {
+        "role": "user", "messageId": "m", "parts": [{"kind": "text", "text": json.dumps(body)}]}}})
+    task = r.json()["result"]
+    text = task["artifacts"][0]["parts"][0]["text"]
+    try:
+        return task["status"]["state"], json.loads(text)
+    except json.JSONDecodeError:      # a failed task carries a plain-text reason
+        return task["status"]["state"], text
+
+
+ORDER = {"request_id": "o-1", "sku": "widget", "quantity": 2, "unit_price_cents": 1995}
+
+
+def test_quote_total_comes_from_the_commitment(monkeypatch):
+    client, fake = make(monkeypatch)
+    state, quote = send(client, ORDER)
+    assert state == "completed" and quote["total_cents"] == 3990 and quote["request_id"] == "o-1"
+    assert len(fake.commits) == 1
+
+
+def test_retry_with_an_idempotent_server_is_one_commitment(monkeypatch):
+    client, fake = make(monkeypatch)
+    assert send(client, ORDER) == send(client, ORDER)
+    assert len(fake.commits) == 1
+
+
+def test_retry_against_a_server_without_request_id_is_visible(monkeypatch):
+    client, fake = make(monkeypatch, idempotent=False)
+    first, second = send(client, ORDER)[1], send(client, ORDER)[1]
+    assert first["commitment_id"] != second["commitment_id"] and len(fake.commits) == 2
+
+
+def test_changed_terms_under_the_same_id_are_rejected(monkeypatch):
+    client, fake = make(monkeypatch)
+    send(client, ORDER)
+    state, body = send(client, {**ORDER, "quantity": 5})
+    assert state == "rejected" and "different terms" in body["error"] and len(fake.commits) == 1
+
+
+def test_bad_request_fails_without_touching_gridpact(monkeypatch):
+    client, fake = make(monkeypatch)
+    state, _ = send(client, {"request_id": "x", "sku": "gadget", "quantity": 2, "unit_price_cents": 1})
+    assert state == "failed" and not fake.offers
+
+
+@pytest.mark.skipif(not os.environ.get("GRIDPACT_DIR") or not shutil.which("nandatown"),
+                    reason="set GRIDPACT_DIR to a gridpact checkout (tag hw8-v1 or later)")
+def test_town_path_profiles_pass_against_real_gridpact(tmp_path):
+    env = {**os.environ, "GRIDPACT_PYTHON": os.environ.get("GRIDPACT_PYTHON", "python")}
+    out = subprocess.run([str(ROOT / "examples" / "gridpact" / "run_check.sh"), str(tmp_path)], env=env,
+                         capture_output=True, text=True, timeout=300).stdout
+    assert out.count("Verdict:   PASSED") == 2, out
+    assert "duplicate_request       Passed" in out and "conflicting_retry       Passed" in out

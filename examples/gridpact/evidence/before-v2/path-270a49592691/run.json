@@ -1,0 +1,41 @@
+{
+  "run_id": "path-270a49592691",
+  "profile_name": "a2a-order-conflict@0.1",
+  "profile_fingerprint": "sha256:1f7448132dad17aaeed70bffb5d4e9145f743d0c915c1f6e2693b5e5d0aab5a6",
+  "created_at": 1794373406.184117,
+  "participants": [
+    {
+      "name": "town-requester",
+      "role": "requester"
+    },
+    {
+      "name": "http://127.0.0.1:8941",
+      "role": "subject"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "path-order-conflict-0.1",
+    "python": "3.14.7"
+  },
+  "config": {
+    "mode": "path",
+    "subject": "http://127.0.0.1:8941",
+    "profile": "a2a-order-conflict@0.1",
+    "pinned_card_digest": null,
+    "nonce": "48987253c0",
+    "a2a_transport_policy": {
+      "policy_id": "a2a-bounded-json@0.1",
+      "max_response_bytes": 1048576,
+      "budget_basis": "profile",
+      "accept_encoding": "identity",
+      "follow_redirects": false,
+      "trust_env": false,
+      "transport_retries": 0,
+      "client_ownership": "owned",
+      "phase_timeout_seconds": 15.0,
+      "total_deadline_seconds": null
+    },
+    "rerun_command": "nandatown test-agent --url http://127.0.0.1:8941 --path-profile a2a-order-conflict@0.1"
+  }
+}
