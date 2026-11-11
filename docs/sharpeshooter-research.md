@@ -12,11 +12,14 @@ The only authorized product input is the immutable allowlisted
 [SharpeShooter release `hw8-ingress-42ff7b384e92`](https://github.com/sidsanghvi/sharpeshooter-hw8-reproduction/releases/tag/hw8-ingress-42ff7b384e92).
 Do not substitute a moving branch or rebuild that release when reproducing the
 reviewed integration. Milestone 5 ran the registered `clean` and `duplicate`
-generations exactly once and published their sanitized evidence. Never rerun,
-replace, or reinterpret those registered generations. The commands below are
-the separate Milestone 6 consumer path: installed-release validation,
-deterministic fixtures, and read-only evidence verification. They do not call a
-model or repeat either project's full suite.
+generations exactly once and promoted their sanitized evidence into the course
+SharpeShooter repository. Those evidence files are not part of the public
+ingress release or this Nanda PR. Never rerun, replace, or reinterpret those
+registered generations. The public commands below cover installed-release
+validation and deterministic fixture reproduction. The final read-only evidence
+audit additionally requires authorized access to the course SharpeShooter
+repository. None of these commands calls a model or repeats either project's
+full suite.
 
 The Nanda production implementation used by the registered evidence is commit
 `195b60bbf3b3a166ba76e349ddff9fc34f537ab9`. Check out that exact commit when
@@ -106,10 +109,13 @@ These tests are deterministic development fixtures. They are not the
 registered clean or duplicate cases, do not create or promote registered
 evidence, and cannot support a real compatibility claim by themselves.
 
-Finally, from a separate fresh SharpeShooter checkout containing the local
-Milestone 5 commits, validate the exact evidence-only range and promoted bytes.
-The named range must add only `clean.json`, `duplicate.json`, `manifest.json`,
-and `comparison.md` below `tasks/hw8/evidence/`:
+Finally, reviewers with authorized access to the course SharpeShooter repository
+may perform this separate read-only audit at evidence head
+`2936191ceef8a993722fff4be65a4b08b763c3a3`. These evidence files are not in
+the public ingress release or this Nanda PR. From a fresh authorized checkout,
+validate the exact evidence-only range and promoted bytes. The named range must
+add only `clean.json`, `duplicate.json`, `manifest.json`, and `comparison.md`
+below `tasks/hw8/evidence/`:
 
 ```bash
 git checkout --detach 2936191ceef8a993722fff4be65a4b08b763c3a3
