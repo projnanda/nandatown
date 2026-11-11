@@ -6,16 +6,16 @@ import json
 import sys
 from pathlib import Path
 
-FIELDS = ["run", "memory", "profile", "rep", "town_run_id", "verdict",
+FIELDS = ["run", "condition", "profile", "rep", "town_run_id", "verdict",
           "stages_passed", "stages_failed", "wall_seconds", "mindvault_calls",
           "deal_notes", "note_levels", "note_statuses", "intern_level_too_low",
           "intern_not_found", "intern_leaked"]
 
 
 def row(run_dir: Path) -> dict:
-    memory, rest = run_dir.name.split("-", 1)
+    condition, rest = run_dir.name.split("-", 1)
     profile, rep = rest.rsplit("-", 1)
-    out = {"run": run_dir.name, "memory": memory, "profile": profile, "rep": rep}
+    out = {"run": run_dir.name, "condition": condition, "profile": profile, "rep": rep}
     bundles = sorted(run_dir.glob("run-*"))
     if bundles:
         b = bundles[-1]
@@ -45,7 +45,7 @@ def main() -> None:
     root = Path(sys.argv[1])
     w = csv.DictWriter(sys.stdout, fieldnames=FIELDS)
     w.writeheader()
-    for d in sorted(p for p in root.iterdir() if p.is_dir() and p.name.startswith(("off-", "mindvault-"))):
+    for d in sorted(p for p in root.iterdir() if p.is_dir() and p.name.startswith(("off-", "mindvault-", "selflabel-"))):
         w.writerow(row(d))
 
 

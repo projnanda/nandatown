@@ -1,0 +1,11 @@
+{"intent_id": "in-1", "run_id": "run-66da5237cde2", "at": 1794422167.125578, "actor": "buyer", "action": "send", "payload": {"message_id": "q-1", "to": "seller", "kind": "quote_request", "body": {"sku": "widget", "quantity": 2, "unit_price_cents": 1995}}}
+{"intent_id": "in-2", "run_id": "run-66da5237cde2", "at": 1794422167.14753, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-3", "run_id": "run-66da5237cde2", "at": 1794422167.443157, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-4", "run_id": "run-66da5237cde2", "at": 1794422167.777672, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-5", "run_id": "run-66da5237cde2", "at": 1794422168.143651, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-6", "run_id": "run-66da5237cde2", "at": 1794422168.459363, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-7", "run_id": "run-66da5237cde2", "at": 1794422168.784867, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-8", "run_id": "run-66da5237cde2", "at": 1794422168.9796429, "actor": "seller", "action": "send", "payload": {"message_id": "r-1", "to": "buyer", "kind": "quote_response", "body": {"request_id": "q-1", "sku": "widget", "quantity": 2, "total_cents": 3990}}}
+{"intent_id": "in-9", "run_id": "run-66da5237cde2", "at": 1794422168.987156, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-ebfb08225e7d4e5d8b87ccb019c9a088", "status": "processed", "note": {"applied": true, "memory": "mindvault", "price_source": "b-701", "mindvault_write": {"block_id": "w-0001", "level": 0, "status": "unverified", "level_basis": "agent_declared"}, "total_cents": 3990}}}
+{"intent_id": "in-10", "run_id": "run-66da5237cde2", "at": 1794422169.0082822, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-11", "run_id": "run-66da5237cde2", "at": 1794422169.013247, "actor": "buyer", "action": "ack", "payload": {"message_id": "r-1", "fence": "fence-9a98abe504e947ada4a3f518ecdaa8ab", "status": "processed", "note": {"correct": true, "total_cents": 3990, "expected_total_cents": 3990}}}

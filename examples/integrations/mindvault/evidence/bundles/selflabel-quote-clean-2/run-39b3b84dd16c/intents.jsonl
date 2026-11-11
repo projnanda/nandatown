@@ -1,0 +1,10 @@
+{"intent_id": "in-1", "run_id": "run-39b3b84dd16c", "at": 1794422170.7342138, "actor": "buyer", "action": "send", "payload": {"message_id": "q-1", "to": "seller", "kind": "quote_request", "body": {"sku": "widget", "quantity": 2, "unit_price_cents": 1995}}}
+{"intent_id": "in-2", "run_id": "run-39b3b84dd16c", "at": 1794422170.7491572, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-3", "run_id": "run-39b3b84dd16c", "at": 1794422171.061653, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-4", "run_id": "run-39b3b84dd16c", "at": 1794422171.3913212, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-5", "run_id": "run-39b3b84dd16c", "at": 1794422171.720913, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-6", "run_id": "run-39b3b84dd16c", "at": 1794422172.0767941, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-7", "run_id": "run-39b3b84dd16c", "at": 1794422172.402144, "actor": "seller", "action": "send", "payload": {"message_id": "r-1", "to": "buyer", "kind": "quote_response", "body": {"request_id": "q-1", "sku": "widget", "quantity": 2, "total_cents": 3990}}}
+{"intent_id": "in-8", "run_id": "run-39b3b84dd16c", "at": 1794422172.408383, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-baa7397ff9c34b4296df91a39a01d7fc", "status": "processed", "note": {"applied": true, "memory": "mindvault", "price_source": "b-701", "mindvault_write": {"block_id": "w-0001", "level": 0, "status": "unverified", "level_basis": "agent_declared"}, "total_cents": 3990}}}
+{"intent_id": "in-9", "run_id": "run-39b3b84dd16c", "at": 1794422172.411393, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-10", "run_id": "run-39b3b84dd16c", "at": 1794422172.419397, "actor": "buyer", "action": "ack", "payload": {"message_id": "r-1", "fence": "fence-7ba85e2431ad4f46a49488d99e1f423a", "status": "processed", "note": {"correct": true, "total_cents": 3990, "expected_total_cents": 3990}}}

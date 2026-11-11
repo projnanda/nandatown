@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
-# All HW8 runs: 2 conditions (MEMORY=off|mindvault) x 2 profiles x REPS runs.
-# Each mindvault run gets a freshly reset database and a freshly started
+# All HW8 runs. Conditions:
+#   off        MEMORY=off (no MindVault)
+#   mindvault  MEMORY=mindvault, MindVault LABEL_MODE=taint (the system)
+#   selflabel  MEMORY=mindvault, MindVault LABEL_MODE=self: the HW7 baseline where
+#              the writer declares the level. Our seller declares none, so the
+#              note is stored at L0. The control that should FAIL (intern reads it).
+# Default: off + mindvault x 2 profiles x REPS, then selflabel x quote-clean x REPS.
+# Override with CONDITIONS="..." PROFILES="..." to run a subset into the same OUT_DIR.
+# Each MindVault run gets a freshly reset database and a freshly started
 # MindVault service, so taint and staged notes never carry over.
 #
 # Before running, in this terminal:
@@ -32,10 +39,10 @@ stop_mv() {
 }
 trap stop_mv EXIT
 
-start_mv() {  # $1 = run folder name
+start_mv() {  # $1 = run folder name, $2 = LABEL_MODE
   stop_mv
   (cd "$MINDVAULT_DIR" && SEED_FILE="$SEED" "$MV_PY" scripts/reset.py >/dev/null)
-  (cd "$MINDVAULT_DIR" && MEMORY_PORT="$PORT" LABEL_MODE=taint SEARCH_MODE=full RUN_ID="hw8-$1" \
+  (cd "$MINDVAULT_DIR" && MEMORY_PORT="$PORT" LABEL_MODE="$2" SEARCH_MODE=full RUN_ID="hw8-$1" \
      SEED_FILE="$SEED" exec "$MV_PY" -m server.app) >"$OUT/$1/mindvault.log" 2>&1 &
   MV_PID=$!
   for _ in $(seq 1 60); do
@@ -45,13 +52,27 @@ start_mv() {  # $1 = run folder name
   echo "MindVault did not start; see $OUT/$1/mindvault.log" >&2; exit 1
 }
 
-for memory in off mindvault; do
-  for profile in quote-clean quote-crash-restart; do
+plan() {  # prints "condition profile" pairs
+  if [ -n "${CONDITIONS:-}" ]; then
+    for c in $CONDITIONS; do for p in ${PROFILES:-quote-clean quote-crash-restart}; do echo "$c $p"; done; done
+  else
+    for c in off mindvault; do for p in quote-clean quote-crash-restart; do echo "$c $p"; done; done
+    echo "selflabel quote-clean"
+  fi
+}
+
+while read -r condition profile <&3; do
     for rep in $(seq 1 "$REPS"); do
-      id="$memory-$profile-$rep"
+      id="$condition-$profile-$rep"
       rm -rf "${OUT:?}/$id"; mkdir -p "$OUT/$id"
       echo "== $id"
-      if [ "$memory" = mindvault ]; then start_mv "$id"; fi
+      memory=mindvault
+      case "$condition" in
+        off) memory=off ;;
+        mindvault) start_mv "$id" taint ;;
+        selflabel) start_mv "$id" self ;;
+        *) echo "unknown condition $condition" >&2; exit 1 ;;
+      esac
       MEMORY="$memory" MV_LOG="$OUT/$id/mv-calls.jsonl" \
         "$TOWN" run "$profile" --out "$OUT/$id" \
         --agent seller="cmd:$PY $HERE/mv_seller.py" >"$OUT/$id/town.txt" 2>&1 || true
@@ -62,8 +83,7 @@ for memory in off mindvault; do
         stop_mv
       fi
     done
-  done
-done
+done 3< <(plan)
 
 "$PY" "$HERE/summarize.py" "$OUT" > "$OUT/results.csv"
 cat "$OUT/results.csv"
