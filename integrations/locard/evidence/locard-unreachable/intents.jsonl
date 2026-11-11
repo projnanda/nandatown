@@ -1,0 +1,31 @@
+{"intent_id": "in-1", "run_id": "run-40c41b8d66cc", "at": 1794420133.305268, "actor": "buyer", "action": "send", "payload": {"message_id": "q-1", "to": "seller", "kind": "quote_request", "body": {"sku": "widget", "quantity": 2, "unit_price_cents": 1995, "coverage": {"provider": "locard", "agent_id": "procurement-bot-down-20261111130114", "policy_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImxvY2FyZC0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJsb2NhcmQiLCJzdWIiOiJwcm9jdXJlbWVudC1ib3QtZG93bi0yMDI2MTExMTEzMDExNCIsInBvbGljeV9pZCI6InBvbF8xSFFMIiwicXVvdGVfaWQiOiJxXzhCREEiLCJmaW5nZXJwcmludCI6InNoYTI1NjozYzI5ZDVjNzA3ZmJjMDY3ZmY0OGRmYmVkNzYwY2UxZWNhZjExYWRkYmM2Y2M4YjhhYzVjN2M5Nzc0MzYxMmQzIiwiY292ZXJhZ2UiOnsicGVyX2luY2lkZW50X2NlbnRzIjoxMDAwMDAwMCwiYWdncmVnYXRlX2NlbnRzIjoyNTAwMDAwMCwiZGVkdWN0aWJsZV9jZW50cyI6MTAwMDAwLCJzcGVuZF9jYXBfcGVyX3R4X2NlbnRzIjoxMDAwMDB9LCJleGNsdXNpb25zIjpbInRvb2xfbm90X2luX21hbmlmZXN0Iiwib3Zlcl9zcGVuZF9jYXAiLCJtb25pdG9yaW5nX2dhcF9ndF8xaCJdLCJpYXQiOjE3OTQ0MjAxMzMsImV4cCI6MTgyNTk1NjEzMywic3RhdHVzX3VybCI6Imh0dHA6Ly8xMjcuMC4wLjE6ODcwMC92MS9wb2xpY2llcy9wb2xfMUhRTC9zdGF0dXMifQ.sHLMwUCsk96hYMwwYAelA5kwtDS89Tj2y17eG-eOfOXLFEunVJRWCtElLlsfwGh5Wf43mpnt4MySwPennVCsBA"}}}}
+{"intent_id": "in-2", "run_id": "run-40c41b8d66cc", "at": 1794420133.352434, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-3", "run_id": "run-40c41b8d66cc", "at": 1794420133.356736, "actor": "seller", "action": "send", "payload": {"message_id": "x-1", "to": "buyer", "kind": "quote_refused", "body": {"request_id": "q-1", "reasons": ["locard_unreachable"]}}}
+{"intent_id": "in-4", "run_id": "run-40c41b8d66cc", "at": 1794420133.359741, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-20859e496eb248768d4b556016fc6e5b", "status": "rejected", "note": {"applied": false, "coverage_verified": false, "reasons": ["locard_unreachable"], "policy_status": null}}}
+{"intent_id": "in-5", "run_id": "run-40c41b8d66cc", "at": 1794420133.36211, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-6", "run_id": "run-40c41b8d66cc", "at": 1794420133.3651462, "actor": "buyer", "action": "ack", "payload": {"message_id": "x-1", "fence": "fence-4599d27c9eab44f8b174875e779e55c5", "status": "processed", "note": {"refused": true, "reasons": ["locard_unreachable"]}}}
+{"intent_id": "in-7", "run_id": "run-40c41b8d66cc", "at": 1794420133.6777642, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-8", "run_id": "run-40c41b8d66cc", "at": 1794420134.0011342, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-9", "run_id": "run-40c41b8d66cc", "at": 1794420134.325533, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-10", "run_id": "run-40c41b8d66cc", "at": 1794420134.649589, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-11", "run_id": "run-40c41b8d66cc", "at": 1794420134.976987, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-12", "run_id": "run-40c41b8d66cc", "at": 1794420135.299136, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-13", "run_id": "run-40c41b8d66cc", "at": 1794420135.624424, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-14", "run_id": "run-40c41b8d66cc", "at": 1794420135.9507358, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-15", "run_id": "run-40c41b8d66cc", "at": 1794420136.277326, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-16", "run_id": "run-40c41b8d66cc", "at": 1794420136.602494, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-17", "run_id": "run-40c41b8d66cc", "at": 1794420136.9283168, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-18", "run_id": "run-40c41b8d66cc", "at": 1794420137.251081, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-19", "run_id": "run-40c41b8d66cc", "at": 1794420137.5753129, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-20", "run_id": "run-40c41b8d66cc", "at": 1794420137.8995671, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-21", "run_id": "run-40c41b8d66cc", "at": 1794420138.227044, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-22", "run_id": "run-40c41b8d66cc", "at": 1794420138.553527, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-23", "run_id": "run-40c41b8d66cc", "at": 1794420138.878434, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-24", "run_id": "run-40c41b8d66cc", "at": 1794420139.2034109, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-25", "run_id": "run-40c41b8d66cc", "at": 1794420139.5315351, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-26", "run_id": "run-40c41b8d66cc", "at": 1794420139.8567839, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-27", "run_id": "run-40c41b8d66cc", "at": 1794420140.183587, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-28", "run_id": "run-40c41b8d66cc", "at": 1794420140.5085492, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-29", "run_id": "run-40c41b8d66cc", "at": 1794420140.837433, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-30", "run_id": "run-40c41b8d66cc", "at": 1794420141.1647518, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-31", "run_id": "run-40c41b8d66cc", "at": 1794420141.490674, "actor": "seller", "action": "claim", "payload": {}}

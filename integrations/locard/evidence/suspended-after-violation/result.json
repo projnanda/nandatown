@@ -1,0 +1,54 @@
+{
+  "run_id": "run-8a0e7a3f806a",
+  "evaluator_version": "0.5.0",
+  "stages": [
+    {
+      "name": "accepted",
+      "status": "passed",
+      "evidence": [
+        "ev-4"
+      ],
+      "note": ""
+    },
+    {
+      "name": "claimed",
+      "status": "passed",
+      "evidence": [
+        "ev-5"
+      ],
+      "note": ""
+    },
+    {
+      "name": "received",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "no acknowledged receipt by the seller"
+    },
+    {
+      "name": "processed",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "no processed acknowledgement"
+    },
+    {
+      "name": "response",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "no quote response accepted and claimed by the buyer"
+    },
+    {
+      "name": "correct",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "the buyer made no correctness assertion"
+    },
+    {
+      "name": "portable_identity",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "this run used short-lived join tokens; rerun with --identity for grant-based portable identity"
+    }
+  ],
+  "verdict": "incomplete",
+  "evaluated_at": 1794420123.4238532
+}

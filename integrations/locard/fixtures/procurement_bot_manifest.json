@@ -1,0 +1,32 @@
+{
+  "agent_id": "procurement-bot-001",
+  "operator": "Locard MVP demo operator",
+  "model": "claude-sonnet-5-5",
+  "approval_mode": "autonomous",
+  "spend_cap_per_tx_cents": 100000,
+  "tools": [
+    {
+      "name": "search_catalog",
+      "effect": "read",
+      "max_amount_cents": 0
+    },
+    {
+      "name": "purchase",
+      "effect": "moves_money",
+      "max_amount_cents": 100000
+    },
+    {
+      "name": "send_email",
+      "effect": "external_message",
+      "max_amount_cents": 0
+    }
+  ],
+  "data_access": [
+    "vendor_catalog",
+    "company_budget_readonly"
+  ],
+  "controls": [
+    "spend_cap",
+    "audit_log"
+  ]
+}

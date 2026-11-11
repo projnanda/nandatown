@@ -1,0 +1,31 @@
+{"intent_id": "in-1", "run_id": "run-8a0e7a3f806a", "at": 1794420115.208079, "actor": "buyer", "action": "send", "payload": {"message_id": "q-1", "to": "seller", "kind": "quote_request", "body": {"sku": "widget", "quantity": 2, "unit_price_cents": 1995, "coverage": {"provider": "locard", "agent_id": "procurement-bot-violate-20261111130114", "policy_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImxvY2FyZC0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJsb2NhcmQiLCJzdWIiOiJwcm9jdXJlbWVudC1ib3QtdmlvbGF0ZS0yMDI2MTExMTEzMDExNCIsInBvbGljeV9pZCI6InBvbF9QUk1NIiwicXVvdGVfaWQiOiJxX0JCMTciLCJmaW5nZXJwcmludCI6InNoYTI1NjoxNjJmNjBlODNlM2ZmYzEzNzU1NGU2YjdhNTliZDQ4Mzc0NmQwY2QzMTAzZDkxZDhhMTZiYmM2NTYyZTFjNTUwIiwiY292ZXJhZ2UiOnsicGVyX2luY2lkZW50X2NlbnRzIjoxMDAwMDAwMCwiYWdncmVnYXRlX2NlbnRzIjoyNTAwMDAwMCwiZGVkdWN0aWJsZV9jZW50cyI6MTAwMDAwLCJzcGVuZF9jYXBfcGVyX3R4X2NlbnRzIjoxMDAwMDB9LCJleGNsdXNpb25zIjpbInRvb2xfbm90X2luX21hbmlmZXN0Iiwib3Zlcl9zcGVuZF9jYXAiLCJtb25pdG9yaW5nX2dhcF9ndF8xaCJdLCJpYXQiOjE3OTQ0MjAxMTUsImV4cCI6MTgyNTk1NjExNSwic3RhdHVzX3VybCI6Imh0dHA6Ly8xMjcuMC4wLjE6ODcwMC92MS9wb2xpY2llcy9wb2xfUFJNTS9zdGF0dXMifQ.BE7b07fZAGxIQspsPpyvjiAE3EBIuYv3dqXteH5JfVeVClUMUIVJe4WT7u-JKr6eBcJJj2u5jlSWzEQtyFshBQ"}}}}
+{"intent_id": "in-2", "run_id": "run-8a0e7a3f806a", "at": 1794420115.2515059, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-3", "run_id": "run-8a0e7a3f806a", "at": 1794420115.257067, "actor": "seller", "action": "send", "payload": {"message_id": "x-1", "to": "buyer", "kind": "quote_refused", "body": {"request_id": "q-1", "reasons": ["policy_suspended:over_spend_cap"]}}}
+{"intent_id": "in-4", "run_id": "run-8a0e7a3f806a", "at": 1794420115.25953, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-3cddaa11789940648dfc78d64805ffc7", "status": "rejected", "note": {"applied": false, "coverage_verified": false, "reasons": ["policy_suspended:over_spend_cap"], "policy_status": "suspended"}}}
+{"intent_id": "in-5", "run_id": "run-8a0e7a3f806a", "at": 1794420115.264395, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-6", "run_id": "run-8a0e7a3f806a", "at": 1794420115.2672372, "actor": "buyer", "action": "ack", "payload": {"message_id": "x-1", "fence": "fence-58b89153bb524a17bc5a91de1220479e", "status": "processed", "note": {"refused": true, "reasons": ["policy_suspended:over_spend_cap"]}}}
+{"intent_id": "in-7", "run_id": "run-8a0e7a3f806a", "at": 1794420115.576401, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-8", "run_id": "run-8a0e7a3f806a", "at": 1794420115.900727, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-9", "run_id": "run-8a0e7a3f806a", "at": 1794420116.226183, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-10", "run_id": "run-8a0e7a3f806a", "at": 1794420116.5512938, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-11", "run_id": "run-8a0e7a3f806a", "at": 1794420116.878815, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-12", "run_id": "run-8a0e7a3f806a", "at": 1794420117.20477, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-13", "run_id": "run-8a0e7a3f806a", "at": 1794420117.531255, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-14", "run_id": "run-8a0e7a3f806a", "at": 1794420117.855842, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-15", "run_id": "run-8a0e7a3f806a", "at": 1794420118.183001, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-16", "run_id": "run-8a0e7a3f806a", "at": 1794420118.508546, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-17", "run_id": "run-8a0e7a3f806a", "at": 1794420118.833558, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-18", "run_id": "run-8a0e7a3f806a", "at": 1794420119.160667, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-19", "run_id": "run-8a0e7a3f806a", "at": 1794420119.4861891, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-20", "run_id": "run-8a0e7a3f806a", "at": 1794420119.8146691, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-21", "run_id": "run-8a0e7a3f806a", "at": 1794420120.137753, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-22", "run_id": "run-8a0e7a3f806a", "at": 1794420120.4653702, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-23", "run_id": "run-8a0e7a3f806a", "at": 1794420120.790175, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-24", "run_id": "run-8a0e7a3f806a", "at": 1794420121.112761, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-25", "run_id": "run-8a0e7a3f806a", "at": 1794420121.4351628, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-26", "run_id": "run-8a0e7a3f806a", "at": 1794420121.764826, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-27", "run_id": "run-8a0e7a3f806a", "at": 1794420122.0894709, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-28", "run_id": "run-8a0e7a3f806a", "at": 1794420122.416707, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-29", "run_id": "run-8a0e7a3f806a", "at": 1794420122.7424068, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-30", "run_id": "run-8a0e7a3f806a", "at": 1794420123.067626, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-31", "run_id": "run-8a0e7a3f806a", "at": 1794420123.395966, "actor": "seller", "action": "claim", "payload": {}}
