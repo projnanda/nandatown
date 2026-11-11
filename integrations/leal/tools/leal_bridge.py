@@ -1,17 +1,20 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Ask the real Leal MCP server for a recipe and print it as JSON.
+"""Call a tool on the real Leal MCP server and print the result as JSON.
 
 This script runs inside Leal's own environment, not Town's, because the MCP client library
 is Leal's dependency and Town does not need it. ``leal_source.LiveSource`` starts it as:
 
     uv run --directory <LEAL_ROOT> python <this file> <recipe_id>
+    uv run --directory <LEAL_ROOT> python <this file> --tool <tool name>   # arguments on stdin
 
-It starts Leal's MCP server over stdio, exactly as an agent host would, calls the
-``get_recipe`` tool and prints the result.
+It starts Leal's MCP server over stdio, exactly as an agent host would, calls the tool
+(``get_recipe`` by default, or ``check_application`` and ``leal_public_key``) and prints
+the result.
 
 Example::
 
     uv run --directory ../leal python leal_bridge.py job-applications
+    echo '{}' | uv run --directory ../leal python leal_bridge.py --tool leal_public_key
 """
 
 from __future__ import annotations
@@ -35,7 +38,7 @@ def _payload(result: Any) -> Any:
     return json.loads(result.content[0].text)
 
 
-async def _get(recipe_id: str) -> Any:
+async def _call(tool: str, arguments: dict[str, Any]) -> Any:
     root = Path.cwd()
     db = Path(tempfile.mkdtemp()) / "leal.db"
     params = StdioServerParameters(
@@ -47,11 +50,15 @@ async def _get(recipe_id: str) -> Any:
     async with stdio_client(params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
-            return _payload(await session.call_tool("get_recipe", {"recipe_id": recipe_id}))
+            return _payload(await session.call_tool(tool, arguments))
 
 
 def main() -> None:
-    print(json.dumps(asyncio.run(_get(sys.argv[1]))))
+    if sys.argv[1] == "--tool":
+        tool, arguments = sys.argv[2], json.loads(sys.stdin.read() or "{}")
+    else:
+        tool, arguments = "get_recipe", {"recipe_id": sys.argv[1]}
+    print(json.dumps(asyncio.run(_call(tool, arguments))))
 
 
 if __name__ == "__main__":
