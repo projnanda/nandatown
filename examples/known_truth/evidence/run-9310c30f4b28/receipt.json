@@ -1,0 +1,44 @@
+{
+  "payload": {
+    "claim": {
+      "capability": "quote",
+      "subject": "buyer, seller",
+      "release_basis": {
+        "profile_fingerprint": "sha256:649ac81897f7d652b41a86393afa52d301fe3197b8db3a3aaaab6e57c25cfca0"
+      },
+      "profile": "quote-duplicate-delivery",
+      "verdict": "passed"
+    },
+    "observer": "did:town:7b40e8861ce7a32d018e4cd4",
+    "window": {
+      "started": 1794423942.4315038,
+      "evaluated": 1794423951.1987112
+    },
+    "coverage": {
+      "tested": [
+        "accepted",
+        "claimed",
+        "received",
+        "processed",
+        "response",
+        "correct",
+        "duplicate_recognized"
+      ],
+      "not_tested": [
+        "portable_identity"
+      ]
+    },
+    "limitations": [
+      "one run is one scoped observation, not a certificate",
+      "the signature proves key commitment, not truth, independence, or safety",
+      "a favorable result grants no permissions and endorses nothing"
+    ],
+    "evidence": {
+      "bundle_fingerprint": "sha256:2d8066ca8db040a9bff652fd3d3e07cab5f9472ff7d984451ff371662cdbf4d3",
+      "result_digest": "sha256:cd79b5d9ab197b13d9327696b71fffe70fe1cfcf222af8e3be81182cb4b7e7e2",
+      "run_id": "run-9310c30f4b28"
+    }
+  },
+  "signature": "621d3379d2a6f897c9d54224dbde2bcfd61d683e5f4989d08f3371772c3b162255c68281c1a4f0eea2dd01390b3b7cf27465452e67526e219f6ed390be0cb606",
+  "controller_public": "9d084752f31d5c1f5ee80f77f0172c993940a8a76024c143ad19495ef627f65e"
+}

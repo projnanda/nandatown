@@ -1,0 +1,18 @@
+{
+  "card_version": 1,
+  "issuer": "known-answer-evaluation",
+  "benchmark_id": "live_03",
+  "evaluation_run": "live_03",
+  "candidate_id": "haiku45",
+  "model": "claude-haiku-4-5",
+  "checks_total": 6,
+  "checks_passed": 3,
+  "failed_checks": [
+    "balances",
+    "aggregation",
+    "causal_inputs"
+  ],
+  "exact_pass": false,
+  "issued_at": "2026-11-11T00:00:00Z",
+  "card_sha256": "4585ca6394c15b29bf94933ce5d6c6989aeb87307a7a39ddd5a32ac594cf2a15"
+}
