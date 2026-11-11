@@ -1,0 +1,88 @@
+{
+  "name": "referral_unreachable_fail_closed",
+  "description": "Failure case. The Referral server exits at startup. The outage must be recorded, the buyer must stop, and no money or reputation may move on checks that never ran.",
+  "seed": 42,
+  "layers": {
+    "transport": "memory.v1",
+    "communication": "envelope.v1",
+    "identity": "keys.v1",
+    "registry": "index.v1",
+    "auth": "hmac.v1",
+    "trust": "referral.v1",
+    "payments": "ledger.v1",
+    "coordination": "contractnet.v1",
+    "negotiation": "haggle.v1",
+    "memory": "kv.v1",
+    "privacy": "redact.v1",
+    "data_facts": "evidence.v1"
+  },
+  "agents": [
+    {
+      "name": "referral",
+      "role": "referral_service",
+      "config": {
+        "command": [
+          "python3",
+          "-c",
+          "import sys; sys.exit(3)"
+        ]
+      }
+    },
+    {
+      "name": "worker-cheap",
+      "role": "research_worker",
+      "config": {
+        "behavior": "fabricate",
+        "ask_cents": 40,
+        "balance_cents": 0
+      }
+    },
+    {
+      "name": "worker-honest",
+      "role": "research_worker",
+      "config": {
+        "behavior": "honest",
+        "ask_cents": 90,
+        "balance_cents": 0
+      }
+    },
+    {
+      "name": "buyer-1",
+      "role": "research_buyer",
+      "config": {
+        "company": "Acme Robotics",
+        "slots": [
+          {
+            "competitor": "Cobalt Dynamics",
+            "attribute": "hq_city"
+          },
+          {
+            "competitor": "Halcyon Motion",
+            "attribute": "founded_year"
+          },
+          {
+            "competitor": "Ironbark AI",
+            "attribute": "flagship_product"
+          },
+          {
+            "competitor": "Cobalt Dynamics",
+            "attribute": "headcount"
+          }
+        ],
+        "cap_cents": 200,
+        "max_hires": 3,
+        "balance_cents": 1000
+      }
+    }
+  ],
+  "faults": [],
+  "redact_fields": [
+    "key"
+  ],
+  "max_time": 60.0,
+  "validator": "referral_fail_closed",
+  "plugin_files": [
+    "/home/user/nandatown/integrations/referral/scenarios/../plugin.py"
+  ],
+  "adaptations": []
+}

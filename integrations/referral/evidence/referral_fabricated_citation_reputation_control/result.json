@@ -1,0 +1,76 @@
+{
+  "run_id": "sim-0aa17846cf12",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "referral_connected",
+      "status": "passed",
+      "evidence": [
+        "ev-7"
+      ],
+      "note": ""
+    },
+    {
+      "name": "town_discovery",
+      "status": "passed",
+      "evidence": [
+        "ev-20",
+        "ev-22"
+      ],
+      "note": ""
+    },
+    {
+      "name": "forecast_locked_before_delivery",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "every accepted Referral delivery needs a forecast locked before it, and every verdict must show that forecast"
+    },
+    {
+      "name": "fabrication_rejected",
+      "status": "failed",
+      "evidence": [
+        "ev-31"
+      ],
+      "note": "the buyer paid a worker whose citations are fabricated"
+    },
+    {
+      "name": "rematched_and_accepted",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "after the rejection the buyer must rematch with the fabricator excluded, and pay the worker whose delivery passes"
+    },
+    {
+      "name": "reputation_matches_checks",
+      "status": "failed",
+      "evidence": [
+        "ev-34"
+      ],
+      "note": "the trust layer moved a score without a matching Referral check, e.g. credit for a delivery whose citations were never verified"
+    },
+    {
+      "name": "credential_verified",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "Referral's signed credential for the hired worker must verify in Town against Referral's published key, and name that worker"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-25",
+        "ev-31"
+      ],
+      "note": "1000 cents conserved across every movement"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-36"
+      ],
+      "note": "fields ['key'] never left the run"
+    }
+  ],
+  "verdict": "failed",
+  "evaluated_at": 1794429078.7688203
+}

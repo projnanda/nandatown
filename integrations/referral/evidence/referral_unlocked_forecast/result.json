@@ -1,0 +1,67 @@
+{
+  "run_id": "sim-5c682e939ebd",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "referral_connected",
+      "status": "passed",
+      "evidence": [
+        "ev-6"
+      ],
+      "note": ""
+    },
+    {
+      "name": "unlocked_delivery_refused",
+      "status": "passed",
+      "evidence": [
+        "ev-24"
+      ],
+      "note": ""
+    },
+    {
+      "name": "forecast_locked_before_delivery",
+      "status": "passed",
+      "evidence": [
+        "ev-26",
+        "ev-29"
+      ],
+      "note": ""
+    },
+    {
+      "name": "work_accepted_after_lock",
+      "status": "passed",
+      "evidence": [
+        "ev-29"
+      ],
+      "note": ""
+    },
+    {
+      "name": "reputation_matches_checks",
+      "status": "passed",
+      "evidence": [
+        "ev-33",
+        "ev-35"
+      ],
+      "note": ""
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-21",
+        "ev-30"
+      ],
+      "note": "1000 cents conserved across every movement"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-36"
+      ],
+      "note": "fields ['key'] never left the run"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794429080.3481472
+}

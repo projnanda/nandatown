@@ -1,0 +1,49 @@
+{
+  "run_id": "sim-413128730cf9",
+  "profile_name": "referral_fabricated_citation",
+  "profile_fingerprint": "sha256:8300b0ace92853a5a35640686e9be380ed6517f3cb01918cd3c4ceaffac49b02",
+  "created_at": 0.0,
+  "participants": [
+    {
+      "name": "referral",
+      "role": "referral_service"
+    },
+    {
+      "name": "worker-cheap",
+      "role": "research_worker"
+    },
+    {
+      "name": "worker-honest",
+      "role": "research_worker"
+    },
+    {
+      "name": "buyer-1",
+      "role": "research_buyer"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "lab-0.2.6",
+    "python": "3.13.18"
+  },
+  "config": {
+    "mode": "lab",
+    "seed": 42,
+    "layers": {
+      "transport": "memory.v1",
+      "communication": "envelope.v1",
+      "identity": "keys.v1",
+      "registry": "index.v1",
+      "auth": "hmac.v1",
+      "trust": "referral.v1",
+      "payments": "ledger.v1",
+      "coordination": "contractnet.v1",
+      "negotiation": "haggle.v1",
+      "memory": "kv.v1",
+      "privacy": "redact.v1",
+      "data_facts": "evidence.v1"
+    },
+    "logical_time": 1.9000000000000004,
+    "rerun_command": "nandatown run integrations/referral/scenarios/referral_fabricated_citation.yaml --seed 42"
+  }
+}

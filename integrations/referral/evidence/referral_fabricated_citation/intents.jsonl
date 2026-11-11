@@ -1,0 +1,41 @@
+{"intent_id": "in-1", "run_id": "sim-413128730cf9", "at": 0.0, "actor": "worker-cheap", "action": "register", "payload": {"capabilities": ["research.competitor_facts"]}}
+{"intent_id": "in-2", "run_id": "sim-413128730cf9", "at": 0.0, "actor": "worker-cheap", "action": "referral_call", "payload": {"tool": "register_agent"}}
+{"intent_id": "in-3", "run_id": "sim-413128730cf9", "at": 0.0, "actor": "worker-honest", "action": "register", "payload": {"capabilities": ["research.competitor_facts"]}}
+{"intent_id": "in-4", "run_id": "sim-413128730cf9", "at": 0.0, "actor": "worker-honest", "action": "referral_call", "payload": {"tool": "register_agent"}}
+{"intent_id": "in-5", "run_id": "sim-413128730cf9", "at": 0.0, "actor": "buyer-1", "action": "register", "payload": {"capabilities": ["buy"]}}
+{"intent_id": "in-6", "run_id": "sim-413128730cf9", "at": 0.0, "actor": "buyer-1", "action": "referral_call", "payload": {"tool": "register_agent"}}
+{"intent_id": "in-7", "run_id": "sim-413128730cf9", "at": 0.5, "actor": "buyer-1", "action": "lookup", "payload": {"capability": "research.competitor_facts"}}
+{"intent_id": "in-8", "run_id": "sim-413128730cf9", "at": 0.5, "actor": "buyer-1", "action": "send", "payload": {"to": "worker-cheap", "kind": "quote_request", "body": {"capability": "research.competitor_facts"}}}
+{"intent_id": "in-9", "run_id": "sim-413128730cf9", "at": 0.5, "actor": "buyer-1", "action": "send", "payload": {"to": "worker-honest", "kind": "quote_request", "body": {"capability": "research.competitor_facts"}}}
+{"intent_id": "in-10", "run_id": "sim-413128730cf9", "at": 0.6, "actor": "worker-cheap", "action": "send", "payload": {"to": "buyer-1", "kind": "quote_response", "body": {"unit_cents": 40}}}
+{"intent_id": "in-11", "run_id": "sim-413128730cf9", "at": 0.6, "actor": "worker-honest", "action": "send", "payload": {"to": "buyer-1", "kind": "quote_response", "body": {"unit_cents": 90}}}
+{"intent_id": "in-12", "run_id": "sim-413128730cf9", "at": 1.5, "actor": "buyer-1", "action": "referral_call", "payload": {"tool": "request_match"}}
+{"intent_id": "in-13", "run_id": "sim-413128730cf9", "at": 1.5, "actor": "buyer-1", "action": "referral_call", "payload": {"tool": "hire"}}
+{"intent_id": "in-14", "run_id": "sim-413128730cf9", "at": 1.5, "actor": "buyer-1", "action": "escrow_hold", "payload": {"cents": 40, "ref": "job-0001"}}
+{"intent_id": "in-15", "run_id": "sim-413128730cf9", "at": 1.5, "actor": "buyer-1", "action": "send", "payload": {"to": "worker-cheap", "kind": "research_order", "body": {"job_id": "job-0001", "company": "Acme Robotics", "slots": [{"competitor": "Cobalt Dynamics", "attribute": "hq_city"}, {"competitor": "Halcyon Motion", "attribute": "founded_year"}, {"competitor": "Ironbark AI", "attribute": "flagship_product"}, {"competitor": "Cobalt Dynamics", "attribute": "headcount"}]}}}
+{"intent_id": "in-16", "run_id": "sim-413128730cf9", "at": 1.6, "actor": "worker-cheap", "action": "referral_call", "payload": {"tool": "get_assignment"}}
+{"intent_id": "in-17", "run_id": "sim-413128730cf9", "at": 1.6, "actor": "worker-cheap", "action": "referral_call", "payload": {"tool": "submit_prediction"}}
+{"intent_id": "in-18", "run_id": "sim-413128730cf9", "at": 1.6, "actor": "worker-cheap", "action": "referral_call", "payload": {"tool": "submit_delivery"}}
+{"intent_id": "in-19", "run_id": "sim-413128730cf9", "at": 1.6, "actor": "worker-cheap", "action": "send", "payload": {"to": "buyer-1", "kind": "research_delivered", "body": {"job_id": "job-0001"}}}
+{"intent_id": "in-20", "run_id": "sim-413128730cf9", "at": 1.7000000000000002, "actor": "buyer-1", "action": "referral_call", "payload": {"tool": "get_record"}}
+{"intent_id": "in-21", "run_id": "sim-413128730cf9", "at": 1.7000000000000002, "actor": "buyer-1", "action": "escrow_refund", "payload": {"ref": "job-0001"}}
+{"intent_id": "in-22", "run_id": "sim-413128730cf9", "at": 1.7000000000000002, "actor": "buyer-1", "action": "attest", "payload": {"subject": "worker-cheap", "claim": "trade.outcome", "value": "bad"}}
+{"intent_id": "in-23", "run_id": "sim-413128730cf9", "at": 1.7000000000000002, "actor": "buyer-1", "action": "referral_call", "payload": {"tool": "request_match"}}
+{"intent_id": "in-24", "run_id": "sim-413128730cf9", "at": 1.7000000000000002, "actor": "buyer-1", "action": "referral_call", "payload": {"tool": "hire"}}
+{"intent_id": "in-25", "run_id": "sim-413128730cf9", "at": 1.7000000000000002, "actor": "buyer-1", "action": "escrow_hold", "payload": {"cents": 90, "ref": "job-0002"}}
+{"intent_id": "in-26", "run_id": "sim-413128730cf9", "at": 1.7000000000000002, "actor": "buyer-1", "action": "send", "payload": {"to": "worker-honest", "kind": "research_order", "body": {"job_id": "job-0002", "company": "Acme Robotics", "slots": [{"competitor": "Cobalt Dynamics", "attribute": "hq_city"}, {"competitor": "Halcyon Motion", "attribute": "founded_year"}, {"competitor": "Ironbark AI", "attribute": "flagship_product"}, {"competitor": "Cobalt Dynamics", "attribute": "headcount"}]}}}
+{"intent_id": "in-27", "run_id": "sim-413128730cf9", "at": 1.8000000000000003, "actor": "worker-honest", "action": "referral_call", "payload": {"tool": "read_document"}}
+{"intent_id": "in-28", "run_id": "sim-413128730cf9", "at": 1.8000000000000003, "actor": "worker-honest", "action": "referral_call", "payload": {"tool": "read_document"}}
+{"intent_id": "in-29", "run_id": "sim-413128730cf9", "at": 1.8000000000000003, "actor": "worker-honest", "action": "referral_call", "payload": {"tool": "read_document"}}
+{"intent_id": "in-30", "run_id": "sim-413128730cf9", "at": 1.8000000000000003, "actor": "worker-honest", "action": "referral_call", "payload": {"tool": "read_document"}}
+{"intent_id": "in-31", "run_id": "sim-413128730cf9", "at": 1.8000000000000003, "actor": "worker-honest", "action": "referral_call", "payload": {"tool": "get_assignment"}}
+{"intent_id": "in-32", "run_id": "sim-413128730cf9", "at": 1.8000000000000003, "actor": "worker-honest", "action": "referral_call", "payload": {"tool": "submit_prediction"}}
+{"intent_id": "in-33", "run_id": "sim-413128730cf9", "at": 1.8000000000000003, "actor": "worker-honest", "action": "referral_call", "payload": {"tool": "submit_delivery"}}
+{"intent_id": "in-34", "run_id": "sim-413128730cf9", "at": 1.8000000000000003, "actor": "worker-honest", "action": "send", "payload": {"to": "buyer-1", "kind": "research_delivered", "body": {"job_id": "job-0002"}}}
+{"intent_id": "in-35", "run_id": "sim-413128730cf9", "at": 1.9000000000000004, "actor": "buyer-1", "action": "referral_call", "payload": {"tool": "get_record"}}
+{"intent_id": "in-36", "run_id": "sim-413128730cf9", "at": 1.9000000000000004, "actor": "buyer-1", "action": "escrow_release", "payload": {"ref": "job-0002", "to": "worker-honest"}}
+{"intent_id": "in-37", "run_id": "sim-413128730cf9", "at": 1.9000000000000004, "actor": "buyer-1", "action": "attest", "payload": {"subject": "worker-honest", "claim": "trade.outcome", "value": "good"}}
+{"intent_id": "in-38", "run_id": "sim-413128730cf9", "at": 1.9000000000000004, "actor": "buyer-1", "action": "referral_call", "payload": {"tool": "get_credential"}}
+{"intent_id": "in-39", "run_id": "sim-413128730cf9", "at": 1.9000000000000004, "actor": "buyer-1", "action": "referral_call", "payload": {"tool": "get_issuer_key"}}
+{"intent_id": "in-40", "run_id": "sim-413128730cf9", "at": 1.9000000000000004, "actor": "buyer-1", "action": "referral_call", "payload": {"tool": "verify_credential"}}
+{"intent_id": "in-41", "run_id": "sim-413128730cf9", "at": 1.9000000000000004, "actor": "buyer-1", "action": "lookup", "payload": {"capability": "research.competitor_facts"}}
