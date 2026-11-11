@@ -90,7 +90,7 @@ arrival and rates it good.
 Tested with Nanda Town base commit `6f9a7c0` (`main`, 2026-11-11) plus this
 PR, nandatown 0.2.0, evaluator `lab-0.2.6`, Python 3.13.18 (Linux; the referral tests also pass on 3.11 and 3.12, the versions CI uses); Referral
 commit [`d41126c`](https://github.com/louis1mx/referral/commit/d41126c3091ebe71c87054b5eac0a94bddbbe108)
-(tag `hw8-nandatown`, package `referral` 0.1.0, MCP SDK from its `requirements-lock.txt`).
+(branch `hw8-nandatown`, package `referral` 0.1.0, MCP SDK from its `requirements-lock.txt`).
 
 ```bash
 # 1. Referral, in its own checkout and virtualenv
