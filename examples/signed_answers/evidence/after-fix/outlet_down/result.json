@@ -1,0 +1,59 @@
+{
+  "run_id": "sim-578cf676b94a",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "outlet_listed",
+      "status": "failed",
+      "evidence": [
+        "ev-6"
+      ],
+      "note": "the outlet's card must be in the Town registry, verified"
+    },
+    {
+      "name": "outlet_discovered",
+      "status": "failed",
+      "evidence": [
+        "ev-9",
+        "ev-10"
+      ],
+      "note": "every reader must find the outlet through the registry"
+    },
+    {
+      "name": "package_verified[reader-subscriber]",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "every answer to a subscriber's reader must be a completed task with a matching package of at least one sentence, whose id and signature check out under the key on the outlet's Town card"
+    },
+    {
+      "name": "sentences_match_published_story[reader-subscriber]",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "the published story could not be compared"
+    },
+    {
+      "name": "no_package_without_credential[reader-stranger]",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "a reader with no subscriber credential must get a completed answer and no package"
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-11"
+      ],
+      "note": "complete run recorded no money moved"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-11"
+      ],
+      "note": "fields ['envelope', 'question'] never left the run"
+    }
+  ],
+  "verdict": "failed",
+  "evaluated_at": 1794456309.079185
+}

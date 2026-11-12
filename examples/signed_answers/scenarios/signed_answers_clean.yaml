@@ -1,0 +1,16 @@
+name: signed_answers_clean
+description: A subscriber's reader and a stranger's reader both find the outlet in the Town registry and ask it the same question. The subscriber gets a signed source package that checks out under the key on the outlet's Town card; the stranger gets no package.
+seed: 42
+validator: signed_answers
+redact_fields: [envelope, question]
+agents:
+  - name: outlet
+    role: sa_outlet
+    config: {subscribers: [reader-subscriber]}
+  - name: reader-subscriber
+    role: sa_reader
+    config: {question: "What did you report about the transit board's night route cuts, and was it corrected?"}
+  - name: reader-stranger
+    role: sa_reader
+    config: {question: "What did you report about the transit board's night route cuts, and was it corrected?"}
+max_time: 60

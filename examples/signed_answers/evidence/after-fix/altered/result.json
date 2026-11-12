@@ -1,0 +1,49 @@
+{
+  "run_id": "sim-80bcfb0a0fc0",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "outlet_listed",
+      "status": "passed",
+      "evidence": [
+        "ev-7"
+      ],
+      "note": ""
+    },
+    {
+      "name": "outlet_discovered",
+      "status": "passed",
+      "evidence": [
+        "ev-9"
+      ],
+      "note": ""
+    },
+    {
+      "name": "altered_package_rejected[reader-subscriber]",
+      "status": "passed",
+      "evidence": [
+        "ev-13",
+        "ev-17"
+      ],
+      "note": ""
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-18"
+      ],
+      "note": "complete run recorded no money moved"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-18"
+      ],
+      "note": "fields ['envelope', 'question'] never left the run"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794456309.048959
+}

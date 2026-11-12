@@ -1,0 +1,49 @@
+{
+  "name": "signed_answers_altered",
+  "description": "The gateway changes one character of the package before passing it on. Town's own message signature still verifies, because the gateway signs what it sends. The reader must reject the package from the outlet's signature alone.",
+  "seed": 42,
+  "layers": {
+    "transport": "memory.v1",
+    "communication": "envelope.v1",
+    "identity": "keys.v1",
+    "registry": "index.v1",
+    "auth": "hmac.v1",
+    "trust": "reputation.v1",
+    "payments": "ledger.v1",
+    "coordination": "contractnet.v1",
+    "negotiation": "haggle.v1",
+    "memory": "kv.v1",
+    "privacy": "redact.v1",
+    "data_facts": "evidence.v1"
+  },
+  "agents": [
+    {
+      "name": "outlet",
+      "role": "sa_outlet",
+      "config": {
+        "subscribers": [
+          "reader-subscriber"
+        ],
+        "tamper": true
+      }
+    },
+    {
+      "name": "reader-subscriber",
+      "role": "sa_reader",
+      "config": {
+        "question": "[redacted]"
+      }
+    }
+  ],
+  "faults": [],
+  "redact_fields": [
+    "envelope",
+    "question"
+  ],
+  "max_time": 60.0,
+  "validator": "signed_answers",
+  "plugin_files": [
+    "examples/signed_answers/signed_answers_town.py"
+  ],
+  "adaptations": []
+}

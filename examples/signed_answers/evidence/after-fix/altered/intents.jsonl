@@ -1,0 +1,4 @@
+{"intent_id": "in-1", "run_id": "sim-80bcfb0a0fc0", "at": 0.0, "actor": "outlet", "action": "register", "payload": {"capabilities": ["news.source_package"]}}
+{"intent_id": "in-2", "run_id": "sim-80bcfb0a0fc0", "at": 1.0, "actor": "reader-subscriber", "action": "lookup", "payload": {"capability": "news.source_package"}}
+{"intent_id": "in-3", "run_id": "sim-80bcfb0a0fc0", "at": 1.0, "actor": "reader-subscriber", "action": "send", "payload": {"to": "outlet", "kind": "source_request", "body": {"request_id": "reader-subscriber-q1", "question": "[redacted]"}}}
+{"intent_id": "in-4", "run_id": "sim-80bcfb0a0fc0", "at": 1.1, "actor": "outlet", "action": "send", "payload": {"to": "reader-subscriber", "kind": "source_answer", "body": {"request_id": "reader-subscriber-q1", "state": "TASK_STATE_COMPLETED", "package_id": "df://sha256-c9ff19526cbd64a3ae95a03f6274ae3596aaf824fc43bc54178a776c201f6935", "envelope": "[redacted]"}}}

@@ -1,0 +1,15 @@
+name: signed_answers_duplicate_remembered
+description: The same duplicate delivery, with the outlet's Town gateway remembering each Town message it has answered. The redelivery is answered from that record and the outlet's agent is asked once.
+seed: 42
+validator: signed_answers
+redact_fields: [envelope, question]
+agents:
+  - name: outlet
+    role: sa_outlet
+    config: {subscribers: [reader-subscriber], remember_requests: true}
+  - name: reader-subscriber
+    role: sa_reader
+    config: {question: "What did you report about the transit board's night route cuts, and was it corrected?"}
+faults:
+  - {action: duplicate, kind: source_request, nth: 1}
+max_time: 60

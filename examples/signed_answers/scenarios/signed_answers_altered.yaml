@@ -1,0 +1,13 @@
+name: signed_answers_altered
+description: The gateway changes one character of the package before passing it on. Town's own message signature still verifies, because the gateway signs what it sends. The reader must reject the package from the outlet's signature alone.
+seed: 42
+validator: signed_answers
+redact_fields: [envelope, question]
+agents:
+  - name: outlet
+    role: sa_outlet
+    config: {subscribers: [reader-subscriber], tamper: true}
+  - name: reader-subscriber
+    role: sa_reader
+    config: {question: "What did you report about the transit board's night route cuts, and was it corrected?"}
+max_time: 60

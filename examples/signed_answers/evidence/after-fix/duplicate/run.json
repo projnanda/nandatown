@@ -1,0 +1,41 @@
+{
+  "run_id": "sim-a1ffe8bf8c70",
+  "profile_name": "signed_answers_duplicate",
+  "profile_fingerprint": "sha256:eb0f8dc27e13875e0198bf07823dd97528cd6b8623b86b3a24eaa07901d49d58",
+  "created_at": 0.0,
+  "participants": [
+    {
+      "name": "outlet",
+      "role": "sa_outlet"
+    },
+    {
+      "name": "reader-subscriber",
+      "role": "sa_reader"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "lab-0.2.6",
+    "python": "3.12.13"
+  },
+  "config": {
+    "mode": "lab",
+    "seed": 42,
+    "layers": {
+      "transport": "memory.v1",
+      "communication": "envelope.v1",
+      "identity": "keys.v1",
+      "registry": "index.v1",
+      "auth": "hmac.v1",
+      "trust": "reputation.v1",
+      "payments": "ledger.v1",
+      "coordination": "contractnet.v1",
+      "negotiation": "haggle.v1",
+      "memory": "kv.v1",
+      "privacy": "redact.v1",
+      "data_facts": "evidence.v1"
+    },
+    "logical_time": 1.3,
+    "rerun_command": "nandatown run examples/signed_answers/scenarios/signed_answers_duplicate.yaml --seed 42 --plugin examples/signed_answers/signed_answers_town.py"
+  }
+}
