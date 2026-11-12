@@ -1,0 +1,38 @@
+{
+  "identities": {
+    "mock:rotation-demo": {
+      "history": [
+        {
+          "block_height": 50,
+          "event": "registered",
+          "owner_pkh": "8afd6e801a7b58053822b063860e09496c0459d3963ecd1acbe60ac3",
+          "slot": 100,
+          "tx": "mock-87780fa5de684e87cb92"
+        },
+        {
+          "block_height": 200,
+          "event": "controller_rotated",
+          "from_pkh": "8afd6e801a7b58053822b063860e09496c0459d3963ecd1acbe60ac3",
+          "slot": 400,
+          "to_pkh": "1e7b7f62008a802bd67c669fd455bcb9cf6b7ecd9babf56f1d91e2a5",
+          "tx": "mock-299bcf54c044b1b5d49a"
+        }
+      ],
+      "owner_pkh": "1e7b7f62008a802bd67c669fd455bcb9cf6b7ecd9babf56f1d91e2a5",
+      "registry_ref": "mock-299bcf54c044b1b5d49a#0",
+      "status": "active"
+    }
+  },
+  "key_hash": "blake2b-224 of the raw Ed25519 public key",
+  "network": {
+    "name": "mock"
+  },
+  "registry": "mock-registry",
+  "schema": "registry-snapshot/v1",
+  "source": "mock",
+  "tip": {
+    "block_hash": "mock-97380187a878903ffe72",
+    "block_height": 500,
+    "slot": 1000
+  }
+}

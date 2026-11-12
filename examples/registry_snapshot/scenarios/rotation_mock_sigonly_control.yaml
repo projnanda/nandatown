@@ -1,0 +1,20 @@
+name: rotation_mock_sigonly_control
+description: "MOCK control. The same run with record comparison off: every claim signature is still checked, the snapshot record is not. K1 undercuts, is picked and paid, and the run fails on purpose."
+seed: 42
+validator: registry_rotation
+plugin_files: [../registry_snapshot.py]
+layers:
+  identity: claims.v1
+  auth: ed25519.v1
+  registry: snapshot.mock.sigonly.v1
+agents:
+  - name: provider-current
+    role: seller
+    config: {sku: text-stats, ask_cents: 1995, floor_cents: 1700, stock: 10, balance_cents: 0, claim: {"identity": "mock:rotation-demo", "controller_pub": "3b0e5a7cb6e24b4a0f8a78518b3dabbae27cebcbcd0d681828a2feb4bde30765", "signature": "3d3ded7afd815a18380088938e50827dbe5a78b5e5b1bc622c3a6324bed49781254addb606efa230874bb139ab8a2f77db5adf9be52abcde3a7126bd89090c03"}}
+  - name: provider-former
+    role: former_controller
+    config: {sku: text-stats, ask_cents: 1500, floor_cents: 1200, stock: 10, balance_cents: 0, claim: {"identity": "mock:rotation-demo", "controller_pub": "0d72dd0487ae691d65adf4e309249da8d1d338aa51f84146cc10408d2158cd3a", "signature": "7583ba70ec531209e5f1984e863b315d480cecea5c746d270b8c9fc268751785202d52b27666d7cfee0643e98e9e05bcad781df4618256953f211f23cbd59c04"}}
+  - name: buyer-1
+    role: buyer
+    config: {sku: text-stats, quantity: 1, cap_cents: 1900, balance_cents: 10000, rounds: 1}
+max_time: 60
