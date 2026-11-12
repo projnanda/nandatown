@@ -1,0 +1,103 @@
+{
+  "run_id": "run-4cbd86fe3588",
+  "evaluator_version": "0.5.0",
+  "stages": [
+    {
+      "name": "accepted",
+      "status": "passed",
+      "evidence": [
+        "ev-4"
+      ],
+      "note": ""
+    },
+    {
+      "name": "claimed",
+      "status": "passed",
+      "evidence": [
+        "ev-5",
+        "ev-7",
+        "ev-9",
+        "ev-11",
+        "ev-13",
+        "ev-15",
+        "ev-17",
+        "ev-19",
+        "ev-21",
+        "ev-23",
+        "ev-25",
+        "ev-27",
+        "ev-29",
+        "ev-31",
+        "ev-33",
+        "ev-35",
+        "ev-37",
+        "ev-39",
+        "ev-41",
+        "ev-43",
+        "ev-45",
+        "ev-47",
+        "ev-49",
+        "ev-51",
+        "ev-53",
+        "ev-55",
+        "ev-57",
+        "ev-59",
+        "ev-61",
+        "ev-63",
+        "ev-65",
+        "ev-67",
+        "ev-70",
+        "ev-72",
+        "ev-74",
+        "ev-76",
+        "ev-78",
+        "ev-80"
+      ],
+      "note": ""
+    },
+    {
+      "name": "received",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "no acknowledged receipt by the seller"
+    },
+    {
+      "name": "processed",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "no processed acknowledgement"
+    },
+    {
+      "name": "response",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "no quote response accepted and claimed by the buyer"
+    },
+    {
+      "name": "correct",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "the buyer made no correctness assertion"
+    },
+    {
+      "name": "recovered_after_restart",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "no lease end followed by redelivery"
+    },
+    {
+      "name": "stale_fence_rejected",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "no stale fence was rejected"
+    },
+    {
+      "name": "portable_identity",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "this run used short-lived join tokens; rerun with --identity for grant-based portable identity"
+    }
+  ],
+  "verdict": "incomplete",
+  "evaluated_at": 1794448439.1371012
+}
