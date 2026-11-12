@@ -1,0 +1,197 @@
+{"intent_id": "in-1", "run_id": "run-4cbd86fe3588", "at": 1794448385.6593902, "actor": "buyer", "action": "send", "payload": {"message_id": "q-1", "to": "seller", "kind": "quote_request", "body": {"sku": "widget", "quantity": 2, "unit_price_cents": 1995}}}
+{"intent_id": "in-2", "run_id": "run-4cbd86fe3588", "at": 1794448386.003855, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-3", "run_id": "run-4cbd86fe3588", "at": 1794448386.0624337, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-4", "run_id": "run-4cbd86fe3588", "at": 1794448386.378676, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-5", "run_id": "run-4cbd86fe3588", "at": 1794448386.7394018, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-6", "run_id": "run-4cbd86fe3588", "at": 1794448386.9416206, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-2c8694c3d6c149ce8f3f69225dd3a298", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 813}}}}
+{"intent_id": "in-7", "run_id": "run-4cbd86fe3588", "at": 1794448387.0779166, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-8", "run_id": "run-4cbd86fe3588", "at": 1794448387.4815767, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-9", "run_id": "run-4cbd86fe3588", "at": 1794448387.5150425, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-10", "run_id": "run-4cbd86fe3588", "at": 1794448387.8709211, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-11", "run_id": "run-4cbd86fe3588", "at": 1794448388.2433786, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-12", "run_id": "run-4cbd86fe3588", "at": 1794448388.4072063, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-4454079fe2c04a928a6d98358bbc73d4", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 812}}}}
+{"intent_id": "in-13", "run_id": "run-4cbd86fe3588", "at": 1794448388.6306903, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-14", "run_id": "run-4cbd86fe3588", "at": 1794448388.9579353, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-15", "run_id": "run-4cbd86fe3588", "at": 1794448389.036963, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-16", "run_id": "run-4cbd86fe3588", "at": 1794448389.42565, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-17", "run_id": "run-4cbd86fe3588", "at": 1794448389.7927604, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-18", "run_id": "run-4cbd86fe3588", "at": 1794448389.8553846, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-8a3d02bf3dd940a3a02e31ddd024d1a4", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 812}}}}
+{"intent_id": "in-19", "run_id": "run-4cbd86fe3588", "at": 1794448390.1739, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-20", "run_id": "run-4cbd86fe3588", "at": 1794448390.3469315, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-21", "run_id": "run-4cbd86fe3588", "at": 1794448390.595165, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-22", "run_id": "run-4cbd86fe3588", "at": 1794448390.9655185, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-23", "run_id": "run-4cbd86fe3588", "at": 1794448391.2160413, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-c6754fd6ca6f4c4daf0341cc9b6b120d", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 797}}}}
+{"intent_id": "in-24", "run_id": "run-4cbd86fe3588", "at": 1794448391.3294349, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-25", "run_id": "run-4cbd86fe3588", "at": 1794448391.709603, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-26", "run_id": "run-4cbd86fe3588", "at": 1794448391.707623, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-27", "run_id": "run-4cbd86fe3588", "at": 1794448392.1063137, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-28", "run_id": "run-4cbd86fe3588", "at": 1794448392.5046535, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-29", "run_id": "run-4cbd86fe3588", "at": 1794448392.5510805, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-23358ef0d4054ff1ab0e408a6767bcd1", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 813}}}}
+{"intent_id": "in-30", "run_id": "run-4cbd86fe3588", "at": 1794448392.8815053, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-31", "run_id": "run-4cbd86fe3588", "at": 1794448393.047311, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-32", "run_id": "run-4cbd86fe3588", "at": 1794448393.275629, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-33", "run_id": "run-4cbd86fe3588", "at": 1794448393.6428921, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-34", "run_id": "run-4cbd86fe3588", "at": 1794448393.926123, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-0e363848a6224aa79488cfab20fdb6f6", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 829}}}}
+{"intent_id": "in-35", "run_id": "run-4cbd86fe3588", "at": 1794448393.988441, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-36", "run_id": "run-4cbd86fe3588", "at": 1794448394.3437843, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-37", "run_id": "run-4cbd86fe3588", "at": 1794448394.456575, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-38", "run_id": "run-4cbd86fe3588", "at": 1794448394.6989846, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-39", "run_id": "run-4cbd86fe3588", "at": 1794448395.0751562, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-40", "run_id": "run-4cbd86fe3588", "at": 1794448395.3362896, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-54038d7af7a34652a9a660fc9f177d48", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 813}}}}
+{"intent_id": "in-41", "run_id": "run-4cbd86fe3588", "at": 1794448395.4778926, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-42", "run_id": "run-4cbd86fe3588", "at": 1794448395.8549724, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-43", "run_id": "run-4cbd86fe3588", "at": 1794448395.8559918, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-44", "run_id": "run-4cbd86fe3588", "at": 1794448396.2897403, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-45", "run_id": "run-4cbd86fe3588", "at": 1794448396.7136662, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-46", "run_id": "run-4cbd86fe3588", "at": 1794448396.7616296, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-5d67b3eb403c4c1b8212497263365903", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 797}}}}
+{"intent_id": "in-47", "run_id": "run-4cbd86fe3588", "at": 1794448397.1059625, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-48", "run_id": "run-4cbd86fe3588", "at": 1794448397.297194, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-49", "run_id": "run-4cbd86fe3588", "at": 1794448397.4917333, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-50", "run_id": "run-4cbd86fe3588", "at": 1794448397.881818, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-51", "run_id": "run-4cbd86fe3588", "at": 1794448398.1943738, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-e6cb6e591fb8468f8665c2c2084f21b9", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 797}}}}
+{"intent_id": "in-52", "run_id": "run-4cbd86fe3588", "at": 1794448398.2388453, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-53", "run_id": "run-4cbd86fe3588", "at": 1794448398.5946236, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-54", "run_id": "run-4cbd86fe3588", "at": 1794448398.7173665, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-55", "run_id": "run-4cbd86fe3588", "at": 1794448398.9937174, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-56", "run_id": "run-4cbd86fe3588", "at": 1794448399.3678188, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-57", "run_id": "run-4cbd86fe3588", "at": 1794448399.577833, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-3d75ff764716454ea077e1035bf9ed3a", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 813}}}}
+{"intent_id": "in-58", "run_id": "run-4cbd86fe3588", "at": 1794448399.7537882, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-59", "run_id": "run-4cbd86fe3588", "at": 1794448400.0507853, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-60", "run_id": "run-4cbd86fe3588", "at": 1794448400.1177423, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-61", "run_id": "run-4cbd86fe3588", "at": 1794448400.540835, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-62", "run_id": "run-4cbd86fe3588", "at": 1794448400.911666, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-63", "run_id": "run-4cbd86fe3588", "at": 1794448400.9638352, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-fa9fe548dea34996a6426fdef5749c87", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 813}}}}
+{"intent_id": "in-64", "run_id": "run-4cbd86fe3588", "at": 1794448401.3499558, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-65", "run_id": "run-4cbd86fe3588", "at": 1794448401.5108473, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-66", "run_id": "run-4cbd86fe3588", "at": 1794448401.6958113, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-67", "run_id": "run-4cbd86fe3588", "at": 1794448402.0329182, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-68", "run_id": "run-4cbd86fe3588", "at": 1794448402.3822896, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-055b1bd76a5b4513b3f64b92a9bad443", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 813}}}}
+{"intent_id": "in-69", "run_id": "run-4cbd86fe3588", "at": 1794448402.4541404, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-70", "run_id": "run-4cbd86fe3588", "at": 1794448402.8235066, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-71", "run_id": "run-4cbd86fe3588", "at": 1794448402.928247, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-72", "run_id": "run-4cbd86fe3588", "at": 1794448403.1858294, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-73", "run_id": "run-4cbd86fe3588", "at": 1794448403.5878627, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-74", "run_id": "run-4cbd86fe3588", "at": 1794448403.7826934, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-ee198d0ce2fb45e0b400e2901e4681fc", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 797}}}}
+{"intent_id": "in-75", "run_id": "run-4cbd86fe3588", "at": 1794448403.9456797, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-76", "run_id": "run-4cbd86fe3588", "at": 1794448404.2964106, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-77", "run_id": "run-4cbd86fe3588", "at": 1794448404.3053987, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-78", "run_id": "run-4cbd86fe3588", "at": 1794448404.7201707, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-79", "run_id": "run-4cbd86fe3588", "at": 1794448405.1032236, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-80", "run_id": "run-4cbd86fe3588", "at": 1794448405.1808798, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-6d3ab00a698d4f7abaebe2f0c6c1a821", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 813}}}}
+{"intent_id": "in-81", "run_id": "run-4cbd86fe3588", "at": 1794448405.496043, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-82", "run_id": "run-4cbd86fe3588", "at": 1794448405.6748304, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-83", "run_id": "run-4cbd86fe3588", "at": 1794448405.8408217, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-84", "run_id": "run-4cbd86fe3588", "at": 1794448406.1915002, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-85", "run_id": "run-4cbd86fe3588", "at": 1794448406.5778327, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-86", "run_id": "run-4cbd86fe3588", "at": 1794448406.5805507, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-29ed8c9606a043b5a804bf627cb8f6e4", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 828}}}}
+{"intent_id": "in-87", "run_id": "run-4cbd86fe3588", "at": 1794448406.9861257, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-88", "run_id": "run-4cbd86fe3588", "at": 1794448407.1300902, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-89", "run_id": "run-4cbd86fe3588", "at": 1794448407.37016, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-90", "run_id": "run-4cbd86fe3588", "at": 1794448407.772481, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-91", "run_id": "run-4cbd86fe3588", "at": 1794448408.0014486, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-c0ac8df4993a45d98c29f2d844bec294", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 812}}}}
+{"intent_id": "in-92", "run_id": "run-4cbd86fe3588", "at": 1794448408.1329062, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-93", "run_id": "run-4cbd86fe3588", "at": 1794448408.5233815, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-94", "run_id": "run-4cbd86fe3588", "at": 1794448408.5396643, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-95", "run_id": "run-4cbd86fe3588", "at": 1794448408.8623514, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-96", "run_id": "run-4cbd86fe3588", "at": 1794448409.2503622, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-97", "run_id": "run-4cbd86fe3588", "at": 1794448409.4061892, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-7205fb2bf4884254bcb2bd47c9962da3", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 813}}}}
+{"intent_id": "in-98", "run_id": "run-4cbd86fe3588", "at": 1794448409.659559, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-99", "run_id": "run-4cbd86fe3588", "at": 1794448409.9198775, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-100", "run_id": "run-4cbd86fe3588", "at": 1794448409.9971015, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-101", "run_id": "run-4cbd86fe3588", "at": 1794448410.3882551, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-102", "run_id": "run-4cbd86fe3588", "at": 1794448410.7231927, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-103", "run_id": "run-4cbd86fe3588", "at": 1794448410.780919, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-2cf82b10e3db42c29720ff51d90972e9", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 812}}}}
+{"intent_id": "in-104", "run_id": "run-4cbd86fe3588", "at": 1794448411.0924764, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-105", "run_id": "run-4cbd86fe3588", "at": 1794448411.2837195, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-106", "run_id": "run-4cbd86fe3588", "at": 1794448411.4385874, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-107", "run_id": "run-4cbd86fe3588", "at": 1794448411.8307014, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-108", "run_id": "run-4cbd86fe3588", "at": 1794448412.1471019, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-25bfeeae47d440d8930357676906bb19", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 812}}}}
+{"intent_id": "in-109", "run_id": "run-4cbd86fe3588", "at": 1794448412.1959994, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-110", "run_id": "run-4cbd86fe3588", "at": 1794448412.5638063, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-111", "run_id": "run-4cbd86fe3588", "at": 1794448412.7392266, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-112", "run_id": "run-4cbd86fe3588", "at": 1794448412.917234, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-113", "run_id": "run-4cbd86fe3588", "at": 1794448413.2874367, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-114", "run_id": "run-4cbd86fe3588", "at": 1794448413.6113117, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-3f304a7dfe164a84a765e20ab5d17b5f", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 812}}}}
+{"intent_id": "in-115", "run_id": "run-4cbd86fe3588", "at": 1794448413.6689627, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-116", "run_id": "run-4cbd86fe3588", "at": 1794448414.030235, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-117", "run_id": "run-4cbd86fe3588", "at": 1794448414.097749, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-118", "run_id": "run-4cbd86fe3588", "at": 1794448414.4173048, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-119", "run_id": "run-4cbd86fe3588", "at": 1794448414.786863, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-120", "run_id": "run-4cbd86fe3588", "at": 1794448414.968668, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-c5243c9f372346a4be6bc7793c12b269", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 797}}}}
+{"intent_id": "in-121", "run_id": "run-4cbd86fe3588", "at": 1794448415.208342, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-122", "run_id": "run-4cbd86fe3588", "at": 1794448415.5093067, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-123", "run_id": "run-4cbd86fe3588", "at": 1794448415.5633624, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-124", "run_id": "run-4cbd86fe3588", "at": 1794448415.9457884, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-125", "run_id": "run-4cbd86fe3588", "at": 1794448416.3393526, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-126", "run_id": "run-4cbd86fe3588", "at": 1794448416.3846047, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-401babd3a46341158c5fc371e800215d", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 813}}}}
+{"intent_id": "in-127", "run_id": "run-4cbd86fe3588", "at": 1794448416.7345304, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-128", "run_id": "run-4cbd86fe3588", "at": 1794448416.9208827, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-129", "run_id": "run-4cbd86fe3588", "at": 1794448417.1108017, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-130", "run_id": "run-4cbd86fe3588", "at": 1794448417.4819388, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-131", "run_id": "run-4cbd86fe3588", "at": 1794448417.7911153, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-ac0be8aa71c7428a85a722845cc1c532", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 797}}}}
+{"intent_id": "in-132", "run_id": "run-4cbd86fe3588", "at": 1794448417.8609056, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-133", "run_id": "run-4cbd86fe3588", "at": 1794448418.2167778, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-134", "run_id": "run-4cbd86fe3588", "at": 1794448418.321324, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-135", "run_id": "run-4cbd86fe3588", "at": 1794448418.5937736, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-136", "run_id": "run-4cbd86fe3588", "at": 1794448418.966032, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-137", "run_id": "run-4cbd86fe3588", "at": 1794448419.1943622, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-78edf83385e54ee7b80021edae183ff0", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 797}}}}
+{"intent_id": "in-138", "run_id": "run-4cbd86fe3588", "at": 1794448419.3055594, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-139", "run_id": "run-4cbd86fe3588", "at": 1794448419.654463, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-140", "run_id": "run-4cbd86fe3588", "at": 1794448419.7046003, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-141", "run_id": "run-4cbd86fe3588", "at": 1794448420.01914, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-142", "run_id": "run-4cbd86fe3588", "at": 1794448420.3790388, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-143", "run_id": "run-4cbd86fe3588", "at": 1794448420.574615, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-c4e78cdc6147452dbff23ffe6a8a9392", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 812}}}}
+{"intent_id": "in-144", "run_id": "run-4cbd86fe3588", "at": 1794448420.7400343, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-145", "run_id": "run-4cbd86fe3588", "at": 1794448421.0971649, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-146", "run_id": "run-4cbd86fe3588", "at": 1794448421.135183, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-147", "run_id": "run-4cbd86fe3588", "at": 1794448421.4976156, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-148", "run_id": "run-4cbd86fe3588", "at": 1794448421.871964, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-149", "run_id": "run-4cbd86fe3588", "at": 1794448421.9702244, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-0fc2c0a27626436f84c1df8cbd840236", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 812}}}}
+{"intent_id": "in-150", "run_id": "run-4cbd86fe3588", "at": 1794448422.2309785, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-151", "run_id": "run-4cbd86fe3588", "at": 1794448422.554226, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-152", "run_id": "run-4cbd86fe3588", "at": 1794448422.6063998, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-153", "run_id": "run-4cbd86fe3588", "at": 1794448422.9615555, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-154", "run_id": "run-4cbd86fe3588", "at": 1794448423.3480942, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-155", "run_id": "run-4cbd86fe3588", "at": 1794448423.4426255, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-967e3d536ba345c991be8777c244df38", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 797}}}}
+{"intent_id": "in-156", "run_id": "run-4cbd86fe3588", "at": 1794448423.7542903, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-157", "run_id": "run-4cbd86fe3588", "at": 1794448423.9574156, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-158", "run_id": "run-4cbd86fe3588", "at": 1794448424.123749, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-159", "run_id": "run-4cbd86fe3588", "at": 1794448424.4836068, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-160", "run_id": "run-4cbd86fe3588", "at": 1794448424.8287148, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-24aa712df0f14e018a30931db1ef166f", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 812}}}}
+{"intent_id": "in-161", "run_id": "run-4cbd86fe3588", "at": 1794448424.8789835, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-162", "run_id": "run-4cbd86fe3588", "at": 1794448425.2183917, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-163", "run_id": "run-4cbd86fe3588", "at": 1794448425.3394759, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-164", "run_id": "run-4cbd86fe3588", "at": 1794448425.5881925, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-165", "run_id": "run-4cbd86fe3588", "at": 1794448425.96111, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-166", "run_id": "run-4cbd86fe3588", "at": 1794448426.2054083, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-c35f136558d24397b3a4c76f7ff91d5d", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 797}}}}
+{"intent_id": "in-167", "run_id": "run-4cbd86fe3588", "at": 1794448426.303866, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-168", "run_id": "run-4cbd86fe3588", "at": 1794448426.680113, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-169", "run_id": "run-4cbd86fe3588", "at": 1794448426.7181551, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-170", "run_id": "run-4cbd86fe3588", "at": 1794448427.0539, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-171", "run_id": "run-4cbd86fe3588", "at": 1794448427.396283, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-172", "run_id": "run-4cbd86fe3588", "at": 1794448427.5902896, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-e1cc48da48b147e5a51f36bf6c5b847c", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 813}}}}
+{"intent_id": "in-173", "run_id": "run-4cbd86fe3588", "at": 1794448427.7685375, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-174", "run_id": "run-4cbd86fe3588", "at": 1794448428.1084647, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-175", "run_id": "run-4cbd86fe3588", "at": 1794448428.153937, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-176", "run_id": "run-4cbd86fe3588", "at": 1794448428.5128033, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-177", "run_id": "run-4cbd86fe3588", "at": 1794448428.8886278, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-178", "run_id": "run-4cbd86fe3588", "at": 1794448428.9644508, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-48bf9efada3941f39f28f1f9b5bc096a", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 797}}}}
+{"intent_id": "in-179", "run_id": "run-4cbd86fe3588", "at": 1794448429.2650394, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-180", "run_id": "run-4cbd86fe3588", "at": 1794448429.4774814, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-181", "run_id": "run-4cbd86fe3588", "at": 1794448429.621739, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-182", "run_id": "run-4cbd86fe3588", "at": 1794448429.9874856, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-183", "run_id": "run-4cbd86fe3588", "at": 1794448430.3478405, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-184", "run_id": "run-4cbd86fe3588", "at": 1794448430.3458579, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-cbbf99d017c34fd1812d82b998d99619", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 813}}}}
+{"intent_id": "in-185", "run_id": "run-4cbd86fe3588", "at": 1794448430.7432406, "actor": "buyer", "action": "claim", "payload": {}}
+{"intent_id": "in-186", "run_id": "run-4cbd86fe3588", "at": 1794448430.885572, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-187", "run_id": "run-4cbd86fe3588", "at": 1794448431.754229, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-004d35ba62e34bbaa53abc86e32b4ab3", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 812}}}}
+{"intent_id": "in-188", "run_id": "run-4cbd86fe3588", "at": 1794448432.2525556, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-189", "run_id": "run-4cbd86fe3588", "at": 1794448433.109823, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-50250593f4684618a712a0dafff95956", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 812}}}}
+{"intent_id": "in-190", "run_id": "run-4cbd86fe3588", "at": 1794448433.5609484, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-191", "run_id": "run-4cbd86fe3588", "at": 1794448434.4190211, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-223100fc3c7d43cbb1e54b7a247d7760", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 813}}}}
+{"intent_id": "in-192", "run_id": "run-4cbd86fe3588", "at": 1794448434.9080899, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-193", "run_id": "run-4cbd86fe3588", "at": 1794448435.7777407, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-6156fb411db24e668ae6c39fafc81d90", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 812}}}}
+{"intent_id": "in-194", "run_id": "run-4cbd86fe3588", "at": 1794448436.2765555, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-195", "run_id": "run-4cbd86fe3588", "at": 1794448437.1522315, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-1e12926fd81f4deab12c83bbd88ef03b", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 797}}}}
+{"intent_id": "in-196", "run_id": "run-4cbd86fe3588", "at": 1794448437.7084062, "actor": "seller", "action": "claim", "payload": {}}
+{"intent_id": "in-197", "run_id": "run-4cbd86fe3588", "at": 1794448438.567593, "actor": "seller", "action": "ack", "payload": {"message_id": "q-1", "fence": "fence-c929e6a7c23e44c6b5a2c994b1bcd9f9", "status": "retryable", "note": {"applied": false, "reason": "pre-mortem unavailable, failing closed", "policy": "fail-closed", "graveyard": {"status": "unreachable", "error": "URLError", "latency_ms": 797}}}}

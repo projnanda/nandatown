@@ -1,0 +1,145 @@
+{
+  "run_id": "run-eeae9274465e",
+  "evaluator_version": "0.5.0",
+  "stages": [
+    {
+      "name": "accepted",
+      "status": "passed",
+      "evidence": [
+        "ev-4"
+      ],
+      "note": ""
+    },
+    {
+      "name": "claimed",
+      "status": "passed",
+      "evidence": [
+        "ev-5",
+        "ev-8",
+        "ev-11",
+        "ev-14",
+        "ev-17",
+        "ev-20",
+        "ev-23",
+        "ev-26",
+        "ev-29",
+        "ev-32",
+        "ev-35",
+        "ev-38",
+        "ev-41",
+        "ev-44",
+        "ev-47",
+        "ev-50",
+        "ev-53",
+        "ev-57",
+        "ev-59",
+        "ev-61"
+      ],
+      "note": ""
+    },
+    {
+      "name": "received",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "no acknowledged receipt by the seller"
+    },
+    {
+      "name": "processed",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "no processed acknowledgement"
+    },
+    {
+      "name": "response",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "no quote response accepted and claimed by the buyer"
+    },
+    {
+      "name": "correct",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "the buyer made no correctness assertion"
+    },
+    {
+      "name": "recovered_after_restart",
+      "status": "passed",
+      "evidence": [
+        "ev-6",
+        "ev-9",
+        "ev-12",
+        "ev-15",
+        "ev-18",
+        "ev-21",
+        "ev-24",
+        "ev-27",
+        "ev-30",
+        "ev-33",
+        "ev-36",
+        "ev-39",
+        "ev-42",
+        "ev-45",
+        "ev-48",
+        "ev-51",
+        "ev-54",
+        "ev-7",
+        "ev-10",
+        "ev-13",
+        "ev-16",
+        "ev-19",
+        "ev-22",
+        "ev-25",
+        "ev-28",
+        "ev-31",
+        "ev-34",
+        "ev-37",
+        "ev-40",
+        "ev-43",
+        "ev-46",
+        "ev-49",
+        "ev-52",
+        "ev-56",
+        "ev-58",
+        "ev-60",
+        "ev-62",
+        "ev-8"
+      ],
+      "note": ""
+    },
+    {
+      "name": "stale_fence_rejected",
+      "status": "passed",
+      "evidence": [
+        "ev-7",
+        "ev-10",
+        "ev-13",
+        "ev-16",
+        "ev-19",
+        "ev-22",
+        "ev-25",
+        "ev-28",
+        "ev-31",
+        "ev-34",
+        "ev-37",
+        "ev-40",
+        "ev-43",
+        "ev-46",
+        "ev-49",
+        "ev-52",
+        "ev-56",
+        "ev-58",
+        "ev-60",
+        "ev-62"
+      ],
+      "note": ""
+    },
+    {
+      "name": "portable_identity",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "this run used short-lived join tokens; rerun with --identity for grant-based portable identity"
+    }
+  ],
+  "verdict": "incomplete",
+  "evaluated_at": 1794448382.3947394
+}

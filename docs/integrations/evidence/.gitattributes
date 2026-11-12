@@ -1,0 +1,5 @@
+# manifest.json hashes every file in a bundle byte for byte, and
+# `nandatown verify` recomputes those hashes. Line-ending normalisation
+# would silently invalidate evidence recorded on a CRLF platform, so
+# these files are stored exactly as the run wrote them.
+* -text
