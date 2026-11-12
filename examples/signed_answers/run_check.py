@@ -77,7 +77,8 @@ def _start_stub(idempotent: bool):
     return server
 
 
-def run_cases(live: bool, out: str, save: str | None) -> int:
+def run_cases(live: bool, out: str, save: str | None,
+              fresh_per_call: bool = False) -> int:
     from nandatown.bundle import verify_bundle
     from nandatown.sim.runner import run_lab
 
@@ -88,6 +89,10 @@ def run_cases(live: bool, out: str, save: str | None) -> int:
             return 2
         real = {name: os.environ[name] for name in ENV}
         cases = CASES
+        if fresh_per_call:  # an outlet agent from before commit f69f3c9
+            cases = [c if c[0] != "duplicate" else (
+                *c[:3], "failed", ["one_package_per_request[reader-subscriber]"])
+                for c in CASES]
     else:
         from stub_outlet import STUB_TOKEN  # noqa: F401  (path set below)
         cases = STUB_CASES
@@ -150,18 +155,24 @@ def run_cases(live: bool, out: str, save: str | None) -> int:
 def verify_saved(root: str) -> int:
     from nandatown.bundle import verify_bundle
 
-    bad = 0
+    bad = count = 0
     for manifest in sorted(Path(root).rglob("manifest.json")):
         problems = verify_bundle(str(manifest.parent))
         print(f"{manifest.parent}: " + ("verified" if not problems
                                         else "; ".join(problems)))
         bad += bool(problems)
-    return 1 if bad else 0
+        count += 1
+    print(f"{count} bundles checked, {bad} with problems")
+    return 1 if bad or not count else 0  # nothing found is not a pass
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--live", action="store_true")
+    parser.add_argument("--fresh-per-call", action="store_true",
+                        help="live only: the outlet agent under test builds a"
+                        " new package for a repeated message, so the"
+                        " duplicate case is expected to fail")
     parser.add_argument("--out", default="runs/signed-answers")
     parser.add_argument("--save", help="copy each bundle to this directory")
     parser.add_argument("--verify", metavar="DIR",
@@ -173,7 +184,7 @@ def main() -> int:
     _load_plugin()
     if args.verify:
         return verify_saved(args.verify)
-    return run_cases(args.live, args.out, args.save)
+    return run_cases(args.live, args.out, args.save, args.fresh_per_call)
 
 
 if __name__ == "__main__":

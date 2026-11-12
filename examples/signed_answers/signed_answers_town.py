@@ -30,6 +30,7 @@ import hashlib
 import json
 import os
 import re
+import uuid
 from typing import Any
 
 import httpx
@@ -232,6 +233,12 @@ class OutletGateway(SimAgent):
     def on_start(self):
         self.outlet = _outlet_from_env()
         self.answered: dict[str, dict[str, Any]] = {}
+        self.outlet_key: str | None = None
+        # Town numbers messages m-1, m-2, ... afresh in every run. The outlet
+        # keeps first replies by message identity, so each run gets its own
+        # prefix: a redelivery inside a run is the same message to the outlet,
+        # and a message in the next run is a new one.
+        self.run_tag = uuid.uuid4().hex[:12]
         try:
             card = self.outlet.card()
             key = card["signing"]["key"]
@@ -240,6 +247,7 @@ class OutletGateway(SimAgent):
             self.api.observe("outlet_unreachable", self.name,
                              {"stage": "agent_card"})
             return  # fail closed: no card, no listing
+        self.outlet_key = key
         self.api.observe("outlet_card_read", self.name, {"signing_key": key})
         self.api.register([CAPABILITY], {
             "signing_key": key,
@@ -257,8 +265,8 @@ class OutletGateway(SimAgent):
             return
         with_token = msg["sender"] in self.config.get("subscribers", [])
         reply = self.outlet.ask(str(body.get("question", "")),
-                                message_id=message_id,
-                                context_id=str(msg["conversation"]),
+                                message_id=f"{self.run_tag}-{message_id}",
+                                context_id=f"{self.run_tag}-{msg['conversation']}",
                                 with_token=with_token)
         keys = self.outlet.package_keys(reply["text"])
         # The package is fetched with the same credential the question
@@ -271,6 +279,11 @@ class OutletGateway(SimAgent):
             except BAD_REPLY:
                 envelope, reply = None, {"state": "MALFORMED_REPLY", "text": ""}
         if envelope is not None and self.config.get("tamper"):
+            # Record that the package was good before it was changed, so a
+            # rejection downstream is known to come from the change.
+            before = check_envelope(envelope, self.outlet_key or "")
+            self.api.observe("package_altered", request_id,
+                             {"valid_before_change": all(before.values())})
             envelope = tamper(envelope)
         answer = {
             "request_id": request_id,
@@ -347,10 +360,12 @@ class Reader(SimAgent):
         sentences = sentences if isinstance(sentences, list) else []
         package_id = safe_package_id(envelope.get("package_id"))
         result = package.get("result")
+        state = body.get("state")
         earlier.append(package_id)
         self.api.observe("package_checked", request_id, {
             **checks,
             "accepted": all(checks.values()),
+            "state": state if state in A2A_STATES else "OTHER_STATE",
             "package_id": package_id,
             "signing_key": self.outlet_key,
             "result": (result if isinstance(result, str)
@@ -423,25 +438,42 @@ def signed_answers(spec, trace: Trace) -> list[StageResult]:
                 " answer and no package"))
             continue
         if tampering:
-            rejected = [e for e in packages if not e.detail.get("accepted")]
+            changed = trace.find("package_altered", valid_before_change=True)
+            rejected = [e for e in packages
+                        if not e.detail.get("accepted")
+                        and not e.detail.get("signature_valid")]
             stages.append(_stage(
                 f"altered_package_rejected[{reader}]",
-                bool(rejected) and len(rejected) == len(packages),
-                [e.event_id for e in packages + refusals],
-                "the reader must reject a package altered on the way"))
+                bool(changed) and bool(rejected)
+                and len(rejected) == len(packages),
+                [e.event_id for e in changed + packages + refusals],
+                "the package must be valid before the gateway changes it,"
+                " and the reader must then reject it on the outlet's"
+                " signature"))
             continue
-        accepted = [e for e in packages if e.detail.get("accepted")]
+        # A package only counts when the outlet completed the task and the
+        # package says it matched a story: a signed "no match" is not an
+        # answer to the question.
+        accepted = [e for e in packages if e.detail.get("accepted")
+                    and e.detail.get("state") == COMPLETED
+                    and e.detail.get("result") == "match"
+                    and e.detail.get("sentences", 0) > 0]
         stages.append(_stage(
             f"package_verified[{reader}]",
             bool(accepted) and len(accepted) == len(packages) + len(refusals),
             [e.event_id for e in packages + refusals],
-            "every answer to a subscriber's reader must be a package whose id"
-            " and signature check out under the key on the outlet's Town card"))
+            "every answer to a subscriber's reader must be a completed task"
+            " with a matching package of at least one sentence, whose id and"
+            " signature check out under the key on the outlet's Town card"))
         if duplicated:
             answers = packages + refusals
             ids = {e.detail.get("package_id") for e in packages}
-            same = len(ids) == 1 and None not in ids and not refusals
-            evidence = [e.event_id for e in answers] if len(answers) > 1 else []
+            redelivered = trace.find("message_duplicated", kind="source_request")
+            one_request = len({e.subject for e in answers}) == 1
+            same = (len(ids) == 1 and None not in ids and not refusals
+                    and bool(redelivered) and one_request)
+            evidence = ([e.event_id for e in redelivered + answers]
+                        if len(answers) > 1 else [])
             stages.append(_stage(
                 f"one_package_per_request[{reader}]", same, evidence,
                 f"one request, delivered twice, produced {len(answers)}"

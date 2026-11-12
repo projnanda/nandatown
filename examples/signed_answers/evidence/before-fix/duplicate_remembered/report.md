@@ -1,6 +1,6 @@
 NANDA Town System Fitness Report
 ========================================
-Run:       sim-25196428e920
+Run:       sim-4526d28e2fd8
 Scenario:  signed_answers_duplicate_remembered (seed 42)
 Faults:    duplicate source_request
 Agents:    outlet (sa_outlet), reader-subscriber (sa_reader)
@@ -15,7 +15,7 @@ Stages (each one a separate claim with its own failure boundary):
   outlet_listed                               Passed                [ev-7]
   outlet_discovered                           Passed                [ev-9]
   package_verified[reader-subscriber]         Passed                [ev-20, ev-22]
-  one_package_per_request[reader-subscriber]  Passed                [ev-20, ev-22]
+  one_package_per_request[reader-subscriber]  Passed                [ev-12, ev-20, ev-22]
                                               note: the redelivered request got the same package
   ledger_conserved                            Passed               money was conserved across every movement [ev-23]
                                               note: complete run recorded no money moved

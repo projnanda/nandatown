@@ -36,7 +36,7 @@ The gateway forwards. It never answers on its own, and the validator reads Town 
 | `stub_outlet.py` | A stand-in outlet agent for offline runs. It is a fixture with an invented story and a test key |
 | `run_check.py` | Runs every case, compares expected and observed, verifies each bundle |
 | `evidence/before-fix/`, `evidence/after-fix/` | Bundles from two runs against the real outlet agent, before and after its fix |
-| `../../tests/test_signed_answers_example.py` | Sixteen offline tests, among them broken and hostile outlet replies |
+| `../../tests/test_signed_answers_example.py` | Twenty-two offline tests, among them broken and hostile outlet replies |
 
 ## Reproduce
 
@@ -47,7 +47,7 @@ python3 -m venv .venv && source .venv/bin/activate
 python -m pip install -e '.[dev]'
 ```
 
-Offline, with no network, model or credential (about 10 seconds):
+Offline, with no network, model or credential (about 15 seconds):
 
 ```bash
 python -m pytest -q tests/test_signed_answers_example.py
@@ -89,12 +89,17 @@ The outlet’s agent ignored the A2A `messageId`. Each message it received start
 
 The project’s own tests never sent the same message twice, so they did not show this. Town’s duplicate fault did.
 
-The fix is in the agent. It keeps each first reply by subscriber, context, `messageId` and text. A repeat gets the same reply, runs no model and signs nothing new. After the fix the `duplicate` case passes against the real agent. Offline, the stand-in outlet plays both versions: its default builds a fresh package per call, and `--idempotent` returns the first one again. `duplicate_remembered` shows the other place to absorb a redelivery, at the gateway.
+The fix is in the agent. It keeps each first reply by subscriber, context, `messageId` and text, and returns that reply for a repeat. After the fix the `duplicate` case passes against the real agent: both deliveries got the same package id. The bundle shows the same id twice. It does not show the agent’s model calls. The agent’s code and its own test show a repeat skips the model.
+
+Town numbers its messages from `m-1` in every run. The gateway adds a prefix per run, so one run cannot be answered from another run’s first reply. In the after-fix run each case got its own package.
+
+The before-fix run used the older revision of the hosted agent at a temporary address, which is gone now. Only the after-fix run can be repeated from outside. `run_check.py --live --fresh-per-call` holds the expectations for an agent without the fix. Offline, the stand-in outlet plays both versions: its default builds a fresh package per call, and `--idempotent` returns the first one again. `duplicate_remembered` shows the other place to absorb a redelivery, at the gateway.
 
 ## What is not tested
 
 - The reader and the gateway are written by the project’s author. This is not an independent-agent result and not A2A conformance.
 - The reader is scripted. It asks one fixed question. The outlet’s clarifying question, its follow-up offers and correction notices are not driven through Town.
+- A passing package must come with a completed task, say it matched a story, hold at least one sentence, and verify. Nothing checks that the sentences answer the question.
 - The reader checks the package id and signature only. The project’s full verifier also compares each sentence with the published story and fingerprints archived source copies. That part is not run here.
 - The reader takes the signing key from the Town card, which the gateway wrote after it read the outlet’s agent card. A dishonest gateway could list its own key. `altered` covers a gateway that changes a package, not one that replaces the key. The project’s real reader pins the key ahead of time.
 - The package text is redacted, so a replay of a bundle repeats the validator on the reader’s recorded check results. It cannot repeat the signature check itself.

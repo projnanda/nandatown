@@ -1,6 +1,6 @@
 NANDA Town System Fitness Report
 ========================================
-Run:       sim-d43489d690b4
+Run:       sim-72b211d79cf8
 Scenario:  signed_answers_clean (seed 42)
 Faults:    none
 Agents:    outlet (sa_outlet), reader-subscriber (sa_reader), reader-stranger (sa_reader)
@@ -17,9 +17,9 @@ Stages (each one a separate claim with its own failure boundary):
                                                   note: the outlet's card must be in the Town registry, verified
   outlet_discovered                               Failed                [ev-9, ev-10]
                                                   note: every reader must find the outlet through the registry
-  package_verified[reader-subscriber]             Inconclusive         
-                                                  note: every answer to a subscriber's reader must be a package whose id and signature check out under the key on the outlet's Town card
-  no_package_without_credential[reader-stranger]  Inconclusive         
+  package_verified[reader-subscriber]             Inconclusive
+                                                  note: every answer to a subscriber's reader must be a completed task with a matching package of at least one sentence, whose id and signature check out under the key on the outlet's Town card
+  no_package_without_credential[reader-stranger]  Inconclusive
                                                   note: a reader with no subscriber credential must get a completed answer and no package
   ledger_conserved                                Passed               money was conserved across every movement [ev-11]
                                                   note: complete run recorded no money moved

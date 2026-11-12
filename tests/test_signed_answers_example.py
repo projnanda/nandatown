@@ -249,3 +249,60 @@ def test_a_refusal_on_redelivery_is_a_failure_not_missing_evidence(
     assert verdict == "failed"
     assert stages["one_package_per_request[reader-subscriber]"] == "failed"
     assert stages["package_verified[reader-subscriber]"] == "failed"
+
+
+def _signed(package):
+    """A package signed with the stand-in outlet's key."""
+    import base64
+    import hashlib
+
+    outlet = stub.StubOutlet()
+    package = dict(package, publisher={"agent_key": outlet.did})
+    raw = town.canonical(package)
+    return {"package_id": "df://sha256-" + hashlib.sha256(raw).hexdigest(),
+            "package": package,
+            "signature": {"alg": "Ed25519", "key": outlet.did,
+                          "value": base64.urlsafe_b64encode(
+                              outlet.private.sign(raw)).decode().rstrip("=")}}
+
+
+@pytest.mark.parametrize("state, package", [
+    ("TASK_STATE_COMPLETED", {"result": "no_match", "sentences": []}),
+    ("TASK_STATE_COMPLETED", {"result": "match", "sentences": []}),
+    ("TASK_STATE_FAILED", {"result": "match",
+                           "sentences": [{"n": 1, "text": "x", "sources": []}]}),
+])
+def test_a_validly_signed_package_that_is_not_an_answer_does_not_pass(
+        outlet, tmp_path, monkeypatch, state, package):
+    outlet()
+    patched, _ = _hostile(monkeypatch, state, _signed(package))
+    _, stages, verdict = _run("signed_answers_clean", tmp_path, patched)
+    assert verdict == "failed"
+    assert stages["package_verified[reader-subscriber]"] == "failed"
+
+
+def test_altered_case_needs_a_package_that_was_valid_before_the_change(
+        outlet, tmp_path, monkeypatch):
+    outlet()
+    broken = _signed({"result": "match",
+                      "sentences": [{"n": 1, "text": "x 1", "sources": []}]})
+    broken["signature"]["value"] = "AAAA"
+    patched, _ = _hostile(monkeypatch, "TASK_STATE_COMPLETED", broken)
+    _, stages, verdict = _run("signed_answers_altered", tmp_path, patched)
+    assert verdict == "failed"
+    assert stages["altered_package_rejected[reader-subscriber]"] == "failed"
+
+
+def test_each_run_uses_its_own_message_identity_at_the_outlet(
+        outlet, tmp_path):
+    server = outlet(idempotent=True)
+    _run("signed_answers_clean", tmp_path / "a")
+    _run("signed_answers_clean", tmp_path / "b")
+    assert server.outlet.calls == 2  # the second run is not served from the first
+    _run("signed_answers_duplicate", tmp_path / "c")
+    assert server.outlet.calls == 3  # and a redelivery inside a run is
+
+
+def test_verifying_a_directory_with_no_bundles_is_not_a_pass(tmp_path):
+    runner = _load("run_check")
+    assert runner.verify_saved(str(tmp_path)) == 1

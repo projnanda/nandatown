@@ -1,5 +1,5 @@
 {
-  "run_id": "sim-f060defc3cfa",
+  "run_id": "sim-94ad15b568a4",
   "evaluator_version": "lab-0.2.6",
   "stages": [
     {
@@ -22,7 +22,8 @@
       "name": "altered_package_rejected[reader-subscriber]",
       "status": "passed",
       "evidence": [
-        "ev-16"
+        "ev-13",
+        "ev-17"
       ],
       "note": ""
     },
@@ -30,7 +31,7 @@
       "name": "ledger_conserved",
       "status": "passed",
       "evidence": [
-        "ev-17"
+        "ev-18"
       ],
       "note": "complete run recorded no money moved"
     },
@@ -38,11 +39,11 @@
       "name": "privacy",
       "status": "passed",
       "evidence": [
-        "ev-17"
+        "ev-18"
       ],
       "note": "fields ['envelope', 'question'] never left the run"
     }
   ],
   "verdict": "passed",
-  "evaluated_at": 1794453693.277838
+  "evaluated_at": 1794455218.800698
 }
