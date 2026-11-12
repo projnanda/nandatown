@@ -91,7 +91,9 @@ injection.
 | 9 | mealplan-agent | fetch after expiry | denied, expired | denied `expired`, credit 61 → 56 |
 | 10 | mealplan-agent | retry of the day-5 fetch (same `request_id`) | replay, credit unchanged, `data_withheld: expired`, no data | replay, credit stays 61, `data_withheld: expired`, no data |
 
-Stages (real output, run `sim-2094eaa8c81d`):
+Stages (real output, run `sim-2094eaa8c81d`, Town 0.2.0, evaluator `lab-0.2.6`,
+bundle fingerprint
+`sha256:3a3793c3e162c5373e5eccbb22904f95bafca01f84a102a2485f8739022a7419`):
 
 ```
 Verdict:   PASSED
