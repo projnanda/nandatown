@@ -1,0 +1,56 @@
+{
+  "name": "signed_answers_duplicate",
+  "description": "Town delivers the reader's one request to the outlet twice. The outlet's agent should treat the second delivery as the same request and return the same signed package. This run records what it does.",
+  "seed": 42,
+  "layers": {
+    "transport": "memory.v1",
+    "communication": "envelope.v1",
+    "identity": "keys.v1",
+    "registry": "index.v1",
+    "auth": "hmac.v1",
+    "trust": "reputation.v1",
+    "payments": "ledger.v1",
+    "coordination": "contractnet.v1",
+    "negotiation": "haggle.v1",
+    "memory": "kv.v1",
+    "privacy": "redact.v1",
+    "data_facts": "evidence.v1"
+  },
+  "agents": [
+    {
+      "name": "outlet",
+      "role": "sa_outlet",
+      "config": {
+        "subscribers": [
+          "reader-subscriber"
+        ]
+      }
+    },
+    {
+      "name": "reader-subscriber",
+      "role": "sa_reader",
+      "config": {
+        "question": "[redacted]"
+      }
+    }
+  ],
+  "faults": [
+    {
+      "action": "duplicate",
+      "kind": "source_request",
+      "nth": 1,
+      "delay": 0.0,
+      "rate": 0.0
+    }
+  ],
+  "redact_fields": [
+    "envelope",
+    "question"
+  ],
+  "max_time": 60.0,
+  "validator": "signed_answers",
+  "plugin_files": [
+    "examples/signed_answers/signed_answers_town.py"
+  ],
+  "adaptations": []
+}

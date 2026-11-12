@@ -38,19 +38,27 @@ DEAD_URL = "http://127.0.0.1:9"  # the discard port: nothing answers A2A there
 # label, scenario, outlet, expected verdict, the stages expected to fail
 CASES = [
     ("clean", "signed_answers_clean", "outlet", "passed", None),
-    ("duplicate", "signed_answers_duplicate", "outlet", "failed",
-     ["one_package_per_request[reader-subscriber]"]),
+    # The real outlet agent returns the first reply again for a repeated
+    # messageId (since its commit f69f3c9), so the redelivery is safe.
+    ("duplicate", "signed_answers_duplicate", "outlet", "passed", None),
     ("duplicate_remembered", "signed_answers_duplicate_remembered", "outlet",
      "passed", None),
     ("altered", "signed_answers_altered", "outlet", "passed", None),
     ("outlet_down", "signed_answers_clean", "down", "failed",
      ["outlet_listed", "outlet_discovered"]),
 ]
-# Offline only: the stand-in outlet returning the first package again for a
-# repeated messageId, which is the fix on the outlet's side.
-STUB_ONLY = [
-    ("duplicate_idempotent_outlet", "signed_answers_duplicate", "idempotent",
+# Offline, the stand-in outlet plays both versions of the agent: the default
+# one builds a fresh package per call, as the real agent did before the fix.
+STUB_CASES = [
+    ("clean", "signed_answers_clean", "outlet", "passed", None),
+    ("duplicate_fresh_per_call_outlet", "signed_answers_duplicate", "outlet",
+     "failed", ["one_package_per_request[reader-subscriber]"]),
+    ("duplicate", "signed_answers_duplicate", "idempotent", "passed", None),
+    ("duplicate_remembered", "signed_answers_duplicate_remembered", "outlet",
      "passed", None),
+    ("altered", "signed_answers_altered", "outlet", "passed", None),
+    ("outlet_down", "signed_answers_clean", "down", "failed",
+     ["outlet_listed", "outlet_discovered"]),
 ]
 
 
@@ -82,7 +90,7 @@ def run_cases(live: bool, out: str, save: str | None) -> int:
         cases = CASES
     else:
         from stub_outlet import STUB_TOKEN  # noqa: F401  (path set below)
-        cases = CASES + STUB_ONLY
+        cases = STUB_CASES
 
     rows, ok = [], True
     for label, scenario, outlet, want, want_failed in cases:

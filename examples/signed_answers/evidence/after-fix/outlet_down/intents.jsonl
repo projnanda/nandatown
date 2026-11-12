@@ -1,0 +1,2 @@
+{"intent_id": "in-1", "run_id": "sim-d2d8fa7d69e2", "at": 1.0, "actor": "reader-subscriber", "action": "lookup", "payload": {"capability": "news.source_package"}}
+{"intent_id": "in-2", "run_id": "sim-d2d8fa7d69e2", "at": 1.0, "actor": "reader-stranger", "action": "lookup", "payload": {"capability": "news.source_package"}}

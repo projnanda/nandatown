@@ -1,0 +1,14 @@
+{
+  "mode": "lab",
+  "files": {
+    "profile.json": "sha256:9170d738cb4f22513c395238764ef321cca232fe5a7ef5aa53ccc75355dff60b",
+    "run.json": "sha256:c91e1ae29892c13824d3f6096459c3b5a6bee4d93e325f822116037c5cb2f636",
+    "intents.jsonl": "sha256:2bc4886afb0a2e7807fc181a0a41a9b496f1510c266c37b6fbb287d3d9feed5c",
+    "events.jsonl": "sha256:6786026378edbce9c0a8dacf63e90a66507c4cefb5e57f9b43547ca090500998",
+    "result.json": "sha256:0463d246f51a1dfa981d3bb4be3eb4729020222fe85485db3af7a8839584a337"
+  },
+  "bundle_fingerprint": "sha256:3fb060d0829b45807c4a3d64295aaba54fc67a8b5ee56b1480d76af648a69d27",
+  "created_at": 1794453693.30647,
+  "nandatown_version": "0.2.0",
+  "evaluator_version": "lab-0.2.6"
+}

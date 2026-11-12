@@ -1,0 +1,45 @@
+{
+  "run_id": "sim-d2d8fa7d69e2",
+  "profile_name": "signed_answers_clean",
+  "profile_fingerprint": "sha256:3106304ede654e5e3bcd3b651e49c335e1cae6bc65acdf0270fc2d8aa21138f5",
+  "created_at": 0.0,
+  "participants": [
+    {
+      "name": "outlet",
+      "role": "sa_outlet"
+    },
+    {
+      "name": "reader-subscriber",
+      "role": "sa_reader"
+    },
+    {
+      "name": "reader-stranger",
+      "role": "sa_reader"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "lab-0.2.6",
+    "python": "3.12.13"
+  },
+  "config": {
+    "mode": "lab",
+    "seed": 42,
+    "layers": {
+      "transport": "memory.v1",
+      "communication": "envelope.v1",
+      "identity": "keys.v1",
+      "registry": "index.v1",
+      "auth": "hmac.v1",
+      "trust": "reputation.v1",
+      "payments": "ledger.v1",
+      "coordination": "contractnet.v1",
+      "negotiation": "haggle.v1",
+      "memory": "kv.v1",
+      "privacy": "redact.v1",
+      "data_facts": "evidence.v1"
+    },
+    "logical_time": 1.0,
+    "rerun_command": "nandatown run examples/signed_answers/scenarios/signed_answers_clean.yaml --seed 42 --plugin examples/signed_answers/signed_answers_town.py"
+  }
+}
