@@ -1,0 +1,326 @@
+[
+  {
+    "event_id": "ev-1",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439132.8807948,
+    "observer": "town",
+    "kind": "run_created",
+    "subject": "run-16f5017bcc7c",
+    "detail": {
+      "profile": "factorybridge-http-fulfillment",
+      "profile_fingerprint": "sha256:0d1e32f2eb13092ed45e91d5275d6b4f81e5403474b51ae4be9709ded23b5aeb",
+      "fault": "none",
+      "portable_identities": []
+    }
+  },
+  {
+    "event_id": "ev-2",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439132.965188,
+    "observer": "town",
+    "kind": "participant_joined",
+    "subject": "buyer",
+    "detail": {}
+  },
+  {
+    "event_id": "ev-3",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439132.973403,
+    "observer": "town",
+    "kind": "message_accepted",
+    "subject": "http-success",
+    "detail": {
+      "sender": "buyer",
+      "to": "seller",
+      "kind": "manufacturing.request",
+      "content_fingerprint": "sha256:b744d3a719ad9bcb206a11d9a12c6970dbcf8b510dea823f5a5d06e398cdaac3",
+      "request_id": "http-fulfillment"
+    }
+  },
+  {
+    "event_id": "ev-4",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439132.990347,
+    "observer": "town",
+    "kind": "participant_joined",
+    "subject": "seller",
+    "detail": {}
+  },
+  {
+    "event_id": "ev-5",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439132.9974668,
+    "observer": "town",
+    "kind": "message_claimed",
+    "subject": "http-success",
+    "detail": {
+      "claimant": "seller",
+      "attempt": 1,
+      "fence": "[redacted ephemeral credential]"
+    }
+  },
+  {
+    "event_id": "ev-6",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439137.872033,
+    "observer": "town",
+    "kind": "message_accepted",
+    "subject": "response-http-success",
+    "detail": {
+      "sender": "seller",
+      "to": "buyer",
+      "kind": "manufacturing.response",
+      "content_fingerprint": "sha256:1cceaed668afc17ef0372d0613796b08eb9fd5f1f1577ed20653bbdeef6100bd",
+      "request_id": "http-fulfillment"
+    }
+  },
+  {
+    "event_id": "ev-7",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439137.878646,
+    "observer": "seller",
+    "kind": "ack_recorded",
+    "subject": "http-success",
+    "detail": {
+      "status": "processed",
+      "note": {
+        "cached_result": false,
+        "execution_id": "41d85072-0b92-4e1d-8d43-b78c2f07d6b7"
+      },
+      "fence": "[redacted ephemeral credential]",
+      "attempt": 1
+    }
+  },
+  {
+    "event_id": "ev-8",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439137.906411,
+    "observer": "town",
+    "kind": "message_claimed",
+    "subject": "response-http-success",
+    "detail": {
+      "claimant": "buyer",
+      "attempt": 1,
+      "fence": "[redacted ephemeral credential]"
+    }
+  },
+  {
+    "event_id": "ev-9",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439137.9134452,
+    "observer": "buyer",
+    "kind": "ack_recorded",
+    "subject": "response-http-success",
+    "detail": {
+      "status": "processed",
+      "note": {},
+      "fence": "[redacted ephemeral credential]",
+      "attempt": 1
+    }
+  },
+  {
+    "event_id": "ev-10",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439137.91819,
+    "observer": "town",
+    "kind": "replay_returned",
+    "subject": "http-success",
+    "detail": {
+      "sender": "buyer"
+    }
+  },
+  {
+    "event_id": "ev-11",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439137.9233558,
+    "observer": "town",
+    "kind": "identity_reuse_rejected",
+    "subject": "http-success",
+    "detail": {
+      "sender": "buyer"
+    }
+  },
+  {
+    "event_id": "ev-12",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439137.9282718,
+    "observer": "town",
+    "kind": "message_accepted",
+    "subject": "http-redelivery",
+    "detail": {
+      "sender": "buyer",
+      "to": "seller",
+      "kind": "manufacturing.request",
+      "content_fingerprint": "sha256:b744d3a719ad9bcb206a11d9a12c6970dbcf8b510dea823f5a5d06e398cdaac3",
+      "request_id": "http-fulfillment"
+    }
+  },
+  {
+    "event_id": "ev-13",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439137.9374201,
+    "observer": "town",
+    "kind": "message_claimed",
+    "subject": "http-redelivery",
+    "detail": {
+      "claimant": "seller",
+      "attempt": 1,
+      "fence": "[redacted ephemeral credential]"
+    }
+  },
+  {
+    "event_id": "ev-14",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439137.943396,
+    "observer": "town",
+    "kind": "message_accepted",
+    "subject": "response-http-redelivery",
+    "detail": {
+      "sender": "seller",
+      "to": "buyer",
+      "kind": "manufacturing.response",
+      "content_fingerprint": "sha256:c12d61eb34bd250fd5eca9b022f67ded14633e61cb6bcc6130b108e00c5b180a",
+      "request_id": "http-fulfillment"
+    }
+  },
+  {
+    "event_id": "ev-15",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439137.948318,
+    "observer": "seller",
+    "kind": "ack_recorded",
+    "subject": "http-redelivery",
+    "detail": {
+      "status": "processed",
+      "note": {
+        "cached_result": true,
+        "execution_id": "41d85072-0b92-4e1d-8d43-b78c2f07d6b7"
+      },
+      "fence": "[redacted ephemeral credential]",
+      "attempt": 1
+    }
+  },
+  {
+    "event_id": "ev-16",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439137.987245,
+    "observer": "town",
+    "kind": "message_claimed",
+    "subject": "response-http-redelivery",
+    "detail": {
+      "claimant": "buyer",
+      "attempt": 1,
+      "fence": "[redacted ephemeral credential]"
+    }
+  },
+  {
+    "event_id": "ev-17",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439137.993921,
+    "observer": "buyer",
+    "kind": "ack_recorded",
+    "subject": "response-http-redelivery",
+    "detail": {
+      "status": "processed",
+      "note": {},
+      "fence": "[redacted ephemeral credential]",
+      "attempt": 1
+    }
+  },
+  {
+    "event_id": "ev-18",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439137.9979641,
+    "observer": "town",
+    "kind": "message_accepted",
+    "subject": "http-invalid",
+    "detail": {
+      "sender": "buyer",
+      "to": "seller",
+      "kind": "manufacturing.request",
+      "content_fingerprint": "sha256:ea2eee99481a7afee4f6b1eab94cc6463a5cd54154a6a38ee3d3c8db65071c54",
+      "request_id": "http-invalid"
+    }
+  },
+  {
+    "event_id": "ev-19",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439138.0043771,
+    "observer": "town",
+    "kind": "message_claimed",
+    "subject": "http-invalid",
+    "detail": {
+      "claimant": "seller",
+      "attempt": 1,
+      "fence": "[redacted ephemeral credential]"
+    }
+  },
+  {
+    "event_id": "ev-20",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439138.009099,
+    "observer": "town",
+    "kind": "message_accepted",
+    "subject": "response-http-invalid",
+    "detail": {
+      "sender": "seller",
+      "to": "buyer",
+      "kind": "manufacturing.response",
+      "content_fingerprint": "sha256:0fbf116a81c9c0002bf8d97e2ad56f1eba98a6864cffd23881c7e4f890110058",
+      "request_id": "http-invalid"
+    }
+  },
+  {
+    "event_id": "ev-21",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439138.012692,
+    "observer": "seller",
+    "kind": "ack_recorded",
+    "subject": "http-invalid",
+    "detail": {
+      "status": "processed",
+      "note": {
+        "cached_result": false,
+        "execution_id": null
+      },
+      "fence": "[redacted ephemeral credential]",
+      "attempt": 1
+    }
+  },
+  {
+    "event_id": "ev-22",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439138.056525,
+    "observer": "town",
+    "kind": "message_claimed",
+    "subject": "response-http-invalid",
+    "detail": {
+      "claimant": "buyer",
+      "attempt": 1,
+      "fence": "[redacted ephemeral credential]"
+    }
+  },
+  {
+    "event_id": "ev-23",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439138.064766,
+    "observer": "buyer",
+    "kind": "ack_recorded",
+    "subject": "response-http-invalid",
+    "detail": {
+      "status": "processed",
+      "note": {},
+      "fence": "[redacted ephemeral credential]",
+      "attempt": 1
+    }
+  },
+  {
+    "event_id": "ev-24",
+    "run_id": "run-16f5017bcc7c",
+    "at": 1794439138.0771022,
+    "observer": "town",
+    "kind": "run_finished",
+    "subject": "run-16f5017bcc7c",
+    "detail": {}
+  }
+]

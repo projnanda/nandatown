@@ -1,0 +1,184 @@
+[
+  {
+    "event_id": "ev-1",
+    "run_id": "run-d3d5179eb31f",
+    "at": 1794360353.536565,
+    "observer": "town",
+    "kind": "message_accepted",
+    "subject": "factorybridge-success",
+    "detail": {
+      "sender": "buyer",
+      "to": "seller",
+      "kind": "manufacturing.request",
+      "content_fingerprint": "sha256:4ece7e6146bf6668650c952e81c1e23e27dd890e87cba8fe433059c709ab2c15",
+      "request_id": "factorybridge-success"
+    }
+  },
+  {
+    "event_id": "ev-2",
+    "run_id": "run-d3d5179eb31f",
+    "at": 1794360353.5501685,
+    "observer": "town",
+    "kind": "message_claimed",
+    "subject": "factorybridge-success",
+    "detail": {
+      "claimant": "seller",
+      "attempt": 1,
+      "fence": "fence-5850ccafbd1e4d8aaad97c075001fc55"
+    }
+  },
+  {
+    "event_id": "ev-3",
+    "run_id": "run-d3d5179eb31f",
+    "at": 1794360354.1174986,
+    "observer": "town",
+    "kind": "message_accepted",
+    "subject": "response-factorybridge-success",
+    "detail": {
+      "sender": "seller",
+      "to": "buyer",
+      "kind": "manufacturing.response",
+      "content_fingerprint": "sha256:748360507707a3b61f3e3da1c4235ed8bfcb330753f1f071b3e92cdcf1ee796b",
+      "request_id": "factorybridge-success"
+    }
+  },
+  {
+    "event_id": "ev-4",
+    "run_id": "run-d3d5179eb31f",
+    "at": 1794360354.1419313,
+    "observer": "seller",
+    "kind": "ack_recorded",
+    "subject": "factorybridge-success",
+    "detail": {
+      "status": "processed",
+      "note": {
+        "result_status": "completed"
+      },
+      "fence": "fence-5850ccafbd1e4d8aaad97c075001fc55",
+      "attempt": 1
+    }
+  },
+  {
+    "event_id": "ev-5",
+    "run_id": "run-d3d5179eb31f",
+    "at": 1794360354.155963,
+    "observer": "town",
+    "kind": "message_claimed",
+    "subject": "response-factorybridge-success",
+    "detail": {
+      "claimant": "buyer",
+      "attempt": 1,
+      "fence": "fence-a04799809abb4bfba3183858de8e5e5f"
+    }
+  },
+  {
+    "event_id": "ev-6",
+    "run_id": "run-d3d5179eb31f",
+    "at": 1794360354.170106,
+    "observer": "buyer",
+    "kind": "ack_recorded",
+    "subject": "response-factorybridge-success",
+    "detail": {
+      "status": "processed",
+      "note": {},
+      "fence": "fence-a04799809abb4bfba3183858de8e5e5f",
+      "attempt": 1
+    }
+  },
+  {
+    "event_id": "ev-7",
+    "run_id": "run-d3d5179eb31f",
+    "at": 1794360354.1852298,
+    "observer": "town",
+    "kind": "message_accepted",
+    "subject": "factorybridge-invalid_quantity",
+    "detail": {
+      "sender": "buyer",
+      "to": "seller",
+      "kind": "manufacturing.request",
+      "content_fingerprint": "sha256:7fdfd9b3669831c4174f49864929a0a768b7d83404ef0978aa82270fac50a913",
+      "request_id": "factorybridge-invalid_quantity"
+    }
+  },
+  {
+    "event_id": "ev-8",
+    "run_id": "run-d3d5179eb31f",
+    "at": 1794360354.2013655,
+    "observer": "town",
+    "kind": "message_claimed",
+    "subject": "factorybridge-invalid_quantity",
+    "detail": {
+      "claimant": "seller",
+      "attempt": 1,
+      "fence": "fence-77e567783a6f44a08f533d7615744ef0"
+    }
+  },
+  {
+    "event_id": "ev-9",
+    "run_id": "run-d3d5179eb31f",
+    "at": 1794360354.7301736,
+    "observer": "town",
+    "kind": "message_accepted",
+    "subject": "response-factorybridge-invalid_quantity",
+    "detail": {
+      "sender": "seller",
+      "to": "buyer",
+      "kind": "manufacturing.response",
+      "content_fingerprint": "sha256:b5f498771234b4635cc307a2b8f33dbfec7ce8a561bb5699756e6f1f706d7999",
+      "request_id": "factorybridge-invalid_quantity"
+    }
+  },
+  {
+    "event_id": "ev-10",
+    "run_id": "run-d3d5179eb31f",
+    "at": 1794360354.7541406,
+    "observer": "seller",
+    "kind": "ack_recorded",
+    "subject": "factorybridge-invalid_quantity",
+    "detail": {
+      "status": "processed",
+      "note": {
+        "result_status": "rejected"
+      },
+      "fence": "fence-77e567783a6f44a08f533d7615744ef0",
+      "attempt": 1
+    }
+  },
+  {
+    "event_id": "ev-11",
+    "run_id": "run-d3d5179eb31f",
+    "at": 1794360354.7699428,
+    "observer": "town",
+    "kind": "message_claimed",
+    "subject": "response-factorybridge-invalid_quantity",
+    "detail": {
+      "claimant": "buyer",
+      "attempt": 1,
+      "fence": "fence-6aecfc44c4c44160b1f93842d38dc6c9"
+    }
+  },
+  {
+    "event_id": "ev-12",
+    "run_id": "run-d3d5179eb31f",
+    "at": 1794360354.788453,
+    "observer": "buyer",
+    "kind": "ack_recorded",
+    "subject": "response-factorybridge-invalid_quantity",
+    "detail": {
+      "status": "processed",
+      "note": {},
+      "fence": "fence-6aecfc44c4c44160b1f93842d38dc6c9",
+      "attempt": 1
+    }
+  },
+  {
+    "event_id": "ev-13",
+    "run_id": "run-d3d5179eb31f",
+    "at": 1794360354.8088198,
+    "observer": "town",
+    "kind": "run_finished",
+    "subject": "run-d3d5179eb31f",
+    "detail": {}
+  }
+]
+
