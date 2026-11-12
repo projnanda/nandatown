@@ -37,17 +37,16 @@ Town Lab (deterministic, logical time: 1 unit = 1 day)
 ## Reproduce
 
 - Nanda Town upstream base: `6f9a7c064486c4a0ae9242f1ff341b8a4aad0244`
-- LOOM integration snapshot from PR #329: `a022a831db4c4b9a4a862f652522e255e268dc0f`
+- LOOM integration snapshot (branch `integration/loom-health-context-v2` on `jasonpipi/nandatown`): `a022a831db4c4b9a4a862f652522e255e268dc0f`
 - LOOM portal: `v0.1.1`, commit `480558ee41af23a3f0937cfa207cff1e0ed43d32` (policy `loom-policy-0.1.1`)
 - Python 3.12, Town evaluator `lab-0.2.6`
 
-Run from an empty working directory. Fetch the PR ref before checking out the
-pinned integration snapshot, which contains `examples/loom/`.
+Run from an empty working directory. The pinned integration snapshot, which
+contains `examples/loom/`, is on the fork's integration branch.
 
 ```bash
-git clone https://github.com/projnanda/nandatown
+git clone https://github.com/jasonpipi/nandatown
 cd nandatown
-git fetch origin refs/pull/329/head
 git checkout --detach a022a831db4c4b9a4a862f652522e255e268dc0f
 python3.12 -m venv .venv
 source .venv/bin/activate
