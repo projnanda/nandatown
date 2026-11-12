@@ -1,0 +1,12 @@
+{
+  "payload": {
+    "bundle_fingerprint": "sha256:3dff1abac20511536b52fc528a9cb06eaa52abafa4b48995beec6812829a3d06",
+    "run_id": "run-59d3d61107c7",
+    "verdict": "passed",
+    "evaluator_version": "0.5.0",
+    "signer": "did:town:82ce2b58eac50d1ac1971b94",
+    "signed_at": 1794451994.8566902
+  },
+  "signature": "0df3f669b98e1128e58c8d9dd12ab059539b3e9fce8957e8bcf3ea5a4acef9991bfd3e65fa52100d48c746762b7bc990d970a01dcbab3ec22c80de5802765306",
+  "controller_public": "c9a45f5b0abd224ea00a2890a41daad3df553502de29d913087d097ae29b9e4b"
+}
