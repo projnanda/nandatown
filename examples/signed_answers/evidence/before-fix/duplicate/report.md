@@ -1,6 +1,6 @@
 NANDA Town System Fitness Report
 ========================================
-Run:       sim-b7bc1f4bb1c7
+Run:       sim-41894186727c
 Scenario:  signed_answers_duplicate (seed 42)
 Faults:    duplicate source_request
 Agents:    outlet (sa_outlet), reader-subscriber (sa_reader)
@@ -13,15 +13,16 @@ Rerun:     nandatown run examples/signed_answers/scenarios/signed_answers_duplic
 The journey: bring, connect, attempt, disrupt, inspect, improve.
 
 Stages (each one a separate claim with its own failure boundary):
-  outlet_listed                               Passed                [ev-7]
-  outlet_discovered                           Passed                [ev-9]
-  package_verified[reader-subscriber]         Passed                [ev-20, ev-22]
-  one_package_per_request[reader-subscriber]  Failed                [ev-12, ev-20, ev-22]
-                                              note: one request, delivered twice, produced 2 answers: 2 different package ids and 0 without a package
-  ledger_conserved                            Passed               money was conserved across every movement [ev-23]
-                                              note: complete run recorded no money moved
-  privacy                                     Passed               declared private fields never left the run [ev-23]
-                                              note: fields ['envelope', 'question'] never left the run
+  outlet_listed                                       Passed                [ev-7]
+  outlet_discovered                                   Passed                [ev-9]
+  package_verified[reader-subscriber]                 Passed                [ev-20, ev-22]
+  sentences_match_published_story[reader-subscriber]  Passed                [ev-20, ev-22]
+  one_package_per_request[reader-subscriber]          Failed                [ev-12, ev-20, ev-22]
+                                                      note: one request, delivered twice, produced 2 answers: 2 different package ids and 0 without a package
+  ledger_conserved                                    Passed               money was conserved across every movement [ev-23]
+                                                      note: complete run recorded no money moved
+  privacy                                             Passed               declared private fields never left the run [ev-23]
+                                                      note: fields ['envelope', 'question'] never left the run
 
 Events recorded: 23. Intents recorded: 5.
 This result applies only to the named agents, releases, scenario, failure, evaluator, and time window.

@@ -21,6 +21,8 @@ the outlet's agent                        runs elsewhere, not in this repo
 outlet --signed Town message: source_answer--> reader
    5. the reader checks the package id and the Ed25519 signature
       under the key on the outlet's Town card
+   6. the reader opens the story on the publisher's own site and looks
+      for each sentence of the package, word for word
 ```
 
 Town parts in use: the registry (the outlet’s card carries its signing key), identity and auth (every message is signed and the gateway maps a verified Town sender to the credential, so no reader holds it), transport (the duplicate fault), and privacy (package text and the question are redacted from the bundle).
@@ -36,7 +38,7 @@ The gateway forwards. It never answers on its own, and the validator reads Town 
 | `stub_outlet.py` | A stand-in outlet agent for offline runs. It is a fixture with an invented story and a test key |
 | `run_check.py` | Runs every case, compares expected and observed, verifies each bundle |
 | `evidence/before-fix/`, `evidence/after-fix/` | Bundles from two runs against the real outlet agent, before and after its fix |
-| `../../tests/test_signed_answers_example.py` | Twenty-two offline tests, among them broken and hostile outlet replies |
+| `../../tests/test_signed_answers_example.py` | Twenty-four offline tests, among them broken and hostile outlet replies |
 
 ## Reproduce
 
@@ -77,7 +79,7 @@ Two live runs on 2026-11-11, with one question about a 2023 story that carries a
 
 | Case | Expected | Before the fix (`24816cc`) | After the fix (`f69f3c9`) |
 |---|---|---|---|
-| `clean` | The subscriber’s reader gets a package and it verifies. The stranger’s reader gets none. | Passed | Passed |
+| `clean` | The subscriber’s reader gets a package and it verifies. Every sentence is in the published story. The stranger’s reader gets none. | Passed, 5 of 5 sentences found | Passed, 5 of 5 sentences found |
 | `duplicate` | One request delivered twice returns the same package. | **Failed** at `one_package_per_request`: two valid packages, two different ids | Passed: the same package id both times |
 | `duplicate_remembered` | The gateway answers the redelivery from its own record. | Passed. The agent was called once. | Passed |
 | `altered` | The reader rejects a package the gateway changed by one character. | Passed. Town’s message signature verified. The outlet’s signature and the package id both failed. | Passed |
@@ -99,8 +101,8 @@ The before-fix run used the older revision of the hosted agent at a temporary ad
 
 - The reader and the gateway are written by the project’s author. This is not an independent-agent result and not A2A conformance.
 - The reader is scripted. It asks one fixed question. The outlet’s clarifying question, its follow-up offers and correction notices are not driven through Town.
-- A passing package must come with a completed task, say it matched a story, hold at least one sentence, and verify. Nothing checks that the sentences answer the question.
-- The reader checks the package id and signature only. The project’s full verifier also compares each sentence with the published story and fingerprints archived source copies. That part is not run here.
+- A passing package must come with a completed task, say it matched a story, hold at least one sentence, verify, and have every sentence in the published story. Nothing checks that the sentences answer the question.
+- The reader runs the first two steps of the project’s verifier: the signature and the comparison with the published story. The last step, a fingerprint of each archived source copy, is not run here.
 - The reader takes the signing key from the Town card, which the gateway wrote after it read the outlet’s agent card. A dishonest gateway could list its own key. `altered` covers a gateway that changes a package, not one that replaces the key. The project’s real reader pins the key ahead of time.
 - The package text is redacted, so a replay of a bundle repeats the validator on the reader’s recorded check results. It cannot repeat the signature check itself.
 - The agent keeps first replies in memory on one instance. A restart forgets them. Two copies of a message that arrive at the same moment can still both run.

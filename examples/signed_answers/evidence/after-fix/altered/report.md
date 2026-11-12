@@ -1,6 +1,6 @@
 NANDA Town System Fitness Report
 ========================================
-Run:       sim-94ad15b568a4
+Run:       sim-80bcfb0a0fc0
 Scenario:  signed_answers_altered (seed 42)
 Faults:    none
 Agents:    outlet (sa_outlet), reader-subscriber (sa_reader)

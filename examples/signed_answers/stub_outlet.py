@@ -63,16 +63,17 @@ class StubOutlet:
         self.calls = 0
         self.lock = threading.Lock()
 
-    def envelope(self) -> dict[str, Any]:
+    def envelope(self, base: str = "http://127.0.0.1:0") -> dict[str, Any]:
         self.calls += 1
         package = {
             "schema": "source-package/stub",
             "result": "match",
-            "publisher": {"name": "Harbor Gazette (invented)",
+            "publisher": {"name": "Harbor Gazette (invented)", "url": base,
                           "agent_key": self.did},
             # Issue time is part of the signed content, as in the real agent.
             "issued_at": f"2026-01-01T00:00:{self.calls:02d}Z",
             "story": {"title": "Transit board cuts night routes",
+                      "url": f"{base}/stories/night-routes",
                       "published": "2025-03-03T09:00:00Z"},
             "correction": {"kind": "correction",
                            "note": "12 routes were cut, not 21.",
@@ -99,7 +100,7 @@ class StubOutlet:
         with self.lock:
             key = self.by_message.get(message_id) if self.idempotent else None
             if key is None:
-                envelope = self.envelope()
+                envelope = self.envelope(base)
                 key = envelope["package_id"].removeprefix("df://")
                 self.packages[key] = envelope
                 self.by_message[message_id] = key
@@ -135,6 +136,20 @@ def make_server(port: int = 0, idempotent: bool = False) -> ThreadingHTTPServer:
                                  "url": f"{self._base()}/a2a",
                                  "signing": {"alg": "Ed25519",
                                              "key": outlet.did}})
+            elif self.path == "/stories/night-routes":
+                # The published story, with markup the reader must see through.
+                body = ("<html><body><article><p>"
+                        + "</p>\n<p>".join(
+                            s.replace("transit board",
+                                      "<a href='/board'>transit board</a>")
+                            .replace("'", "&rsquo;")
+                            for s in SENTENCES)
+                        + "</p></article></body></html>").encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
             elif self.path.startswith("/packages/"):
                 envelope = outlet.packages.get(
                     self.path.removeprefix("/packages/"))

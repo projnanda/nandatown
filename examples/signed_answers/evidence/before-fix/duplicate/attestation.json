@@ -1,12 +1,12 @@
 {
   "payload": {
-    "bundle_fingerprint": "sha256:cfb32c7c6fd8c60573f87993f90d67fb423f1f80a89983ee5b3b02c40730bcc1",
-    "run_id": "sim-b7bc1f4bb1c7",
+    "bundle_fingerprint": "sha256:144168d1d595812b145c291940cf2f11a73f455fb7751604f40300bc17c1cb0d",
+    "run_id": "sim-41894186727c",
     "verdict": "failed",
     "evaluator_version": "lab-0.2.6",
     "signer": "did:town:90fbcea54af555f54346c040",
-    "signed_at": 1794455158.417748
+    "signed_at": 1794456246.434019
   },
-  "signature": "a84e8baf1c4835853c08b2bdbfaeb49f62169991a55235c7208c61969026524d19f671d203d3df6cc23a04f060a4d214dbb4ec753b962540efc27cc284dc350b",
+  "signature": "a921c850e56810b335e526c712ff9f19c0ba697cae448f7ea397ba301df078918a1a51387683adde74d5b9bbfa1022e7a61a7a8f66c6c1feb3a3a48ca114640c",
   "controller_public": "aad7514dc47246d6de79f5fa2db25701d4ef5ddd9db9def57afdcdb1c307e3f5"
 }

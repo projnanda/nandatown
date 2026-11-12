@@ -1,5 +1,5 @@
 {
-  "run_id": "sim-72b211d79cf8",
+  "run_id": "sim-5a45ef3caee5",
   "evaluator_version": "lab-0.2.6",
   "stages": [
     {
@@ -26,6 +26,12 @@
       "note": "every answer to a subscriber's reader must be a completed task with a matching package of at least one sentence, whose id and signature check out under the key on the outlet's Town card"
     },
     {
+      "name": "sentences_match_published_story[reader-subscriber]",
+      "status": "not_enough_evidence",
+      "evidence": [],
+      "note": "the published story could not be compared"
+    },
+    {
       "name": "no_package_without_credential[reader-stranger]",
       "status": "not_enough_evidence",
       "evidence": [],
@@ -49,5 +55,5 @@
     }
   ],
   "verdict": "failed",
-  "evaluated_at": 1794455173.595031
+  "evaluated_at": 1794456262.159183
 }

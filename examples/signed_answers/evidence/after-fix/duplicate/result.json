@@ -1,5 +1,5 @@
 {
-  "run_id": "sim-09a3b8ad3f40",
+  "run_id": "sim-a1ffe8bf8c70",
   "evaluator_version": "lab-0.2.6",
   "stages": [
     {
@@ -20,6 +20,15 @@
     },
     {
       "name": "package_verified[reader-subscriber]",
+      "status": "passed",
+      "evidence": [
+        "ev-20",
+        "ev-22"
+      ],
+      "note": ""
+    },
+    {
+      "name": "sentences_match_published_story[reader-subscriber]",
       "status": "passed",
       "evidence": [
         "ev-20",
@@ -55,5 +64,5 @@
     }
   ],
   "verdict": "passed",
-  "evaluated_at": 1794455202.802371
+  "evaluated_at": 1794456293.73959
 }

@@ -74,6 +74,7 @@ def test_subscriber_gets_a_verified_package_and_a_stranger_gets_none(
     assert stages["outlet_listed"] == "passed"
     assert stages["outlet_discovered"] == "passed"
     assert stages["package_verified[reader-subscriber]"] == "passed"
+    assert stages["sentences_match_published_story[reader-subscriber]"] == "passed"
     assert stages["no_package_without_credential[reader-stranger]"] == "passed"
     assert stages["privacy"] == "passed"
 
@@ -306,3 +307,40 @@ def test_each_run_uses_its_own_message_identity_at_the_outlet(
 def test_verifying_a_directory_with_no_bundles_is_not_a_pass(tmp_path):
     runner = _load("run_check")
     assert runner.verify_saved(str(tmp_path)) == 1
+
+
+def test_a_sentence_that_is_not_in_the_published_story_fails(
+        outlet, tmp_path, monkeypatch):
+    outlet()
+    monkeypatch.setattr(stub, "SENTENCES", stub.SENTENCES[:2] + [
+        "This sentence was never published."])
+    patched = _load("signed_answers_town")
+    real = stub.StubOutlet.envelope
+
+    # The story page is built from SENTENCES at request time, so sign the
+    # package first with a sentence the page will not carry.
+    signed = {}
+
+    def frozen(self, base="http://127.0.0.1:0"):
+        if not signed:
+            signed.update(real(self, base))
+            monkeypatch.setattr(stub, "SENTENCES", stub.SENTENCES[:2])
+        return signed
+
+    monkeypatch.setattr(stub.StubOutlet, "envelope", frozen)
+    _, stages, verdict = _run("signed_answers_clean", tmp_path, patched)
+    assert stages["package_verified[reader-subscriber]"] == "passed"
+    assert stages["sentences_match_published_story[reader-subscriber]"] == "failed"
+    assert verdict == "failed"
+
+
+def test_story_on_another_site_is_not_fetched():
+    assert town._same_site("https://www.outlet.example/a", "https://outlet.example")
+    assert not town._same_site("https://elsewhere.example/a", "https://outlet.example")
+    assert not town._same_site("http://outlet.example/a", "https://outlet.example")
+    assert not town._same_site("file:///etc/passwd", "https://outlet.example")
+    package = {"story": {"url": "https://elsewhere.example/a"},
+               "publisher": {"url": "https://outlet.example"},
+               "sentences": [{"text": "x"}]}
+    assert town.sentences_in_published_story(package) is None
+    assert town.sentences_in_published_story({"story": "x"}) is None

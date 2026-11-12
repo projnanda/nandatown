@@ -27,9 +27,12 @@ from __future__ import annotations
 import base64
 import copy
 import hashlib
+import html
 import json
 import os
 import re
+import unicodedata
+import urllib.parse
 import uuid
 from typing import Any
 
@@ -118,6 +121,60 @@ def check_envelope(envelope: Any, expected_key: str) -> dict[str, bool]:
         return out
     out["signature_valid"] = True
     return out
+
+
+MAX_STORY_BYTES = 4_000_000
+_INLINE_TAG = re.compile(
+    r"</?(?:a|span|em|strong|i|b|u|sup|sub|abbr|cite|code|mark|small|time|font)"
+    r"\b[^>]*>", re.I)
+_QUOTES = str.maketrans({"\u2019": "'", "\u2018": "'", "\u201c": '"',
+                         "\u201d": '"', "\u00a0": " "})
+
+
+def _normalize(text: str) -> str:
+    text = unicodedata.normalize("NFKC", html.unescape(text)).translate(_QUOTES)
+    text = re.sub(r"\s+", " ", text)
+    return re.sub(r" ([,.;:!?)])", r"\1", text).strip()
+
+
+def _page_text(page: str) -> str:
+    page = re.sub(r"<(script|style)\b.*?</\1>", " ", page, flags=re.S | re.I)
+    page = _INLINE_TAG.sub("", page)  # inline tags join words, others split
+    return _normalize(re.sub(r"<[^>]+>", " ", page))
+
+
+def _same_site(story_url: str, publisher_url: str) -> bool:
+    """The story must sit on the publisher's own site, over https (plain
+    http only on loopback, for the offline stand-in)."""
+    story = urllib.parse.urlparse(story_url)
+    publisher = urllib.parse.urlparse(publisher_url)
+    host = lambda u: (u.hostname or "").removeprefix("www.")
+    if not host(story) or host(story) != host(publisher):
+        return False
+    return story.scheme == "https" or (
+        story.scheme == "http" and story.hostname == "127.0.0.1")
+
+
+def sentences_in_published_story(package: dict[str, Any]) -> int | None:
+    """How many of the package's sentences appear, word for word, in the
+    story as the publisher's site serves it now. None when that could not
+    be checked. This is the first step of the project's own verifier."""
+    try:
+        story_url = package["story"]["url"]
+        publisher_url = package["publisher"]["url"]
+        if not (isinstance(story_url, str) and isinstance(publisher_url, str)
+                and _same_site(story_url, publisher_url)):
+            return None
+        response = httpx.get(story_url, timeout=30.0, follow_redirects=True,
+                             headers={"User-Agent": "TownReaderCheck/0.1"})
+        if (response.status_code != 200
+                or len(response.content) > MAX_STORY_BYTES):
+            return None
+        page = _page_text(response.text)
+        return sum(1 for sentence in package["sentences"]
+                   if _normalize(sentence["text"]) in page)
+    except (httpx.HTTPError, *BAD_REPLY):
+        return None
 
 
 def tamper(envelope: dict[str, Any]) -> dict[str, Any]:
@@ -362,6 +419,10 @@ class Reader(SimAgent):
         result = package.get("result")
         state = body.get("state")
         earlier.append(package_id)
+        # Only a package that already verified is worth comparing with the
+        # published story, and only its signed story address is fetched.
+        in_story = (sentences_in_published_story(package)
+                    if all(checks.values()) else None)
         self.api.observe("package_checked", request_id, {
             **checks,
             "accepted": all(checks.values()),
@@ -371,6 +432,8 @@ class Reader(SimAgent):
             "result": (result if isinstance(result, str)
                        and result in RESULTS else "other"),
             "sentences": len(sentences),
+            "story_compared": in_story is not None,
+            "sentences_in_published_story": in_story,
             "correction_attached": bool(package.get("correction")),
             "answer_number": len(earlier),
             "same_as_first_answer": package_id == earlier[0],
@@ -465,6 +528,16 @@ def signed_answers(spec, trace: Trace) -> list[StageResult]:
             "every answer to a subscriber's reader must be a completed task"
             " with a matching package of at least one sentence, whose id and"
             " signature check out under the key on the outlet's Town card"))
+        compared = [e for e in accepted if e.detail.get("story_compared")]
+        stages.append(_stage(
+            f"sentences_match_published_story[{reader}]",
+            bool(compared) and all(
+                e.detail.get("sentences_in_published_story")
+                == e.detail.get("sentences") for e in compared),
+            [e.event_id for e in compared],
+            "every sentence in the package must appear word for word in the"
+            " story on the publisher's own site"
+            if compared else "the published story could not be compared"))
         if duplicated:
             answers = packages + refusals
             ids = {e.detail.get("package_id") for e in packages}
