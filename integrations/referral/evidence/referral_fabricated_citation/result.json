@@ -1,0 +1,92 @@
+{
+  "run_id": "sim-413128730cf9",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "referral_connected",
+      "status": "passed",
+      "evidence": [
+        "ev-7"
+      ],
+      "note": ""
+    },
+    {
+      "name": "town_discovery",
+      "status": "passed",
+      "evidence": [
+        "ev-23",
+        "ev-25"
+      ],
+      "note": ""
+    },
+    {
+      "name": "forecast_locked_before_delivery",
+      "status": "passed",
+      "evidence": [
+        "ev-34",
+        "ev-47",
+        "ev-37",
+        "ev-50"
+      ],
+      "note": ""
+    },
+    {
+      "name": "fabrication_rejected",
+      "status": "passed",
+      "evidence": [
+        "ev-37",
+        "ev-38"
+      ],
+      "note": ""
+    },
+    {
+      "name": "rematched_and_accepted",
+      "status": "passed",
+      "evidence": [
+        "ev-41",
+        "ev-50",
+        "ev-51"
+      ],
+      "note": ""
+    },
+    {
+      "name": "reputation_matches_checks",
+      "status": "passed",
+      "evidence": [
+        "ev-40",
+        "ev-54",
+        "ev-56"
+      ],
+      "note": ""
+    },
+    {
+      "name": "credential_verified",
+      "status": "passed",
+      "evidence": [
+        "ev-55"
+      ],
+      "note": ""
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-30",
+        "ev-38",
+        "ev-43",
+        "ev-51"
+      ],
+      "note": "1000 cents conserved across every movement"
+    },
+    {
+      "name": "privacy",
+      "status": "passed",
+      "evidence": [
+        "ev-57"
+      ],
+      "note": "fields ['key'] never left the run"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794429077.3052008
+}

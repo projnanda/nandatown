@@ -1,0 +1,29 @@
+name: referral_unlocked_forecast
+description: >-
+  Boundary case. The only worker tries to deliver before locking its forecast. Referral must refuse that delivery and notarize the refusal; once the forecast is locked the same work passes and is paid.
+seed: 42
+validator: referral_unlocked_forecast
+plugin_files:
+  - ../plugin.py
+layers:
+  trust: referral.v1
+agents:
+  - name: referral
+    role: referral_service
+  - name: worker-hasty
+    role: research_worker
+    config: {behavior: hasty, ask_cents: 90, balance_cents: 0}
+  - name: buyer-1
+    role: research_buyer
+    config:
+      company: Acme Robotics
+      slots:
+        - {competitor: Cobalt Dynamics, attribute: hq_city}
+        - {competitor: Halcyon Motion, attribute: founded_year}
+        - {competitor: Ironbark AI, attribute: flagship_product}
+        - {competitor: Cobalt Dynamics, attribute: headcount}
+      cap_cents: 200
+      max_hires: 3
+      balance_cents: 1000
+redact_fields: [key]
+max_time: 60

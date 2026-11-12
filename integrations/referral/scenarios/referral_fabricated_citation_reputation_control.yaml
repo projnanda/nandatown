@@ -1,0 +1,32 @@
+name: referral_fabricated_citation_reputation_control
+description: >-
+  The same town with the trust layer left at Town's default reputation.v1. Referral is still running but nothing routes work through it, so the buyer takes the cheapest quote, accepts the fabricated delivery on arrival and rates it good; reputation.v1 credits the fabricator and the registry ranks it first. This run FAILS on purpose.
+seed: 42
+validator: referral_fabricated_citation
+plugin_files:
+  - ../plugin.py
+layers:
+  trust: reputation.v1
+agents:
+  - name: referral
+    role: referral_service
+  - name: worker-cheap
+    role: research_worker
+    config: {behavior: fabricate, ask_cents: 40, balance_cents: 0}
+  - name: worker-honest
+    role: research_worker
+    config: {behavior: honest, ask_cents: 90, balance_cents: 0}
+  - name: buyer-1
+    role: research_buyer
+    config:
+      company: Acme Robotics
+      slots:
+        - {competitor: Cobalt Dynamics, attribute: hq_city}
+        - {competitor: Halcyon Motion, attribute: founded_year}
+        - {competitor: Ironbark AI, attribute: flagship_product}
+        - {competitor: Cobalt Dynamics, attribute: headcount}
+      cap_cents: 200
+      max_hires: 3
+      balance_cents: 1000
+redact_fields: [key]
+max_time: 60
