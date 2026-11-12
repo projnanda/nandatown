@@ -76,3 +76,36 @@ def test_over_budget_records_no_order_and_names_the_rule(ledger, tmp_path):
     reasons = r["observed"]["buyer_note"]["reasons"]
     assert reasons[0]["code"] == "OVER_BUDGET" and "39.90" in reasons[0]["detail"]
     assert "ORDER" not in [e["type"] for e in r["observed"]["trail"]]
+
+
+def test_wrong_product_is_disputed_and_refunded_on_the_ledger(ledger, tmp_path):
+    """The whole lifecycle: three roles commit, the buyer disputes, the ledger decides, the PSP refunds."""
+    r = run_check.run_case("wrong_product", ledger, str(tmp_path))
+    assert r["ok"], r["checks"]
+    types = [e["type"] for e in r["observed"]["trail"]]
+    assert types == ["MANDATE", "OFFER", "ORDER", "CHARGE", "FULFILMENT", "DELIVERY", "DISPUTE", "REFUND"]
+    case = r["observed"]["case"]
+    assert case["status"] == "closed" and case["verdict"] == "merchant_at_fault"
+    assert case["remedy"] == {"type": "refund", "amount": "39.90", "currency": "EUR"}
+    assert "DELIVERED_NE_OFFER" in case["findings"] and "MANDATE_IN_SCOPE" in case["findings"]
+    # what Town recorded is the buyer's own account of the same case
+    settlement = r["observed"]["buyer_note"]["settlement"]
+    assert settlement["case_id"] == case["case_id"] and settlement["case_status"] == "closed"
+
+
+def test_tampered_reveal_is_named_and_the_pack_still_verifies(ledger, tmp_path):
+    """A seller that doctors its evidence: the reveal fails its hash, no refund, and the pack flags the event."""
+    r = run_check.run_case("tampered_reveal", ledger, str(tmp_path))
+    assert r["ok"], r["checks"]
+    case = r["observed"]["case"]
+    assert case["status"] == "open" and "TAMPERED" in case["findings"]
+    assert "REFUND" not in [e["type"] for e in r["observed"]["trail"]]
+    assert case["pack_unrevealed"] == ["FULFILMENT"]
+    problems, counts = run_check.verify_pack(r["observed"]["evidence_pack"])
+    assert problems == [] and counts["receipts"] == 7
+
+
+def test_delivered_order_needs_no_dispute(ledger, tmp_path):
+    r = run_check.run_case("delivered", ledger, str(tmp_path))
+    assert r["ok"], r["checks"]
+    assert "case" not in r["observed"] and r["observed"]["buyer_note"]["settlement"]["as_offered"] is True

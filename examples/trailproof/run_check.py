@@ -10,7 +10,12 @@ cross-checks the two evidence trails:
   verifies offline with the ledger public key, against the committed hash;
 * the seller's committed OFFER is the one the buyer checked;
 * the live TrailProof chain for the order has the expected event types and
-  the event ids recorded in Town's bundle.
+  the event ids recorded in Town's bundle;
+* in the lifecycle cases (delivered, wrong_product, tampered_reveal) the
+  order runs on past the quote: charge, fulfilment, delivery and, when the
+  parcel is not what was offered, a dispute. The case is read back from the
+  ledger, its evidence pack is exported and re-verified offline, and a
+  doctored copy of the pack must fail.
 
     TRAILPROOF_HOME=/path/to/TrailProof python examples/trailproof/run_check.py
     python examples/trailproof/run_check.py --cases clean,duplicate --record
@@ -43,6 +48,7 @@ from trailproof_link import (  # noqa: E402
     TrailProofClient,
     start_server,
     stop_server,
+    verify_pack,
     verify_receipt,
 )
 
@@ -96,6 +102,39 @@ CASES: dict[str, dict[str, Any]] = {
         "chain": None,
         "buyer": {"no_receipt": True},
     },
+    # The whole order lifecycle, past the quote: charge, fulfilment, delivery, and the dispute path.
+    "delivered": {
+        "profile": "quote-clean",
+        "env": {"TRAILPROOF_SETTLE": "deliver"},
+        "about": "full lifecycle: the seller's PSP charges, the seller ships, the buyer commits the delivery; no dispute",
+        "verdict": "passed",
+        "stages": {"correct": "passed"},
+        "chain": ["MANDATE", "OFFER", "ORDER", "CHARGE", "FULFILMENT", "DELIVERY"],
+        "buyer": {"in_scope": True},
+        "settlement": {"as_offered": True},
+    },
+    "wrong_product": {
+        "profile": "quote-clean",
+        "env": {"TRAILPROOF_SETTLE": "wrong_product"},
+        "about": "the seller ships another sku; dispute, reveals, DELIVERED_NE_OFFER, verdict against the seller, refund",
+        "verdict": "passed",
+        "stages": {"correct": "passed"},
+        "chain": ["MANDATE", "OFFER", "ORDER", "CHARGE", "FULFILMENT", "DELIVERY", "DISPUTE", "REFUND"],
+        "buyer": {"in_scope": True},
+        "settlement": {"as_offered": False, "verdict": "merchant_at_fault", "finding": "DELIVERED_NE_OFFER",
+                       "case_status": "closed", "unrevealed": ["REFUND"]},
+    },
+    "tampered_reveal": {
+        "profile": "quote-clean",
+        "env": {"TRAILPROOF_SETTLE": "tamper_reveal"},
+        "about": "the seller ships another sku, then reveals a FULFILMENT claiming the right one; the hash gives it away",
+        "verdict": "passed",
+        "stages": {"correct": "passed"},
+        "chain": ["MANDATE", "OFFER", "ORDER", "CHARGE", "FULFILMENT", "DELIVERY", "DISPUTE"],
+        "buyer": {"in_scope": True},
+        "settlement": {"as_offered": False, "verdict": "merchant_at_fault", "finding": "TAMPERED",
+                       "case_status": "open", "unrevealed": ["FULFILMENT"]},
+    },
 }
 
 
@@ -115,6 +154,7 @@ def run_case(name: str, ledger_url: str, out_dir: str) -> dict[str, Any]:
     case = CASES[name]
     env_backup = dict(os.environ)
     os.environ["TRAILPROOF_URL"] = ledger_url
+    os.environ["TRAILPROOF_PARCEL_DIR"] = tempfile.mkdtemp(prefix="parcels-")
     os.environ.update(case["env"])
     try:
         bundle_dir, result = run_town(case["profile"], out_dir, external=participant_commands())
@@ -160,6 +200,11 @@ def run_case(name: str, ledger_url: str, out_dir: str) -> dict[str, Any]:
                     ("OFFER", seller_tp.get("receipt"), seller_tp.get("offer_commit"))]
         if buyer_tp.get("order_receipt"):
             receipts.append(("ORDER", buyer_tp["order_receipt"], buyer_tp.get("order_commit")))
+        settlement = buyer_tp.get("settlement") or {}
+        if settlement.get("delivery_receipt"):
+            receipts.append(("DELIVERY", settlement["delivery_receipt"], settlement.get("delivery_commit")))
+        if settlement.get("dispute_receipt"):
+            receipts.append(("DISPUTE", settlement["dispute_receipt"], settlement.get("dispute_commit")))
         for typ, receipt, c in receipts:
             checks[f"{typ} receipt verifies offline"] = bool(receipt and c and key) and verify_receipt(key, receipt, c)
         # The live chain, read back from the ledger by the buyer agent's party id.
@@ -174,6 +219,39 @@ def run_case(name: str, ledger_url: str, out_dir: str) -> dict[str, Any]:
         checks["town-recorded receipts are the chain's events"] = ids_in_town <= {e["event_id"] for e in trail["events"]}
         observed["trail"] = [{k: e[k] for k in ("type", "party_id", "commit", "prev", "event_id", "ledger_ts")}
                              for e in trail["events"]]
+        exp = case.get("settlement")
+        if exp:
+            checks["buyer committed the delivery it found"] = settlement.get("delivered") is True
+            checks[f"delivery as offered: {exp['as_offered']}"] = settlement.get("as_offered") is exp["as_offered"]
+            checks["three roles wrote the chain (buyer, seller, PSP) plus the user key"] = (
+                len({e["party_id"] for e in trail["events"]}) == 4)
+        if exp and "verdict" in exp:
+            # The buyer's note is what Town recorded; the case is then read back from the ledger and re-verified offline.
+            checks[f"town note: verdict {exp['verdict']}"] = settlement.get("verdict") == exp["verdict"]
+            checks[f"town note: finding {exp['finding']}"] = exp["finding"] in settlement.get("findings", [])
+            live = client.call("get_case_bundle", case_id=settlement["case_id"], party_id=buyer_tp["agent_party_id"])
+            checks[f"ledger: verdict {exp['verdict']}, case {exp['case_status']}"] = (
+                live["verdict"] == exp["verdict"] and live["status"] == exp["case_status"])
+            if exp["case_status"] == "closed":
+                refund = live["remedy"]
+                checks["ledger: refund of the full charge closes the case"] = (
+                    types[-1] == "REFUND" and refund["type"] == "refund" and refund["amount"] == "39.90")
+            pack = client.call("export_evidence_pack", case_id=settlement["case_id"], reason_code="product_not_as_described",
+                               party_id=buyer_tp["agent_party_id"])
+            problems, counts = verify_pack(pack)
+            n = len(trail["events"])
+            checks["evidence pack verifies offline (receipts, signatures, chain)"] = (
+                problems == [] and counts["receipts"] == counts["writer_sigs"] == counts["chain_links"] == n)
+            unrevealed = [e["type"] for e in pack["trailproof"]["events"] if not e.get("revealed")]
+            checks["pack: every plaintext hashes to its commitment, except " + ",".join(exp["unrevealed"])] = (
+                unrevealed == exp["unrevealed"] and counts["reveals"] == n - len(unrevealed))
+            doctored = json.loads(json.dumps(pack))
+            next(iter(doctored["trailproof"]["revealed_payloads"].values()))["doctored"] = True
+            checks["a doctored copy of the pack fails verification"] = verify_pack(doctored)[0] != []
+            observed["case"] = {"case_id": live["case_id"], "status": live["status"], "verdict": live["verdict"],
+                                "remedy": live["remedy"], "findings": [f["code"] for f in live["findings"]],
+                                "pack_counts": counts, "pack_unrevealed": unrevealed}
+            observed["evidence_pack"] = pack
     return {"case": name, "about": case["about"], "profile": case["profile"], "env": case["env"],
             "expected": {k: v for k, v in case.items() if k in ("verdict", "stages", "chain", "buyer")},
             "observed": observed, "checks": checks, "ok": all(checks.values())}
@@ -227,6 +305,10 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"       [{'PASS' if ok else 'FAIL'}] {check}")
             if args.record:
                 copy_bundle(r["observed"]["bundle_dir"], os.path.join(out, name))
+                if "evidence_pack" in r["observed"]:
+                    os.makedirs(os.path.join(out, "packs"), exist_ok=True)
+                    with open(os.path.join(out, "packs", f"{name}.json"), "w", encoding="utf-8", newline="\n") as f:
+                        json.dump(r["observed"]["evidence_pack"], f, indent=2, sort_keys=True)
     finally:
         stop_server(process)
 
@@ -238,7 +320,8 @@ def main(argv: list[str] | None = None) -> int:
         "platform": sys.platform,
         "recorded_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "cases": [{k: v for k, v in r.items() if k != "observed"} | {
-            "observed": {k: v for k, v in r["observed"].items() if k != "bundle_dir"}} for r in results],
+            "observed": {k: v for k, v in r["observed"].items() if k not in ("bundle_dir", "evidence_pack")}}
+            for r in results],
         "all_ok": all(r["ok"] for r in results),
     }
     with open(os.path.join(out, "summary.json"), "w", encoding="utf-8") as f:

@@ -21,6 +21,12 @@ says ``no_receipt``.
     TRAILPROOF_URL          the ledger's MCP endpoint
     TRAILPROOF_MANDATE_MAX  the mandate's max amount, default 40.00 (two widgets are 39.90)
     TRAILPROOF_CURRENCY     default EUR
+    TRAILPROOF_SETTLE       anything but off (the default): after an in-scope
+                            ORDER the buyer waits for the parcel, commits a
+                            DELIVERY of what it actually found, and if that is
+                            not what the offer said opens a dispute, reveals
+                            its plaintexts and reports the ledger's verdict
+    TRAILPROOF_PARCEL_DIR   where the seller drops parcels
 """
 
 from __future__ import annotations
@@ -42,9 +48,13 @@ from trailproof_link import (  # noqa: E402
     TrailProofClient,
     commit,
     iso_z,
+    read_parcel,
+    wait_for,
 )
 
 RUNTIME = "trailproof-buyer"
+# Settlement runs inside the claim, so it must end well inside Town's lease.
+SETTLE_BUDGET = 3.5
 EXIT_CORRECT = 0
 EXIT_INCORRECT = 4
 EXIT_NO_RESPONSE = 5
@@ -83,8 +93,57 @@ class Ledger:
         return self.agent is not None
 
 
+def settle(ledger: Ledger, order_id: str, offer: dict[str, Any], parcel_dir: str) -> dict[str, Any]:
+    """After the ORDER: take delivery, and dispute it on the ledger if it is not what was offered.
+
+    Returns the note fragment Town records: the DELIVERY receipt and, when a
+    case was opened, its id, the DISPUTE receipt and the ledger's verdict.
+    """
+    agent, user = ledger.agent, ledger.user
+    deadline = time.time() + SETTLE_BUDGET
+    out: dict[str, Any] = {"delivered": False}
+
+    def parcel_arrived():
+        shipped = any(e["type"] == "FULFILMENT" for e in agent.trail(order_id)["events"])
+        return read_parcel(parcel_dir, order_id) if shipped else None
+
+    try:
+        parcel = wait_for(parcel_arrived, deadline)
+        if not parcel:
+            return dict(out, detail="no parcel within the settlement budget")
+        as_offered = all(str(parcel.get(k)) == str(offer.get(k)) for k in ("sku", "qty", "unit"))
+        delivery = {"received": True, "sku": parcel.get("sku"), "qty": parcel.get("qty"), "unit": parcel.get("unit"),
+                    "note": "" if as_offered else f"offer said {offer.get('sku')}"}
+        rec = agent.record(order_id, "DELIVERY", delivery, prev=agent.head(order_id))
+        out.update(delivered=True, as_offered=as_offered, delivery_commit=rec["commit"], delivery_receipt=rec["receipt"])
+        if as_offered:
+            return out
+        opened = agent.open_dispute(order_id, "not_as_described",
+                                    f"received {parcel.get('sku')}, offer was {offer.get('sku')}", prev=rec["commit"])
+        case_id = opened["case_id"]
+        out.update(case_id=case_id, dispute_receipt=opened["receipt"], dispute_commit=commit(opened["dispute_payload"]))
+        for party in (user, agent):
+            for event_id in list(party.vault):
+                party.reveal(case_id, event_id)
+
+        def decided():
+            b = agent.bundle(case_id)
+            done = b["status"] == "closed" or any(f["code"] == "TAMPERED" for f in b["findings"])
+            return b if done else None
+
+        bundle = wait_for(decided, deadline) or agent.bundle(case_id)
+        out.update(case_status=bundle["status"], verdict=bundle["verdict"], remedy=bundle["remedy"],
+                   findings=sorted({f["code"] for f in bundle["findings"]}))
+    except ToolError as exc:
+        out.update(error=exc.code, detail=exc.detail)
+    except LedgerUnreachable as exc:
+        out.update(no_receipt=True, detail=str(exc)[:200])
+    return out
+
+
 def run(client: TownClient, name: str, token: str, state_dir: str, deadline_seconds: float,
-        grant_json: str | None, ledger_url: str | None, max_amount: str, currency: str) -> int:
+        grant_json: str | None, ledger_url: str | None, max_amount: str, currency: str,
+        settle_mode: str = "off", parcel_dir: str = "") -> int:
     client.join_auto(name, token, grant_json)
     task = client.run_context["task"]
     seller = find_seller(client)
@@ -138,6 +197,8 @@ def run(client: TownClient, name: str, token: str, state_dir: str, deadline_seco
                 in_scope = bool(res["in_scope"])
                 tp.update(in_scope=in_scope, reasons=res.get("reasons", []), order_commit=res.get("order_commit"),
                           order_receipt=res.get("receipt"))
+                if in_scope and settle_mode != "off":
+                    tp["settlement"] = settle(ledger, order_id, offer, parcel_dir)
             except ToolError as exc:
                 in_scope = False
                 tp.update(in_scope=False, reasons=[{"code": exc.code, "detail": exc.detail}])
@@ -163,7 +224,8 @@ def main() -> None:
     client = TownClient(env["TOWN_URL"], env["RUN_ID"])
     code = run(client, env["NAME"], env["TOKEN"], env["STATE_DIR"], float(env.get("DEADLINE", "25")),
                env.get("TOWN_GRANT"), env.get("TRAILPROOF_URL"), env.get("TRAILPROOF_MANDATE_MAX", "40.00"),
-               env.get("TRAILPROOF_CURRENCY", "EUR"))
+               env.get("TRAILPROOF_CURRENCY", "EUR"), env.get("TRAILPROOF_SETTLE", "off") or "off",
+               env.get("TRAILPROOF_PARCEL_DIR", ""))
     sys.exit(code)
 
 

@@ -1,0 +1,247 @@
+{
+  "customer_signature": {
+    "ledger_receipt": {
+      "event_id": "evt_b6b3b3ce366f407aaa8d795282592268",
+      "ledger_sig": "8fdfc199c767761d5ce8863edb80143b61ac2900734dfb2748694f9f8d0d95d16f3fc3b2d6df596d31b924ae01915c71586bef13fa0dc48fdf21ff7d95174008",
+      "ledger_ts": "2026-11-12T02:53:34.259Z"
+    },
+    "mandate_commit": "7a1bd8e21547bdfbaec3fc83ea326f50666b8482176a7d316c87e7cf93b7d124",
+    "user_party_id": "pty_a546dfceba1f",
+    "user_sig": "98c1626c949e45f116f6817e2b00ed80b167effb6001825f6c0a1afa81145c4fc2688f77f4b57e923fa9cabf0ecb8a06b14f6900467f5af4893a709cd24d9c0a"
+  },
+  "product_description": "2 each x widget (Town quote) (sku widget), 39.90 EUR; shipping: town mailbox, immediate; returns: none; synthetic quote",
+  "reason_code": "product_not_as_described",
+  "receipt": {
+    "ledger_receipt": {
+      "event_id": "evt_4824e86caea244b6a15b908652b8b3cf",
+      "ledger_sig": "51950ded3cb27164fdbab2baec18c81af9c98f1b69d394f37e4eaec6faaa6b3b074d1220f9d584f014fb1b33c9e18d0d37a3edbc4792d4dd4ff6bfa1c8b76d0b",
+      "ledger_ts": "2026-11-12T02:53:34.396Z"
+    },
+    "offer_commit": "063f5008ac5c811c3796aa52f4f477f81f1696ff3a1e51b2552e7b14c68db276"
+  },
+  "shipping_documentation": null,
+  "trailproof": {
+    "case_id": "case_07a1b513ed04",
+    "cites": [
+      "evt_4824e86caea244b6a15b908652b8b3cf",
+      "evt_7e9664ee609d4f2c93841b8d3ca221f1",
+      "evt_b6b3b3ce366f407aaa8d795282592268",
+      "evt_d0a5884df0ba47eda6cb93330fc957e0",
+      "evt_e7acbe13034d4115bdf306f1f033f1b1"
+    ],
+    "events": [
+      {
+        "commit": "7a1bd8e21547bdfbaec3fc83ea326f50666b8482176a7d316c87e7cf93b7d124",
+        "event_id": "evt_b6b3b3ce366f407aaa8d795282592268",
+        "ledger_receipt": {
+          "event_id": "evt_b6b3b3ce366f407aaa8d795282592268",
+          "ledger_sig": "8fdfc199c767761d5ce8863edb80143b61ac2900734dfb2748694f9f8d0d95d16f3fc3b2d6df596d31b924ae01915c71586bef13fa0dc48fdf21ff7d95174008",
+          "ledger_ts": "2026-11-12T02:53:34.259Z"
+        },
+        "party_id": "pty_a546dfceba1f",
+        "prev": null,
+        "refs": [],
+        "revealed": true,
+        "sig": "98c1626c949e45f116f6817e2b00ed80b167effb6001825f6c0a1afa81145c4fc2688f77f4b57e923fa9cabf0ecb8a06b14f6900467f5af4893a709cd24d9c0a",
+        "type": "MANDATE"
+      },
+      {
+        "commit": "063f5008ac5c811c3796aa52f4f477f81f1696ff3a1e51b2552e7b14c68db276",
+        "event_id": "evt_4824e86caea244b6a15b908652b8b3cf",
+        "ledger_receipt": {
+          "event_id": "evt_4824e86caea244b6a15b908652b8b3cf",
+          "ledger_sig": "51950ded3cb27164fdbab2baec18c81af9c98f1b69d394f37e4eaec6faaa6b3b074d1220f9d584f014fb1b33c9e18d0d37a3edbc4792d4dd4ff6bfa1c8b76d0b",
+          "ledger_ts": "2026-11-12T02:53:34.396Z"
+        },
+        "party_id": "pty_695cd3f10c43",
+        "prev": "7a1bd8e21547bdfbaec3fc83ea326f50666b8482176a7d316c87e7cf93b7d124",
+        "refs": [],
+        "revealed": true,
+        "sig": "ed844f169d3f9d3cf8eaccdb39249811ab23595a0fb6a9cf7197868b8042ae346b6dac652cc9d78434d19a46dd60cc4444d867a136c2faa8b8a004f76b7a190a",
+        "type": "OFFER"
+      },
+      {
+        "commit": "f0746c49d05695117572d2f244eb4fb48a676398d6f71f642ec1a4c51fea7338",
+        "event_id": "evt_d0a5884df0ba47eda6cb93330fc957e0",
+        "ledger_receipt": {
+          "event_id": "evt_d0a5884df0ba47eda6cb93330fc957e0",
+          "ledger_sig": "0f127a47e6dfe9a9618952afb09482b8ab18e74ec582911b744a887542497d091355a12fe5fcb789f1adeacd582266d0a04c283e51e526eba0f58f4fd0d69c01",
+          "ledger_ts": "2026-11-12T02:53:34.490Z"
+        },
+        "party_id": "pty_b4ccf098548c",
+        "prev": "063f5008ac5c811c3796aa52f4f477f81f1696ff3a1e51b2552e7b14c68db276",
+        "refs": [
+          "7a1bd8e21547bdfbaec3fc83ea326f50666b8482176a7d316c87e7cf93b7d124",
+          "063f5008ac5c811c3796aa52f4f477f81f1696ff3a1e51b2552e7b14c68db276"
+        ],
+        "revealed": true,
+        "sig": "69979649bd16407cefcdffd93ef22ac53307bf141fb22d583d22dabd13f36755ec79114209dfce7a520edf93caff1895005999907c451f70340cc5b9baa8e701",
+        "type": "ORDER"
+      },
+      {
+        "commit": "08009da5e415ebc5d9127a7be8992cdd4d339078439f150977bfd9d22b8de2ad",
+        "event_id": "evt_42fcc56c064942b7b003e584dfa46d56",
+        "ledger_receipt": {
+          "event_id": "evt_42fcc56c064942b7b003e584dfa46d56",
+          "ledger_sig": "62081ab047f614887543054a82d9624e34740a3b632101b6f1b1a3009b1042768a787fd18c68c718b901b29ff82bf76565532bb35c59ec9a7e713e3dc8263e0d",
+          "ledger_ts": "2026-11-12T02:53:34.521Z"
+        },
+        "party_id": "pty_7f9022b03b0a",
+        "prev": "f0746c49d05695117572d2f244eb4fb48a676398d6f71f642ec1a4c51fea7338",
+        "refs": [],
+        "revealed": true,
+        "sig": "7541eaf731485b579eeed9320e22cec015007194a2df06c550b809d4f035c13c3542360c135e90b14fd1c1367b2a3985a2b337a756f2a8f3d56371f52c0e730b",
+        "type": "CHARGE"
+      },
+      {
+        "commit": "0061aa7f21934281628151417d1f817526cfeb087e33201ffa4d32730b63bc82",
+        "event_id": "evt_e7acbe13034d4115bdf306f1f033f1b1",
+        "ledger_receipt": {
+          "event_id": "evt_e7acbe13034d4115bdf306f1f033f1b1",
+          "ledger_sig": "d7d0f95bd65e8bf9cbfe2d738de83dfda2deb246501db558799de39c6a022ec841d4622d71aa2090e1ebfc5d91107427fc42dc51c14136252aae80bfaadb830e",
+          "ledger_ts": "2026-11-12T02:53:34.524Z"
+        },
+        "party_id": "pty_695cd3f10c43",
+        "prev": "08009da5e415ebc5d9127a7be8992cdd4d339078439f150977bfd9d22b8de2ad",
+        "refs": [],
+        "revealed": false,
+        "sig": "04761fa6047aa329663931c85ab6e3fd33a5804a8571f626d9b72134a717623f1876c3f9b0f44cc70b4afd6128e688d203bb5ec1c262325ff74a4919d69c1d0e",
+        "type": "FULFILMENT"
+      },
+      {
+        "commit": "4366c31733d97b575a37a160dd38dd441a6185962f2f7f44c0ef175f14c1f64e",
+        "event_id": "evt_7e9664ee609d4f2c93841b8d3ca221f1",
+        "ledger_receipt": {
+          "event_id": "evt_7e9664ee609d4f2c93841b8d3ca221f1",
+          "ledger_sig": "44e05e17627caf38c7bd205ad6d11bdcbc75e682bc5fb7af3322b91aa8d10ef8b013ff05890a9f9bfaa598d0ccdf53025f6fc29a1bc44bcb54d7fce554dc970b",
+          "ledger_ts": "2026-11-12T02:53:34.644Z"
+        },
+        "party_id": "pty_b4ccf098548c",
+        "prev": "0061aa7f21934281628151417d1f817526cfeb087e33201ffa4d32730b63bc82",
+        "refs": [],
+        "revealed": true,
+        "sig": "5f7e0fb8f913981e63afe94b385ce5d78de3397c0b2f7d7ac34ed4f8a9a81bb2f20367e7d98aed0565c75edb41a222893abaf584ef3c3e48a0660ba563604809",
+        "type": "DELIVERY"
+      },
+      {
+        "commit": "b361c1b268995d85fdb2e108790ec87b8e0853db9bf38ce560158b9ee789b9df",
+        "event_id": "evt_2c3556684e664abfac01188f4959e921",
+        "ledger_receipt": {
+          "event_id": "evt_2c3556684e664abfac01188f4959e921",
+          "ledger_sig": "841addb3076d540b9755f74e914246c8f072ddaff31c67ec6d209695749703a1b1914b169971d7ebfc229c16cb455d63ed2697466a6a16bad9d1bce461da5907",
+          "ledger_ts": "2026-11-12T02:53:34.659Z"
+        },
+        "party_id": "pty_b4ccf098548c",
+        "prev": "4366c31733d97b575a37a160dd38dd441a6185962f2f7f44c0ef175f14c1f64e",
+        "refs": [],
+        "revealed": true,
+        "sig": "72c545c4bbcdc0cbd0f30571dca744b13d1cdd3c9b4cccd831c23646ecb88cb18fedd036fad5035b7852a5317d53da4ce88ee062e2863e787801b21a29211709",
+        "type": "DISPUTE"
+      }
+    ],
+    "findings": [
+      {
+        "code": "TAMPERED",
+        "detail": "merchant pty_695cd3f10c43 revealed FULFILMENT plaintext whose hash does not match the commitment it made earlier",
+        "evidence": [
+          "evt_e7acbe13034d4115bdf306f1f033f1b1"
+        ],
+        "party_id": "pty_695cd3f10c43",
+        "severity": "high"
+      },
+      {
+        "code": "DELIVERED_NE_OFFER",
+        "detail": "sku: delivery 'widget-b' vs offer 'widget'",
+        "evidence": [
+          "evt_7e9664ee609d4f2c93841b8d3ca221f1",
+          "evt_4824e86caea244b6a15b908652b8b3cf"
+        ],
+        "party_id": null,
+        "severity": "high"
+      },
+      {
+        "code": "MANDATE_IN_SCOPE",
+        "detail": "order was within the user's signed mandate at the time of ordering",
+        "evidence": [
+          "evt_b6b3b3ce366f407aaa8d795282592268",
+          "evt_4824e86caea244b6a15b908652b8b3cf",
+          "evt_d0a5884df0ba47eda6cb93330fc957e0"
+        ],
+        "party_id": null,
+        "severity": "info"
+      }
+    ],
+    "ledger_public_key": "2a84feb4fed55ca178341a22d1729c5069c33c7cc69a5a2359f893869af5e525",
+    "order_id": "town:run-8ebaa83a3f58:q-1",
+    "parties": {
+      "pty_695cd3f10c43": {
+        "public_key": "cfd3b5a7a64111034a4316f8a116f274383a640c1ea246c01f3927b14688dd83",
+        "role": "merchant"
+      },
+      "pty_7f9022b03b0a": {
+        "public_key": "709b55ac9af7331f4fb329bdadcff6f2785a2ae116e901ec6a36668bae363ec0",
+        "role": "psp"
+      },
+      "pty_a546dfceba1f": {
+        "public_key": "ace9860a8fd004c026ad05b4f524b85270f0baa4b8a1f7fb5ca26c6276bd615a",
+        "role": "user"
+      },
+      "pty_b4ccf098548c": {
+        "public_key": "047e149a7136736384a0a0ecbe988404488bab78743a95b82f2a29305076df97",
+        "role": "buyer_agent"
+      }
+    },
+    "revealed_payloads": {
+      "evt_2c3556684e664abfac01188f4959e921": {
+        "claim": "not_as_described",
+        "note": "received widget-b, offer was widget"
+      },
+      "evt_42fcc56c064942b7b003e584dfa46d56": {
+        "amount": "39.90",
+        "currency": "EUR",
+        "psp_ref": "ch_q-1"
+      },
+      "evt_4824e86caea244b6a15b908652b8b3cf": {
+        "category": "widget",
+        "currency": "EUR",
+        "nonce": "q-1",
+        "qty": 2,
+        "return_terms": "none; synthetic quote",
+        "shipping_terms": "town mailbox, immediate",
+        "sku": "widget",
+        "title": "widget (Town quote)",
+        "total": "39.90",
+        "unit": "each",
+        "unit_price": "19.95",
+        "valid_until": "2026-11-12T03:53:34.000Z"
+      },
+      "evt_7e9664ee609d4f2c93841b8d3ca221f1": {
+        "note": "offer said widget",
+        "qty": 2,
+        "received": true,
+        "sku": "widget-b",
+        "unit": "each"
+      },
+      "evt_b6b3b3ce366f407aaa8d795282592268": {
+        "categories": [
+          "widget"
+        ],
+        "currency": "EUR",
+        "max_amount": "40.00",
+        "merchants": "*",
+        "nonce": "run-8ebaa83a3f58:q-1",
+        "user_id": "buyer",
+        "valid_until": "2026-11-13T02:53:34.000Z"
+      },
+      "evt_d0a5884df0ba47eda6cb93330fc957e0": {
+        "currency": "EUR",
+        "mandate_commit": "7a1bd8e21547bdfbaec3fc83ea326f50666b8482176a7d316c87e7cf93b7d124",
+        "offer_commit": "063f5008ac5c811c3796aa52f4f477f81f1696ff3a1e51b2552e7b14c68db276",
+        "qty": 2,
+        "total": "39.90"
+      }
+    },
+    "verdict": "merchant_at_fault"
+  },
+  "uncategorized_text": "TrailProof case case_07a1b513ed04 for order town:run-8ebaa83a3f58:q-1. Claim: not_as_described. Verdict: merchant_at_fault (merchant tampered with evidence: merchant pty_695cd3f10c43 revealed FULFILMENT plaintext whose hash does not match the commitment it made earlier).\n[HIGH] TAMPERED: merchant pty_695cd3f10c43 revealed FULFILMENT plaintext whose hash does not match the commitment it made earlier (evidence: evt_e7acbe13034d4115bdf306f1f033f1b1)\n[HIGH] DELIVERED_NE_OFFER: sku: delivery 'widget-b' vs offer 'widget' (evidence: evt_7e9664ee609d4f2c93841b8d3ca221f1, evt_4824e86caea244b6a15b908652b8b3cf)\n[INFO] MANDATE_IN_SCOPE: order was within the user's signed mandate at the time of ordering (evidence: evt_b6b3b3ce366f407aaa8d795282592268, evt_4824e86caea244b6a15b908652b8b3cf, evt_d0a5884df0ba47eda6cb93330fc957e0)"
+}

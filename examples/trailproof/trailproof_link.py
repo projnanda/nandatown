@@ -28,6 +28,7 @@ import os
 import socket
 import subprocess
 import sys
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -132,6 +133,7 @@ class TrailProofClient:
         self.url = url
         self.timeout = timeout
         self._id = 0
+        self._lock = threading.Lock()  # a participant may settle on a second thread
         self.calls: list[str] = []
 
     def _post(self, message: dict[str, Any]) -> dict[str, Any] | None:
@@ -150,11 +152,12 @@ class TrailProofClient:
         return json.loads(raw.decode("utf-8"))
 
     def rpc(self, method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
-        self._id += 1
-        message: dict[str, Any] = {"jsonrpc": "2.0", "id": self._id, "method": method}
-        if params is not None:
-            message["params"] = params
-        reply = self._post(message)
+        with self._lock:
+            self._id += 1
+            message: dict[str, Any] = {"jsonrpc": "2.0", "id": self._id, "method": method}
+            if params is not None:
+                message["params"] = params
+            reply = self._post(message)
         if reply is None:
             raise LedgerUnreachable(f"empty reply to {method}")
         if "error" in reply:
@@ -245,6 +248,102 @@ class Party:
         if res.get("receipt"):
             self.vault[res["receipt"]["event_id"]] = order_payload
         return res
+
+
+    # ---- the dispute path -------------------------------------------------
+
+    def open_dispute(self, order_id: str, claim: str, note: str, prev: str | None) -> dict[str, Any]:
+        """Record DISPUTE and open a case. The payload is ``{"claim", "note"}``, signed with no refs."""
+        payload = {"claim": claim, "note": note}
+        sig = self.kp.sign(event_signing_message(commit(payload), prev, []))
+        return self.client.call("open_dispute", order_id=order_id, party_id=self.party_id, claim=claim, note=note, sig=sig)
+
+    def reveal(self, case_id: str, event_id: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Reveal one of this party's plaintexts into a case; the ledger re-hashes it against the commitment."""
+        return self.client.call("reveal", case_id=case_id, event_id=event_id,
+                                payload=self.vault[event_id] if payload is None else payload, party_id=self.party_id)
+
+    def bundle(self, case_id: str) -> dict[str, Any]:
+        return self.client.call("get_case_bundle", case_id=case_id, party_id=self.party_id)
+
+
+def wait_for(predicate, deadline: float, interval: float = 0.1):
+    """Poll ``predicate`` until it returns something truthy or ``deadline`` passes."""
+    while True:
+        value = predicate()
+        if value or time.time() >= deadline:
+            return value
+        time.sleep(interval)
+
+
+# --------------------------------------------------------------------------
+# The parcel: the one channel that is neither Town's mailbox nor the ledger.
+# The seller "ships" by dropping a file; the buyer records what it finds.
+# --------------------------------------------------------------------------
+
+
+def parcel_path(parcel_dir: str, order_id: str) -> str:
+    return os.path.join(parcel_dir, hashlib.sha256(order_id.encode("utf-8")).hexdigest()[:24] + ".json")
+
+
+def drop_parcel(parcel_dir: str, order_id: str, contents: dict[str, Any]) -> None:
+    os.makedirs(parcel_dir, exist_ok=True)
+    tmp = parcel_path(parcel_dir, order_id) + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(contents, f)
+    os.replace(tmp, parcel_path(parcel_dir, order_id))
+
+
+def read_parcel(parcel_dir: str, order_id: str) -> dict[str, Any] | None:
+    try:
+        with open(parcel_path(parcel_dir, order_id), encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+# --------------------------------------------------------------------------
+# Offline verification of an exported evidence pack (no ledger access)
+# --------------------------------------------------------------------------
+
+
+def verify_pack(pack: dict[str, Any]) -> tuple[list[str], dict[str, int]]:
+    """Re-check a TrailProof evidence pack from its JSON alone.
+
+    Ledger receipts, writer signatures, the hash chain, and every revealed
+    plaintext against its commitment. Returns ``(problems, counts)``.
+    """
+    tp = pack.get("trailproof") or {}
+    ledger_key, parties = tp.get("ledger_public_key", ""), tp.get("parties") or {}
+    revealed = tp.get("revealed_payloads") or {}
+    problems: list[str] = []
+    counts = {"receipts": 0, "writer_sigs": 0, "chain_links": 0, "reveals": 0}
+    prev: str | None = None
+    for e in tp.get("events") or []:
+        tag = f"{e['event_id']} ({e['type']})"
+        if verify_receipt(ledger_key, e.get("ledger_receipt") or {}, e["commit"]):
+            counts["receipts"] += 1
+        else:
+            problems.append(f"{tag}: ledger receipt does not verify")
+        party = parties.get(e["party_id"]) or {}
+        message = event_signing_message(e["commit"], e.get("prev"), e.get("refs") or [])
+        if verify_signature(party.get("public_key", ""), message, e.get("sig", "")):
+            counts["writer_sigs"] += 1
+        else:
+            problems.append(f"{tag}: writer signature does not verify")
+        if e.get("prev") == prev:
+            counts["chain_links"] += 1
+        else:
+            problems.append(f"{tag}: prev link broken")
+        prev = e["commit"]
+        if e["event_id"] in revealed:
+            if commit(revealed[e["event_id"]]) == e["commit"]:
+                counts["reveals"] += 1
+            else:
+                problems.append(f"{tag}: revealed payload does not hash to the commitment")
+    if not tp.get("events"):
+        problems.append("pack contains no events")
+    return problems, counts
 
 
 # --------------------------------------------------------------------------
