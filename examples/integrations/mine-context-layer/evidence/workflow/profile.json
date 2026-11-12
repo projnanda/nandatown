@@ -1,0 +1,145 @@
+{
+  "name": "mcl_workflow",
+  "description": "One underground-mine shift incident (scoop LH-07 fails at 09:18) handled through the Mine Context Layer MCP server, hosted in its own repository. Radio, CMMS, maintenance and planning are Town scripts with their own layer identities; the supervisor approves outside MCP. Includes a permission probe and a Town agent with no layer identity. Synthetic mine data.",
+  "seed": 42,
+  "layers": {
+    "transport": "memory.v1",
+    "communication": "envelope.v1",
+    "identity": "keys.v1",
+    "registry": "index.v1",
+    "auth": "hmac.v1",
+    "trust": "reputation.v1",
+    "payments": "ledger.v1",
+    "coordination": "contractnet.v1",
+    "negotiation": "haggle.v1",
+    "memory": "kv.v1",
+    "privacy": "redact.v1",
+    "data_facts": "evidence.v1"
+  },
+  "agents": [
+    {
+      "name": "layer",
+      "role": "mcl_layer",
+      "config": {
+        "case": "normal",
+        "supervisor": "supervisor",
+        "participants": {
+          "radio": {
+            "agent": "radio-agent",
+            "role": "source",
+            "source": "radio"
+          },
+          "cmms": {
+            "agent": "cmms-agent",
+            "role": "source",
+            "source": "cmms"
+          },
+          "maintenance": {
+            "agent": "maintenance-agent",
+            "role": "function"
+          },
+          "planning": {
+            "agent": "planning-agent",
+            "role": "function"
+          }
+        }
+      }
+    },
+    {
+      "name": "radio",
+      "role": "mcl_radio",
+      "config": {
+        "layer": "layer",
+        "notify": [
+          "cmms"
+        ],
+        "line": {
+          "at": "09:18",
+          "summary": "Scoop 7 lost hydraulic pressure and is stopped at 1310-04",
+          "mentions": [
+            "scoop 7",
+            "1310-04"
+          ],
+          "location": "1310-04",
+          "ref": "radio://PROD/09:18/scoop-7",
+          "text": "Control, scoop 7, se me cayo la presion hidraulica, no levanta el balde, quedo detenido en 1310-04, cambio."
+        }
+      }
+    },
+    {
+      "name": "cmms",
+      "role": "mcl_cmms",
+      "config": {
+        "layer": "layer",
+        "notify": [
+          "maintenance"
+        ],
+        "equipment": "LH-07",
+        "work_orders": [
+          {
+            "id": "OT-2041",
+            "date": "2026-05-12",
+            "hours": 3.5,
+            "work": "hydraulic hose replaced"
+          },
+          {
+            "id": "OT-2068",
+            "date": "2026-05-28",
+            "hours": 5.0,
+            "work": "hydraulic pump repair"
+          },
+          {
+            "id": "OT-2095",
+            "date": "2026-06-15",
+            "hours": 2.5,
+            "work": "lift cylinder seal replaced"
+          }
+        ]
+      }
+    },
+    {
+      "name": "maintenance",
+      "role": "mcl_maintenance",
+      "config": {
+        "layer": "layer",
+        "notify": [
+          "planning"
+        ],
+        "probe_permission": true
+      }
+    },
+    {
+      "name": "planning",
+      "role": "mcl_planning",
+      "config": {
+        "layer": "layer",
+        "notify": [
+          "supervisor"
+        ]
+      }
+    },
+    {
+      "name": "supervisor",
+      "role": "mcl_supervisor",
+      "config": {
+        "layer": "layer",
+        "approve": true
+      }
+    },
+    {
+      "name": "visitor",
+      "role": "mcl_intruder",
+      "config": {
+        "layer": "layer"
+      }
+    }
+  ],
+  "faults": [],
+  "redact_fields": [],
+  "max_time": 1000.0,
+  "validator": "mcl_workflow",
+  "plugin_files": [
+    "/private/tmp/mcl-town-3/nandatown/examples/integrations/mine-context-layer/mcl_plugin.py"
+  ],
+  "adaptations": []
+}

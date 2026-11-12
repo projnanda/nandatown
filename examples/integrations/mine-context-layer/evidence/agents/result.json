@@ -1,0 +1,67 @@
+{
+  "run_id": "sim-7d14b577cd4e",
+  "evaluator_version": "lab-0.2.6",
+  "stages": [
+    {
+      "name": "connection",
+      "status": "passed",
+      "evidence": [
+        "ev-11"
+      ],
+      "note": "live MCP stdio sessions, one per participant role"
+    },
+    {
+      "name": "real_agents",
+      "status": "passed",
+      "evidence": [
+        "ev-29",
+        "ev-36",
+        "ev-43",
+        "ev-50",
+        "ev-62"
+      ],
+      "note": ""
+    },
+    {
+      "name": "id_resolution",
+      "status": "passed",
+      "evidence": [
+        "ev-62"
+      ],
+      "note": ""
+    },
+    {
+      "name": "action_matches_key",
+      "status": "passed",
+      "evidence": [
+        "ev-62"
+      ],
+      "note": ""
+    },
+    {
+      "name": "human_decision",
+      "status": "passed",
+      "evidence": [
+        "ev-57",
+        "ev-62"
+      ],
+      "note": ""
+    },
+    {
+      "name": "ledger_conserved",
+      "status": "passed",
+      "evidence": [
+        "ev-65"
+      ],
+      "note": "complete run recorded no money moved"
+    },
+    {
+      "name": "privacy",
+      "status": "not_tested",
+      "evidence": [],
+      "note": "no redaction declared by this scenario"
+    }
+  ],
+  "verdict": "passed",
+  "evaluated_at": 1794201947.716241
+}

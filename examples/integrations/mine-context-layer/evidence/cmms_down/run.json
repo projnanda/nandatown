@@ -1,0 +1,57 @@
+{
+  "run_id": "sim-a93af70c6b6f",
+  "profile_name": "mcl_cmms_down",
+  "profile_fingerprint": "sha256:efc9a72743227b393bd48ffd85be8e04232a287fe440652b9d61388c439a92fc",
+  "created_at": 0.0,
+  "participants": [
+    {
+      "name": "layer",
+      "role": "mcl_layer"
+    },
+    {
+      "name": "radio",
+      "role": "mcl_radio"
+    },
+    {
+      "name": "cmms",
+      "role": "mcl_cmms"
+    },
+    {
+      "name": "maintenance",
+      "role": "mcl_maintenance"
+    },
+    {
+      "name": "planning",
+      "role": "mcl_planning"
+    },
+    {
+      "name": "supervisor",
+      "role": "mcl_supervisor"
+    }
+  ],
+  "releases": {
+    "nandatown": "0.2.0",
+    "evaluator": "lab-0.2.6",
+    "python": "3.12.13"
+  },
+  "config": {
+    "mode": "lab",
+    "seed": 42,
+    "layers": {
+      "transport": "memory.v1",
+      "communication": "envelope.v1",
+      "identity": "keys.v1",
+      "registry": "index.v1",
+      "auth": "hmac.v1",
+      "trust": "reputation.v1",
+      "payments": "ledger.v1",
+      "coordination": "contractnet.v1",
+      "negotiation": "haggle.v1",
+      "memory": "kv.v1",
+      "privacy": "redact.v1",
+      "data_facts": "evidence.v1"
+    },
+    "logical_time": 3.8000000000000025,
+    "rerun_command": "nandatown run examples/integrations/mine-context-layer/mcl_cmms_down.yaml --seed 42"
+  }
+}
