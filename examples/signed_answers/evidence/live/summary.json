@@ -1,0 +1,124 @@
+{
+  "mode": "live",
+  "cases": [
+    {
+      "case": "clean",
+      "scenario": "signed_answers_clean",
+      "expected": "passed",
+      "expected_failed_stages": [],
+      "observed": "passed",
+      "failed_stages": [],
+      "not_enough_evidence": [],
+      "bundle_verifies": true,
+      "as_expected": true,
+      "stages": {
+        "outlet_listed": "passed",
+        "outlet_discovered": "passed",
+        "package_verified[reader-subscriber]": "passed",
+        "no_package_without_credential[reader-stranger]": "passed",
+        "ledger_conserved": "passed",
+        "privacy": "passed"
+      },
+      "notes": {}
+    },
+    {
+      "case": "duplicate",
+      "scenario": "signed_answers_duplicate",
+      "expected": "failed",
+      "expected_failed_stages": [
+        "one_package_per_request[reader-subscriber]"
+      ],
+      "observed": "failed",
+      "failed_stages": [
+        "one_package_per_request[reader-subscriber]"
+      ],
+      "not_enough_evidence": [],
+      "bundle_verifies": true,
+      "as_expected": true,
+      "stages": {
+        "outlet_listed": "passed",
+        "outlet_discovered": "passed",
+        "package_verified[reader-subscriber]": "passed",
+        "one_package_per_request[reader-subscriber]": "failed",
+        "ledger_conserved": "passed",
+        "privacy": "passed"
+      },
+      "notes": {
+        "one_package_per_request[reader-subscriber]": "one request, delivered twice, produced 2 answers: 2 different package ids and 0 without a package"
+      }
+    },
+    {
+      "case": "duplicate_remembered",
+      "scenario": "signed_answers_duplicate_remembered",
+      "expected": "passed",
+      "expected_failed_stages": [],
+      "observed": "passed",
+      "failed_stages": [],
+      "not_enough_evidence": [],
+      "bundle_verifies": true,
+      "as_expected": true,
+      "stages": {
+        "outlet_listed": "passed",
+        "outlet_discovered": "passed",
+        "package_verified[reader-subscriber]": "passed",
+        "one_package_per_request[reader-subscriber]": "passed",
+        "ledger_conserved": "passed",
+        "privacy": "passed"
+      },
+      "notes": {}
+    },
+    {
+      "case": "altered",
+      "scenario": "signed_answers_altered",
+      "expected": "passed",
+      "expected_failed_stages": [],
+      "observed": "passed",
+      "failed_stages": [],
+      "not_enough_evidence": [],
+      "bundle_verifies": true,
+      "as_expected": true,
+      "stages": {
+        "outlet_listed": "passed",
+        "outlet_discovered": "passed",
+        "altered_package_rejected[reader-subscriber]": "passed",
+        "ledger_conserved": "passed",
+        "privacy": "passed"
+      },
+      "notes": {}
+    },
+    {
+      "case": "outlet_down",
+      "scenario": "signed_answers_clean",
+      "expected": "failed",
+      "expected_failed_stages": [
+        "outlet_listed",
+        "outlet_discovered"
+      ],
+      "observed": "failed",
+      "failed_stages": [
+        "outlet_listed",
+        "outlet_discovered"
+      ],
+      "not_enough_evidence": [
+        "package_verified[reader-subscriber]",
+        "no_package_without_credential[reader-stranger]"
+      ],
+      "bundle_verifies": true,
+      "as_expected": true,
+      "stages": {
+        "outlet_listed": "failed",
+        "outlet_discovered": "failed",
+        "package_verified[reader-subscriber]": "not_enough_evidence",
+        "no_package_without_credential[reader-stranger]": "not_enough_evidence",
+        "ledger_conserved": "passed",
+        "privacy": "passed"
+      },
+      "notes": {
+        "outlet_listed": "the outlet's card must be in the Town registry, verified",
+        "outlet_discovered": "every reader must find the outlet through the registry",
+        "package_verified[reader-subscriber]": "every answer to a subscriber's reader must be a package whose id and signature check out under the key on the outlet's Town card",
+        "no_package_without_credential[reader-stranger]": "a reader with no subscriber credential must get a completed answer and no package"
+      }
+    }
+  ]
+}

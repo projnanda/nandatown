@@ -1,0 +1,15 @@
+name: signed_answers_duplicate
+description: Town delivers the reader's one request to the outlet twice. The outlet's agent should treat the second delivery as the same request and return the same signed package. This run records what it does.
+seed: 42
+validator: signed_answers
+redact_fields: [envelope, question]
+agents:
+  - name: outlet
+    role: sa_outlet
+    config: {subscribers: [reader-subscriber]}
+  - name: reader-subscriber
+    role: sa_reader
+    config: {question: "What did you report about the transit board's night route cuts, and was it corrected?"}
+faults:
+  - {action: duplicate, kind: source_request, nth: 1}
+max_time: 60
