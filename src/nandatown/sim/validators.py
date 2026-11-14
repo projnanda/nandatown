@@ -1097,6 +1097,36 @@ def auction(spec, trace: Trace) -> list[StageResult]:
     return stages
 
 
+@validator("auction_replay")
+def auction_replay(spec, trace: Trace) -> list[StageResult]:
+    """The auction must settle as usual while a win notice from someone
+    other than the auctioneer goes nowhere: every such notice is
+    refused on delivery, and no bidder but the recorded winner pays."""
+    stages = auction(spec, trace)
+    issuers = {a.name for a in spec.agents if a.role == "auctioneer"}
+    notices = [e for e in trace.find("message_sent", kind="auction_won")
+               if e.observer not in issuers]
+    stages.append(_check(
+        "replay_attempted", bool(notices), _event_ids(notices),
+        "no win notice was sent by anyone but the auctioneer"))
+
+    refusals = {}
+    for e in trace.find("delivery_failed"):
+        refusals.setdefault(e.subject, e)
+    refused = [refusals[e.subject] for e in notices if e.subject in refusals]
+    winners = {e.detail.get("winner") for e in trace.find("task_awarded")}
+    wrongly_paid = [e for e in trace.find("payment_settled")
+                    if e.detail.get("from") not in winners]
+    stages.append(_check(
+        "replay_refused",
+        bool(notices) and len(refused) == len(notices) and not wrongly_paid,
+        _event_ids(wrongly_paid) or _event_ids(refused)
+        or _event_ids(notices),
+        "a replayed win notice must be refused, and only the recorded"
+        " winner may pay"))
+    return stages
+
+
 @validator("voting")
 def voting(spec, trace: Trace) -> list[StageResult]:
     stages = []

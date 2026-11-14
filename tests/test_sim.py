@@ -12,9 +12,10 @@ from nandatown.sim.scenario import (
 
 ALL_SCENARIOS = ["marketplace", "auction", "voting", "consensus",
                  "supply_chain", "capability_spoofing", "capped_influence",
-                 "registry_eviction"]
+                 "registry_eviction", "auction_replay"]
 FAILING_SCENARIOS = ["capability_spoofing_weak_auth",
-                     "capped_influence_uncapped_control", "registry_eviction_unowned"]
+                     "capped_influence_uncapped_control", "registry_eviction_unowned",
+                     "auction_replay_unbound"]
 
 
 def trace_of(spec):

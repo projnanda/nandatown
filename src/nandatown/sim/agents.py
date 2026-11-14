@@ -302,6 +302,28 @@ class Bidder(SimAgent):
         self.api.rate(msg["sender"], "good")
 
 
+@role("result_replayer")
+class ResultReplayer(Bidder):
+    """A losing bidder that replays the auctioneer's signed result to
+    another bidder as the win notice. It forges nothing: the body and
+    the signature are the ones the auctioneer sent it."""
+
+    def handle_auction_result(self, msg):
+        super().handle_auction_result(msg)
+        victim = self.config["victim"]
+        engine = self.api._engine
+        replay = engine.layers["communication"].envelope(
+            msg["sender"], victim, "auction_won", msg["body"],
+            msg["conversation"])
+        replay["signature"] = msg["signature"]
+        engine.record_intent(self.name, "send",
+                             {"to": victim, "kind": "auction_won",
+                              "body": msg["body"],
+                              "replayed_from": msg["message_id"],
+                              "claimed_sender": msg["sender"]})
+        engine.layers["transport"].send(self.name, victim, replay)
+
+
 # -- voting ------------------------------------------------------------
 
 
