@@ -41,7 +41,12 @@ class TownAPI:
         auth = self._engine.layers["auth"]
         self._engine.layers["identity"].create(self.name)
         envelope = comms.envelope(self.name, to, kind, body, conversation)
-        envelope["signature"] = auth.sign_as(self.name, envelope["body"])
+        # An auth plugin that binds the envelope signs all of it; the
+        # others sign the body, as before.
+        sign_envelope = getattr(auth, "sign_envelope", None)
+        envelope["signature"] = (
+            sign_envelope(envelope) if callable(sign_envelope)
+            else auth.sign_as(self.name, envelope["body"]))
         self._engine.record_intent(self.name, "send",
                                    {"to": to, "kind": kind, "body": body})
         self._engine.layers["transport"].send(self.name, to, envelope)

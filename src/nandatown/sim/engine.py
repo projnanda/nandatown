@@ -92,9 +92,13 @@ class Engine:
                       {"to": to, "reason": "unknown recipient"})
             return
         auth = self.layers["auth"]
-        if not auth.verify(envelope["sender"], envelope["body"],
-                           envelope.get("signature", ""),
-                           subject=envelope["message_id"]):
+        verify_envelope = getattr(auth, "verify_envelope", None)
+        verified = (
+            verify_envelope(envelope, to) if callable(verify_envelope)
+            else auth.verify(envelope["sender"], envelope["body"],
+                             envelope.get("signature", ""),
+                             subject=envelope["message_id"]))
+        if not verified:
             self.emit("town", "delivery_failed", envelope["message_id"],
                       {"to": to, "reason": "bad signature"})
             return
