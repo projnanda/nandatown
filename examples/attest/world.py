@@ -30,9 +30,7 @@ MIN_STAKE = bw.MIN_STAKE        # 10,000: a sender's issuer must be staked this 
 
 
 def build(workdir: Path) -> dict:
-    gate_dir = workdir / "gate"
-    os.environ.setdefault("ATTEST_LOG_DIR", str(workdir / "logs"))
-    gate = Gate(gate_dir)
+    gate = Gate(workdir / "gate")        # seeding writes no receipts; the server keeps its own logs
     seller_key = bw.operator(RECEIVER)
     gate.register_receiver(RECEIVER, min_stake=MIN_STAKE,
                            policy={"escalate_above": {"place_order": bw.ESCALATE_ABOVE}},

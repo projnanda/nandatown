@@ -24,18 +24,22 @@ from nandatown.runner import run_town  # noqa: E402
 EX = Path(__file__).resolve().parent.parent / "examples" / "attest"
 
 
-@pytest.fixture()
-def gate(tmp_path, monkeypatch):
+def _start_gate(tmp_path, monkeypatch, sandbox=False):
+    """Seed the cast and start the real gate over HTTP on a free port. sandbox=True runs it as
+    Attest's public sandbox (ATTEST_SANDBOX=1): self-registration and free test stake."""
     subprocess.run([sys.executable, str(EX / "world.py"), str(tmp_path)], check=True,
                    env={**os.environ, "ATTEST_HOME": ATTEST_HOME})
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
         port = s.getsockname()[1]
+    env = {**os.environ, "ATTEST_STATE_DIR": str(tmp_path / "gate"),
+           "ATTEST_LOG_DIR": str(tmp_path / "logs")}
+    env.pop("ATTEST_SANDBOX", None)
+    if sandbox:
+        env["ATTEST_SANDBOX"] = "1"
     proc = subprocess.Popen(
         [sys.executable, "-m", "uvicorn", "gate.server:app", "--port", str(port)],
-        cwd=ATTEST_HOME, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-        env={**os.environ, "ATTEST_STATE_DIR": str(tmp_path / "gate"),
-             "ATTEST_LOG_DIR": str(tmp_path / "logs")})
+        cwd=ATTEST_HOME, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=env)
     url = f"http://127.0.0.1:{port}"
     for _ in range(50):
         try:
@@ -46,6 +50,20 @@ def gate(tmp_path, monkeypatch):
     monkeypatch.setenv("ATTEST_URL", url)
     monkeypatch.setenv("ATTEST_CAST", str(tmp_path / "cast.json"))
     monkeypatch.setenv("DEADLINE", "8")
+    return url, proc
+
+
+@pytest.fixture()
+def gate(tmp_path, monkeypatch):
+    url, proc = _start_gate(tmp_path, monkeypatch)
+    yield url
+    proc.kill()
+    proc.wait(timeout=10)
+
+
+@pytest.fixture()
+def sandbox_gate(tmp_path, monkeypatch):
+    url, proc = _start_gate(tmp_path, monkeypatch, sandbox=True)
     yield url
     proc.kill()
     proc.wait(timeout=10)
@@ -53,13 +71,17 @@ def gate(tmp_path, monkeypatch):
 
 def _run(tmp_path, monkeypatch, profile, agent="proc", tamper=False,
          journal=True, stock_buyer=False, action=None, amount=None, signer=None,
-         solve_pow=False):
-    monkeypatch.setenv("ATTEST_AGENT", agent)
+         solve_pow=False, discover=False, identity=None, receiver=None, receiver_key=None):
     monkeypatch.setenv("ATTEST_TAMPER", "1" if tamper else "0")
     monkeypatch.setenv("ATTEST_JOURNAL", "1" if journal else "0")
-    for key, value in (("ATTEST_ACTION", action), ("ATTEST_AMOUNT", amount),
+    if agent is None or identity is not None:
+        monkeypatch.delenv("ATTEST_CAST", raising=False)     # not a member of the cast
+    for key, value in (("ATTEST_AGENT", agent), ("ATTEST_ACTION", action), ("ATTEST_AMOUNT", amount),
                        ("ATTEST_SIGNER", signer),
-                       ("ATTEST_SOLVE_POW", "1" if solve_pow else None)):
+                       ("ATTEST_SOLVE_POW", "1" if solve_pow else None),
+                       ("ATTEST_DISCOVER", "1" if discover else None),
+                       ("ATTEST_IDENTITY", identity), ("ATTEST_RECEIVER", receiver),
+                       ("ATTEST_RECEIVER_KEY", receiver_key)):
         if value is None:
             monkeypatch.delenv(key, raising=False)
         else:
@@ -107,6 +129,7 @@ def test_stock_town_buyer_is_refused(gate, tmp_path, monkeypatch):
     r = _run(tmp_path, monkeypatch, "quote-clean", stock_buyer=True)
     note = _seller(r)[0]
     assert note["attest_decision"] == "refuse" and "no KYA envelope" in note["attest_reason"]
+    assert note["attest_hint_sent"] is True      # the refusal says where the gate is and what to bring
     assert r.stages["correct"] == "not_enough_evidence"
 
 
@@ -117,11 +140,15 @@ def test_duplicate_delivery_with_journal_serves_once(gate, tmp_path, monkeypatch
     assert notes[0]["attest_decision"] == "allow" and notes[1]["duplicate"] is True
 
 
-def test_duplicate_delivery_without_journal_hits_gate_replay_refusal(gate, tmp_path, monkeypatch):
+def test_duplicate_delivery_without_journal_is_caught_by_the_gate_repeat(gate, tmp_path, monkeypatch):
+    # Before the gate answered repeats, the second delivery got `refuse` / `replay`. Now it gets the original
+    # answer marked repeat, the seller does not apply it again, and Town sees one application.
     r = _run(tmp_path, monkeypatch, "quote-duplicate-delivery", journal=False)
     notes = _seller(r)
-    assert notes[0]["attest_decision"] == "allow"
-    assert notes[1]["attest_decision"] == "refuse" and notes[1]["attest_reason"] == "replay"
+    assert notes[0]["attest_decision"] == "allow" and notes[0]["applied"] is True
+    assert notes[1]["attest_repeat"] is True and notes[1]["duplicate"] is True
+    assert notes[1]["attest_receipt_id"] == notes[0]["attest_receipt_id"]
+    assert r.stages["processed"] == "passed"
 
 
 # ---- the rest of the gate: delegation, scope, limits, escalation, revocation, slashing,
@@ -238,3 +265,55 @@ def test_issuer_stake_caps_what_many_agents_can_move(gate, tmp_path, monkeypatch
                           action="place_order", amount=7000)) for i in range(1, 5)]
     assert [d[0] for d in out[:3]] == ["allow"] * 3
     assert out[3] == ("refuse", "issuer_exposure_over_stake", False)
+
+
+# ---- finding the gate from inside Town, and agents that signed themselves up ----
+
+def _buyer(run):
+    return [n for who, n in run.notes if who == "buyer"]
+
+
+def test_stranger_learns_the_gate_from_the_seller_and_gets_a_public_quote(gate, tmp_path, monkeypatch):
+    # The buyer has no credential and is told nothing about Attest: no gate URL, no receiver
+    # name. It asks like any Town buyer, reads the refusal, and comes back with an envelope.
+    r = _run(tmp_path, monkeypatch, "quote-clean", agent=None, discover=True, solve_pow=True)
+    plain, asked, solved = _seller(r)[:3]
+    assert (plain["attest_decision"], plain["attest_hint_sent"]) == ("refuse", True)
+    assert (asked["attest_decision"], asked["attest_reason"]) == ("unknown", "pow_required")
+    assert (solved["attest_reason"], solved["applied"], solved["total_cents"]) == ("pow_ok", True, 3990)
+    learned = _buyer(r)[0]
+    assert (learned["learned_gate"], learned["learned_receiver"]) == (gate, "supplierco")
+    assert _buyer(r)[-1]["attest_receipt_verified"] is True
+    assert _buyer(r)[-1]["correct"] is True
+
+
+def test_self_registered_operator_is_served_through_town(sandbox_gate, tmp_path, monkeypatch):
+    # Everything here is done the way an outside team would do it, with Attest's own SDK
+    # against a sandbox gate: no cast, no access to the gate's state.
+    monkeypatch.setenv("ATTEST_DIR", str(tmp_path / "ids"))
+    sys.path.insert(0, ATTEST_HOME)
+    from attest import identity
+    from attest.client import Attest
+    sdk = Attest(sandbox_gate)
+    op = identity.new_operator("Widget Buyers")
+    assert sdk.faucet(op)["stake"] > 0                              # free test stake, once
+    shop = identity.new_receiver("town-seller")
+    sdk.register_receiver(shop, min_stake=5000, escalate_above={"place_order": 1500})
+    identity.new_agent("wb-procurement", op, "buys widgets", ["request_quote", "place_order"], 2000)
+    me = str(tmp_path / "ids" / "wb-procurement.json")
+    shop_key = str(tmp_path / "ids" / "town-seller.json")       # the seller signs its own checks
+
+    quote = _run(tmp_path, monkeypatch, "quote-clean", identity=me, receiver="town-seller", receiver_key=shop_key,
+                 discover=True)
+    assert _seller(quote)[0]["attest_decision"] == "refuse"            # no envelope yet
+    assert _decision(quote, 1) == ("allow", "ok", True)
+    assert _buyer(quote)[0]["learned_receiver"] == "town-seller"
+    assert _buyer(quote)[-1]["attest_receipt_verified"] is True
+    assert _buyer(quote)[-1]["correct"] is True
+    # Town grades quote-clean as one request and one response, matched to the first request.
+    # Discovery takes two requests (plain, then with an envelope), so Town's own correct stage
+    # does not pass here; the buyer's note above is the check.
+
+    big = _run(tmp_path, monkeypatch, "quote-clean", identity=me, receiver="town-seller", receiver_key=shop_key,
+               action="place_order", amount=1800)
+    assert _decision(big) == ("escalate", "policy_escalation", False)   # its own policy
