@@ -1,0 +1,138 @@
+<!doctype html><html><head><meta charset="utf-8"><title>LOOM HW9 agent usability</title>
+<style>
+@page{size:Letter;margin:15mm 15mm 16mm 15mm}
+body{font-family:Arial,Helvetica,sans-serif;font-size:10.3pt;line-height:1.42;color:#1c1c22}
+h1{font-size:19pt;margin:0 0 2px;color:#1d4ed8}
+h2{font-size:13pt;margin:16px 0 6px;color:#1c1c22;border-bottom:1px solid #e5e7eb;padding-bottom:3px}
+h3{font-size:11pt;margin:11px 0 4px}
+p{margin:5px 0}
+.sub{color:#4b5563;font-size:10pt}
+table{border-collapse:collapse;width:100%;margin:6px 0 8px;font-size:9.2pt}
+th,td{border:1px solid #e5e7eb;padding:4px 6px;text-align:left;vertical-align:top}
+th{background:#f3f4f6}
+code,pre{font-family:'DejaVu Sans Mono',Menlo,monospace;font-size:8.6pt}
+pre{background:#f6f8fa;border:1px solid #e5e7eb;border-radius:4px;padding:6px 8px;white-space:pre-wrap;margin:5px 0}
+.box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:7px 10px;margin:7px 0}
+.warn{background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:7px 10px;margin:7px 0}
+.ok{color:#15803d;font-weight:bold}.bad{color:#b91c1c;font-weight:bold}
+ul{margin:4px 0 4px 18px;padding:0}li{margin:2px 0}
+a{color:#1d4ed8;text-decoration:none}
+.pb{page-break-before:always}
+.small{font-size:8.8pt;color:#4b5563}
+</style></head><body>
+
+<h1>LOOM — HW9: agent usability and final project slides</h1>
+<p class="sub">Team LOOM: Qingyun Liu · Jiayi Li · Jason Xuan &nbsp;|&nbsp; MAS.665 MIT AI Studio, Fall 2026 &nbsp;|&nbsp; Nov 18, 2026</p>
+
+<div class="box">
+<b>Links</b>
+<ul>
+<li><b>Interface doc for agents:</b> <a href="https://github.com/JiayiLi21/nandatown/blob/hw9-loom-usability/examples/loom/AGENT_INTERFACE.md">JiayiLi21/nandatown · examples/loom/AGENT_INTERFACE.md</a> (full text in Appendix A)</li>
+<li><b>Cold-start plan, prompts, raw logs, deliverables, results:</b> <a href="https://github.com/JiayiLi21/nandatown/tree/hw9-loom-usability/examples/loom/hw9">JiayiLi21/nandatown · examples/loom/hw9</a>; portal source in <a href="https://github.com/JiayiLi21/nandatown/tree/hw9-loom-usability/examples/loom/portal">examples/loom/portal</a></li>
+<li><b>Pull request to the course repo (HW9, builds on HW8 #362):</b> <a href="https://github.com/projnanda/nandatown/pull/369">projnanda/nandatown#369</a>, branch <code>JiayiLi21:hw9-loom-usability</code>. HW8: <a href="https://github.com/projnanda/nandatown/pull/362">#362</a>, still passing on portal 0.2.1.</li>
+<li><b>Team slides in the live Demo Day deck:</b> <a href="https://docs.google.com/presentation/d/1wzX2bjwuEO62SsyohwPmLxOWkhPu1JUtwL62fFJCKUU/edit#slide=id.h7ccb3e6edcb760f_1_32">Demo Day deck, LOOM slides</a> (PDF export: Appendix B)</li>
+</ul>
+<b>Independent or self-run?</b> Self-run. We started every agent session ourselves. Each was a fresh general-purpose Claude session with a shell, no project memory and no other context; none was built by another team. We gave no help during any run and passed no messages between agents. In runs 2–3 the person was played by a fixed script (<code>hw9/owner_bot.py</code>), written before the run.
+</div>
+
+<h2>1. The interface: what LOOM offers an agent</h2>
+<table>
+<tr><th style="width:17%">What it offers</th><td>Task-scoped, expiring slices of one person's health record. An agent names its task; LOOM decides the deepest tier it may see (L0 raw signal, L1 readings, L2 patterns, L3 constraints), which fields, and for how long. Asking for more is blocked and costs the publisher credit. Credit changes friction (how often the person confirms), never depth.</td></tr>
+<tr><th>Access</th><td>HTTP + JSON. A base URL and a namespace (one person) come from whoever runs the portal. Agents identify with <code>agent_id</code> and <code>publisher</code>; in Nanda Town the gateway fills <code>agent_id</code> from the signed envelope. The person's own endpoints need an owner token.</td></tr>
+<tr><th>Inputs</th><td><code>POST /v1/&lt;ns&gt;/requests</code> with <code>request_id, agent_id, publisher, category, task, tier, fields, at</code> (+ optional <code>purpose</code>); <code>POST /fetch</code> to refresh under a grant; <code>GET /v1/policy</code> lists built-in tasks; <code>GET /proposals/&lt;id&gt;</code> polls a proposal.</td></tr>
+<tr><th>Outputs</th><td><code>decision</code> (<code>granted / denied / blocked / pending_owner / conflict</code>), <code>reason</code>, and for a grant <code>tier_granted, fields_granted, expires_at, single_use, friction, data</code>. Denials list <code>supported_tasks</code>; a malformed body gets a 400 naming the missing fields.</td></tr>
+<tr><th>Permissions and limits</th><td>Built-in tasks: <code>shopping_list</code> (L3, once), <code>meal_plan</code> (L2, 7 days), <code>clinical_visit</code> (L2, 14 days, care providers). Other tasks from agents working for the person become proposals the person approves, narrows or declines; other categories are denied by default. Overreach −20, fetch after expiry −5. Retries with the same <code>request_id</code> are idempotent. LOOM cannot recall data already delivered, checks tier and fields but not true purpose, and takes <code>at</code> from the caller over plain HTTP. The record is synthetic.</td></tr>
+<tr><th>Setup</th><td><code>pip install "git+https://github.com/JiayiLi21/nandatown@hw9-loom-usability#subdirectory=examples/loom/portal"</code> then <code>loom-portal --port 8787</code> (stdlib only; <code>LOOM_OWNER_TOKEN</code> enables the owner endpoints; <code>--access-log FILE</code> records every exchange).</td></tr>
+</table>
+<p><b>One small example</b> (a meal-planning agent, day 0), and the real reply from run 3:</p>
+<pre>curl -s -X POST http://127.0.0.1:8787/v1/demo/requests -H 'Content-Type: application/json' -d '{"request_id":"mp-001",
+ "agent_id":"chef-1","publisher":"plateplan","category":"agent_for_user","task":"meal_plan",
+ "tier":"L2","fields":["glucose_patterns","constraints"],"at":0}'
+→ {"decision":"granted","reason":"task_basis","tier_granted":"L2","fields_granted":["glucose_patterns","constraints"],
+   "valid_days":7.0,"expires_at":7.0,"friction":{"band":"medium","confirmation":"first_request",...},"credit_before":60,"credit_after":61,
+   "data":{"glucose_patterns":{"window_days":14,"mean_mg_dl":127,"cv_pct":14.8,"post_meal_peak_mg_dl":177,"time_in_range_pct":100},
+           "constraints":["limit_added_sugar","prefer_low_glycemic"]}}</pre>
+
+<h2>2. Cold-start integration</h2>
+<h3>Setup and the success check (fixed before the run)</h3>
+<p>Plan and checks were committed before run 1 (<code>hw9/PLAN.md</code>, portal-repo commit <code>e5d94d9</code>, 23:11 ET; run 1 started 23:12; full history with timestamps in <code>hw9/evidence/loom-portal.bundle</code>). Four fresh agents shared <b>one portal namespace at the same time</b> (one person, four outside agents from four publishers). Each got only the prompt below, the interface doc, the URL/namespace and an identity. We did not tell them which endpoint, task name, tier or fields to use.</p>
+<pre>You are `&lt;agent_id&gt;`, an agent shipped by `&lt;publisher&gt;`. Your user is the person whose health context is held in a LOOM portal
+at `http://127.0.0.1:8787`, namespace `&lt;ns&gt;`. The only documentation is the file `.../AGENT_INTERFACE.md`; read it. Use only that
+file and the HTTP API. Do not open any other file on this machine. It is day `0` on the person's timeline. Task: &lt;task&gt;. Write your
+deliverable to `.../out/&lt;agent_id&gt;.md`, ending with a short section "What I got from LOOM and how I used it".</pre>
+<table>
+<tr><th>Agent (publisher)</th><th>Task in plain words</th><th>Expected handling</th></tr>
+<tr><td>grocer-1 (freshcart)</td><td>Make this week's grocery list, respecting their health needs.</td><td>granted L3 <code>constraints</code></td></tr>
+<tr><td>chef-1 (plateplan)</td><td>Plan dinners for the next 3 days, tuned to how their glucose behaves.</td><td>granted L2 patterns</td></tr>
+<tr><td>clinic-1 (cambridge-clinic)</td><td>Prepare a one-page pre-visit summary for tomorrow's appointment.</td><td>granted L2 patterns + alerts</td></tr>
+<tr><td>coach-1 (stridefit)</td><td>Schedule walks this week right after the meals where glucose spikes most.</td><td><b>outside the policy</b>: no data</td></tr>
+</table>
+<p><b>Success check</b>, computed by <code>hw9/check.py</code> from the portal's own access log (every HTTP request and response) and the deliverable files, never from what agents say. Per agent: (1) it called <code>/requests</code>; (2) it was never <code>blocked</code>; (3) it holds a grant covering what its task needs; (4) <b>result use</b>: its deliverable reflects the data actually delivered to it (each constraint; chef: a delivered pattern value; clinic: the delivered mean and spike count); (5) it contains no pattern value that was never delivered to it. Coach instead: no response carries data, and its deliverable says the request was denied or unsupported. A run passes when all four agents pass.</p>
+
+<h3>Results</h3>
+<table>
+<tr><th>Run</th><th>Portal</th><th>grocer-1</th><th>chef-1</th><th>clinic-1</th><th>coach-1</th><th>Run</th></tr>
+<tr><td>1</td><td>0.1.1 (+ access log)</td><td class="ok">pass</td><td class="ok">pass</td><td class="ok">pass</td><td class="ok">pass</td><td>denied, no data · <b>PASSED</b></td></tr>
+<tr><td>2</td><td>0.2.0 (after change 1)</td><td class="ok">pass</td><td class="ok">pass</td><td class="ok">pass</td><td class="ok">pass</td><td>person-approved grant · <b>PASSED</b></td></tr>
+<tr><td>3</td><td>0.2.1 (after change 2)</td><td class="ok">pass</td><td class="ok">pass</td><td class="ok">pass</td><td class="ok">pass</td><td>person-approved grant · <b>PASSED</b></td></tr>
+</table>
+<p><b>Requests, responses and result use (run 1, from <code>runs/run1/access.jsonl</code> and <code>out/</code>):</b></p>
+<table>
+<tr><th>Agent</th><th>What it sent</th><th>What LOOM returned</th><th>How it used the result</th></tr>
+<tr><td>grocer-1</td><td><code>shopping_list</code>, agent_for_user, L3, [constraints]</td><td>granted, single use, credit 60→61; <code>limit_added_sugar</code>, <code>prefer_low_glycemic</code></td><td>Weekly list built on both constraints, with a "skipping this week" section (juice, soda, sweetened yogurt). Marked as a draft because LOOM said <code>confirmation: first_request</code>. Did not fetch again (single use).</td></tr>
+<tr><td>chef-1</td><td><code>meal_plan</code>, agent_for_user, L2, [glucose_patterns, constraints]</td><td>granted 7 days; mean 127, CV 14.8 %, post-meal peak 177, TIR 100 %</td><td>Treated the 177 peak as the target and kept moderate low-GI carbs rather than going very low-carb; asked for allergies LOOM doesn't hold.</td></tr>
+<tr><td>clinic-1</td><td><code>clinical_visit</code>, care_provider, L2, [glucose_patterns, alerts, constraints]</td><td>granted 14 days; same patterns + 15 post-meal spike alerts</td><td>Pre-visit summary citing mean 127 and 15 spikes; listed what LOOM doesn't have (meds, labs); flagged that the patient must confirm first use.</td></tr>
+<tr><td>coach-1</td><td><code>walk_schedule</code>, agent_for_user, L2, [glucose_patterns]</td><td><code>denied / no_task_basis</code>, no data, credit unchanged</td><td>Generic plan, clearly labelled as not personal. Wrote that labelling the request <code>meal_plan</code> would probably have worked, and chose not to.</td></tr>
+</table>
+<p><b>Shared infrastructure.</b> All four used one person's namespace concurrently. The log shows per-publisher credit kept apart (each clean grant +1; stridefit unchanged), no response ever carried another agent's grant, and every agent received only its own task's fields. In all 12 sessions the transcripts show the agent opened only the interface doc; no agent overreached, retried or fetched twice; every non-coach agent made exactly one request.</p>
+
+<h2 class="pb">3. Boundary case, improvement and rerun</h2>
+<h3>Limitation found: an unsupported task is a dead end that rewards relabelling</h3>
+<p>Run 1 "passed" only in the sense that nothing leaked. The coach had a real need the person would likely approve, got a flat <code>no_task_basis</code>, and could do nothing personal. Its own deliverable pointed out the obvious workaround: claim <code>meal_plan</code>. An honest agent hits a wall; a dishonest one gets the data. This is an interface limitation, not a test-setup problem: the policy had no path for new tasks.</p>
+<h3>Change 1 (portal 0.2.0, commit <code>752dde7</code>)</h3>
+<ul>
+<li>A task that is not built in, from an <code>agent_for_user</code> agent, returns <code>pending_owner</code> with a <code>proposal_id</code>. The person approves (optionally narrowing tier, fields, days) or declines it with the owner token. An approval becomes a rule for that publisher and task only, enforced like a built-in task (asking beyond it is overreach).</li>
+<li>Commercial requests stay default-deny (the HW8 <code>adco</code> marketing case still passes). Denials list <code>supported_tasks</code>; missing fields are named in the 400. The doc gained a "Tasks that are not built in" section.</li>
+<li><b>Regression tests:</b> <code>portal/tests/test_owner_review.py</code>, 7 tests; <b>all 7 fail on 0.1.1</b> (<code>evidence/owner_review_tests_on_0.1.1.txt</code>) and pass on 0.2.x. All 11 original tests and both HW8 Nanda Town scenarios still pass.</li>
+</ul>
+<h3>Rerun (runs 2 and 3, same prompts, new sessions)</h3>
+<pre>coach-1 → POST /requests  {"task":"walk_schedule","tier":"L2","fields":["glucose_patterns","constraints"]}
+        ← {"decision":"pending_owner","reason":"needs_owner_approval","proposal_id":"p-fcd811044a"}       (no data, no penalty)
+person  → POST /owner/decide {"proposal_id":"p-fcd811044a","approve":true,"days":7}  ← approved: L2, [constraints, glucose_patterns], 7 days
+coach-1 → GET /proposals/p-fcd811044a ← approved;  POST /requests (new request_id, same scope)
+        ← {"decision":"granted","reason":"owner_approved","expires_at":7.0,"data":{...mean 127, CV 14.8, peak 177...}}</pre>
+<p><b>Verdict: improved, partly.</b> Both reruns: the coach named its real task, waited for the person, got exactly the approved scope and used it (post-meal walks justified by the 177 peak; effort kept moderate because TIR was 100 %). The other three agents behaved exactly as before. <b>Not improved:</b> L2 patterns do not say which meal spikes most, so the coach still could not rank meals. Both times it said so and did not ask for hourly readings beyond its approval. Fixing that needs per-meal peaks in L2, or the person approving L1. <b>Unproven:</b> an agent that relabels its task as a built-in one still gets that task's data; LOOM checks tier and fields, not purpose. No dishonest agent was tested.</p>
+
+<h3>Second finding: the audit log leaked other agents' data (found by the cold start)</h3>
+<p>In run 2 the coach called <code>GET /v1/coldstart-2/log</code>, which our own doc described as "every decision so far". The reply (access log seq 42) carried the data delivered to all four agents, including the clinic's alerts. The coach's script printed only ids and decisions, so the data did not reach its model, but any caller could have read it. This was an interface bug that our unit tests and the HW8 Town validators had missed, because none of them read the log as an outsider.</p>
+<p><b>Change 2 (0.2.1, <code>8b99604</code>):</b> log entries never store delivered data, and <code>GET /log</code> needs the owner token. Regression test <code>test_audit_log_is_owner_only_and_holds_no_health_data</code> fails on 0.2.0 (<code>evidence/log_test_on_0.2.0.txt</code>) and passes on 0.2.1. In run 3 no agent called <code>/log</code>, so this fix is shown by the test, not by an agent run.</p>
+
+<h2>4. Commands to repeat</h2>
+<pre># portal + tests (Python 3.11+)
+git clone -b hw9-loom-usability https://github.com/JiayiLi21/nandatown &amp;&amp; cd nandatown
+python3.12 -m venv .venv &amp;&amp; . .venv/bin/activate &amp;&amp; pip install -e '.[dev]' &amp;&amp; pip install -e examples/loom/portal
+python -m pytest -q examples/loom        # 21 passed: 19 portal tests + both HW8 Nanda Town scenarios
+cd examples/loom
+# re-score the recorded runs from their raw logs
+python hw9/check.py hw9/runs/run1 &amp;&amp; python hw9/check.py hw9/runs/run2 --run2 &amp;&amp; python hw9/check.py hw9/runs/run3 --run2
+# a new cold-start run: starts the portal with an access log + the person stand-in, waits while you start four
+# fresh agent sessions with hw9/PROMPTS.md, then scores the run
+bash hw9/reproduce.sh coldstart-4 run4
+# check that the plan for each run was committed before the run (portal-repo history)
+git clone -b main hw9/evidence/loom-portal.bundle portal-history &amp;&amp; git -C portal-history log --format='%h %ad %s' --date=iso-local</pre>
+
+<h2>5. Final project slides</h2>
+<p>Four slides (2–3 minutes): (1) problem, why it must be agentic, intended users; (2) architecture and what we built; (3) key results HW6–HW9; (4) embedded demo video (85 s, unlisted YouTube, set to play automatically) with what worked, what failed and what is next. They sit together in the shared deck as the LOOM section. The PDF export is Appendix B.</p>
+
+<h2>6. Team and contributions</h2>
+<table>
+<tr><th>Member</th><th>Contributions</th></tr>
+<tr><td>Jiayi Li</td><td>HW9 lead: agent interface doc, cold-start design and checks, the three runs, portal 0.2.0/0.2.1 changes and regression tests, this report, Demo Day slides and demo video. Earlier: HW6 MVP and HW7 benchmark.</td></tr>
+<tr><td>Jason Xuan</td><td>LOOM portal service and its policy, Nanda Town integration and validators (HW8, PR #362, repos <code>jasonpipi/loom-portal</code> and <code>jasonpipi/nandatown</code>).</td></tr>
+<tr><td>Qingyun Liu</td><td>Product concept and architecture (data-visa tiers L0–L3), proposal and team deck (HW5–HW6), the Demo Day slide design these slides follow.</td></tr>
+</table>
+<p class="small">Built with AI assistance (Claude), as the course allows. All numbers come from the recorded runs in <code>hw9/runs/</code>; the record is synthetic and no real person's data was used.</p>
+
+<h2 class="pb">Appendix A. Interface doc (<code>docs/AGENT_INTERFACE.md</code>, v0.2.1)</h2>
+<div id="doc"></div>
+</body></html>

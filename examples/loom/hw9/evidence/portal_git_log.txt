@@ -1,0 +1,15 @@
+abf3b5a  2026-11-17 23:30:51 -0500  HW9: report points at tag v0.2.1
+6f353b0  2026-11-17 23:30:41 -0500  HW9: report, Demo Day slides and video sources; doc wording
+691f4ad  2026-11-17 23:22:30 -0500  HW9: run 3 evidence, results, prompts, reproduce script, README
+8b99604  2026-11-17 23:20:10 -0500  HW9: run 2 evidence; 0.2.1 audit log is owner-only and holds no data; run 3 plan
+752dde7  2026-11-17 23:17:26 -0500  HW9: run 1 evidence; portal 0.2.0 owner review for unsupported tasks; run 2 plan (before run 2)
+e5d94d9  2026-11-17 23:11:50 -0500  HW9: access log, agent interface doc, cold-start plan and checks (before the run)
+480558e  2026-11-11 17:55:16 -0500  Replay re-checks grant validity before re-sending data (v0.1.1)
+0106afb  2026-11-10 10:35:30 -0500  Add README
+8080a2e  2026-11-10 10:35:07 -0500  Add policy and HTTP tests
+146f325  2026-11-10 10:34:30 -0500  Add access policy (loom-policy-0.1.0)
+3d8d147  2026-11-10 10:33:30 -0500  Add HTTP server
+f5e6808  2026-11-10 10:32:55 -0500  Add synthetic glucose record
+522af01  2026-11-10 10:32:35 -0500  Add loom_portal package version
+375ce73  2026-11-10 10:32:16 -0500  Add pyproject.toml (loom-portal 0.1.0)
+b2a92c7  2026-11-10 10:31:34 -0500  Add Python-related files to .gitignore

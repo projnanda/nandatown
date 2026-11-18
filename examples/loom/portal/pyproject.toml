@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "loom-portal"
+version = "0.2.1"
+description = "LOOM: task-scoped, expiring access to a person's health context for agents"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+loom-portal = "loom_portal.server:main"
+
+[tool.setuptools]
+packages = ["loom_portal"]
