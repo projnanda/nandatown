@@ -34,6 +34,21 @@ Town Lab (deterministic, logical time: 1 unit = 1 day)
 - Each run uses its own portal namespace (`/v1/<run_id>/...`), so runs
   never share state.
 
+## HW9: agent usability (portal 0.2.1)
+
+- **Agents start here:** [`AGENT_INTERFACE.md`](AGENT_INTERFACE.md), the only document an agent needs.
+- **Portal source:** [`portal/`](portal/), a copy of `jasonpipi/loom-portal` with the HW9 changes:
+  - 0.2.0: an unsupported task from an agent working for the person becomes a proposal the person approves, narrows or declines;
+  - 0.2.1: the audit log is owner-only and never stores delivered data;
+  - `--access-log` records every HTTP exchange.
+- **Cold-start tests with fresh agents:** [`hw9/RESULTS.md`](hw9/RESULTS.md). It covers the plan, prompts, raw logs, deliverables and the report PDF.
+- Both Town scenarios above pass unchanged on 0.2.1. Install the portal from this branch:
+
+```bash
+pip install -e examples/loom/portal      # instead of the loom-portal@480558e line above
+python -m pytest -q examples/loom        # Town scenarios + 19 portal tests
+```
+
 ## Reproduce
 
 - Nanda Town upstream base: `6f9a7c064486c4a0ae9242f1ff341b8a4aad0244`

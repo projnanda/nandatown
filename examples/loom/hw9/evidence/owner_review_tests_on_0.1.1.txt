@@ -1,0 +1,8 @@
+FAILED tests/test_owner_review.py::test_unsupported_task_becomes_proposal_without_data_or_penalty
+FAILED tests/test_owner_review.py::test_commercial_unsupported_task_is_still_denied_by_default
+FAILED tests/test_owner_review.py::test_owner_approval_grants_exactly_the_approved_scope
+FAILED tests/test_owner_review.py::test_owner_can_narrow_and_asking_beyond_it_is_overreach
+FAILED tests/test_owner_review.py::test_declined_proposal_stays_denied - KeyE...
+FAILED tests/test_owner_review.py::test_missing_fields_are_named - KeyError: ...
+FAILED tests/test_owner_review.py::test_http_owner_endpoints_need_the_token
+7 failed in 0.06s
