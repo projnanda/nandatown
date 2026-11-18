@@ -109,7 +109,7 @@ passes on 0.2.1</pre></div></div>""")),
      <tr><td>1</td><td>0.1.1</td><td class="ok">pass</td><td class="ok">pass</td><td class="ok">pass</td><td>pass · denied, no data</td></tr>
      <tr><td>2</td><td>0.2.0</td><td class="ok">pass</td><td class="ok">pass</td><td class="ok">pass</td><td class="ok">pass · person-approved grant</td></tr>
      <tr><td>3</td><td>0.2.1</td><td class="ok">pass</td><td class="ok">pass</td><td class="ok">pass</td><td class="ok">pass · person-approved grant</td></tr></table>
-     </div></div>""", "github.com/jasonpipi/loom-portal · docs/AGENT_INTERFACE.md · hw9/")),
+     </div></div>""", "github.com/projnanda/nandatown/pull/369 · examples/loom/AGENT_INTERFACE.md · hw9/")),
     ("LOOM. Share once, just enough, never forever.",
      page("""<h1>LOOM</h1><h2>Share once, just enough, never forever.</h2>
      <div class="row"><div class="card"><div class="k">Still open</div>verified publisher identity · a real purpose check · per-meal patterns · real wearables</div></div>""")),

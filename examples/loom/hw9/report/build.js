@@ -165,7 +165,7 @@ function num(slide, n, x, y) {
     T(s, h, { x: 6.03, y: y + 0.08, w: 3.4, h: 0.22, fontSize: 11.5, bold: true, color: col });
     T(s, b, { x: 6.03, y: y + 0.32, w: 3.4, h: 0.55, fontSize: 9.5 });
   });
-  T(s, "Interface doc, runs and code: github.com/jasonpipi/loom-portal  ·  Nanda Town PR projnanda/nandatown#362", { x: 0.45, y: 4.85, w: 9.1, h: 0.3, fontSize: 9.5, color: MUTED });
+  T(s, "Interface doc, runs and code: github.com/projnanda/nandatown/pull/369 (builds on HW8 PR #362)", { x: 0.45, y: 4.85, w: 9.1, h: 0.3, fontSize: 9.5, color: MUTED });
   s.addNotes("40 s. Play the video: a fresh fitness-coach agent reads the doc, asks under its real task name, waits for the person's approval, and gets only the approved slice. Then: what worked, what failed and how we fixed it, and what is next.");
 }
 
