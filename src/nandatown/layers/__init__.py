@@ -95,5 +95,6 @@ from . import (  # noqa: E402,F401
     registry_layer,
     transport,
     trust,
+    trust_calibrated,
     trust_capped,
 )

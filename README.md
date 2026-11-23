@@ -96,7 +96,7 @@ The Lab has twelve replaceable protocol layers. Track uses the mailbox contract 
 | identity | keys.v1 | per-agent keys and AgentFacts-style cards |
 | registry | index.v1 | the town's internal index: publish cards, look up capabilities |
 | auth (authorization) | hmac.v1 | signs and verifies messages and cards; forged senders fail |
-| trust | reputation.v1 | receipt-driven reputation with a public formula; `reputation.capped.v1` caps any one observer's influence |
+| trust | reputation.v1 | receipt-driven reputation with a public formula; `reputation.capped.v1` caps any one observer's influence; `reputation.calibrated.v1` scores an agent on how well the confidence it stated matched what happened |
 | payments | ledger.v1 | balances, transfers, escrow; money is conserved |
 | coordination | contractnet.v1 | announce, bid, award, with late bids rejected |
 | negotiation | haggle.v1 | alternating offers to an auditable agreed price |
@@ -144,6 +144,8 @@ nandatown run auction --seed 7
 | capability_spoofing_weak_auth | the same scenario with auth swapped for plain.v1: the run FAILS on purpose, showing what the auth layer is for |
 | capped_influence | one observer's influence on a reputation is capped, an observer with no settled trade of its own carries no weight, and real feedback still counts |
 | capped_influence_uncapped_control | the same scenario with trust left at reputation.v1: the run FAILS on purpose, showing that one voice that never trades can bury an honest seller |
+| overclaim | sellers say how sure they are before each order; with `reputation.calibrated.v1` a seller that says it is certain and honours seven orders in ten scores below one that says what it does, and a shopper buying from whoever is listed first mostly gets what it ordered |
+| overclaim_uncalibrated_control | the same scenario with trust left at reputation.v1: the run FAILS on purpose, showing that the seller with the most customers is listed first even though it honours fewer of its orders |
 | registry_eviction | a rival republishes the honest seller's card under its name with the wrong key; with `index.owned.v1` the forged card is refused, the honest listing survives, and the honest seller is paid |
 | registry_eviction_unowned | the same scenario on the default `index.v1`: the forged card replaces the verified one, the buyer only finds the rival, and the run FAILS on purpose |
 
