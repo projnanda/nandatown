@@ -1,0 +1,27 @@
+name: overclaim_uncalibrated_control
+description: The same sellers and customers with the trust layer left at reputation.v1, which sums good and bad ratings; the run FAILS on purpose, showing that the seller with the most customers is listed first even though it honours fewer of its orders.
+seed: 42
+validator: overclaim
+layers:
+  trust: reputation.v1
+agents:
+  - name: seller-steady
+    role: promising_seller
+    config: {sku: widget, honour_rate: 0.95, says: 0.95}
+  - name: seller-busy
+    role: promising_seller
+    config: {sku: widget, honour_rate: 0.7, says: 0.99}
+  - {name: steady-regular-1, role: regular, config: {seller: seller-steady, orders: 15}}
+  - {name: steady-regular-2, role: regular, config: {seller: seller-steady, orders: 15}}
+  - {name: busy-regular-1, role: regular, config: {seller: seller-busy, orders: 15}}
+  - {name: busy-regular-2, role: regular, config: {seller: seller-busy, orders: 15}}
+  - {name: busy-regular-3, role: regular, config: {seller: seller-busy, orders: 15}}
+  - {name: busy-regular-4, role: regular, config: {seller: seller-busy, orders: 15}}
+  - {name: busy-regular-5, role: regular, config: {seller: seller-busy, orders: 15}}
+  - {name: busy-regular-6, role: regular, config: {seller: seller-busy, orders: 15}}
+  - {name: busy-regular-7, role: regular, config: {seller: seller-busy, orders: 15}}
+  - {name: busy-regular-8, role: regular, config: {seller: seller-busy, orders: 15}}
+  - name: shopper
+    role: shopper
+    config: {sku: widget, orders: 30, start_after: 40.0, expect_share: 0.8}
+max_time: 200

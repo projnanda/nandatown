@@ -602,6 +602,262 @@ def capped_influence(spec, trace: Trace) -> list[StageResult]:
     return stages
 
 
+CALIBRATED_FORMULA = "reputation.calibrated.v1"
+
+
+def _calibrated_score(pairs: list[tuple[float, int]]) -> int:
+    """reputation.calibrated.v1 over (confidence, held) pairs, written out
+    here so the check does not trust the layer's own arithmetic."""
+    pairs = pairs[-200:]
+    if len(pairs) < 10:
+        return 10
+    bins: list[list[tuple[float, int]]] = [[] for _ in range(10)]
+    for confidence, held in pairs:
+        bins[min(int(confidence * 10), 9)].append((confidence, held))
+    total = float(len(pairs))
+    rows = []
+    for members in bins:
+        size = float(len(members))
+        rows.append(
+            (size / total,
+             sum(c for c, _ in members) / size,
+             float(sum(h for _, h in members)) / size)
+            if members else (0.0, 0.0, 0.0))
+    ece = round(sum(w * abs(c - a) for w, c, a in rows), 6)
+    shrunk = (len(pairs) * ece + 30.0 * 0.25) / (len(pairs) + 30.0)
+    base = sum(w * a for w, _c, a in rows)
+    brier = (sum(w * (c - a) ** 2 for w, c, a in rows)
+             - sum(w * (a - base) ** 2 for w, _c, a in rows)
+             + base * (1.0 - base))
+    skill = math.sqrt(max(0.0, 1.0 - brier / 0.25))
+    return round(100 * max(0.1, min(1.0, max(0.1, 1.0 - shrunk) * skill)))
+
+
+def reputation_calibrated(trace: Trace) -> StageResult:
+    """Replay reputation.calibrated.v1 from the events alone, in order.
+
+    Each confidence_stated event opens a claim, or is owed a
+    confidence_refused event. Each reputation_updated event must name one
+    earlier, unused trade.outcome receipt by the same observer about the
+    same subject with the same outcome; it settles the subject's oldest
+    open claim addressed to that observer, else its oldest addressed to no
+    one, and must record the reason, the claim it settled, and the score
+    and delta the formula gives.
+
+    Separate from reputation_consistent, which replays the unbounded sum.
+    This checks the recorded claim, not whether a rating was true, whether
+    the stated confidence was honest, or who was entitled to rate.
+    """
+    name = "calibrated_scores"
+    updates = [event for event in trace.events
+               if event.kind == "reputation_updated"]
+    update_ids = _event_ids(updates)
+    if (len(update_ids) != len(updates)
+            or len(update_ids) != len(set(update_ids))):
+        return _failed(name, update_ids,
+                       "score events have malformed or ambiguous event IDs")
+
+    receipts: dict[str, list[tuple[int, TownEvent]]] = {}
+    for index, event in enumerate(trace.events):
+        if event.kind != "receipt_attested":
+            continue
+        if not isinstance(event.detail, dict):
+            return _failed(name, _event_ids([event]),
+                           "receipt event is malformed")
+        record_id = event.detail.get("record_id")
+        if isinstance(record_id, str) and record_id:
+            receipts.setdefault(record_id, []).append((index, event))
+
+    claimed: dict[tuple[str, str], float] = {}
+    open_claims: dict[str, list[tuple[str, float, Any]]] = {}
+    settled: dict[str, list[tuple[float, int]]] = {}
+    refusals_owed: dict[tuple[str, str], int] = {}
+    used: set[str] = set()
+    missing_receipt = False
+
+    for index, event in enumerate(trace.events):
+        if event.kind == "confidence_stated":
+            agent, decision = event.observer, event.subject
+            detail = event.detail if isinstance(event.detail, dict) else {}
+            confidence, to = detail.get("confidence"), detail.get("to")
+            valid = (type(confidence) in (int, float)
+                     and 0.0 <= confidence <= 1.0
+                     and (to is None or (isinstance(to, str) and to
+                                         and to != agent)))
+            if valid and (agent, decision) not in claimed:
+                claimed[(agent, decision)] = float(confidence)
+                open_claims.setdefault(agent, []).append(
+                    (decision, float(confidence), to))
+            elif not valid or claimed[(agent, decision)] != confidence:
+                key = (agent, decision)
+                refusals_owed[key] = refusals_owed.get(key, 0) + 1
+        elif event.kind == "confidence_refused":
+            key = (event.observer, event.subject)
+            if not refusals_owed.get(key):
+                return _failed(name, _event_ids([event]),
+                               "a stated confidence was refused that the"
+                               " formula accepts")
+            refusals_owed[key] -= 1
+        elif event.kind == "reputation_updated":
+            here = _event_ids([event])
+            detail = event.detail if isinstance(event.detail, dict) else {}
+            observer, subject = event.observer, event.subject
+            if detail.get("formula") != CALIBRATED_FORMULA:
+                return _failed(name, here,
+                               f"score for {subject!r} is not recorded under"
+                               f" {CALIBRATED_FORMULA}")
+            outcome = detail.get("outcome")
+            receipt_id = detail.get("receipt")
+            matches = receipts.get(receipt_id, []) \
+                if isinstance(receipt_id, str) else []
+            if not matches:
+                missing_receipt = True
+            else:
+                receipt_index, receipt = matches[0]
+                if (len(matches) != 1 or receipt_index > index
+                        or receipt_id in used
+                        or receipt.observer != observer
+                        or receipt.subject != subject
+                        or observer == subject
+                        or receipt.detail.get("claim") != "trade.outcome"
+                        or receipt.detail.get("value") != outcome):
+                    return _failed(
+                        name, here + _event_ids([receipt]),
+                        f"score for {subject!r} does not rest on one earlier,"
+                        " unused trade.outcome receipt by the same observer"
+                        " with the same outcome")
+                used.add(receipt_id)
+
+            before = _calibrated_score(settled.get(subject, []))
+            want: dict[str, Any] = {}
+            claim = None
+            for wanted in (observer, None):
+                claim = next((c for c in open_claims.get(subject, [])
+                              if c[2] == wanted), None)
+                if claim is not None:
+                    break
+            if outcome not in ("good", "bad"):
+                want["reason"] = "unknown_outcome"
+            elif claim is None:
+                want["reason"] = "no_open_claim"
+            else:
+                open_claims[subject].remove(claim)
+                settled.setdefault(subject, []).append(
+                    (claim[1], 1 if outcome == "good" else 0))
+                want.update(reason="settled", decision=claim[0],
+                            confidence=claim[1])
+            after = _calibrated_score(settled.get(subject, []))
+            want.update(delta=after - before, score=after)
+            got = {key: detail.get(key) for key in
+                   ("reason", "decision", "confidence", "delta", "score")
+                   if key in detail or key in want}
+            if (got != want or type(detail.get("score")) is not int
+                    or type(detail.get("delta")) is not int):
+                return _failed(
+                    name, here,
+                    f"recorded {got} for {subject!r}; the formula over the"
+                    f" claims and ratings before it gives {want}")
+
+    unanswered = sorted(key for key, count in refusals_owed.items() if count)
+    if unanswered:
+        agent, decision = unanswered[0]
+        return _failed(name, update_ids,
+                       f"{agent!r} stated a confidence for {decision!r} that"
+                       " the formula refuses, with no confidence_refused"
+                       " event")
+    if missing_receipt:
+        return _missing(name, "a score names a receipt that is not in the"
+                              " trace")
+    return _check(name, True, update_ids, "no score was recorded",
+                  f"{len(update_ids)} recorded scores match a replay of"
+                  f" {CALIBRATED_FORMULA}")
+
+
+@validator("overclaim")
+def overclaim(spec, trace: Trace) -> list[StageResult]:
+    """Sellers say how sure they are before each order and are rated on
+    what arrived. One says it is certain and is not, and has the most
+    customers. The claims must come first, the ratings must match what
+    arrived, someone must really overclaim, every score must be what the
+    formula gives, and a shopper who buys from whoever is listed first must
+    still mostly get what it ordered."""
+    settled = [event for event in trace.find("order_settled")
+               if isinstance(event.detail, dict)
+               and isinstance(event.detail.get("seller"), str)]
+    position = {event.event_id: index
+                for index, event in enumerate(trace.events)}
+    stated: dict[tuple[str, str], TownEvent] = {}
+    for event in trace.find("confidence_stated"):
+        stated.setdefault((event.observer, event.subject), event)
+
+    late = [event for event in settled
+            if (event.detail["seller"], event.subject) not in stated
+            or position[stated[(event.detail["seller"],
+                                event.subject)].event_id]
+            > position[event.event_id]]
+    stages = [_check(
+        "claims_precede_outcomes", not late,
+        _event_ids(late or settled),
+        f"{len(late)} settled orders have no earlier stated confidence",
+        f"all {len(settled)} settled orders had a confidence on record"
+        " first")]
+
+    ratings = [event for event in trace.find("receipt_attested")
+               if event.detail.get("claim") == "trade.outcome"]
+    owed: dict[tuple[str, str], list[str]] = {}
+    for event in settled:
+        owed.setdefault((event.observer, event.detail["seller"]), []).append(
+            "good" if event.detail.get("honoured") is True else "bad")
+    given: dict[tuple[str, str], list[Any]] = {}
+    for event in ratings:
+        given.setdefault((event.observer, event.subject), []).append(
+            event.detail.get("value"))
+    stages.append(_check(
+        "ratings_follow_outcomes", owed == given, _event_ids(ratings),
+        "a rating does not match what its buyer received",
+        f"{len(ratings)} ratings match what each buyer received"))
+
+    rows: dict[str, list[tuple[float, bool]]] = {}
+    for event in settled:
+        claim = stated.get((event.detail["seller"], event.subject))
+        said = claim.detail.get("confidence") if claim is not None else None
+        if type(said) in (int, float):
+            rows.setdefault(event.detail["seller"], []).append(
+                (said, event.detail.get("honoured") is True))
+    gaps = {seller: (sum(c for c, _ in pairs) / len(pairs)
+                     - sum(h for _, h in pairs) / len(pairs))
+            for seller, pairs in rows.items() if len(pairs) >= 10}
+    over = sorted(seller for seller, gap in gaps.items() if gap > 0.15)
+    stages.append(_check(
+        "overclaim_exercised", bool(over), _event_ids(settled),
+        "no seller's stated confidence ran more than 0.15 ahead of what it"
+        " delivered over ten or more orders, so nothing is exercised",
+        "; ".join(f"{seller} said {gaps[seller]:+.2f} more than it"
+                  " delivered" for seller in over)))
+
+    stages.append(reputation_calibrated(trace))
+
+    shopped = [event for event in settled
+               if event.detail.get("chosen_by") == "shopper"]
+    honoured = sum(1 for event in shopped
+                   if event.detail.get("honoured") is True)
+    bar = next((agent.config.get("expect_share", 0.8)
+                for agent in spec.agents if agent.role == "shopper"), 0.8)
+    chosen: dict[str, int] = {}
+    for event in shopped:
+        seller = event.detail["seller"]
+        chosen[seller] = chosen.get(seller, 0) + 1
+    where = ", ".join(f"{count} from {seller}"
+                      for seller, count in sorted(chosen.items()))
+    share = honoured / len(shopped) if shopped else 0.0
+    summary = (f"{honoured} of {len(shopped)} shopper orders honoured"
+               f" ({share:.0%}; the bar is {bar:.0%}); bought {where}")
+    stages.append(_check(
+        "shopper_well_served", share >= bar, _event_ids(shopped),
+        summary if shopped else "the shopper settled no order", summary))
+    return stages
+
+
 def _marketplace_transactions(
         spec, trace: Trace) -> tuple[StageResult, StageResult, list[TownEvent]]:
     """Bind the two marketplace negotiations to their ledger movements."""

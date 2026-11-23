@@ -230,6 +230,75 @@ class Slanderer(SimAgent):
                            self.file_report)
 
 
+@role("promising_seller")
+class PromisingSeller(SimAgent):
+    """Says how sure it is to honour each order, then honours it or not.
+
+    The statement is recorded before the outcome is drawn.
+    """
+
+    def on_start(self):
+        self.api.register([f"sell.{self.config['sku']}"],
+                          {"sku": self.config["sku"]})
+
+    def handle_order(self, msg):
+        order_id = msg["body"]["order_id"]
+        self.api.observe("confidence_stated", order_id,
+                         {"confidence": self.config["says"],
+                          "to": msg["sender"]})
+        honoured = self.api.rng.random() < self.config["honour_rate"]
+        self.api.reply(msg, "fulfilment",
+                       {"order_id": order_id, "honoured": honoured})
+
+
+class _OrderingCustomer(SimAgent):
+    """Places orders one at a time and rates each by what came back."""
+
+    def on_start(self):
+        self.api.register(["buy"])
+        self.placed = 0
+        self.api.later(self.config.get("start_after", 1.0), self.place)
+
+    def choose(self):
+        raise NotImplementedError
+
+    def place(self):
+        seller = self.choose()
+        if seller is None:
+            self.api.observe("order_abandoned", self.name,
+                             {"reason": "no seller listed"})
+            return
+        self.placed += 1
+        self.api.send(seller, "order",
+                      {"order_id": f"{self.name}-order-{self.placed}"})
+
+    def handle_fulfilment(self, msg):
+        honoured = bool(msg["body"]["honoured"])
+        self.api.rate(msg["sender"], "good" if honoured else "bad")
+        self.api.observe("order_settled", msg["body"]["order_id"],
+                         {"seller": msg["sender"], "honoured": honoured,
+                          "chosen_by": self.role})
+        if self.placed < self.config.get("orders", 10):
+            self.api.later(self.config.get("interval", 1.0), self.place)
+
+
+@role("regular")
+class Regular(_OrderingCustomer):
+    """Always buys from the same seller."""
+
+    def choose(self):
+        return self.config["seller"]
+
+
+@role("shopper")
+class Shopper(_OrderingCustomer):
+    """Knows no seller: buys from whoever the registry lists first."""
+
+    def choose(self):
+        listed = self.api.lookup(f"sell.{self.config['sku']}")
+        return listed[0]["name"] if listed else None
+
+
 # -- auction -----------------------------------------------------------
 
 
