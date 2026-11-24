@@ -39,6 +39,11 @@ pipx-managed CLIs.
 Start with the [existing-agent testing guide](docs/testing-an-existing-agent.md)
 for A2A endpoints, OpenClaw or another runtime, and a reproducible handoff.
 
+For an opt-in, credential-free Lab comparison of five selection policies under
+shared backend failures, see the [shared-dependency experiment](docs/experiments/resilience.md).
+It includes a scenario generator, versioned trace evaluator, campaign reports,
+and negative controls; it does not change the default Lab plugins.
+
 ## The front door
 
 ```

@@ -7,7 +7,8 @@ name = "nandatown"
 version = "0.2.0"
 description = "Local-first NANDA Town sandbox and test harness. Bring an agent, give it a task, break something on purpose, leave with evidence."
 requires-python = ">=3.11"
-license = "Apache-2.0"
+license = "Apache-2.0 AND MIT"
+license-files = ["LICENSE", "src/nandatown/experiments/resilience/LICENSE"]
 dependencies = [
     "fastapi>=0.110",
     "uvicorn>=0.29",
@@ -24,12 +25,14 @@ dev = ["pytest>=8"]
 
 [project.scripts]
 nandatown = "nandatown.cli:main"
+nandatown-resilience = "nandatown.experiments.resilience.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
 nandatown = ["sim/scenarios/*.yaml", "skills/builtin/*.md"]
+"nandatown.experiments.resilience" = ["LICENSE"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
