@@ -75,6 +75,18 @@ def render_html(summary: dict) -> str:
     independent_price = aggregate_for("independent", "price")
     clean_aware = aggregate_for("clean", "dependency")
     clean_price = aggregate_for("clean", "price")
+    incorrect_case = ""
+    if any(r["condition"] == "shared-incorrect" for r in aggregate):
+        incorrect_case = """<section class="panel"><h2>One incorrect declaration</h2>
+<p>In <code>shared-incorrect</code>, provider-00 declares backend-1 when its label
+is disclosed, but still executes on backend-0. The actual topology, prices,
+workload and shared outage [12, 28) match <code>shared</code>.
+The table below compares completion and successful-task cost; the charts above
+show the truthful <code>shared</code> baseline only.</p>
+<p>A wrong label can increase retries and cost without reducing completion.
+This case models an incorrect static declaration, not a freshness detector or
+an observed live migration. Missing labels remain unknown, and the oracle alone
+uses actual backend identities.</p></section>"""
     tradeoff = ""
     if all(row is not None for row in (
         independent_aware, independent_price, clean_aware, clean_price
@@ -130,6 +142,7 @@ tasks created during logical time [12, 28).</p>{bars}</section></div>
 <p class="muted">Seed-level intervals characterize this synthetic workload, not real-world reliability.
 An interval of zero width may reflect deterministic structure, not certainty about deployment.</p></section>
 {tradeoff}
+{incorrect_case}
 <section class="panel"><h2>All conditions, including costs and incomplete disclosure</h2>
 <div class="scroll"><table><thead><tr><th>Condition</th><th>Disclosure</th><th>Policy</th>
 <th>Stress success</th><th>Overall success</th><th>Attempts/task</th>
@@ -137,8 +150,9 @@ An interval of zero width may reflect deterministic structure, not certainty abo
 <tbody>{"".join(cells)}</tbody></table></div></section>
 <section class="panel"><h2>What this does not prove</h2>
 <ul><li>This is a seeded simulation with a shared reservation coordinator, not a decentralized deployment.</li>
-<li>Dependency labels are truthful when present. Missing labels share one conservative unknown group.
-No inference, dishonest declarations, or multi-hop dependencies are modeled.
+<li>Dependency labels are truthful except for provider-00 in the optional
+<code>shared-incorrect</code> condition. Missing labels share one conservative unknown group.
+No inference, general adversarial strategy, or multi-hop dependencies are modeled.
 Structured failure reasons are also assumed truthful, not inferred from timeouts.</li>
 <li>The oracle knows dependency identities, not future outages. It is an information-rich comparator, not a proven optimum.</li>
 <li>The independent control staggers nine provider outages with the same total provider downtime as the shared case.

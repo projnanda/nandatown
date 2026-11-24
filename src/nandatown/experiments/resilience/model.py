@@ -13,9 +13,10 @@ from nandatown.sim.scenario import AgentSpec, ScenarioSpec
 from . import EVALUATOR
 
 Policy = Literal["price", "random", "load", "dependency", "oracle"]
-Condition = Literal["clean", "shared", "independent"]
+Condition = Literal["clean", "shared", "independent", "shared-incorrect"]
 POLICIES: tuple[Policy, ...] = ("price", "random", "load", "dependency", "oracle")
-CONDITIONS: tuple[Condition, ...] = ("clean", "shared", "independent")
+DEFAULT_CONDITIONS: tuple[Condition, ...] = ("clean", "shared", "independent")
+CONDITIONS: tuple[Condition, ...] = (*DEFAULT_CONDITIONS, "shared-incorrect")
 
 
 def stable_rank(*parts: object) -> int:
@@ -84,6 +85,12 @@ class World(BaseModel):
         return max(ends) if ends else None
 
 
+def declared_dependency(provider: Provider, condition: Condition) -> str:
+    if condition == "shared-incorrect" and provider.name == "provider-00":
+        return "backend-1"
+    return provider.dependency
+
+
 def make_world(settings: Settings) -> World:
     rng = random.Random(stable_rank("faults", settings.seed))
     names = [f"provider-{i:02d}" for i in range(12)]
@@ -106,7 +113,7 @@ def make_world(settings: Settings) -> World:
         for i, name in enumerate(names)
     ]
     outages = {f"backend-{i}": [] for i in range(4)}
-    if settings.condition == "shared":
+    if settings.condition in ("shared", "shared-incorrect"):
         outages["backend-0"] = [(12.0, 28.0)]
     return World(settings=settings, providers=providers,
                  dependency_outages=outages)
@@ -128,7 +135,12 @@ def build_spec(settings: Settings) -> ScenarioSpec:
         ],
         *[
             AgentSpec(name=p.name, role="resilience_provider",
-                      config=p.model_dump(mode="json"))
+                      config={
+                          **p.model_dump(mode="json"),
+                          **({"declared_dependency": declared_dependency(p, settings.condition)}
+                             if declared_dependency(p, settings.condition) != p.dependency
+                             else {}),
+                      })
             for p in world.providers
         ],
         *[

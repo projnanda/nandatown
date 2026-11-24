@@ -3,13 +3,78 @@
 <!-- SPDX-License-Identifier: MIT -->
 <!-- Copyright (c) 2026 nanda-resilience contributors -->
 
-**Historical source results, not a fresh upstream campaign.** Adapted from
+**The original 450-run results below are historical source results.** The
+[incorrect-declaration follow-up](#incorrect-declaration-follow-up) is a fresh,
+separate 100-run comparison on this upstream contribution. Historical sections are adapted from
 [nanda-resilience 0.1.0](https://github.com/Shereen20112003/SA_NANDATOWN),
 under its [MIT license](../../src/nandatown/experiments/resilience/LICENSE).
 The original experiment targeted Nanda Town compatibility baseline
 `b7adc6121868742cf0f00cfebbf2d38bdb349057`. That constant is not a claim about
 the executing revision of this bundled extension or future runs.
 See the [bundled experiment guide](resilience.md) to reproduce the design.
+
+## Incorrect-declaration follow-up
+
+Executed on November 24, 2026, on Windows / Python 3.12, using bundled experiment
+0.2.0 and evaluator `resilience.v3`: **100 runs / 16,000 submitted tasks**.
+Ten paired seeds (0-9), full disclosure, five unchanged policies, and two
+conditions. This extends PR #318's original candidate; it does not involve the
+live workbench or model APIs, and does not rerun the original 450-run campaign.
+
+The new `shared-incorrect` case changes only provider-00's declared dependency
+from backend-0 to backend-1. It still executes on backend-0 and experiences the
+same shared outage. Provider-09 genuinely uses backend-1, so the incorrect
+declaration both hides a shared dependency and falsely groups a healthy provider
+with the failing one. All other topology, prices, faults, and workload remain
+paired. This is one static incorrect declaration, not a simulated migration,
+general adversarial strategy, or automatic freshness check.
+
+Means over ten seeds (160 tasks per run, three attempts at most):
+
+| Condition | Policy | Overall completion | Stress-window completion | Cents/success | Attempts/task |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Truthful shared | Price | 65.00% | 12.50% | 10.000 | 1.800 |
+| One incorrect declaration | Price | 65.00% | 12.50% | 10.000 | 1.800 |
+| Truthful shared | Dependency-aware | 100.00% | 100.00% | 13.300 | 1.100 |
+| One incorrect declaration | Dependency-aware | 100.00% | 100.00% | 13.450 | 1.300 |
+| Truthful shared | Oracle | 100.00% | 100.00% | 13.300 | 1.100 |
+| One incorrect declaration | Oracle | 100.00% | 100.00% | 13.300 | 1.100 |
+
+For dependency-aware selection, incorrect minus truthful is **0 percentage
+points completion**, **+0.150 cents/success (+1.13%)**, and **+0.200
+attempts/task (+18.18%)**. Each run still completes 160 tasks, but uses 208
+attempts instead of 176 and pays 2,152 cents rather than 2,128. Repeated retries
+on an actual previously tried backend rise from zero to 24 per run. These paired
+differences are identical across all ten tested seeds, which reflects the
+deterministic structure, not confidence about deployment.
+
+Against price-first in the incorrect case, dependency-aware selection retains
+**+35 percentage points overall completion** (+87.5 points in the stress cohort)
+at **+3.450 cents per success (+34.5%)**. Random and provider-load controls also
+remain exactly unchanged per seed: their mean overall completion is 86.875% and
+65.0625%, and mean cost is 11.894 and 10.002 cents/success respectively.
+
+**Interpretation:** incorrect labels waste retries and distort grouping, but the
+remaining healthy alternatives and three-attempt budget preserve completion in
+this case. It would be misleading to claim that this experiment demonstrated a
+completion loss or that inaccurate labels are generally harmless.
+Costs are synthetic successful-task payments (total payment / completed tasks),
+not real compute or network charges. Failed attempts are unpriced, so the
+retry increase is reported separately. The stress cohort is tasks created in
+`[12, 28)`, including those completing later.
+
+Reproduce from an installed checkout in PowerShell, with a fresh output directory:
+
+```powershell
+nandatown-resilience campaign --conditions shared shared-incorrect --disclosures 1 --seeds 0 1 2 3 4 5 6 7 8 9 --out runs\incorrect-comparison
+```
+
+All 100 traces passed the scoped evaluator and all ten retained seed-0 bundles
+passed native verification. `summary.json`, `runs.csv`, and `report.html` contain
+both conditions; the report's charts retain the truthful shared baseline and its
+table includes the incorrect case. Generated bundles are not committed.
+See the [guide](resilience.md#one-incorrect-dependency-declaration) for the focused
+regression command and individual-run verification.
 
 ## What was executed
 

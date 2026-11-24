@@ -80,7 +80,7 @@ class ProviderAgent(OutageAgent):
         self.seen: set[str] = set()
         facts = {"price_cents": self.config["price_cents"]}
         if self.config["disclosed"]:
-            facts["dependency"] = self.config["dependency"]
+            facts["dependency"] = self.config.get("declared_dependency", self.config["dependency"])
         if not self.api.register(["resilience.service"], facts):
             raise ValueError(f"registration refused for {self.name}")
 

@@ -13,7 +13,7 @@ from nandatown.bundle import load_bundle, verify_bundle
 from .campaign import run_campaign
 from .evaluator import analyze, metrics
 from .experiment import run_experiment
-from .model import CONDITIONS, POLICIES, Settings, build_spec
+from .model import CONDITIONS, DEFAULT_CONDITIONS, POLICIES, Settings, build_spec
 
 
 def main() -> int:
@@ -37,13 +37,16 @@ def main() -> int:
     campaign.add_argument("--out", type=Path, required=True)
     campaign.add_argument("--seeds", type=int, nargs="+", default=list(range(10)))
     campaign.add_argument("--disclosures", type=float, nargs="+", default=[0.0, 0.5, 1.0])
+    campaign.add_argument("--conditions", choices=CONDITIONS, nargs="+",
+                          default=list(DEFAULT_CONDITIONS))
     campaign.add_argument("--keep-all", action="store_true")
     verify = commands.add_parser("verify")
     verify.add_argument("bundle", type=Path)
     args = parser.parse_args()
     try:
         if args.command == "campaign":
-            summary = run_campaign(args.out, args.seeds, args.disclosures, args.keep_all)
+            summary = run_campaign(args.out, args.seeds, args.disclosures, args.keep_all,
+                                   conditions=args.conditions)
             print(f"Verified {len(summary['runs'])} runs. Open {args.out / 'report.html'}")
         elif args.command == "verify":
             problems = verify_bundle(str(args.bundle))

@@ -12,8 +12,8 @@ from nandatown.records import StageResult, TownEvent
 from nandatown.sim.scenario import ScenarioSpec
 from nandatown.sim.validators import Trace, validator
 
-from . import EVALUATOR
-from .model import POLICIES, Provider, World, build_spec, world_from_spec
+from . import EVALUATOR, LEGACY_EVALUATOR
+from .model import POLICIES, Provider, World, build_spec, declared_dependency, world_from_spec
 from .policies import DEPENDENCY_FAILURES, Candidate, choose
 
 
@@ -207,7 +207,8 @@ def analyze(spec: ScenarioSpec, events: list[TownEvent],
             require(event.observer == task.buyer, "selection attribution")
             candidates = [
                 Candidate(p.name, p.price_cents, 0,
-                          p.dependency if p.disclosed or policy == "oracle" else None)
+                          p.dependency if policy == "oracle" else
+                          declared_dependency(p, settings.condition) if p.disclosed else None)
                 for p in world.providers if p.name not in task.tried
             ]
             selected = choose(
@@ -356,22 +357,34 @@ def analyze(spec: ScenarioSpec, events: list[TownEvent],
 
 @validator(EVALUATOR)
 def evaluate(spec: ScenarioSpec, trace: Trace) -> list[StageResult]:
+    return _evaluate(spec, trace, EVALUATOR)
+
+
+@validator(LEGACY_EVALUATOR)
+def evaluate_legacy(spec: ScenarioSpec, trace: Trace) -> list[StageResult]:
+    return _evaluate(spec, trace, LEGACY_EVALUATOR)
+
+
+def _evaluate(spec: ScenarioSpec, trace: Trace, version: str) -> list[StageResult]:
     complete = any(e.kind == "resilience.finished" for e in trace.events)
     if not complete:
         return [StageResult(
-            name=EVALUATOR, status="not_enough_evidence",
+            name=version, status="not_enough_evidence",
             note="No experiment completion record; partial runs are not passes.",
         )]
     try:
+        if version == LEGACY_EVALUATOR:
+            require(world_from_spec(spec).settings.condition != "shared-incorrect",
+                    "incorrect declarations require resilience.v3")
         analysis = analyze(spec, trace.events, trace.run_id)
     except (InvalidEvidence, ValueError, KeyError, TypeError, IndexError) as exc:
         return [StageResult(
-            name=EVALUATOR, status="failed",
+            name=version, status="failed",
             note=f"Evidence rejected: {type(exc).__name__}: {exc}",
         )]
     successful = sum(t.terminal.detail["success"] for t in analysis.tasks.values())
     return [StageResult(
-        name=EVALUATOR, status="passed",
+        name=version, status="passed",
         evidence=[e.event_id for e in trace.events
                   if e.kind == "resilience.finished"],
         note=(f"Replayed {len(analysis.tasks)} tasks, {len(analysis.attempts)} attempts; "

@@ -6,7 +6,8 @@ Origin: https://github.com/Shereen20112003/SA_NANDATOWN
 The adjacent LICENSE preserves the imported package's MIT notice.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 SOURCE_EXPERIMENT_VERSION = "0.1.0"
 UPSTREAM_COMPATIBILITY_BASELINE = "b7adc6121868742cf0f00cfebbf2d38bdb349057"
-EVALUATOR = "resilience.v2"
+EVALUATOR = "resilience.v3"
+LEGACY_EVALUATOR = "resilience.v2"

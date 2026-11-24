@@ -30,7 +30,7 @@ before = plugins(), dict(ROLES), dict(VALIDATORS), dict(DEFAULT_PLUGINS)
 import nandatown.experiments
 import nandatown.experiments.resilience
 assert before == (plugins(), dict(ROLES), dict(VALIDATORS), dict(DEFAULT_PLUGINS))
-assert "resilience.v2" not in VALIDATORS
+assert "resilience.v3" not in VALIDATORS
 from nandatown.experiments.resilience import plugin
 assert {p["plugin_id"] for p in plugins()["coordination"]} - {
     p["plugin_id"] for p in before[0]["coordination"]
@@ -38,7 +38,7 @@ assert {p["plugin_id"] for p in plugins()["coordination"]} - {
 assert set(ROLES) - before[1].keys() == {
     "resilience_clock", "resilience_backend", "resilience_provider", "resilience_buyer"
 }
-assert set(VALIDATORS) - before[2].keys() == {"resilience.v2"}
+assert set(VALIDATORS) - before[2].keys() == {"resilience.v2", "resilience.v3"}
 assert DEFAULT_PLUGINS == before[3]
 for layer, entries in before[0].items():
     assert all(entry in plugins()[layer] for entry in entries)
@@ -85,6 +85,7 @@ def test_campaign_artifacts_and_provenance(tmp_path):
     out = tmp_path / "campaign"
     summary = run_campaign(out, seeds=[0], disclosures=[1.0])
     assert len(summary["runs"]) == 15
+    assert summary["design"]["conditions"] == ["clean", "shared", "independent"]
     assert len(list((out / "bundles").iterdir())) == 15
     assert summary["source_experiment_version"] == SOURCE_EXPERIMENT_VERSION
     assert summary["upstream_compatibility_baseline"] == UPSTREAM_COMPATIBILITY_BASELINE

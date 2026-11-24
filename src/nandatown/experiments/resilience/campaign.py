@@ -15,7 +15,7 @@ from . import (
     EVALUATOR, SOURCE_EXPERIMENT_VERSION, UPSTREAM_COMPATIBILITY_BASELINE, __version__,
 )
 from .experiment import run_experiment
-from .model import CONDITIONS, POLICIES, Settings, stable_rank
+from .model import CONDITIONS, DEFAULT_CONDITIONS, POLICIES, Condition, Settings, stable_rank
 from .report import render_html
 
 MEASURES = (
@@ -56,7 +56,7 @@ def summarize(rows: list[dict]) -> dict:
             for baseline in ("price", "random", "load", "oracle"):
                 controls = {r["seed"]: r for r in groups.get(
                     (condition, disclosure, baseline), [])}
-                for measure in ("stress_completion_rate", "attempts_per_task",
+                for measure in ("completion_rate", "stress_completion_rate", "attempts_per_task",
                                 "cost_per_success_cents"):
                     differences = [
                         r[measure] - controls[r["seed"]][measure]
@@ -76,18 +76,22 @@ def summarize(rows: list[dict]) -> dict:
 
 
 def run_campaign(out: Path, seeds: list[int], disclosures: list[float],
-                 keep_all: bool = False) -> dict:
+                 keep_all: bool = False, conditions: list[Condition] | None = None) -> dict:
+    conditions = list(DEFAULT_CONDITIONS) if conditions is None else conditions
+    if not conditions or len(conditions) != len(set(conditions)):
+        raise ValueError("conditions must be nonempty and unique")
     if not seeds or len(seeds) != len(set(seeds)):
         raise ValueError("seeds must be nonempty and unique")
     if not disclosures or len(disclosures) != len(set(disclosures)):
         raise ValueError("disclosures must be nonempty and unique")
-    for seed in seeds:
-        for disclosure in disclosures:
-            Settings(seed=seed, disclosure=disclosure)
+    for condition in conditions:
+        for seed in seeds:
+            for disclosure in disclosures:
+                Settings(seed=seed, disclosure=disclosure, condition=condition)
     out.mkdir(parents=True, exist_ok=False)
     rows = []
-    total = len(seeds) * len(disclosures) * len(CONDITIONS) * len(POLICIES)
-    for condition in CONDITIONS:
+    total = len(seeds) * len(disclosures) * len(conditions) * len(POLICIES)
+    for condition in conditions:
         for disclosure in disclosures:
             for seed in seeds:
                 for policy in POLICIES:
@@ -109,7 +113,7 @@ def run_campaign(out: Path, seeds: list[int], disclosures: list[float],
         "source_experiment_version": SOURCE_EXPERIMENT_VERSION,
         "design": {
             "seeds": seeds, "disclosures": disclosures,
-            "conditions": list(CONDITIONS), "policies": list(POLICIES),
+            "conditions": conditions, "policies": list(POLICIES),
             "retained_bundles": "all" if keep_all else "first seed in every condition",
             "interval_method": "paired-seed percentile bootstrap, 2000 resamples",
             "scope": "synthetic Nanda Town Lab; shared coordinator; no model inference",
