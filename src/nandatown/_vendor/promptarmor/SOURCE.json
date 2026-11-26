@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/hosseinsadeghi/promptarmor",
+  "commit": "970d72286643f6faac7ceb8e647df7cbfffb221b",
+  "files_sha256_lf": {
+    "config.py": "6dc2216a46d1f6dc8befab884d466f44853a74e16e9a73d7331c40533c3ab01a",
+    "prompts.py": "f8d7db4c97310ba3a52c664081e07a26c046af7d79151328c4a0c449edcb2117",
+    "detector.py": "c3dbdde3829c7a6272226d0b2dc44a2ab261717cdd6d4088aa9b23263a89731c",
+    "sanitize.py": "0107248a5e6b82a2d86aa7181d92347c95ac251e25d0e2beeed154c8a1c022d2"
+  },
+  "license": "MIT",
+  "scope": "Four unmodified upstream runtime modules; no SDK client, scripts, tests, datasets, model weights or evaluation code bundled."
+}

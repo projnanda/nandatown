@@ -1,0 +1,2 @@
+# Preserve the independently copied Atlas HTML bytes on every checkout.
+tests/fixtures/web_evidence/atlas_relay/site/*/index.html -text -diff

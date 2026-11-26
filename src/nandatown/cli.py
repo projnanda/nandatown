@@ -37,6 +37,47 @@ def _print_join_credentials(role: str, env: dict[str, str]) -> None:
           flush=True)
 
 
+def _print_web_evidence_summary(result, directory) -> None:
+    """Render a compact human-readable result while artifacts keep full detail."""
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.table import Table
+
+    from .web_evidence import terminal_safe
+
+    completed = result.status == "completed"
+    status_icon = "OK" if completed else "!"
+    border = ("green" if completed else
+              "yellow" if result.status != "error" else "red")
+    title = f"{status_icon} | Web evidence | {result.status.replace('_', ' ')}"
+
+    table = Table.grid(padding=(0, 2), expand=True)
+    table.add_column(style="bold cyan", no_wrap=True)
+    table.add_column(ratio=1)
+    table.add_row("Question", terminal_safe(result.question))
+    if result.answer:
+        table.add_row("Answer", terminal_safe(result.answer.text))
+        citations = "\n".join(
+            f"[{terminal_safe(citation.evidence_id)}] "
+            f"{terminal_safe(citation.url)}"
+            for citation in result.answer.citations
+        ) or "None"
+        table.add_row("Citations", citations)
+    else:
+        table.add_row("Result", terminal_safe(result.stop_reason))
+    table.add_row(
+        "Run",
+        f"{result.pages_visited} pages | {result.steps_used} steps | "
+        f"{result.evidence_count} evidence items",
+    )
+    total_tokens = result.token_usage.get("total_tokens")
+    if total_tokens is not None:
+        table.add_row("Tokens", f"{total_tokens:,}")
+    table.add_row("Artifacts", terminal_safe(directory))
+    Console(highlight=False, markup=False).print(
+        Panel(table, title=title, border_style=border, padding=(1, 2)))
+
+
 def cmd_run(args: argparse.Namespace) -> int:
     from .bundle import load_bundle
     from .profiles import PROFILES
@@ -103,6 +144,133 @@ def cmd_run(args: argparse.Namespace) -> int:
     print(render_report(load_bundle(bundle_dir)))
     print(f"Evidence bundle: {bundle_dir}")
     return 0 if result.verdict == "passed" else 1
+
+
+def cmd_web_evidence(args: argparse.Namespace) -> int:
+    """Run the two-agent complete-page evidence baseline."""
+    method = getattr(args, 'defense', 'baseline')
+    if args.provider is None:
+        args.provider = 'openai'
+    if args.model is None:
+        args.model = 'deepseek-flash' if args.provider == 'deepseek' else 'gpt-4.1'
+    if method != 'baseline' and args.base_url is None:
+        args.base_url = 'https://api.openai.com/v1'
+    if method == 'llm':
+        if args.provider != 'openai':
+            print('LLM defense requires provider openai')
+            return 2
+        return cmd_web_evidence_protected(args)
+    if method == 'piguard':
+        if args.provider != 'openai':
+            print('PIGuard requires provider openai')
+            return 2
+        return cmd_web_evidence_piguard(args)
+    return _cmd_web_evidence(args)
+
+
+def cmd_web_evidence_piguard(args: argparse.Namespace) -> int:
+    """Run retained adaptive routing with a pinned local PIGuard snapshot."""
+    from .piguard_workflow import cli
+    try:
+        return cli(args)
+    except (ValueError, OSError) as exc:
+        print(f'PIGuard configuration error: {type(exc).__name__}')
+        return 2
+
+
+def cmd_web_evidence_protected(args: argparse.Namespace) -> int:
+    """Run the unchanged agents with the pinned PromptArmor handoff guard."""
+    import json
+    import time
+    from pathlib import Path
+    from types import SimpleNamespace
+    from .web_evidence import Answer, EvidencePacket
+    from .promptarmor_workflow import default_config, run
+
+    replay = getattr(args, 'packet', None)
+    try:
+        if replay:
+            packet = EvidencePacket.model_validate_json(Path(replay).read_bytes())
+            question = packet.question
+            url = packet.items[0].url if packet.items else 'http://127.0.0.1/'
+        else:
+            url, question = args.url, args.question
+        config = default_config(url, question, args.model, args.base_url).model_copy(update={
+            'headed': args.headed, 'max_pages': args.max_pages, 'max_steps': args.max_steps,
+            'input_token_budget': args.input_budget, 'page_timeout_seconds': args.page_timeout,
+            'run_timeout_seconds': args.run_timeout})
+        # Revalidate bounded overrides instead of bypassing the base contract.
+        config = type(config).model_validate(config.model_dump())
+        output = args.out or str(Path('runs') / time.strftime('web-evidence-promptarmor-%Y%m%d-%H%M%S'))
+        result = run(config, output, packet_path=replay, guard_model=args.guard_model,
+                     guard_base_url=args.guard_base_url, guard_key_env=args.guard_key_env,
+                     agent_key_env=args.agent_key_env, guard_reasoning_effort=args.guard_reasoning_effort)
+    except (ValueError, OSError) as exc:
+        print(f'PromptArmor configuration error: {type(exc).__name__}')
+        return 2
+    if args.json:
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+    else:
+        display = dict(result)
+        display['answer'] = Answer.model_validate(result['answer']) if result['answer'] else None
+        # The shared renderer receives a display-only aggregate; saved usage stays split by role.
+        display['token_usage'] = {'total_tokens': sum(
+            usage.get('total_tokens', 0) for usage in result['token_usage'].values())}
+        _print_web_evidence_summary(SimpleNamespace(**display), Path(output))
+    return 0 if result['status'] == 'completed' else 1
+
+
+def _cmd_web_evidence(args: argparse.Namespace) -> int:
+    """Run the final complete-page evidence handoff."""
+    import json
+    import os
+    import time
+
+    from pydantic import ValidationError
+
+    from .web_evidence import (
+        DEFAULT_BASE_URL,
+        OPENAI_BASE_URL,
+        RunConfig,
+        TerminalRenderer,
+        run_web_evidence,
+    )
+    command = "web-evidence"
+    output = args.out or os.path.join(
+        "runs", time.strftime(
+            "web-evidence-%Y%m%d-%H%M%S"))
+    try:
+        config = RunConfig(
+            url=args.url,
+            question=args.question,
+            model=args.model,
+            provider=args.provider,
+            base_url=(getattr(args, "base_url", None) or
+                      (OPENAI_BASE_URL if args.provider == "openai" else DEFAULT_BASE_URL)),
+            headed=args.headed,
+            max_pages=args.max_pages,
+            max_steps=args.max_steps,
+            input_token_budget=args.input_budget,
+            page_timeout_seconds=args.page_timeout,
+            run_timeout_seconds=args.run_timeout,
+        )
+        directory, result = run_web_evidence(
+            config, output,
+            renderer=TerminalRenderer(enabled=not args.json))
+    except (ValidationError, ValueError) as exc:
+        print(f"{command} configuration error: {type(exc).__name__}")
+        return 2
+    except Exception as exc:
+        print(f"{command} failed before artifacts were written:"
+              f" {type(exc).__name__}")
+        return 1
+    if args.json:
+        # The common on-disk contract retains split usage and defense status.
+        payload = json.loads((directory / "result.json").read_text(encoding="utf-8"))
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+    else:
+        _print_web_evidence_summary(result, directory)
+    return 0 if result.status == "completed" else 1
 
 
 def cmd_test_agent(args: argparse.Namespace) -> int:
@@ -908,6 +1076,91 @@ def main(argv: list[str] | None = None) -> int:
                             " run grants instead of join tokens")
     p_run.add_argument("--identity-dir", default=None)
     p_run.set_defaults(func=cmd_run)
+
+    p_web = sub.add_parser(
+        "web-evidence",
+        help="run the two-agent complete-page web workflow")
+    p_web.add_argument("--url", required=True,
+                       help="literal-loopback webpage URL")
+    p_web.add_argument("--question", required=True,
+                       help="question Agent 2 must answer from evidence")
+    p_web.add_argument("--headed", action="store_true",
+                       help="show Chromium for local debugging")
+    p_web.add_argument("--max-pages", type=int, default=3,
+                       help="maximum pages Agent 1 may visit (default 3)")
+    p_web.add_argument("--max-steps", type=int, default=6,
+                       help="maximum Agent 1 model/tool decisions (default 6)")
+    p_web.add_argument("--input-budget", type=int, default=6000,
+                       help="estimated input-token budget per model call")
+    p_web.add_argument("--page-timeout", type=float, default=15.0,
+                       help="page load timeout in seconds (default 15)")
+    p_web.add_argument("--run-timeout", type=float, default=120.0,
+                       help="Agent time budget in seconds; guard time excluded for defenses (default 120)")
+    p_web.add_argument("--model", default=None,
+                       help="Agent model (default gpt-4.1; deepseek provider: deepseek-flash)")
+    p_web.add_argument("--provider", choices=["deepseek", "openai"],
+                       default=None,
+                       help="API provider (default openai)")
+    p_web.add_argument("--out", default=None,
+                       help="new or empty artifact directory")
+    p_web.add_argument("--json", action="store_true",
+                       help="print machine-readable JSON instead of the panel")
+    p_web.add_argument("--defense", choices=["baseline", "llm", "piguard"], default="baseline")
+    p_web.add_argument("--model-dir", default="models/piguard-dd78b24e3301")
+    p_web.add_argument("--base-url", default=None, help="API endpoint; defaults to selected provider")
+    p_web.add_argument("--agent-key-env", default="OPENAI_API_KEY")
+    p_web.add_argument("--guard-model", default="gpt-6-luna")
+    p_web.add_argument("--guard-base-url", default="https://api.openai.com/v1")
+    p_web.add_argument("--guard-key-env", default="OPENAI_API_KEY")
+    p_web.add_argument("--guard-reasoning-effort", default=None,
+                       choices=["none", "low", "medium", "high", "xhigh", "max"])
+    p_web.set_defaults(func=cmd_web_evidence)
+
+    p_pg = sub.add_parser("web-evidence-piguard", help="PIGuard warning and adaptive Agent 2 routing")
+    p_pg.add_argument("--url", required=True)
+    p_pg.add_argument("--question", required=True)
+    p_pg.add_argument("--model", choices=["gpt-4.1"], default="gpt-4.1")
+    p_pg.add_argument("--model-dir", default="models/piguard-dd78b24e3301")
+    p_pg.add_argument("--headed", action="store_true")
+    p_pg.add_argument("--max-pages", type=int, default=3)
+    p_pg.add_argument("--max-steps", type=int, default=6)
+    p_pg.add_argument("--input-budget", type=int, default=6000)
+    p_pg.add_argument("--page-timeout", type=float, default=15.0)
+    p_pg.add_argument("--run-timeout", type=float, default=120.0)
+    p_pg.add_argument("--base-url", default="https://api.openai.com/v1")
+    p_pg.add_argument("--out", default=None)
+    p_pg.add_argument("--json", action="store_true")
+    p_pg.set_defaults(func=cmd_web_evidence_piguard)
+
+    for command, replay in (("web-evidence-protected", False),
+                            ("web-evidence-protected-replay", True)):
+        p_guard = sub.add_parser(command, help="Full-Page agents with PromptArmor" +
+                                (" on a saved packet" if replay else ""))
+        if replay:
+            p_guard.add_argument("--packet", required=True, help="original EvidencePacket JSON")
+        else:
+            p_guard.add_argument("--url", required=True, help="literal-loopback webpage URL")
+            p_guard.add_argument("--question", required=True)
+        p_guard.add_argument("--headed", action="store_true")
+        p_guard.add_argument("--max-pages", type=int, default=3)
+        p_guard.add_argument("--max-steps", type=int, default=6)
+        p_guard.add_argument("--input-budget", type=int, default=6000)
+        p_guard.add_argument("--page-timeout", type=float, default=15.0)
+        p_guard.add_argument("--run-timeout", type=float, default=120.0,
+                             help="combined Agent time budget, excluding Guard time")
+        p_guard.add_argument("--model", default="gpt-4.1", help="both Agent models (default gpt-4.1)")
+        p_guard.add_argument("--provider", choices=["openai"], default="openai")
+        p_guard.add_argument("--base-url", default="https://api.openai.com/v1")
+        p_guard.add_argument("--agent-key-env", default="OPENAI_API_KEY")
+        p_guard.add_argument("--guard-model", default="gpt-6-luna")
+        p_guard.add_argument("--guard-base-url", default="https://api.openai.com/v1")
+        p_guard.add_argument("--guard-key-env", default="OPENAI_API_KEY")
+        p_guard.add_argument("--guard-reasoning-effort", default=None,
+                             choices=["none", "low", "medium", "high", "xhigh", "max"],
+                             help="default medium for reasoning models; omitted for GPT-4.1")
+        p_guard.add_argument("--out", default=None, help="new or empty artifact directory")
+        p_guard.add_argument("--json", action="store_true")
+        p_guard.set_defaults(func=cmd_web_evidence_protected)
 
     p_identity = sub.add_parser(
         "identity", help="portable identities: controller keys, the"

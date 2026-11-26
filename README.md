@@ -307,6 +307,16 @@ connector URLs are omitted from rerun metadata; supply those inputs again and
 record the agent/adapter versions separately. The printed recipe names missing
 inputs rather than silently substituting reference agents.
 
+## Two-agent web-evidence experiments
+
+`nandatown web-evidence` adds a local two-agent workflow for testing webpage-based prompt injection, with three configurations:
+
+- **Baseline:** No dedicated defense.
+- **PromptArmor:** LLM-based detection and removal.
+- **PIGuard:** ML detection with adaptive model routing.
+
+See the [web-evidence guide](docs/web-evidence.md).
+
 ## The MCP and A2A edges
 
 HTTP is Track's canonical participant boundary. MCP adapts that surface;

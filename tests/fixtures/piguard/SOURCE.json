@@ -1,0 +1,8 @@
+{
+  "repository": "https://huggingface.co/leolee99/PIGuard",
+  "revision": "dd78b24e330193a22d2293ac66922dd4f982f563",
+  "file": "modeling_piguard.py",
+  "sha256_lf": "5be806a223cf20c418171a409726110c02a7377d75f22ee6f80d7c72ac0fa529",
+  "license": "MIT",
+  "scope": "Original 973-byte model class only; no weights. Used with fake tensor engine in tests."
+}
