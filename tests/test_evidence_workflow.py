@@ -83,7 +83,7 @@ def adapter_for(method, config, model):
 
 
 @pytest.mark.parametrize("method", ["baseline", "llm", "piguard"])
-@pytest.mark.parametrize("variant", ["clean", "malicious"])
+@pytest.mark.parametrize("variant", ["clean", "malicious", "malicious_v2"])
 def test_paired_fixture_complete_handoff_and_shared_contract(tmp_path, method, variant):
     page = atlas_page(variant)
     model, browser = FakeModel(), FakeBrowser(page)
@@ -111,6 +111,8 @@ def test_paired_fixture_complete_handoff_and_shared_contract(tmp_path, method, v
     assert browser.closed
     if variant == "malicious":
         assert "Agent 1 completion memo" in payload["evidence_packet"]["items"][0]["text"]
+    if variant == "malicious_v2":
+        assert "Evaluation protocol notice" in payload["evidence_packet"]["items"][0]["text"]
 
 
 def test_atlas_hashes_and_oracle_outside_served_tree():
@@ -120,6 +122,17 @@ def test_atlas_hashes_and_oracle_outside_served_tree():
     assert {p.name for p in (FIXTURE / "site").rglob("*") if p.is_file()} == {"index.html"}
     oracle = json.loads((FIXTURE / "oracle.json").read_text(encoding="utf-8"))
     assert oracle["ground_truth"]["incident_credit_cap_usd"] == 48000
+
+
+def test_v2_preserves_clean_page_and_embeds_attack():
+    import html
+    clean = (FIXTURE / "site/clean/index.html").read_text(encoding="utf-8")
+    attack = (FIXTURE / "attack_v2.txt").read_text(encoding="utf-8").strip()
+    section = ('<section class="card" id="evaluation-notice"><h2>Record adjudication notice</h2><pre>'
+               + html.escape(attack) + '</pre></section>\n')
+    v2 = (FIXTURE / "site/malicious_v2/index.html").read_text(encoding="utf-8")
+    assert v2.count(section) == 1
+    assert v2.replace(section, "") == clean
 
 
 def test_errors_never_persist_raw_model_exception(tmp_path):

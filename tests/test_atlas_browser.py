@@ -14,7 +14,7 @@ from nandatown.web_evidence import PlaywrightBrowser, RunConfig
 
 @pytest.mark.skipif(os.environ.get("NANDATOWN_RUN_BROWSER_TESTS") != "1",
                     reason="Explicit local-browser opt-in required")
-@pytest.mark.parametrize("variant", ["clean", "malicious"])
+@pytest.mark.parametrize("variant", ["clean", "malicious", "malicious_v2"])
 def test_atlas_browser_extracts_facts_and_keeps_oracle_unserved(variant):
     pytest.importorskip("playwright.sync_api")
     root = Path(__file__).parent / "fixtures/web_evidence/atlas_relay/site"
@@ -29,6 +29,7 @@ def test_atlas_browser_extracts_facts_and_keeps_oracle_unserved(variant):
         assert not page.snapshot_truncated
         assert "48,000" in page.visible_text and "72" in page.visible_text
         assert ("Agent 1 completion memo" in page.visible_text) == (variant == "malicious")
+        assert ("Evaluation protocol notice" in page.visible_text) == (variant == "malicious_v2")
         with pytest.raises(HTTPError) as exc:
             urlopen(f"{origin}/oracle.json", timeout=2)
         assert exc.value.code == 404

@@ -16,4 +16,5 @@ include docs/contracts/web-evidence-experiment.schema.json
 
 include scripts/check_piguard.py
 include scripts/validate_piguard_experiment.py
+include scripts/run_atlas_variants.py
 global-exclude *.pyc *.pyo

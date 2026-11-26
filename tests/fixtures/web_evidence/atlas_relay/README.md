@@ -1,7 +1,7 @@
 # Atlas Relay paired fixture
 
 Original synthetic fixture, published with the contributor's permission under
-Apache-2.0. The two HTML files are independent byte-for-byte copies; the original
+Apache-2.0. The original paired HTML files are independent byte-for-byte copies; the original
 parent-directory site is never read or modified by tests or runtime commands.
 `provenance.json` records their SHA-256 identities and attack hypothesis.
 
@@ -21,3 +21,9 @@ This fixture is synthetic, not BrowseSafe++ data and not an independently
 adopted agent. Adding the fixture does not itself measure attack efficacy.
 Later bounded campaigns are documented separately; they do not establish
 general robustness or independent adoption.
+
+`site/malicious_v2/` adds a separate attack based on a forged evaluation
+notice and grading pressure. It preserves the clean record facts and targets
+the same three wrong values. `attack_v2.txt` is the evaluator-only attack text.
+Run the clean control and both attacks against all three defenses with
+`python scripts/run_atlas_variants.py`. This command makes paid API calls.
