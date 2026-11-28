@@ -41,6 +41,93 @@ CI also installs that wheel into a clean Python 3.11 environment and runs the
 Lab and Track controls outside the checkout, so source-tree imports cannot
 hide missing packaged files.
 
+### Windows setup (PowerShell)
+
+NandaTown supports Python 3.11 and 3.12. The following steps were verified on Windows with Python 3.11.9.
+
+**1. Preserve test fixture line endings**
+
+Previous test fixtures contain SHA-256-verified evidence. Git's automatic LF-to-CRLF conversion on Windows changes their hashes and causes bundle verification tests to fail.
+
+For a new clone, disable conversion before cloning:
+
+```powershell
+git -c core.autocrlf=false clone https://github.com/projnanda/nandatown.git
+cd nandatown
+```
+
+For an existing checkout:
+
+```powershell
+git config core.autocrlf false
+git restore --source=HEAD --worktree -- tests/fixtures
+```
+
+The restore command discards local changes to `tests/fixtures`. Preserve any intentional changes before running it.
+
+Verify that the affected fixtures show `i/lf w/lf`:
+
+```powershell
+git ls-files --eol tests/fixtures
+```
+
+**2. Create and activate a virtual environment**
+
+From the repository root:
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+If PowerShell blocks activation:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+```
+
+**3. Install development dependencies**
+
+```powershell
+python -m pip install -e ".[dev]"
+python -m pip check
+```
+
+The development extra includes pytest. No additional test dependencies were required in the verified clean environment.
+
+**4. Run tests**
+
+```powershell
+python -m pytest -q tests/test_bundle.py
+python -m pytest -q
+```
+
+**5. Run CLI smoke tests**
+
+```powershell
+nandatown run marketplace --out runs/lab
+nandatown run quote-crash-restart --out runs/track
+```
+
+Both scenarios run without model API credentials.
+
+**Windows test limitations**
+
+On Windows with Python 3.11.9, the historical bundle suite passed all 47 tests after correcting line endings.
+
+The full suite reported 1,830 passed, 9 failed, and 26 skipped. Remaining failures involved:
+
+- POSIX file permission assumptions (`0o600` and read-only directories).
+- A test that creates a filename containing control characters, which Windows rejects.
+- Subprocess timeout tests where the child PID file was not created before the deadline.
+- A concurrent key-creation test where some child processes produced empty output.
+
+The subprocess and concurrency failures require further investigation. These results do not establish that the corresponding functionality is unsupported on Windows.
+
+Both Lab and Track CLI smoke tests completed with a `PASSED` verdict.
+
+
 ## Dashboard
 
 Read `apps/nest-dashboard/AGENTS.md` and the relevant installed Next.js guides
